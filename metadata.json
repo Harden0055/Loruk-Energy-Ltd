@@ -1,0 +1,6 @@
+{
+  "name": "Fleet & Fuel Logistics Manager",
+  "description": "A comprehensive system for tracking fuel deliveries, fleet transactions, customer ledgers, station reports, and payments across multiple locations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

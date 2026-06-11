@@ -1,0 +1,89 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System users (admins/cashiers)",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "cashier"] },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["email", "role"]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "Fuel station customer",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "balance": { "type": "number" },
+        "totalPurchases": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "credit_risk"] },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["name", "balance", "totalPurchases", "status", "createdAt"]
+    },
+    "Delivery": {
+      "title": "Delivery",
+      "description": "Fuel delivery transaction",
+      "type": "object",
+      "properties": {
+        "customerId": { "type": "string" },
+        "date": { "type": "number" },
+        "productType": { "type": "string", "enum": ["Diesel", "Super"] },
+        "litres": { "type": "number" },
+        "totalAmount": { "type": "number" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["customerId", "date", "productType", "litres", "totalAmount", "createdBy"]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "Customer payment",
+      "type": "object",
+      "properties": {
+        "customerId": { "type": "string" },
+        "date": { "type": "number" },
+        "amount": { "type": "number" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["customerId", "date", "amount", "createdBy"]
+    },
+    "DailyReport": {
+      "title": "Daily Report",
+      "description": "Daily fuel station report",
+      "type": "object",
+      "properties": {
+        "date": { "type": "number" },
+        "location": { "type": "string", "enum": ["Gel-Bungoma", "Gel-Kapenguria"] },
+        "bankable": { "type": "number" },
+        "data": { "type": "object" }
+      },
+      "required": ["date", "location", "bankable"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "System users for RBAC"
+    },
+    "customers/{customerId}": {
+      "schema": { "$ref": "#/entities/Customer" },
+      "description": "List of customers"
+    },
+    "deliveries/{deliveryId}": {
+      "schema": { "$ref": "#/entities/Delivery" },
+      "description": "Fuel delivery records"
+    },
+    "payments/{paymentId}": {
+      "schema": { "$ref": "#/entities/Payment" },
+      "description": "Customer payment records"
+    },
+    "reports/{reportId}": {
+      "schema": { "$ref": "#/entities/DailyReport" },
+      "description": "Daily station reports"
+    }
+  }
+}

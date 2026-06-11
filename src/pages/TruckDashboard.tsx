@@ -1,0 +1,169 @@
+import React, { useMemo } from 'react';
+import { useFleetExpenses } from '../lib/db';
+import { formatCurrency } from '../lib/utils';
+import { format } from 'date-fns';
+import { CarFront, TrendingUp, Route, Gauge, Fuel, MapPin, Award, CheckCircle2, Download } from 'lucide-react';
+import { 
+  ResponsiveContainer, 
+  BarChart, 
+  Bar, 
+  Cell, 
+  XAxis, 
+  YAxis, 
+  Tooltip, 
+  CartesianGrid, 
+  AreaChart,
+  Area
+} from 'recharts';
+
+const CAR_REGISTRATIONS = [
+  'KDE 179Y',
+  'KDL 019S',
+  'KCY 842Y',
+  'KCF 119R',
+  'KDW 028Y'
+];
+
+const STATIONS = ['Loruk - Ndalu', 'Loruk - Junction', 'Gel - Bungoma', 'Gel - Kapenguria'] as const;
+
+export default function TruckDashboard({ truckReg, onNavigateToTruck }: { truckReg?: string | null, onNavigateToTruck?: (reg: string) => void }) {
+  const { expenses: allExpenses } = useFleetExpenses();
+
+  const expenses = useMemo(() => {
+    return truckReg ? allExpenses.filter(e => e.carRegistration === truckReg) : allExpenses;
+  }, [allExpenses, truckReg]);
+
+  const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalDistance = expenses.reduce((sum, e) => sum + (e.distance || 0), 0);
+  const activeTrucksCount = new Set(expenses.map(e => e.carRegistration)).size;
+  const avgCostPerKm = totalDistance > 0 ? totalExpense / totalDistance : 0;
+
+  const vehicleSpendData = useMemo(() => {
+    return CAR_REGISTRATIONS.map(car => {
+      // Use allExpenses to compare all vehicles
+      const carExpenses = allExpenses.filter(e => e.carRegistration === car);
+      const amount = carExpenses.reduce((sum, e) => sum + e.amount, 0);
+      return {
+        name: car,
+        amount,
+        isCurrent: car === truckReg
+      };
+    });
+  }, [allExpenses, truckReg]);
+
+  const timelineChartData = useMemo(() => {
+    const sorted = [...expenses].sort((a, b) => a.date - b.date);
+    const grouped: { [key: string]: { dateStr: string; amount: number } } = {};
+    
+    sorted.forEach(e => {
+        const dateStr = format(e.date, 'MMM dd');
+        if (!grouped[dateStr]) grouped[dateStr] = { dateStr, amount: 0 };
+        grouped[dateStr].amount += e.amount;
+    });
+
+    return Object.values(grouped).slice(-10);
+  }, [expenses]);
+
+  return (
+    <div className="space-y-6 animate-fade-in font-sans p-2">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-blue-100">Truck Fleet Performance Dashboard</h2>
+        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 cursor-pointer transition-colors shadow-sm">
+           <Download className="w-4 h-4" /> Export Report
+        </button>
+      </div>
+      
+      {/* Metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900/60 p-5 rounded-xl">
+           <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Total Spent</p>
+           <h3 className="text-2xl font-black font-mono text-blue-600 dark:text-blue-400 mt-2">{formatCurrency(totalExpense)}</h3>
+        </div>
+        <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900/60 p-5 rounded-xl">
+           <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Total Distance</p>
+           <h3 className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-2">{totalDistance.toLocaleString()} <span className="text-xs font-sans font-bold">km</span></h3>
+        </div>
+        <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900/60 p-5 rounded-xl">
+           <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Avg Fuel Cost</p>
+           <h3 className="text-2xl font-black font-mono text-purple-600 dark:text-purple-400 mt-2">{avgCostPerKm > 0 ? `${formatCurrency(avgCostPerKm)}/km` : 'N/A'}</h3>
+        </div>
+        <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900/60 p-5 rounded-xl">
+           <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Active Fleet</p>
+           <h3 className="text-2xl font-black font-mono text-amber-600 dark:text-amber-400 mt-2">{activeTrucksCount} <span className="text-xs font-sans font-bold">Trucks</span></h3>
+        </div>
+      </div>
+
+       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white dark:bg-blue-950 border p-5 rounded-xl">
+            <h3 className="font-bold text-lg mb-4">Fuel Spend by Vehicle</h3>
+            <div className="h-64">
+                <ResponsiveContainer>
+                    <BarChart data={vehicleSpendData}>
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                        <Bar dataKey="amount">
+                          {vehicleSpendData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.isCurrent ? "#93c5fd" : "#1e40af"} />
+                          ))}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+        </div>
+        <div className="bg-white dark:bg-blue-950 border p-5 rounded-xl">
+            <h3 className="font-bold text-lg mb-4">Expenditure Trend</h3>
+            <div className="h-64">
+                <ResponsiveContainer>
+                    <AreaChart data={timelineChartData}>
+                        <XAxis dataKey="dateStr" />
+                        <YAxis />
+                        <Tooltip />
+                        <Area dataKey="amount" fill="#2563eb" />
+                    </AreaChart>
+                </ResponsiveContainer>
+            </div>
+        </div>
+       </div>
+
+       <div className="bg-white dark:bg-blue-950 rounded border overflow-hidden mt-6">
+        <h3 className="font-bold text-lg p-4 border-b">Historic Expenses</h3>
+        <table className="w-full text-left">
+          <thead>
+            <tr className="bg-gray-100 dark:bg-blue-900/50">
+              <th className="px-4 py-3">Date</th>
+              <th className="px-4 py-3">Car Reg</th>
+              <th className="px-4 py-3">Station</th>
+              <th className="px-4 py-3 text-right">Amount</th>
+              <th className="px-4 py-3 text-right">Distance</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200 dark:divide-blue-900">
+            {expenses.sort((a, b) => b.date - a.date).map(e => {
+              const badgeClass = e.station === 'Gel - Bungoma' ? 'bg-pink-100 dark:bg-pink-900/50 text-pink-800 dark:text-pink-200' 
+                                : e.station === 'Gel - Kapenguria' ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200' 
+                                : '';
+              
+              return (
+                <tr key={e.id} className="hover:bg-gray-50 dark:hover:bg-blue-800/10">
+                  <td className="px-4 py-3">{format(e.date, 'MMM d, yyyy')}</td>
+                  <td className="px-4 py-3 font-semibold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
+                  <td className="px-4 py-3">
+                    {e.station && (
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${badgeClass}`}>
+                        {e.station}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right font-mono font-bold text-blue-600 dark:text-blue-400">{formatCurrency(e.amount)}</td>
+                  <td className="px-4 py-3 text-right">{e.distance ? `${e.distance.toLocaleString()} km` : '-'}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+

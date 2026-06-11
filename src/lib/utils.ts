@@ -1,0 +1,30 @@
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
+export function formatCurrency(amount: number) {
+  return new Intl.NumberFormat('en-KE', {
+    style: 'currency',
+    currency: 'KES',
+  }).format(amount);
+}
+
+export function formatLitres(litres: number) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'decimal',
+    maximumFractionDigits: 1,
+  }).format(litres) + ' L';
+}
+
+export function getStationColor(station: string) {
+  switch (station) {
+    case 'Loruk - Junction': return 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400';
+    case 'Loruk - Ndalu': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400';
+    case 'Gel - Bungoma': return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400';
+    case 'Gel - Kapenguria': return 'bg-sky-100 dark:bg-sky-900/30 text-sky-800 dark:text-sky-400';
+    default: return 'bg-gray-100 dark:bg-blue-900/30 text-gray-800 dark:text-blue-400';
+  }
+}
