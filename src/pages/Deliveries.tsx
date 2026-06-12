@@ -878,67 +878,68 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
 
   return (
     <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-blue-950 rounded-xl shadow-2xl border border-gray-200 dark:border-blue-900 w-full max-w-md overflow-hidden transition-colors">
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-blue-200 dark:border-blue-800 w-full max-w-md overflow-hidden transition-colors">
         <form onSubmit={handleSubmit}>
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-blue-900 bg-gray-50/50 dark:bg-blue-900/30">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-blue-50">Record Fuel Delivery</h3>
+          <div className="px-6 py-5 border-b border-blue-200 dark:border-blue-800 bg-blue-100/50 dark:bg-blue-950/50 flex justify-between items-center">
+            <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Record Fuel Delivery</h3>
+            <button type="button" onClick={onClose} className="text-blue-400 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"><X className="w-5 h-5"/></button>
           </div>
-          <div className="p-6 space-y-4 bg-white dark:bg-blue-950">
+          <div className="p-6 space-y-4">
             <div>
-              <label className="block text-base font-semibold text-gray-700 dark:text-gray-300 mb-1">Customer</label>
+              <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Customer</label>
               <select 
                 required
                 value={form.customerId}
                 onChange={e => setForm({...form, customerId: e.target.value})}
-                className="w-full px-3 py-2 bg-blue-50/50 dark:bg-blue-900/40 border border-blue-300 dark:border-blue-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-blue-100 cursor-pointer"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
               >
-                <option value="" disabled className="dark:bg-blue-950">Select a customer</option>
-                {customers.map(c => <option key={c.id} value={c.id} className="dark:bg-blue-950">{c.name}</option>)}
+                <option value="" disabled>Select a customer</option>
+                {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-base font-semibold text-gray-700 dark:text-gray-300 mb-1">Product Type</label>
+              <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Product Type</label>
               <select 
                 value={form.productType}
                 onChange={e => setForm({...form, productType: e.target.value as any})}
-                className="w-full px-3 py-2 bg-blue-50/50 dark:bg-blue-900/40 border border-blue-300 dark:border-blue-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-blue-100 cursor-pointer"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
               >
-                <option value="Diesel" className="dark:bg-blue-950">Diesel</option>
-                <option value="Super" className="dark:bg-blue-950">Super</option>
+                <option value="Diesel">Diesel</option>
+                <option value="Super">Super</option>
               </select>
             </div>
             <div>
-              <label className="block text-base font-semibold text-gray-700 dark:text-gray-300 mb-1">Delivery Date</label>
+              <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Delivery Date</label>
               <input 
                 type="date"
                 required
                 value={form.date}
                 onChange={e => setForm({...form, date: e.target.value})}
-                className="w-full px-3 py-2 bg-white dark:bg-blue-900 border border-gray-350 dark:border-blue-805 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-blue-100"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-base font-semibold text-gray-700 dark:text-gray-300 mb-1">Litres</label>
+                <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Litres</label>
                 <input 
                   type="number" step="0.1" required
                   value={form.litres} onChange={e => setForm({...form, litres: e.target.value})}
-                  className="w-full px-3 py-2 bg-white dark:bg-blue-900 border border-gray-350 dark:border-blue-805 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-blue-100"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
                 />
               </div>
               <div>
-                <label className="block text-base font-semibold text-gray-700 dark:text-gray-300 mb-1">Total Bill ($)</label>
+                <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Total Amount (KES)</label>
                 <input 
-                  type="number" step="0.01" required
+                  type="number" step="1" required
                   value={form.totalAmount} onChange={e => setForm({...form, totalAmount: e.target.value})}
-                  className="w-full px-3 py-2 bg-white dark:bg-blue-900 border border-gray-350 dark:border-blue-805 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-blue-100"
+                  className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
                 />
               </div>
             </div>
           </div>
-          <div className="px-6 py-4 bg-gray-50 dark:bg-blue-900/10 border-t border-gray-200 dark:border-blue-900 flex justify-end gap-3">
-             <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-gray-500 hover:text-gray-900 dark:text-blue-300 dark:hover:text-blue-100 transition-colors">Cancel</button>
-             <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-base font-semibold transition-colors">Record Delivery</button>
+          <div className="px-6 py-4 bg-blue-100/50 dark:bg-blue-950/50 border-t border-blue-200 dark:border-blue-800 flex justify-end gap-3">
+             <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-blue-700 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-100 transition-colors">Cancel</button>
+             <button type="submit" disabled={loading} className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-base font-semibold transition-colors">Record Delivery</button>
           </div>
         </form>
       </div>

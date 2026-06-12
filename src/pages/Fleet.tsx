@@ -3,7 +3,7 @@ import { useAuth } from '../lib/auth';
 import { useFleetExpenses, createFleetExpense, deleteFleetExpense, updateFleetExpense } from '../lib/db';
 import { formatCurrency, getStationColor } from '../lib/utils';
 import { format } from 'date-fns';
-import { Plus, Trash2, Download, Bot, Pencil } from 'lucide-react';
+import { Plus, Trash2, Download, Bot, Pencil, Truck } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import AIInputModal from '../components/AIInputModal';
@@ -13,7 +13,7 @@ const CAR_REGISTRATIONS = ['KDE 179Y', 'KDL 019S', 'KCY 842Y', 'KCF 119R', 'KDW 
 const STATIONS = ['Loruk - Ndalu', 'Loruk - Junction', 'Gel - Bungoma', 'Gel - Kapenguria'] as const;
 type Station = typeof STATIONS[number];
 
-export default function Fleet({ onNavigateToTruck }: { onNavigateToTruck?: (reg: string) => void }) {
+export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToTruck?: (reg: string) => void, onNavigate?: (page: string) => void }) {
   const { user } = useAuth();
   const { expenses, loading } = useFleetExpenses();
   const [isAdding, setIsAdding] = useState(false);
@@ -76,8 +76,17 @@ export default function Fleet({ onNavigateToTruck }: { onNavigateToTruck?: (reg:
           <p className="text-gray-500">Track fuel consumption logs</p>
         </div>
         <div className="flex gap-3">
-          <button onClick={generatePDF} className="bg-blue-50 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 border border-blue-200 cursor-pointer"><Download className="w-4 h-4" /> Export</button>
-          <button onClick={() => setIsAdding(!isAdding)} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 cursor-pointer"><Plus className="w-4 h-4" /> Add Expense</button>
+          {onNavigate && (
+            <button 
+              onClick={() => onNavigate('truckDashboard')}
+              className="px-5 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-lg text-base font-semibold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-900/5 cursor-pointer"
+            >
+               <Truck className="w-5 h-5" />
+               Truck Dashboard
+            </button>
+          )}
+          <button onClick={generatePDF} className="bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:hover:bg-blue-800/60 dark:text-blue-300 dark:border-blue-700/50 px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 transition-colors cursor-pointer border border-blue-200 dark:border-blue-800"><Download className="w-5 h-5" /> Export</button>
+          <button onClick={() => setIsAdding(!isAdding)} className="px-5 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-lg text-base font-semibold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-900/5 cursor-pointer w-full sm:w-auto"><Plus className="w-5 h-5" /> Add Expense</button>
         </div>
       </div>
       {isAdding && (
@@ -93,6 +102,61 @@ export default function Fleet({ onNavigateToTruck }: { onNavigateToTruck?: (reg:
           </form>
         </div>
       )}
+
+      {/* Individual Trucks Summary */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        {CAR_REGISTRATIONS.map(reg => {
+          const totalConsumption = expenses.filter(e => e.carRegistration === reg).reduce((acc, e) => acc + e.amount, 0);
+          return (
+            <div 
+              key={reg} 
+              className="bg-white dark:bg-blue-950 p-4 border border-gray-200 dark:border-blue-900 rounded-xl shadow-sm"
+            >
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{reg}</p>
+              <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                {formatCurrency(totalConsumption)}
+              </h3>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Mini Dashboard */}
+      <div className="bg-white dark:bg-blue-950 p-6 border border-gray-200 dark:border-blue-900 rounded-xl shadow-sm mb-6 flex flex-col md:flex-row gap-6">
+        {/* Filters */}
+        <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Car</label>
+              <select value={selectedCar} onChange={e => setSelectedCar(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="all">All Cars</option>
+                {CAR_REGISTRATIONS.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Station</label>
+              <select value={selectedStation} onChange={e => setSelectedStation(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="all">All Stations</option>
+                {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">From Date</label>
+              <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">To Date</label>
+              <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+        </div>
+        {/* Consumption Summary */}
+        <div className="w-full md:w-64 bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg flex flex-col justify-center border border-blue-100 dark:border-blue-800">
+           <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">Filtered Consumption</p>
+           <h3 className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+             {formatCurrency(filteredExpenses.reduce((acc, e) => acc + e.amount, 0))}
+           </h3>
+           <p className="text-xs text-blue-500 mt-1">{filteredExpenses.length} logs</p>
+        </div>
+      </div>
 
       <div className="bg-white dark:bg-blue-950 rounded border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)] overflow-hidden">
         <table className="w-full text-left">

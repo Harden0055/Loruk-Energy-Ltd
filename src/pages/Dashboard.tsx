@@ -1,4 +1,4 @@
-import { useCustomers, useDeliveries, usePayments, useFleetExpenses, useStationReports, fetchSeedData } from '../lib/db';
+import { useCustomers, useDeliveries, usePayments, useFleetExpenses, fetchSeedData } from '../lib/db';
 import { formatCurrency, formatLitres, getStationColor } from '../lib/utils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { Users, Droplets, TrendingUp, AlertCircle, Truck, Fuel, Activity, Building2, DollarSign, ArrowDownLeft, Plus, X, Zap, CarFront } from 'lucide-react';
@@ -16,17 +16,16 @@ export default function Dashboard({ onNavigateToCustomer, onNavigateToTruck }: {
   const { deliveries, loading: delLoad } = useDeliveries();
   const { payments, loading: payLoad } = usePayments();
   const { expenses, loading: expLoad } = useFleetExpenses();
-  const { reports, loading: repLoad } = useStationReports();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   useEffect(() => {
-    if (!custLoad && !delLoad && !payLoad && !expLoad && !repLoad) {
+    if (!custLoad && !delLoad && !payLoad && !expLoad) {
       updateLastSync();
     }
-  }, [custLoad, delLoad, payLoad, expLoad, repLoad, updateLastSync]);
+  }, [custLoad, delLoad, payLoad, expLoad, updateLastSync]);
 
   useEffect(() => {
     // Optionally auto-seed once for the preview
@@ -60,7 +59,7 @@ export default function Dashboard({ onNavigateToCustomer, onNavigateToTruck }: {
       .slice(0, 10);
   }, [deliveries, payments]);
 
-  if (custLoad || delLoad || payLoad || expLoad || repLoad) {
+  if (custLoad || delLoad || payLoad || expLoad) {
     return <div className="animate-pulse space-y-6">
       <div className="h-32 bg-gray-200 dark:bg-blue-900 rounded flex gap-4">
          <div className="flex-1 bg-gray-300 dark:bg-blue-900 rounded-lg"></div>
@@ -71,44 +70,11 @@ export default function Dashboard({ onNavigateToCustomer, onNavigateToTruck }: {
   }
 
   // --- Base Metrics ---
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const totalDeliveriesToday = deliveries.filter(d => d.date >= today.getTime()).length;
-  // Placeholder: pending payments definition unclear, defaulting to 0 for now
-  const pendingPayments = 0; 
-  
   const activeCustomers = customers.filter(c => c.status === 'active').length;
   const outstandingBalance = customers.reduce((acc, c) => acc + (c.balance || 0), 0);
   const outstandingBalanceColor = outstandingBalance > 0 ? "text-red-600 dark:text-red-400" : outstandingBalance < 0 ? "text-emerald-600 dark:text-emerald-400" : "text-gray-900 dark:text-blue-100";
   const totalRevenue = deliveries.reduce((acc, d) => acc + (d.totalAmount || 0), 0);
   const totalLitres = deliveries.reduce((acc, d) => acc + (d.litres || 0), 0);
-
-  // --- Fleet Metrics ---
-  const currentMonthStart = new Date();
-  currentMonthStart.setDate(1);
-  currentMonthStart.setHours(0,0,0,0);
-  
-  const monthlyFleetExpenses = expenses.filter(e => e.date >= currentMonthStart.getTime());
-  const monthlyFleetAmount = monthlyFleetExpenses.reduce((acc, e) => acc + e.amount, 0);
-
-  let totalFleetAmount = 0;
-  let totalFleetDistance = 0;
-  for (const e of expenses) {
-    if (e.distance && e.distance > 0) {
-      totalFleetAmount += e.amount;
-      totalFleetDistance += e.distance;
-    }
-  }
-  const avgFleetCostPerKm = totalFleetDistance > 0 ? (totalFleetAmount / totalFleetDistance) : 0;
-
-  // --- Station Summary ---
-  // Get latest report per station
-  const stationStatuses = [...reports].sort((a,b) => b.date - a.date).reduce((acc, curr) => {
-    if (!acc.some(r => r.station === curr.station)) {
-      acc.push(curr);
-    }
-    return acc;
-  }, [] as typeof reports);
 
   const fleetExpensesSummary = expenses.reduce((acc, curr) => {
     let car = acc.find(c => c.carRegistration === curr.carRegistration);
@@ -170,76 +136,19 @@ export default function Dashboard({ onNavigateToCustomer, onNavigateToTruck }: {
     Revenue: d.totalAmount
   }));
 
-  // Low Fuel Alert threshold
-  const LOW_FUEL_THRESHOLD = 2000;
-  const lowFuelStations = stationStatuses.filter(
-    (st) => typeof st.fuelBalanceDiesel === 'number' && st.fuelBalanceDiesel < LOW_FUEL_THRESHOLD || 
-            typeof st.fuelBalanceSuper === 'number' && st.fuelBalanceSuper < LOW_FUEL_THRESHOLD
-  );
-
   return (
     <div className="space-y-6">
-      {/* Low Fuel Alerts */}
-      {lowFuelStations.length > 0 && (
-        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800/50 p-4 rounded-xl flex items-start gap-4 shadow-sm">
-          <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <h3 className="text-sm font-bold text-red-800 dark:text-red-300 flex items-center gap-2">
-              Low Fuel Alert 
-              <span className="bg-red-200 dark:bg-red-800/50 text-red-800 dark:text-red-200 text-xs px-2 py-0.5 rounded-full font-medium">
-                {lowFuelStations.length} Station{lowFuelStations.length !== 1 ? 's' : ''}
-              </span>
-            </h3>
-            <div className="mt-2 space-y-2">
-              {lowFuelStations.map(st => (
-                <div key={st.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-red-700 dark:text-red-300">
-                  <span className="font-semibold px-2 py-0.5 bg-red-100 dark:bg-red-900/50 rounded-md">{st.station}</span>
-                  {typeof st.fuelBalanceDiesel === 'number' && st.fuelBalanceDiesel < LOW_FUEL_THRESHOLD && (
-                    <span className="flex items-center gap-1">
-                      <Droplets className="w-3.5 h-3.5" />
-                      Diesel: {formatLitres(st.fuelBalanceDiesel)}
-                    </span>
-                  )}
-                  {typeof st.fuelBalanceSuper === 'number' && st.fuelBalanceSuper < LOW_FUEL_THRESHOLD && (
-                    <span className="flex items-center gap-1">
-                      <Droplets className="w-3.5 h-3.5" />
-                      Super: {formatLitres(st.fuelBalanceSuper)}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Summary Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <MetricCard title="Active Trucks" value={new Set(expenses.map(e => e.carRegistration)).size.toString()} icon={Truck} color="text-blue-600 dark:text-blue-400" />
-          <MetricCard title="Total Outstanding Balance" value={formatCurrency(customers.reduce((acc, c) => acc + (c.balance || 0), 0))} icon={DollarSign} color="text-amber-600 dark:text-amber-400" />
-          <MetricCard title="Current Fuel Stock" value={formatLitres(stationStatuses.reduce((acc, st) => 
-            acc + (typeof st.fuelBalanceDiesel === 'number' ? st.fuelBalanceDiesel : 0) + 
-                  (typeof st.fuelBalanceSuper === 'number' ? st.fuelBalanceSuper : 0), 0))} icon={Droplets} color="text-indigo-600 dark:text-indigo-400" />
+          <MetricCard title="Total Revenue" value={formatCurrency(totalRevenue)} icon={TrendingUp} color="text-blue-600 dark:text-blue-400" />
+          <MetricCard title="Total Outstanding Balance" value={formatCurrency(outstandingBalance)} icon={DollarSign} color={outstandingBalanceColor} />
+          <MetricCard title="Total Fuel Sold" value={formatLitres(totalLitres)} icon={Droplets} color="text-green-600 dark:text-green-400" />
         </div>
 
       {/* Metrics Row 1 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard title="Total Revenue" value={formatCurrency(totalRevenue)} icon={TrendingUp} color="text-gray-900 dark:text-blue-100" />
-        <MetricCard title="Total Fuel Sold" value={formatLitres(totalLitres)} icon={Droplets} color="text-gray-900 dark:text-blue-100" />
-        <MetricCard title="Outstanding Balances" value={formatCurrency(outstandingBalance)} icon={AlertCircle} color={outstandingBalanceColor} />
         <MetricCard title="Active Customers" value={activeCustomers.toString()} icon={Users} color="text-blue-600 dark:text-blue-400" />
-      </div>
-
-      {/* Metrics Row: Real-Time Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <MetricCard title="Total Deliveries Today" value={totalDeliveriesToday.toString()} icon={Truck} color="text-gray-900 dark:text-blue-100" />
-        <MetricCard title="Current Pending Payments" value={formatCurrency(pendingPayments)} icon={DollarSign} color="text-emerald-600 dark:text-emerald-400" />
-      </div>
-
-      {/* Metrics Row 2 (Fleet) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard title="Monthly Fleet Cost" value={formatCurrency(monthlyFleetAmount)} icon={Truck} color="text-red-600 dark:text-red-400" />
-        <MetricCard title="Avg Cost / km" value={avgFleetCostPerKm > 0 ? `${formatCurrency(avgFleetCostPerKm)}/km` : 'N/A'} icon={Activity} color="text-indigo-600 dark:text-indigo-400" />
+        <MetricCard title="Active Trucks" value={new Set(expenses.map(e => e.carRegistration)).size.toString()} icon={Truck} color="text-blue-600 dark:text-blue-400" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

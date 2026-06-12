@@ -20,6 +20,7 @@ export interface Delivery {
   litres: number;
   totalAmount: number;
   createdBy: string;
+  createdAt?: number;
 }
 
 export interface Payment {
@@ -28,6 +29,7 @@ export interface Payment {
   date: number;
   amount: number;
   createdBy: string;
+  createdAt?: number;
 }
 
 export interface Adjustment {
@@ -38,6 +40,7 @@ export interface Adjustment {
   amount: number;
   description: string;
   createdBy: string;
+  createdAt?: number;
 }
 
 export interface PumpReading {

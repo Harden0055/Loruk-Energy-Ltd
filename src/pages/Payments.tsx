@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { usePayments, createPayment, useCustomers, updateCustomer, deletePayment, updatePayment } from '../lib/db';
 import { formatCurrency } from '../lib/utils';
 import { useAuth } from '../lib/auth';
-import { Search, Plus, Bot, Trash2, AlertTriangle, Pencil } from 'lucide-react';
+import { Search, Plus, Bot, Trash2, AlertTriangle, Pencil, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { Payment } from '../types';
 import AIInputModal from '../components/AIInputModal';
@@ -247,46 +247,47 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
 
   return (
     <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-blue-950 rounded-xl shadow-2xl border border-gray-200 dark:border-blue-900 w-full max-w-sm overflow-hidden transition-colors">
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-blue-200 dark:border-blue-800 w-full max-w-sm overflow-hidden transition-colors">
         <form onSubmit={handleSubmit}>
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-blue-900 bg-gray-50/50 dark:bg-blue-900/30">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-blue-50">{isEditing ? 'Edit Payment' : 'Record Payment'}</h3>
+          <div className="px-6 py-5 border-b border-blue-200 dark:border-blue-800 bg-blue-100/50 dark:bg-blue-950/50 flex justify-between items-center">
+            <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">{isEditing ? 'Edit Payment' : 'Record Payment'}</h3>
+            <button type="button" onClick={onClose} className="text-blue-400 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"><X className="w-5 h-5"/></button>
           </div>
-          <div className="p-6 space-y-4 bg-white dark:bg-blue-950">
+          <div className="p-6 space-y-4">
             <div>
-              <label className="block text-base font-semibold text-gray-700 dark:text-gray-300 mb-1">Customer</label>
+              <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Customer</label>
               <select 
                 required
                 value={form.customerId}
                 onChange={e => setForm({...form, customerId: e.target.value})}
-                className="w-full px-3 py-2 bg-blue-50/50 dark:bg-blue-900/40 border border-blue-300 dark:border-blue-808 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-100 font-semibold cursor-pointer"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm font-semibold cursor-pointer"
               >
-                <option value="" disabled className="dark:bg-blue-950">Select a customer...</option>
-                {customers.map(c => <option key={c.id} value={c.id} className="dark:bg-blue-950">{c.name}</option>)}
+                <option value="" disabled>Select a customer...</option>
+                {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-base font-semibold text-gray-700 dark:text-gray-300 mb-1">Payment Date</label>
+              <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Payment Date</label>
               <input 
                 type="date"
                 required
                 value={form.date}
                 onChange={e => setForm({...form, date: e.target.value})}
-                className="w-full px-3 py-2 bg-white dark:bg-blue-900 border border-gray-350 dark:border-blue-805 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-blue-100"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
               />
             </div>
             <div>
-              <label className="block text-base font-semibold text-gray-700 dark:text-gray-300 mb-1">Amount ($)</label>
+              <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Amount (KES)</label>
               <input 
                 type="number" step="0.01" required
                 value={form.amount} onChange={e => setForm({...form, amount: e.target.value})}
-                className="w-full px-3 py-2 bg-white dark:bg-blue-900 border border-gray-350 dark:border-blue-805 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-blue-100"
+                className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
               />
             </div>
           </div>
-          <div className="px-6 py-4 bg-gray-50 dark:bg-blue-900/10 border-t border-gray-200 dark:border-blue-900 flex justify-end gap-3">
-             <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-gray-500 hover:text-gray-900 dark:text-blue-300 dark:hover:text-blue-100 transition-colors">Cancel</button>
-             <button type="submit" disabled={loading} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-base font-semibold transition-colors">Save Payment</button>
+          <div className="px-6 py-4 bg-blue-100/50 dark:bg-blue-950/50 border-t border-blue-200 dark:border-blue-800 flex justify-end gap-3">
+             <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-blue-700 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-100 transition-colors">Cancel</button>
+             <button type="submit" disabled={loading} className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-base font-semibold transition-colors">Save Payment</button>
           </div>
         </form>
       </div>

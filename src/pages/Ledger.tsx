@@ -304,7 +304,14 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
         </button>
       </div>
 
-      {selectedCustomer && (
+      {selectedCustomer && (() => {
+        const custBalance = filteredEntries.length > 0 ? filteredEntries[filteredEntries.length - 1].runningBalance : (selectedCustomer?.openingBalanceType === 'advance' ? -(selectedCustomer.openingBalance || 0) : (selectedCustomer?.openingBalance || 0));
+        const custBalanceColor = custBalance > 0 
+          ? 'text-red-600 dark:text-red-400' 
+          : custBalance < 0 
+            ? 'text-emerald-600 dark:text-emerald-400' 
+            : 'text-gray-900 dark:text-blue-50';
+        return (
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 p-6 rounded-xl shadow-sm">
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Credit Limit</p>
@@ -312,17 +319,19 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
           </div>
           <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 p-6 rounded-xl shadow-sm">
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Outstanding Balance</p>
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-blue-50">
-              {formatCurrency(filteredEntries.length > 0 ? filteredEntries[filteredEntries.length - 1].runningBalance : (selectedCustomer?.openingBalanceType === 'advance' ? -(selectedCustomer.openingBalance || 0) : (selectedCustomer?.openingBalance || 0)))}
+            <h3 className={`text-2xl font-bold ${custBalanceColor}`}>
+              {formatCurrency(custBalance)}
             </h3>
           </div>
         </div>
-      )}
+      )})()}
 
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-blue-950 border border-blue-200 dark:border-blue-900 p-6 rounded-xl shadow-sm flex items-center justify-between">
         <div>
           <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">Total Outstanding Balance (All Entries)</p>
-          <h3 className="text-3xl font-bold text-blue-900 dark:text-blue-100">{formatCurrency(overallBalance)}</h3>
+          <h3 className={`text-3xl font-bold ${overallBalance > 0 ? 'text-red-600 dark:text-red-400' : overallBalance < 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-900 dark:text-blue-100'}`}>
+            {formatCurrency(overallBalance)}
+          </h3>
         </div>
         <div className="w-14 h-14 bg-white dark:bg-blue-900 rounded-full shadow-sm flex items-center justify-center">
           <Wallet className="w-7 h-7 text-blue-600 dark:text-blue-400" />
@@ -519,7 +528,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
                   </td>
                   <td className="px-4 py-3 text-base font-mono text-red-600 dark:text-red-400 text-right">{e.debit > 0 ? formatCurrency(e.debit) : '-'}</td>
                   <td className="px-4 py-3 text-base font-mono text-emerald-600 dark:text-emerald-400 text-right">{e.credit > 0 ? formatCurrency(e.credit) : '-'}</td>
-                  <td className="px-4 py-3 text-base font-mono font-medium text-blue-600 dark:text-blue-400 text-right">{formatCurrency(e.runningBalance)}</td>
+                  <td className={`px-4 py-3 text-base font-mono font-medium text-right ${e.runningBalance > 0 ? 'text-red-600 dark:text-red-400' : e.runningBalance < 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400'}`}>{formatCurrency(e.runningBalance)}</td>
                   <td className="px-4 py-3 text-right">
                     <button 
                       onClick={() => setDeletingEntry(e)}

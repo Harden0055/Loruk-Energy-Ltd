@@ -26,7 +26,8 @@ import {
   Plus, 
   Calendar, 
   Search, 
-  FileText 
+  FileText,
+  X
 } from 'lucide-react';
 import { 
   ResponsiveContainer, 
@@ -98,7 +99,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   };
 
   const timelineEvents = useMemo(() => {
-    const events: Array<{
+    const allEvents: Array<{
       id: string;
       date: number;
       type: 'delivery' | 'payment' | 'adjustment';
@@ -106,49 +107,60 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       description: string;
       amount: number;
       createdBy: string;
+      val: number;
+      balanceAfter: number;
+      sortOrder: number;
     }> = [];
 
-    // Add Deliveries
-    customerDeliveries.forEach(d => {
-      events.push({
-        id: d.id,
-        date: d.date,
-        type: 'delivery',
+    const transactions = [
+      ...customerDeliveries.map(d => ({ 
+        id: `del-${d.id}`, 
+        date: d.date, 
+        type: 'delivery' as const, 
         title: 'Fuel Delivery',
         description: `Delivered ${d.litres.toLocaleString()}L of ${d.productType}`,
-        amount: d.totalAmount, // Debits balance (Customer owes more)
-        createdBy: d.createdBy || 'System'
-      });
-    });
-
-    // Add Payments
-    customerPayments.forEach(p => {
-      events.push({
-        id: p.id,
-        date: p.date,
-        type: 'payment',
+        amount: d.totalAmount, 
+        val: d.totalAmount,
+        createdBy: d.createdBy || 'System',
+        sortOrder: 1
+      })),
+      ...customerPayments.map(p => ({ 
+        id: `pay-${p.id}`, 
+        date: p.date, 
+        type: 'payment' as const, 
         title: 'Payment Received',
         description: 'Payment processed successfully',
-        amount: p.amount, // Credits balance
-        createdBy: p.createdBy || 'System'
-      });
-    });
-
-    // Add Adjustments
-    customerAdjustments.forEach(a => {
-      events.push({
-        id: a.id,
-        date: a.date,
-        type: 'adjustment',
+        amount: p.amount, 
+        val: -p.amount,
+        createdBy: p.createdBy || 'System',
+        sortOrder: 2
+      })),
+      ...customerAdjustments.map(a => ({ 
+        id: `adj-${a.id}`, 
+        date: a.date, 
+        type: 'adjustment' as const, 
         title: a.type === 'credit' ? 'Balance Credit' : 'Balance Debit',
         description: a.description || 'Account Adjustment',
-        amount: a.amount,
-        createdBy: a.createdBy || 'System'
-      });
+        amount: a.amount, 
+        val: a.type === 'debit' ? a.amount : -a.amount,
+        createdBy: a.createdBy || 'System',
+        sortOrder: 3
+      }))
+    ].sort((a, b) => {
+      if (a.date !== b.date) return a.date - b.date;
+      return a.sortOrder - b.sortOrder;
+    }); 
+
+    let runningBalance = customer?.openingBalance 
+      ? (customer.openingBalanceType === 'advance' ? -customer.openingBalance : customer.openingBalance) 
+      : 0;
+
+    const eventsWithBalance = transactions.map(t => {
+      runningBalance += t.val;
+      return { ...t, balanceAfter: runningBalance };
     });
 
-    // Filter events
-    return events
+    return eventsWithBalance
       .filter(e => {
         if (filterType !== 'all' && e.type !== filterType) return false;
         
@@ -171,8 +183,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
         return true;
       })
-      .sort((a, b) => b.date - a.date); // Descending chronological order
-  }, [customerDeliveries, customerPayments, customerAdjustments, filterType, searchTerm, startDate, endDate]);
+      .reverse();
+  }, [customerDeliveries, customerPayments, customerAdjustments, filterType, searchTerm, startDate, endDate, customer]);
 
   // Compute stats for charts and display
   const totalFuelLitres = useMemo(() => {
@@ -771,12 +783,13 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider">Description</th>
                 <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider">Author</th>
                 <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider text-right w-36 animate-fade-in">Amount</th>
+                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider text-right w-36 animate-fade-in">Balance</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-blue-900">
               {timelineEvents.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="border border-gray-200 dark:border-blue-900 px-6 py-12 text-center text-gray-500 dark:text-gray-405 text-base font-medium">
+                  <td colSpan={6} className="border border-gray-200 dark:border-blue-900 px-6 py-12 text-center text-gray-500 dark:text-gray-405 text-base font-medium">
                     No matching activity logs registered for this filter set.
                   </td>
                 </tr>
@@ -818,6 +831,15 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       {e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit')) ? '+' : '-'}
                       {formatCurrency(e.amount)}
                     </td>
+                    <td className={`border border-gray-200 dark:border-blue-900 px-6 py-4 text-right font-mono font-bold text-base ${
+                      e.balanceAfter > 0
+                        ? 'text-red-600 dark:text-red-400'
+                        : e.balanceAfter < 0
+                          ? 'text-emerald-600 dark:text-emerald-400'
+                          : 'text-gray-650 dark:text-gray-300'
+                    }`}>
+                      {formatCurrency(e.balanceAfter)}
+                    </td>
                   </tr>
                 ))
               )}
@@ -828,27 +850,30 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
       {/* QUICK MODALS MAP */}
       {activeModal === 'delivery' && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-blue-950 rounded-xl shadow-2xl border border-gray-200 dark:border-blue-900 w-full max-w-sm overflow-hidden transition-colors">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-blue-200 dark:border-blue-800 w-full max-w-sm overflow-hidden transform transition-all duration-300">
             <form onSubmit={handleAddDelivery}>
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-blue-900 bg-gray-50/50 dark:bg-blue-900/30">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-blue-50">Log Fuel Delivery</h3>
-                <p className="text-xs text-gray-500">For {customer.name}</p>
-              </div>
-              <div className="p-6 space-y-4 bg-white dark:bg-blue-950">
+              <div className="px-6 py-5 border-b border-blue-200 dark:border-blue-800 bg-blue-100/50 dark:bg-blue-950/50 flex justify-between items-center">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 font-medium">Fuel Product</label>
+                  <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Log Fuel Delivery</h3>
+                  <p className="text-xs text-blue-700 dark:text-blue-300 font-medium pb-1">For {customer.name}</p>
+                </div>
+                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-blue-400 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Fuel Product</label>
                   <select 
                     value={deliveryProduct}
                     onChange={e => setDeliveryProduct(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-blue-50/50 dark:bg-blue-900/40 border border-blue-300 dark:border-blue-808 rounded-lg text-blue-900 dark:text-blue-100 font-semibold cursor-pointer outline-none"
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg text-blue-900 dark:text-blue-50 font-semibold cursor-pointer outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
                   >
                     <option value="Diesel">Diesel</option>
                     <option value="Super">Super (Premium)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 font-medium">Litres Volume *</label>
+                  <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Litres Volume *</label>
                   <input 
                     type="number"
                     step="0.01"
@@ -856,11 +881,11 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     placeholder="0.00"
                     value={deliveryLitres}
                     onChange={e => setDeliveryLitres(e.target.value)}
-                    className="w-full px-3 py-2 bg-white dark:bg-blue-900 border border-gray-200 dark:border-blue-805 rounded-lg text-base text-gray-950 dark:text-blue-50 outline-none"
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 font-medium">Total Amount Cost (KES) *</label>
+                  <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Total Amount Cost (KES) *</label>
                   <input 
                     type="number"
                     step="0.01"
@@ -868,22 +893,22 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     placeholder="0.00"
                     value={deliveryAmount}
                     onChange={e => setDeliveryAmount(e.target.value)}
-                    className="w-full px-3 py-2 bg-white dark:bg-blue-900 border border-gray-200 dark:border-blue-805 rounded-lg text-base text-gray-955 dark:text-blue-50 outline-none"
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
                   />
                 </div>
               </div>
-              <div className="px-6 py-4 bg-gray-50 dark:bg-blue-900/10 border-t border-gray-200 dark:border-blue-900 flex justify-end gap-3">
+              <div className="px-6 py-4 bg-blue-100/50 dark:bg-blue-950/50 border-t border-blue-200 dark:border-blue-800 flex justify-end gap-3 rounded-b-xl">
                 <button
                   type="button"
                   onClick={() => setActiveModal(null)}
-                  className="px-4 py-2 border border-gray-200 dark:border-blue-900 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-300 bg-white"
+                  className="px-4 py-2 font-semibold text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={modalLoading}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors"
+                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-md shadow-blue-500/20 disabled:opacity-50 transition-colors"
                 >
                   Save Delivery
                 </button>
@@ -894,16 +919,19 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       )}
 
       {activeModal === 'payment' && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-blue-950 rounded-xl shadow-2xl border border-gray-200 dark:border-blue-900 w-full max-w-sm overflow-hidden transition-colors">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-blue-200 dark:border-blue-800 w-full max-w-sm overflow-hidden transform transition-all duration-300">
             <form onSubmit={handleAddPayment}>
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-blue-900 bg-gray-50/50 dark:bg-blue-900/30">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-blue-50">Record Payment Received</h3>
-                <p className="text-xs text-gray-500">For {customer.name}</p>
-              </div>
-              <div className="p-6 space-y-4 bg-white dark:bg-blue-950">
+              <div className="px-6 py-5 border-b border-blue-200 dark:border-blue-800 bg-blue-100/50 dark:bg-blue-950/50 flex justify-between items-center">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 font-medium">Payment Amount (KES) *</label>
+                  <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Record Payment</h3>
+                  <p className="text-xs text-blue-700 dark:text-blue-300 font-medium pb-1">For {customer.name}</p>
+                </div>
+                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-blue-400 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Payment Amount (KES) *</label>
                   <input 
                     type="number"
                     step="0.01"
@@ -911,22 +939,22 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     placeholder="0.00"
                     value={paymentAmount}
                     onChange={e => setPaymentAmount(e.target.value)}
-                    className="w-full px-3 py-2 bg-white dark:bg-blue-900 border border-gray-200 dark:border-blue-805 rounded-lg text-base text-gray-955 dark:text-blue-50 outline-none"
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
                   />
                 </div>
               </div>
-              <div className="px-6 py-4 bg-gray-50 dark:bg-blue-900/10 border-t border-gray-200 dark:border-blue-900 flex justify-end gap-3">
+              <div className="px-6 py-4 bg-blue-100/50 dark:bg-blue-950/50 border-t border-blue-200 dark:border-blue-800 flex justify-end gap-3 rounded-b-xl">
                 <button
                   type="button"
                   onClick={() => setActiveModal(null)}
-                  className="px-4 py-2 border border-gray-200 dark:border-blue-900 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-300 bg-white"
+                  className="px-4 py-2 font-semibold text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={modalLoading}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-md shadow-emerald-500/20 disabled:opacity-50 transition-colors"
                 >
                   Record Payment
                 </button>
@@ -937,24 +965,27 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       )}
 
       {activeModal === 'adjustment' && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-blue-950 rounded-xl shadow-2xl border border-gray-200 dark:border-blue-900 w-full max-w-sm overflow-hidden transition-colors">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-blue-200 dark:border-blue-800 w-full max-w-sm overflow-hidden transform transition-all duration-300">
             <form onSubmit={handleAddAdjustment}>
-              <div className="px-6 py-4 border-b border-gray-200 dark:border-blue-900 bg-gray-50/50 dark:bg-blue-900/30">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-blue-50">Log Adjustment</h3>
-                <p className="text-xs text-gray-500">Manual Ledger Adjustment overriding standard log flows</p>
-              </div>
-              <div className="p-6 space-y-4 bg-white dark:bg-blue-950">
+              <div className="px-6 py-5 border-b border-blue-200 dark:border-blue-800 bg-blue-100/50 dark:bg-blue-950/50 flex justify-between items-center">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-350 mb-1.5">Adjustment Type</label>
+                  <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Log Adjustment</h3>
+                  <p className="text-xs text-blue-700 dark:text-blue-300 font-medium pb-1">Manual Ledger Adjustment overriding standard log flows</p>
+                </div>
+                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-blue-400 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
+              </div>
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Adjustment Type</label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => setAdjustType('credit')}
-                      className={`py-1.5 px-3 rounded-lg border text-xs font-bold transition-all ${
+                      className={`py-2 px-3 rounded-lg border text-sm font-bold transition-all shadow-sm ${
                         adjustType === 'credit'
-                          ? 'border-emerald-500 bg-emerald-50/50 text-emerald-600'
-                          : 'border-gray-200 text-gray-500'
+                          ? 'border-emerald-500 bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 ring-2 ring-emerald-500/10'
+                          : 'border-blue-200 dark:border-blue-700 text-blue-500 dark:text-blue-400 bg-white dark:bg-blue-950 hover:bg-blue-50 dark:hover:bg-blue-900/50'
                       }`}
                     >
                       Credit (-)
@@ -962,10 +993,10 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     <button
                       type="button"
                       onClick={() => setAdjustType('debit')}
-                      className={`py-1.5 px-3 rounded-lg border text-xs font-bold transition-all ${
+                      className={`py-2 px-3 rounded-lg border text-sm font-bold transition-all shadow-sm ${
                         adjustType === 'debit'
-                          ? 'border-red-500 bg-red-50/50 text-red-600'
-                          : 'border-gray-200 text-gray-500'
+                          ? 'border-red-500 bg-red-50 text-red-600 dark:bg-red-955/20 dark:text-red-400 ring-2 ring-red-500/10'
+                          : 'border-blue-200 dark:border-blue-700 text-blue-500 dark:text-blue-400 bg-white dark:bg-blue-950 hover:bg-blue-50 dark:hover:bg-blue-900/50'
                       }`}
                     >
                       Debit (+)
@@ -973,7 +1004,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 font-medium">Override Amount (KES) *</label>
+                  <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Override Amount (KES) *</label>
                   <input 
                     type="number"
                     step="0.01"
@@ -981,33 +1012,33 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     placeholder="0.00"
                     value={adjustAmount}
                     onChange={e => setAdjustAmount(e.target.value)}
-                    className="w-full px-3 py-2 bg-white dark:bg-blue-900 border border-gray-200 dark:border-blue-805 rounded-lg text-base text-gray-955 dark:text-blue-55 outline-none"
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 font-medium">Adjustment Reason Explanation *</label>
+                  <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Adjustment Reason Explanation *</label>
                   <textarea 
                     required
                     placeholder="Enter context, memo, or invoice reason..."
                     value={adjustReason}
                     onChange={e => setAdjustReason(e.target.value)}
                     rows={3}
-                    className="w-full px-3 py-2 bg-white dark:bg-blue-900 border border-gray-200 dark:border-blue-805 rounded-lg text-sm text-gray-955 dark:text-blue-55 outline-none"
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg text-sm text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm resize-none"
                   />
                 </div>
               </div>
-              <div className="px-6 py-4 bg-gray-50 dark:bg-blue-900/10 border-t border-gray-200 dark:border-blue-900 flex justify-end gap-3">
+              <div className="px-6 py-4 bg-blue-100/50 dark:bg-blue-950/50 border-t border-blue-200 dark:border-blue-800 flex justify-end gap-3 rounded-b-xl">
                 <button
                   type="button"
                   onClick={() => setActiveModal(null)}
-                  className="px-4 py-2 border border-gray-200 dark:border-blue-900 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-300 bg-white"
+                  className="px-4 py-2 font-semibold text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={modalLoading}
-                  className="px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-colors"
+                  className="px-5 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-sm font-bold shadow-md shadow-slate-500/20 disabled:opacity-50 transition-colors"
                 >
                   Confirm Adjustment
                 </button>

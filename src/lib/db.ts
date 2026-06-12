@@ -134,15 +134,15 @@ export const createCustomer = async (data: Omit<Customer, 'id' | 'createdAt' | '
 };
 
 export const createDelivery = async (data: Omit<Delivery, 'id'>) => {
-  return addDoc(collection(db, 'deliveries'), data);
+  return addDoc(collection(db, 'deliveries'), { ...data, createdAt: Date.now() });
 };
 
 export const createPayment = async (data: Omit<Payment, 'id'>) => {
-  return addDoc(collection(db, 'payments'), data);
+  return addDoc(collection(db, 'payments'), { ...data, createdAt: Date.now() });
 };
 
 export const createAdjustment = async (data: Omit<Adjustment, 'id'>) => {
-  return addDoc(collection(db, 'adjustments'), data);
+  return addDoc(collection(db, 'adjustments'), { ...data, createdAt: Date.now() });
 };
 
 export const createFleetExpense = async (data: Omit<FleetExpense, 'id'>) => {

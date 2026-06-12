@@ -14,12 +14,11 @@ export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'ledger', label: 'Ledger', icon: BookOpen },
-    { id: 'fleet', label: 'Fleet Expenses', icon: CarFront },
-    { id: 'stationReports', label: 'Station Reports', icon: FileText },
     { id: 'customers', label: 'Customers', icon: Users },
     { id: 'deliveries', label: 'Fuel Deliveries', icon: Truck },
     { id: 'payments', label: 'Payments', icon: DollarSign },
+    { id: 'ledger', label: 'Ledger', icon: BookOpen },
+    { id: 'fleet', label: 'Fleet Expenses', icon: CarFront },
     { id: 'reports', label: 'Reports', icon: FileText },
   ];
 
@@ -30,7 +29,7 @@ export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
         <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
           <Fuel className="w-5 h-5 text-white" />
         </div>
-        <span className="font-bold text-2xl tracking-tight dark:text-white transition-colors">FuelFlow</span>
+        <span className="font-bold text-2xl tracking-tight dark:text-white transition-colors">Loruk Energy Ltd</span>
       </div>
       
       <nav className="flex-1 px-4 py-2 space-y-1">
