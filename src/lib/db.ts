@@ -1,13 +1,55 @@
-import { collection, onSnapshot, query, addDoc, updateDoc, doc, deleteDoc, serverTimestamp, orderBy, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, query, addDoc, updateDoc, doc, deleteDoc, orderBy, getDocs, increment, setDoc } from 'firebase/firestore';
 import { db } from './firebase';
 import { Customer, Delivery, Payment, FleetExpense, StationReport, Adjustment } from '../types';
 import { useState, useEffect } from 'react';
+import { useAuth } from './auth';
+import { 
+  isQuotaExceeded, markQuotaExceeded, getLocalCollection, addLocalDoc, updateLocalDoc, deleteLocalDoc
+} from './localDbFallback';
+
+function isQuotaError(error: any) {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.toLowerCase().includes('quota') || message.toLowerCase().includes('resource-exhausted');
+}
+
+// ---------------- SELF-HEALING HOOKS ----------------
+// ... (rest of file remains)
 
 export function useCustomers() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [quotaExceeded, setQuotaExceeded] = useState(isQuotaExceeded());
+  const [dataVersion, setDataVersion] = useState(0);
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
+    const handleQuota = () => setQuotaExceeded(true);
+    const handleDbChange = () => setDataVersion(v => v + 1);
+    window.addEventListener('quota-exceeded', handleQuota);
+    window.addEventListener('db-changed', handleDbChange);
+    return () => {
+        window.removeEventListener('quota-exceeded', handleQuota);
+        window.removeEventListener('db-changed', handleDbChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (authLoading || !user) return;
+    
+    if (quotaExceeded) {
+       let loaded = getLocalCollection('customers');
+       loaded.sort((a, b) => {
+        const idA = (a.customerId || '').toUpperCase().trim();
+        const idB = (b.customerId || '').toUpperCase().trim();
+        if (idA === 'CUST-001') return -1;
+        if (idB === 'CUST-001') return 1;
+        return idA.localeCompare(idB, undefined, { numeric: true, sensitivity: 'base' });
+      });
+      setCustomers(loaded);
+      setLoading(false);
+      return;
+    }
+
     const q = query(collection(db, 'customers'), orderBy('createdAt', 'desc'));
     const unsub = onSnapshot(q, (snapshot) => {
       const loaded = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Customer));
@@ -21,196 +63,471 @@ export function useCustomers() {
       setCustomers(loaded);
       setLoading(false);
     }, (error) => {
-      console.error(error);
+      console.error('Firebase snapshot error:', error);
+      if (isQuotaError(error)) {
+          markQuotaExceeded();
+          setQuotaExceeded(true);
+      }
       setLoading(false);
     });
     return unsub;
-  }, []);
+  }, [user, authLoading, quotaExceeded, dataVersion]);
 
   return { customers, loading };
 }
 
-export function useDeliveries() {
-  const [deliveries, setDeliveries] = useState<Delivery[]>([]);
+function useGenericDbCollection<T>(collectionName: string, sortField: string = 'date') {
+  const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
+  const [quotaExceeded, setQuotaExceeded] = useState(isQuotaExceeded());
+  const [dataVersion, setDataVersion] = useState(0);
 
   useEffect(() => {
-    const q = query(collection(db, 'deliveries'), orderBy('date', 'desc'));
-    const unsub = onSnapshot(q, (snapshot) => {
-      setDeliveries(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Delivery)));
-      setLoading(false);
-    }, (error) => {
-      console.error(error);
-      setLoading(false);
-    });
-    return unsub;
+    const handleQuota = () => setQuotaExceeded(true);
+    const handleDbChange = () => setDataVersion(v => v + 1);
+    window.addEventListener('quota-exceeded', handleQuota);
+    window.addEventListener('db-changed', handleDbChange);
+    return () => {
+        window.removeEventListener('quota-exceeded', handleQuota);
+        window.removeEventListener('db-changed', handleDbChange);
+    };
   }, []);
 
-  return { deliveries, loading };
+  useEffect(() => {
+    if (quotaExceeded) {
+      let localData = getLocalCollection(collectionName);
+      localData = [...localData].sort((a: any, b: any) => (b[sortField] || 0) - (a[sortField] || 0));
+      setData(localData);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const q = query(collection(db, collectionName), orderBy(sortField, 'desc'));
+      const unsub = onSnapshot(q, (snapshot) => {
+        const loaded = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
+        setData(loaded);
+        setLoading(false);
+      }, (error) => {
+        console.error('Firebase snapshot error:', error);
+        if (isQuotaError(error)) {
+            markQuotaExceeded();
+            setQuotaExceeded(true);
+        }
+        setLoading(false);
+      });
+      return unsub;
+    } catch (error) {
+      console.error('Firebase query error:', error);
+      setLoading(false);
+    }
+  }, [quotaExceeded, dataVersion]);
+
+  return { data, loading };
+}
+
+export function useDeliveries() {
+  const { data, loading } = useGenericDbCollection<Delivery>('deliveries');
+  return { deliveries: data, loading };
 }
 
 export function usePayments() {
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const q = query(collection(db, 'payments'), orderBy('date', 'desc'));
-    const unsub = onSnapshot(q, (snapshot) => {
-      setPayments(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Payment)));
-      setLoading(false);
-    }, (error) => {
-      console.error(error);
-      setLoading(false);
-    });
-    return unsub;
-  }, []);
-
-  return { payments, loading };
+  const { data, loading } = useGenericDbCollection<Payment>('payments');
+  return { payments: data, loading };
 }
 
 export function useAdjustments() {
-  const [adjustments, setAdjustments] = useState<Adjustment[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const q = query(collection(db, 'adjustments'), orderBy('date', 'desc'));
-    const unsub = onSnapshot(q, (snapshot) => {
-      setAdjustments(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Adjustment)));
-      setLoading(false);
-    }, (error) => {
-      console.error(error);
-      setLoading(false);
-    });
-    return unsub;
-  }, []);
-
-  return { adjustments, loading };
+  const { data, loading } = useGenericDbCollection<Adjustment>('adjustments');
+  return { adjustments: data, loading };
 }
 
 export function useFleetExpenses() {
-  const [expenses, setExpenses] = useState<FleetExpense[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const q = query(collection(db, 'fleetExpenses'), orderBy('date', 'desc'));
-    const unsub = onSnapshot(q, (snapshot) => {
-      setExpenses(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as FleetExpense)));
-      setLoading(false);
-    }, (error) => {
-      console.error(error);
-      setLoading(false);
-    });
-    return unsub;
-  }, []);
-
-  return { expenses, loading };
+  const { data, loading } = useGenericDbCollection<FleetExpense>('fleetExpenses');
+  return { expenses: data, loading };
 }
 
 export function useStationReports() {
-  const [reports, setReports] = useState<StationReport[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const q = query(collection(db, 'stationReports'), orderBy('date', 'desc'));
-    const unsub = onSnapshot(q, (snapshot) => {
-      setReports(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as StationReport)));
-      setLoading(false);
-    }, (error) => {
-      console.error(error);
-      setLoading(false);
-    });
-    return unsub;
-  }, []);
-
-  return { reports, loading };
+  const { data, loading } = useGenericDbCollection<StationReport>('stationReports');
+  return { reports: data, loading };
 }
 
+// ---------------- MUTATIONS WRAPPER ----------------
+
+async function executeDbMutation(
+  collectionName: string,
+  firebaseOp: () => Promise<any>,
+  localOp?: () => any
+) {
+  if (isQuotaExceeded() && localOp) {
+    return localOp();
+  }
+  try {
+    const result = await firebaseOp();
+    return result;
+  } catch (error) {
+    console.error('Firebase operation failed:', error);
+    if (isQuotaError(error)) {
+      markQuotaExceeded();
+      if (localOp) return localOp();
+    }
+    throw error;
+  }
+}
+
+// ---------------- MUTATIONS ----------------
+
 export const createCustomer = async (data: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>) => {
-  return addDoc(collection(db, 'customers'), {
+  const payload = {
     ...data,
     createdAt: Date.now(),
     updatedAt: Date.now()
-  });
+  };
+  return executeDbMutation(
+    'customers',
+    () => addDoc(collection(db, 'customers'), payload),
+    () => addLocalDoc('customers', payload)
+  );
 };
 
-export const createDelivery = async (data: Omit<Delivery, 'id'>) => {
-  return addDoc(collection(db, 'deliveries'), { ...data, createdAt: Date.now() });
+export const createDelivery = async (data: Omit<Delivery, 'id' | 'updatedBy' | 'actionType'>, userEmail: string) => {
+  const payload = {
+    ...data,
+    createdAt: Date.now(),
+    updatedBy: userEmail,
+    actionType: 'create' as const
+  };
+  return executeDbMutation(
+    'deliveries',
+    () => addDoc(collection(db, 'deliveries'), payload),
+    () => addLocalDoc('deliveries', payload)
+  );
 };
 
-export const createPayment = async (data: Omit<Payment, 'id'>) => {
-  return addDoc(collection(db, 'payments'), { ...data, createdAt: Date.now() });
+export const createPayment = async (data: Omit<Payment, 'id' | 'updatedBy' | 'actionType'>, userEmail: string) => {
+  const payload = {
+    ...data,
+    createdAt: Date.now(),
+    updatedBy: userEmail,
+    actionType: 'create' as const
+  };
+  return executeDbMutation(
+    'payments',
+    () => addDoc(collection(db, 'payments'), payload),
+    () => addLocalDoc('payments', payload)
+  );
 };
 
-export const createAdjustment = async (data: Omit<Adjustment, 'id'>) => {
-  return addDoc(collection(db, 'adjustments'), { ...data, createdAt: Date.now() });
+export const createAdjustment = async (data: Omit<Adjustment, 'id' | 'updatedBy' | 'actionType'>, userEmail: string) => {
+  const payload = {
+    ...data,
+    createdAt: Date.now(),
+    updatedBy: userEmail,
+    actionType: 'create' as const
+  };
+  return executeDbMutation(
+    'adjustments',
+    () => addDoc(collection(db, 'adjustments'), payload),
+    () => addLocalDoc('adjustments', payload)
+  );
 };
 
 export const createFleetExpense = async (data: Omit<FleetExpense, 'id'>) => {
-  return addDoc(collection(db, 'fleetExpenses'), data);
+  return executeDbMutation(
+    'fleetExpenses',
+    () => addDoc(collection(db, 'fleetExpenses'), data)
+  );
 };
 
 export const createStationReport = async (data: Omit<StationReport, 'id'>) => {
-  return addDoc(collection(db, 'stationReports'), data);
+  return executeDbMutation(
+    'stationReports',
+    () => addDoc(collection(db, 'stationReports'), data)
+  );
 };
 
 export const deleteFleetExpense = async (id: string) => {
-  return deleteDoc(doc(db, 'fleetExpenses', id));
+  return executeDbMutation(
+    'fleetExpenses',
+    () => deleteDoc(doc(db, 'fleetExpenses', id)),
+    () => deleteLocalDoc('fleetExpenses', id)
+  );
 };
 
 export const deleteStationReport = async (id: string) => {
-  return deleteDoc(doc(db, 'stationReports', id));
+  return executeDbMutation(
+    'stationReports',
+    () => deleteDoc(doc(db, 'stationReports', id)),
+    () => deleteLocalDoc('stationReports', id)
+  );
 };
 
 export const deleteCustomer = async (id: string) => {
-  return deleteDoc(doc(db, 'customers', id));
+  return executeDbMutation(
+    'customers',
+    () => deleteDoc(doc(db, 'customers', id)),
+    () => deleteLocalDoc('customers', id)
+  );
 };
 
 export const deleteDelivery = async (id: string) => {
-  return deleteDoc(doc(db, 'deliveries', id));
+  return executeDbMutation(
+    'deliveries',
+    () => deleteDoc(doc(db, 'deliveries', id)),
+    () => deleteLocalDoc('deliveries', id)
+  );
 };
 
 export const updateDelivery = async (id: string, data: Partial<Delivery>) => {
-  return updateDoc(doc(db, 'deliveries', id), data);
+  const payload = { ...data, updatedAt: Date.now() };
+  return executeDbMutation(
+    'deliveries',
+    () => updateDoc(doc(db, 'deliveries', id), payload),
+    () => updateLocalDoc('deliveries', id, payload)
+  );
 };
 
 export const deletePayment = async (id: string) => {
-  return deleteDoc(doc(db, 'payments', id));
+  return executeDbMutation(
+    'payments',
+    () => deleteDoc(doc(db, 'payments', id)),
+    () => deleteLocalDoc('payments', id)
+  );
 };
 
 export const updatePayment = async (id: string, data: Partial<Payment>) => {
-  return updateDoc(doc(db, 'payments', id), data);
+  const payload = { ...data, updatedAt: Date.now() };
+  return executeDbMutation(
+    'payments',
+    () => updateDoc(doc(db, 'payments', id), payload),
+    () => updateLocalDoc('payments', id, payload)
+  );
 };
 
 export const updateFleetExpense = async (id: string, data: Partial<FleetExpense>) => {
-  return updateDoc(doc(db, 'fleetExpenses', id), data);
+  const payload = { ...data };
+  return executeDbMutation(
+    'fleetExpenses',
+    () => updateDoc(doc(db, 'fleetExpenses', id), payload),
+    () => updateLocalDoc('fleetExpenses', id, payload)
+  );
 };
 
 export const deleteAdjustment = async (id: string) => {
-  return deleteDoc(doc(db, 'adjustments', id));
+  return executeDbMutation(
+    'adjustments',
+    () => deleteDoc(doc(db, 'adjustments', id)),
+    () => deleteLocalDoc('adjustments', id)
+  );
 };
 
-export const updateCustomer = async (id: string, data: Partial<Customer>) => {
-  return updateDoc(doc(db, 'customers', id), {
-    ...data,
-    updatedAt: Date.now()
+export async function recalculateCustomerBalance(
+  customerId: string,
+  deliveries: Delivery[],
+  payments: Payment[],
+  adjustments: Adjustment[],
+  openingBalance: number,
+  openingBalanceType: 'arrears' | 'advance'
+) {
+  let balance = openingBalanceType === 'advance' ? -openingBalance : openingBalance;
+  deliveries.forEach(d => { balance += (d.totalAmount || 0); });
+  payments.forEach(p => { balance -= (p.amount || 0); });
+  adjustments.forEach(a => {
+      balance += (a.type === 'debit' ? (a.amount || 0) : -(a.amount || 0));
   });
+  
+  await updateCustomer(customerId, { balance });
+  return balance;
+}
+
+export const updateCustomer = async (id: string, data: Partial<Customer>, increments?: Record<string, number>, userEmail?: string) => {
+  const payload: any = {
+    ...data,
+    updatedAt: Date.now(),
+    updatedBy: userEmail || 'Unknown',
+    actionType: 'update' as const
+  };
+
+  const updateData: any = { ...payload };
+  if (increments) {
+    for (const [key, val] of Object.entries(increments)) {
+      updateData[key] = increment(val);
+    }
+  }
+
+  return executeDbMutation(
+    'customers',
+    () => updateDoc(doc(db, 'customers', id), updateData),
+    () => {
+      const localData = getLocalCollection('customers').find((c: any) => c.id === id);
+      const localPayload = { ...payload };
+      if (localData && increments) {
+        for (const [key, val] of Object.entries(increments)) {
+           // Provide a fallback value of 0 in case the field is undefined
+           localPayload[key] = (localData[key] || 0) + val;
+        }
+      }
+      updateLocalDoc('customers', id, localPayload);
+    }
+  );
 };
+
+
+// ---------------- SEED & RESTORATION FALLBACK ----------------
 
 export async function fetchSeedData() {
-  // Check if we already seeded by seeing if we have customers
-  const snapshot = await getDocs(collection(db, 'customers'));
-  if (!snapshot.empty) return; // already seeded
+  try {
+    const snapshot = await getDocs(collection(db, 'customers'));
+    if (!snapshot.empty) return; 
 
-  const cust1 = await createCustomer({ customerId: 'CUST-001', name: 'Acme Logistics', creditLimit: 20000, balance: 5000, totalPurchases: 15000, status: 'credit_risk', openingBalance: 5000 });
-  const cust2 = await createCustomer({ customerId: 'CUST-002', name: 'Express Freight', creditLimit: 50000, balance: 0, totalPurchases: 25000, status: 'active', openingBalance: 0 });
+    await createCustomer({ customerId: 'CUST-001', name: 'Loruk Global', creditLimit: 2000000, balance: 4575900, totalPurchases: 4575900, status: 'credit_risk', openingBalance: 4575900, updatedBy: 'system', actionType: 'create' });
+    await createCustomer({ customerId: 'CUST-002', name: 'Loruk Chepareria', creditLimit: 500000, balance: 210200, totalPurchases: 210200, status: 'active', openingBalance: 210200, updatedBy: 'system', actionType: 'create' });
+    
+    const now = Date.now();
+
+    const stationsSnap = await getDocs(collection(db, 'stations'));
+    if (stationsSnap.empty) {
+      await addDoc(collection(db, 'stations'), { name: 'Ndalu Station', code: 'ST-001', location: 'Ndalu', status: 'active', stationId: 'Ndalu', createdAt: now, updatedAt: now });
+      await addDoc(collection(db, 'stations'), { name: 'Junction Station', code: 'ST-002', location: 'Junction', status: 'active', stationId: 'Junction', createdAt: now, updatedAt: now });
+    }
+  } catch (error) {
+    console.error("Seeding failed: ", error);
+  }
+}
+
+export async function clearDeliveriesAndPayments() {
+  try {
+    const deliveriesRef = collection(db, 'deliveries');
+    const deliveriesSnap = await getDocs(deliveriesRef);
+    for (const dDoc of deliveriesSnap.docs) {
+      await deleteDoc(doc(db, 'deliveries', dDoc.id));
+    }
+
+    const paymentsRef = collection(db, 'payments');
+    const paymentsSnap = await getDocs(paymentsRef);
+    for (const pDoc of paymentsSnap.docs) {
+      await deleteDoc(doc(db, 'payments', pDoc.id));
+    }
+
+    const customersRef = collection(db, 'customers');
+    const customersSnap = await getDocs(customersRef);
+    for (const cDoc of customersSnap.docs) {
+      const data = cDoc.data();
+      const openingBalance = typeof data.openingBalance === 'number' ? data.openingBalance : 0;
+      await updateDoc(doc(db, 'customers', cDoc.id), {
+        balance: openingBalance,
+        totalPurchases: openingBalance,
+        updatedAt: Date.now()
+      });
+    }
+  } catch (error) {
+    console.error("Failed to clear deliveries and payments:", error);
+  }
+}
+
+export async function deleteSeedData() {
+  const collectionsToClean = [
+    { name: 'customers', field: 'customerId', values: ['CUST-004'] },
+    { name: 'stations', field: 'code', values: ['ST-001', 'ST-002'] },
+    { name: 'lpg_inventory', field: 'stockLevel', values: [45, 25, 30, 20] },
+    { name: 'burner_inventory', field: 'quantity', values: [15, 12] },
+    { name: 'daily_reports', field: 'totalSales', values: [155000, 120000] },
+    { name: 'invoice_payments', field: 'invoiceId', values: ['seed_inv_1'] },
+    { name: 'fuel_rates', field: 'rate', values: [175, 162, 176, 163] },
+    { name: 'pump_readings', field: 'litresStart', values: [10000, 20000, 5000, 12000] },
+    { name: 'lpg_sales', field: 'cylindersSold', values: [8, 5] },
+    { name: 'lpg_purchases', field: 'cylindersBought', values: [15, 10] },
+    { name: 'burner_sales', field: 'quantity', values: [4, 2] },
+    { name: 'burner_purchases', field: 'quantity', values: [10, 8] },
+    { name: 'grill_sales', field: 'salesAmount', values: [4500] },
+    { name: 'grill_purchases', field: 'purchaseCost', values: [9000, 6000] },
+    { name: 'expenses', field: 'description', values: ['Electricity token', 'Lunch / Airtime'] },
+    { name: 'cash_positions', field: 'mpesaBalance', values: [45000, 32000] },
+    { name: 'invoices', field: 'invoiceNumber', values: ['INV-1001', 'INV-1002'] }
+  ];
+
+  try {
+    for (const col of collectionsToClean) {
+      const snap = await getDocs(collection(db, col.name));
+      for (const docSnap of snap.docs) {
+        const data = docSnap.data();
+        const val = data[col.field];
+        if ((col.values as any[]).includes(val)) {
+          await deleteDoc(doc(db, col.name, docSnap.id));
+        }
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export async function restoreLostCustomers() {
+  console.log("[Restore] Starting restoreLostCustomers self-healing routine... (Forced)");
+
+  let snapshot;
+  try {
+    snapshot = await getDocs(collection(db, 'customers'));
+  } catch (err: any) {
+    console.error("[Restore] Failed to fetch 'customers' collection:", err);
+    throw err;
+  }
   
+  const existingCustomers = snapshot.docs.map(docSnap => ({
+    docId: docSnap.id,
+    ...(docSnap.data() as Customer)
+  }));
+
   const now = Date.now();
-  const DAY = 24 * 60 * 60 * 1000;
 
-  // Add deliveries
-  await createDelivery({ customerId: cust1.id, date: now - 3 * DAY, productType: 'Diesel', litres: 5000, totalAmount: 7500, createdBy: 'admin' });
-  await createDelivery({ customerId: cust2.id, date: now - 2 * DAY, productType: 'Super', litres: 2000, totalAmount: 3200, createdBy: 'admin' });
+  const existingCust1 = existingCustomers.find(c => c.customerId === 'CUST-001');
+  const existingCust2 = existingCustomers.find(c => c.customerId === 'CUST-002');
+  const existingCust4 = existingCustomers.find(c => c.customerId === 'CUST-004');
 
-  // Add payments
-  await createPayment({ customerId: cust1.id, date: now - 1 * DAY, amount: 2500, createdBy: 'admin' });
+  const id1 = existingCust1?.docId || 'cust_loruk_global';
+  const id2 = existingCust2?.docId || 'cust_loruk_chepareria';
+
+  try {
+      await setDoc(doc(db, 'customers', id1), {
+        customerId: 'CUST-001',
+        name: 'Loruk Global',
+        creditLimit: 2000000,
+        balance: 4575900,
+        totalPurchases: 4575900,
+        status: 'credit_risk',
+        openingBalance: 4575900,
+        updatedBy: 'system',
+        actionType: 'update',
+        createdAt: now,
+        updatedAt: now
+      }, { merge: true });
+  } catch (err: any) {
+      console.error("[Restore] Failed to set/update customer CUST-001:", id1, err);
+  }
+
+  try {
+      await setDoc(doc(db, 'customers', id2), {
+        customerId: 'CUST-002',
+        name: 'Loruk Chepareria',
+        creditLimit: 500000,
+        balance: 210200,
+        totalPurchases: 210200,
+        status: 'active',
+        openingBalance: 210200,
+        updatedBy: 'system',
+        actionType: 'update',
+        createdAt: now,
+        updatedAt: now
+      }, { merge: true });
+  } catch (err: any) {
+      console.error("[Restore] Failed to set/update customer CUST-002:", id2, err);
+  }
+
+  if (existingCust4) {
+    try {
+      await deleteDoc(doc(db, 'customers', existingCust4.docId));
+      console.log("[Restore] Obsolete mock customer CUST-004 (Kapeways) deleted successfully.");
+    } catch (err: any) {
+      console.error("[Restore] Failed to delete customer CUST-004:", err);
+    }
+  }
 }

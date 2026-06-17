@@ -1,116 +1,229 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth, AuthProvider } from './lib/auth';
 import { ThemeProvider } from './lib/theme';
 import { SyncProvider, useSync } from './lib/sync';
 import Sidebar from './components/Sidebar';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import Dashboard from './pages/Dashboard';
+import Operations from './pages/Operations';
+import Deliveries from './pages/Deliveries';
+import Payments from './pages/Payments';
 import Ledger from './pages/Ledger';
 import Fleet from './pages/Fleet';
 import TruckDashboard from './pages/TruckDashboard';
 import Customers from './pages/Customers';
-import Deliveries from './pages/Deliveries';
-import Payments from './pages/Payments';
 import Reports from './pages/Reports';
 import CustomerDashboard from './pages/CustomerDashboard';
-import { Fuel, LogIn, RefreshCcw } from 'lucide-react';
+import Settings from './pages/Settings';
+import { Fuel, LogIn, RefreshCcw, Printer, Menu } from 'lucide-react';
 import { format } from 'date-fns';
 
-type Page = 'dashboard' | 'ledger' | 'fleet' | 'customers' | 'deliveries' | 'payments' | 'reports' | 'customerDashboard' | 'truckDashboard';
+type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'settings';
 
 function AuthenticatedApp() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [selectedTruckReg, setSelectedTruckReg] = useState<string | null>(null);
+  const [selectedStation, setSelectedStation] = useState<'Ndalu' | 'Junction' | 'Combined'>('Combined');
   const { lastSync } = useSync();
+  const [quotaExceeded, setQuotaExceeded] = useState(false); // Changed to avoid quota issues for now
+
+  // Add state for print warning
+  const [showPrintWarning, setShowPrintWarning] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-blue-950 text-gray-900 dark:text-blue-100 font-sans overflow-hidden transition-colors">
-      <Sidebar currentPage={currentPage} onNavigate={(p) => {
-        setCurrentPage(p);
-        if (p !== 'customerDashboard') {
-          setSelectedCustomerId(null);
-        }
-        if (p !== 'truckDashboard') {
-            setSelectedTruckReg(null);
-        }
-      }} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="flex justify-between items-center px-8 py-6 bg-white dark:bg-blue-950 border-b border-gray-200 dark:border-blue-900 transition-colors">
-          <div>
-            <h1 className="text-3xl font-bold capitalize dark:text-blue-100 tracking-tight">
-              {currentPage === 'customerDashboard' ? 'Customer Profile' : currentPage === 'truckDashboard' && selectedTruckReg ? `Dashboard: ${selectedTruckReg}` : currentPage.replace(/([A-Z])/g, ' $1').trim()}
-            </h1>
+    <div className="flex h-screen bg-gray-50 dark:bg-blue-950 text-gray-900 dark:text-blue-100 font-sans overflow-hidden transition-colors relative">
+      {/* Mobile Sidebar Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-blue-950/20 backdrop-blur-sm z-40 lg:hidden print-hide"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+      
+      {/* Print Warning Modal */}
+      {showPrintWarning && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 print-hide">
+          <div className="bg-white dark:bg-blue-900 p-6 rounded-xl shadow-2xl max-w-md w-full border border-blue-100 dark:border-blue-800">
+            <h3 className="text-xl font-bold mb-3 flex items-center gap-2 text-blue-900 dark:text-blue-100">
+              <Printer className="w-5 h-5" />
+              Printing Restricted
+            </h3>
+            <p className="text-gray-600 dark:text-blue-200 mb-6">
+              Printing is restricted in this preview environment. To print or save as PDF, please open the application in a <strong>new tab</strong> using the arrow icon at the top right of your preview window.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setShowPrintWarning(false)}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-blue-950 dark:hover:bg-blue-800 text-gray-800 dark:text-blue-100 font-medium rounded-lg transition-colors"
+              >
+                Close
+              </button>
+              <button 
+                onClick={() => {
+                  window.open(window.location.href, '_blank');
+                  setShowPrintWarning(false);
+                }}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+              >
+                Open in New Tab
+              </button>
+            </div>
           </div>
-          {lastSync && (
-            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-900 px-3 py-1 rounded-full">
-              <RefreshCcw className="w-3 h-3" />
-              Last Sync: {format(lastSync, 'HH:mm:ss')}
+        </div>
+      )}
+
+      <div className={`fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 lg:relative lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <Sidebar currentPage={currentPage} onNavigate={(p) => {
+          setCurrentPage(p);
+          if (p !== 'customerDashboard') {
+            setSelectedCustomerId(null);
+          }
+          if (p !== 'truckDashboard') {
+            setSelectedTruckReg(null);
+          }
+          setIsMobileMenuOpen(false);
+        }} />
+      </div>
+
+      <div className="flex-1 flex flex-col overflow-hidden w-full">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center px-4 md:px-8 py-4 md:py-6 bg-white dark:bg-blue-950 border-b border-gray-200 dark:border-blue-900 transition-colors gap-4">
+          <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="lg:hidden p-2 -ml-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-blue-100 hover:bg-gray-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors cursor-pointer"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              <h1 className="text-2xl md:text-3xl font-bold capitalize dark:text-blue-100 tracking-tight">
+                {currentPage === 'customerDashboard' ? 'Customer Profile' : currentPage === 'truckDashboard' && selectedTruckReg ? `Dashboard: ${selectedTruckReg}` : currentPage.replace(/([A-Z])/g, ' $1').trim()}
+              </h1>
+            </div>
+          </div>
+          
+          {/* Station Selection Filter */}
+          {currentPage === 'operations' && (
+            <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-slate-900 p-1 rounded-lg border border-gray-200 dark:border-blue-900/50">
+              <button 
+                onClick={() => setSelectedStation('Combined')}
+                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${selectedStation === 'Combined' ? 'bg-blue-600 text-white shadow-xs' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'}`}
+              >
+                Combined Total
+              </button>
+              <button 
+                onClick={() => setSelectedStation('Ndalu')}
+                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${selectedStation === 'Ndalu' ? 'bg-blue-600 text-white shadow-xs' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'}`}
+              >
+                Ndalu Station
+              </button>
+              <button 
+                onClick={() => setSelectedStation('Junction')}
+                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${selectedStation === 'Junction' ? 'bg-blue-600 text-white shadow-xs' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'}`}
+              >
+                Junction Station
+              </button>
             </div>
           )}
+
+          <div className="flex items-center gap-3 shrink-0 print-hide">
+            {lastSync && (
+              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-900 px-3 py-1.5 rounded-full shrink-0">
+                <RefreshCcw className="w-3 h-3" />
+                Last Sync: {format(lastSync, 'HH:mm:ss')}
+              </div>
+            )}
+            <button
+              onClick={() => {
+                if (window.self !== window.top) {
+                  setShowPrintWarning(true);
+                } else {
+                  window.print();
+                }
+              }}
+              className="flex items-center gap-2 text-sm font-semibold text-gray-700 bg-gray-100/80 hover:bg-gray-200 dark:text-gray-300 dark:bg-slate-900/80 dark:hover:bg-slate-800 px-3 py-1.5 rounded-md transition-colors cursor-pointer"
+              title="Print Page"
+            >
+              <Printer className="w-4 h-4" />
+              <span className="hidden sm:inline">Print</span>
+            </button>
+          </div>
         </header>
-        <main className="flex-1 overflow-y-auto p-8 space-y-8">
-          {currentPage === 'dashboard' && (
-            <Dashboard 
-              onNavigateToCustomer={(id) => {
-                setSelectedCustomerId(id);
-                setCurrentPage('customerDashboard');
-              }}
-              onNavigateToTruck={(reg) => {
-                setSelectedTruckReg(reg);
-                setCurrentPage('truckDashboard');
-              }}
-            />
-          )}
-          {currentPage === 'ledger' && (
-            <Ledger 
-              onViewCustomer={(id) => {
-                setSelectedCustomerId(id);
-                setCurrentPage('customerDashboard');
-              }}
-            />
-          )}
-          {currentPage === 'fleet' && <Fleet onNavigate={(p) => setCurrentPage(p as Page)} onNavigateToTruck={(reg) => { setSelectedTruckReg(reg); setCurrentPage('truckDashboard'); }} />}
-          {currentPage === 'truckDashboard' && <TruckDashboard truckReg={selectedTruckReg} onNavigateToTruck={(reg) => { setSelectedTruckReg(reg); }}/>}
-          {currentPage === 'customers' && (
-            <Customers 
-              onViewCustomer={(id) => {
-                setSelectedCustomerId(id);
-                setCurrentPage('customerDashboard');
-              }}
-              onNavigate={(p) => setCurrentPage(p as Page)}
-            />
-          )}
-          {currentPage === 'customerDashboard' && (
-            <CustomerDashboard 
-              customerId={selectedCustomerId || ''} 
-              onBack={() => {
-                setCurrentPage('customers');
-                setSelectedCustomerId(null);
-              }} 
-            />
-          )}
-          {currentPage === 'deliveries' && (
-            <Deliveries 
-              onViewCustomer={(id) => {
-                setSelectedCustomerId(id);
-                setCurrentPage('customerDashboard');
-              }}
-            />
-          )}
-          {currentPage === 'payments' && (
-            <Payments 
-              onViewCustomer={(id) => {
-                setSelectedCustomerId(id);
-                setCurrentPage('customerDashboard');
-              }}
-            />
-          )}
-          {currentPage === 'reports' && <Reports />}
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-8">
+          <ErrorBoundary>
+            {currentPage === 'dashboard' && (
+              <Dashboard 
+                selectedStation={selectedStation}
+                onNavigateToCustomer={(id) => {
+                  setSelectedCustomerId(id);
+                  setCurrentPage('customerDashboard');
+                }}
+                onNavigateToTruck={(reg) => {
+                  setSelectedTruckReg(reg);
+                  setCurrentPage('truckDashboard');
+                }}
+              />
+            )}
+            {currentPage === 'operations' && (
+              <Operations 
+                selectedStation={selectedStation}
+                setSelectedStation={setSelectedStation}
+              />
+            )}
+            {currentPage === 'deliveries' && (
+              <Deliveries 
+                onViewCustomer={(id) => {
+                  setSelectedCustomerId(id);
+                  setCurrentPage('customerDashboard');
+                }}
+              />
+            )}
+            {currentPage === 'payments' && (
+              <Payments 
+                onViewCustomer={(id) => {
+                  setSelectedCustomerId(id);
+                  setCurrentPage('customerDashboard');
+                }}
+              />
+            )}
+            {currentPage === 'ledger' && (
+              <Ledger 
+                onViewCustomer={(id) => {
+                  setSelectedCustomerId(id);
+                  setCurrentPage('customerDashboard');
+                }}
+              />
+            )}
+            {currentPage === 'fleet' && <Fleet onNavigate={(p) => setCurrentPage(p as Page)} onNavigateToTruck={(reg) => { setSelectedTruckReg(reg); setCurrentPage('truckDashboard'); }} />}
+            {currentPage === 'truckDashboard' && <TruckDashboard truckReg={selectedTruckReg} onNavigateToTruck={(reg) => { setSelectedTruckReg(reg); }}/>}
+            {currentPage === 'customers' && (
+              <Customers 
+                onViewCustomer={(id) => {
+                  setSelectedCustomerId(id);
+                  setCurrentPage('customerDashboard');
+                }}
+                onNavigate={(p) => setCurrentPage(p as Page)}
+              />
+            )}
+            {currentPage === 'customerDashboard' && (
+              <CustomerDashboard 
+                customerId={selectedCustomerId || ''} 
+                onBack={() => {
+                  setCurrentPage('customers');
+                  setSelectedCustomerId(null);
+                }} 
+              />
+            )}
+            {currentPage === 'reports' && <Reports />}
+            {currentPage === 'settings' && <Settings />}
+          </ErrorBoundary>
         </main>
       </div>
     </div>
   );
 }
+
 
 function DefaultExport() {
   return (

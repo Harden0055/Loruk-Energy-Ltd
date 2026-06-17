@@ -11,6 +11,7 @@ import {
 } from '../lib/db';
 import { formatCurrency } from '../lib/utils';
 import { format } from 'date-fns';
+import { useAuth } from '../lib/auth';
 import { Search, Filter, Download, Wallet, Trash2, AlertTriangle, Truck, Coins, ArrowUp, ArrowDown } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -27,6 +28,8 @@ interface LedgerEntry {
 }
 
 export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: string) => void }) {
+  const { user } = useAuth();
+  const isAdmin = (user as any)?.role === 'admin' || user?.email?.includes('admin');
   const { customers, loading: cl } = useCustomers();
   const { deliveries, loading: dl } = useDeliveries();
   const { payments, loading: pl } = usePayments();
@@ -71,9 +74,9 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
           balanceChange = deletingEntry.credit;
         }
 
-        await updateCustomer(customer.id, {
-          balance: (customer.balance || 0) + balanceChange,
-          totalPurchases: Math.max(0, (customer.totalPurchases || 0) + totalPurchasesChange)
+        await updateCustomer(customer.id, {}, {
+          balance: balanceChange,
+          totalPurchases: totalPurchasesChange
         });
       }
 
@@ -392,7 +395,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
             <h3 className="text-2xl font-bold text-blue-900 dark:text-blue-100">{formatCurrency(totalDebits)}</h3>
           </div>
           <div className="w-12 h-12 bg-white dark:bg-blue-900 rounded-full shadow-sm flex items-center justify-center">
-            <ArrowUp className="w-6 h-6 text-red-650 dark:text-red-400" />
+            <ArrowUp className="w-6 h-6 text-red-600 dark:text-red-400" />
           </div>
         </div>
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-blue-950 border border-blue-200 dark:border-blue-900 p-6 rounded-xl shadow-sm flex items-center justify-between">
@@ -407,9 +410,9 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-blue-950 border border-blue-200 dark:border-blue-900 p-6 rounded-xl shadow-sm flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-blue-700 dark:text-blue-400 mb-1">Net Change</p>
-            <h3 className={`text-2xl font-bold ${totalDebits - totalCredits > 0 ? 'text-blue-900 dark:text-blue-100' : 'text-emerald-600 dark:text-emerald-450'}`}>
+            <h3 className={`text-2xl font-bold ${totalDebits - totalCredits > 0 ? 'text-blue-900 dark:text-blue-100' : 'text-emerald-600 dark:text-emerald-400'}`}>
               {formatCurrency(Math.abs(totalDebits - totalCredits))}
-              <span className="text-sm font-normal ml-1 text-gray-550 dark:text-gray-300">{totalDebits - totalCredits > 0 ? 'Due' : 'Credit'}</span>
+              <span className="text-sm font-normal ml-1 text-gray-500 dark:text-gray-300">{totalDebits - totalCredits > 0 ? 'Due' : 'Credit'}</span>
             </h3>
           </div>
           <div className="w-12 h-12 bg-white dark:bg-blue-900 rounded-full shadow-sm flex items-center justify-center">
@@ -422,7 +425,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
         <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-white dark:bg-blue-950 rounded-xl shadow-2xl border border-gray-200 dark:border-blue-900 w-full max-w-md overflow-hidden transform transition-all duration-300 scale-100 animate-scale-in">
             <div className="p-6">
-              <div className="flex items-center gap-3.5 text-red-600 dark:text-red-400 mb-4 bg-red-50 dark:bg-red-955/30 p-4 rounded-xl border border-red-100 dark:border-red-900/50">
+              <div className="flex items-center gap-3.5 text-red-600 dark:text-red-400 mb-4 bg-red-50 dark:bg-red-950/30 p-4 rounded-xl border border-red-100 dark:border-red-900/50">
                 <AlertTriangle className="w-8 h-8 shrink-0 text-red-600 dark:text-red-400" />
                 <div>
                   <h3 className="text-lg font-bold text-gray-950 dark:text-blue-50">Confirm Deletion</h3>
@@ -438,15 +441,15 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
                 <div className="bg-gray-50 dark:bg-blue-950/40 p-4 rounded-lg space-y-2 border border-gray-100 dark:border-blue-900 text-sm font-medium">
                   <div className="flex justify-between items-center py-1 border-b border-gray-100/30 dark:border-blue-900/50">
                     <span className="text-gray-500 dark:text-gray-400">Customer:</span>
-                    <span className="text-gray-955 dark:text-blue-50 font-bold">{deletingEntry.customerName}</span>
+                    <span className="text-gray-950 dark:text-blue-50 font-bold">{deletingEntry.customerName}</span>
                   </div>
                   <div className="flex justify-between items-center py-1 border-b border-gray-100/30 dark:border-blue-900/50">
                     <span className="text-gray-500 dark:text-gray-400">Type:</span>
-                    <span className="text-gray-955 dark:text-blue-50 capitalize font-semibold">{deletingEntry.type.replace('_', ' ')}</span>
+                    <span className="text-gray-950 dark:text-blue-50 capitalize font-semibold">{deletingEntry.type.replace('_', ' ')}</span>
                   </div>
                   <div className="flex justify-between items-center py-1 border-b border-gray-100/30 dark:border-blue-900/50">
                     <span className="text-gray-500 dark:text-gray-400">Note:</span>
-                    <span className="text-gray-955 dark:text-blue-50 font-semibold">{deletingEntry.note}</span>
+                    <span className="text-gray-950 dark:text-blue-50 font-semibold">{deletingEntry.note}</span>
                   </div>
                   <div className="flex justify-between items-center py-1">
                     <span className="text-gray-500 dark:text-gray-400">Amount:</span>
@@ -457,7 +460,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
                 </div>
 
                 {deleteError && (
-                  <div className="p-3 bg-red-50 dark:bg-red-955/30 border border-red-100 dark:border-red-900/50 rounded-lg flex gap-2 items-start text-red-700 dark:text-red-400 text-sm font-semibold">
+                  <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 rounded-lg flex gap-2 items-start text-red-700 dark:text-red-400 text-sm font-semibold">
                     <AlertTriangle className="w-5 h-5 shrink-0" />
                     <span>{deleteError}</span>
                   </div>
@@ -532,7 +535,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
                   <td className="px-4 py-3 text-right">
                     <button 
                       onClick={() => setDeletingEntry(e)}
-                      className="p-2 text-gray-450 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors rounded-md inline-flex items-center justify-center cursor-pointer"
+                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors rounded-md inline-flex items-center justify-center cursor-pointer"
                       title="Delete Transaction"
                       id={`btn-delete-entry-${e.id}`}
                     >

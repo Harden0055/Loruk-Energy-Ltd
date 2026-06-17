@@ -8,6 +8,8 @@ import { Payment } from '../types';
 import AIInputModal from '../components/AIInputModal';
 
 export default function Payments({ onViewCustomer }: { onViewCustomer?: (id: string) => void }) {
+  const { user } = useAuth();
+  const isAdmin = (user as any)?.role === 'admin' || user?.email?.includes('admin');
   const { payments, loading } = usePayments();
   const { customers } = useCustomers();
   const [search, setSearch] = useState('');
@@ -25,15 +27,13 @@ export default function Payments({ onViewCustomer }: { onViewCustomer?: (id: str
     try {
       const customer = customers.find(c => c.id === deletingPayment.customerId);
       if (customer) {
-        await updateCustomer(customer.id, {
-          balance: (customer.balance || 0) + deletingPayment.amount
-        });
+        await updateCustomer(customer.id, {}, { balance: deletingPayment.amount }, user?.email || 'system');
       }
       await deletePayment(deletingPayment.id);
       setDeletingPayment(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setDeleteError('An error occurred while deleting the payment.');
+      setDeleteError(err?.message || 'An error occurred while deleting the payment.');
     } finally {
       setIsDeleting(false);
     }
@@ -161,6 +161,7 @@ export default function Payments({ onViewCustomer }: { onViewCustomer?: (id: str
 
 export function AddPaymentModal({ onClose, customers, initialData }: { onClose: () => void, customers: any[], initialData?: any }) {
   const { user } = useAuth();
+  const isAdmin = (user as any)?.role === 'admin' || user?.email?.includes('admin');
   const [loading, setLoading] = useState(false);
   const isEditing = !!initialData?.id;
 
@@ -195,13 +196,26 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
       const newTimestamp = new Date(form.date).getTime() || Date.now();
 
       if (isEditing) {
-        // 1. Revert old payment impact from old customer balance
         const oldAmount = parseFloat(initialData.amount);
-        const oldCust = customers.find(c => c.id === initialData.customerId);
-        if (oldCust) {
-          await updateCustomer(oldCust.id, {
-            balance: (oldCust.balance || 0) + oldAmount
-          });
+        
+        if (initialData.customerId === form.customerId) {
+            // Same customer, update the difference
+            const difference = amountVal - oldAmount;
+            if (difference !== 0) {
+               await updateCustomer(form.customerId, {}, { balance: -difference });
+            }
+        } else {
+             // Revert from old customer
+             const oldCust = customers.find(c => c.id === initialData.customerId);
+             if (oldCust) {
+               await updateCustomer(oldCust.id, {}, { balance: oldAmount });
+             }
+
+             // Apply to new customer
+             const currentCust = customers.find(c => c.id === form.customerId);
+             if (currentCust) {
+               await updateCustomer(currentCust.id, {}, { balance: -amountVal });
+             }
         }
 
         // 2. Update payment document
@@ -210,18 +224,6 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
           date: newTimestamp,
           amount: amountVal
         });
-
-        // 3. Apply new payment impact to current customer balance
-        const currentCust = customers.find(c => c.id === form.customerId);
-        if (currentCust) {
-          const startingBalance = (oldCust && currentCust.id === oldCust.id)
-            ? (currentCust.balance || 0) + oldAmount
-            : (currentCust.balance || 0);
-
-          await updateCustomer(currentCust.id, {
-            balance: startingBalance - amountVal
-          });
-        }
       } else {
         // Normal Create Mode
         await createPayment({ 
@@ -229,12 +231,10 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
           date: newTimestamp,
           amount: amountVal,
           createdBy: user?.uid || 'unknown'
-        });
+        }, user?.email || 'system');
         const customer = customers.find(c => c.id === form.customerId);
         if (customer) {
-          await updateCustomer(customer.id, {
-            balance: (customer.balance || 0) - amountVal
-          });
+          await updateCustomer(customer.id, {}, { balance: -amountVal });
         }
       }
       onClose();
@@ -316,7 +316,7 @@ function DeletePaymentConfirmModal({
     <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
       <div className="bg-white dark:bg-blue-950 rounded-xl shadow-2xl border border-gray-200 dark:border-blue-900 w-full max-w-md overflow-hidden transform transition-all duration-300 scale-100">
         <div className="p-6">
-          <div className="flex items-center gap-3.5 text-red-600 dark:text-red-400 mb-4 bg-red-50 dark:bg-red-955/30 p-4 rounded-xl border border-red-100 dark:border-red-900/50">
+          <div className="flex items-center gap-3.5 text-red-600 dark:text-red-400 mb-4 bg-red-50 dark:bg-red-950/30 p-4 rounded-xl border border-red-100 dark:border-red-900/50">
             <AlertTriangle className="w-8 h-8 shrink-0" />
             <div>
               <h3 className="text-lg font-bold text-gray-950 dark:text-blue-50">Confirm Deletion</h3>
@@ -331,11 +331,11 @@ function DeletePaymentConfirmModal({
             <div className="bg-gray-50 dark:bg-blue-950/40 p-4 rounded-lg space-y-2 border border-gray-100 dark:border-blue-900 text-sm font-medium">
               <div className="flex justify-between items-center py-1 border-b border-gray-100/30 dark:border-blue-900/50">
                 <span className="text-gray-500 dark:text-gray-400">Customer:</span> 
-                <span className="text-gray-955 dark:text-blue-50 font-bold">{customerName}</span>
+                <span className="text-gray-950 dark:text-blue-50 font-bold">{customerName}</span>
               </div>
               <div className="flex justify-between items-center py-1 border-b border-gray-100/30 dark:border-blue-900/50">
                 <span className="text-gray-500 dark:text-gray-400">Date:</span> 
-                <span className="text-gray-955 dark:text-blue-50 font-semibold">{format(payment.date, 'MMM d, yyyy HH:mm')}</span>
+                <span className="text-gray-950 dark:text-blue-50 font-semibold">{format(payment.date, 'MMM d, yyyy HH:mm')}</span>
               </div>
               <div className="flex justify-between items-center py-1">
                 <span className="text-gray-500 dark:text-gray-400">Payment Amount:</span> 
@@ -344,7 +344,7 @@ function DeletePaymentConfirmModal({
             </div>
 
             {error && (
-              <div className="p-3 bg-red-50 dark:bg-red-955/30 border border-red-100 dark:border-red-900/50 rounded-lg flex gap-2 items-start text-red-700 dark:text-red-400 text-sm font-semibold">
+              <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 rounded-lg flex gap-2 items-start text-red-700 dark:text-red-400 text-sm font-semibold">
                 <AlertTriangle className="w-5 h-5 shrink-0" />
                 <span>{error}</span>
               </div>
@@ -363,7 +363,7 @@ function DeletePaymentConfirmModal({
           </button>
           <button 
             type="button" 
-            onClick={onConfirm}
+            onClick={async () => await onConfirm()}
             disabled={isDeleting}
             className="px-4 py-2 bg-red-605 hover:bg-red-600 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5"
             style={{ backgroundColor: '#dc2626' }}

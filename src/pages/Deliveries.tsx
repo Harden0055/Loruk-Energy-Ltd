@@ -1,11 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useDeliveries, createDelivery, useCustomers, deleteDelivery, updateCustomer, updateDelivery } from '../lib/db';
 import { formatCurrency, formatLitres } from '../lib/utils';
 import { useAuth } from '../lib/auth';
-import { Search, Plus, Bot, Trash2, AlertTriangle, X, Edit2, Check, SlidersHorizontal, RotateCcw } from 'lucide-react';
+import { Search, Plus, Bot, Trash2, AlertTriangle, X, Edit2, Check, SlidersHorizontal, RotateCcw, Fuel, Users, Coins, Flame, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import AIInputModal from '../components/AIInputModal';
 import { Delivery } from '../types';
+import Papa from 'papaparse';
 
 interface DeleteDeliveryProps {
   delivery: Delivery;
@@ -42,25 +43,25 @@ function DeleteDeliveryConfirmModal({
             </p>
             <div className="bg-gray-50 dark:bg-blue-950/40 p-4 rounded-lg space-y-2 border border-gray-100 dark:border-blue-900 text-sm font-medium">
               <div className="flex justify-between items-center py-1 border-b border-gray-100/30 dark:border-blue-900/50">
-                <span className="text-gray-505 dark:text-gray-400">Customer:</span> 
+                <span className="text-gray-500 dark:text-gray-400">Customer:</span> 
                 <span className="text-gray-950 dark:text-blue-50 font-bold">{customerName}</span>
               </div>
               <div className="flex justify-between items-center py-1 border-b border-gray-100/30 dark:border-blue-900/50">
-                <span className="text-gray-505 dark:text-gray-400">Product:</span> 
-                <span className="text-gray-955 dark:text-blue-50 font-semibold">{delivery.productType}</span>
+                <span className="text-gray-500 dark:text-gray-400">Product:</span> 
+                <span className="text-gray-900 dark:text-blue-50 font-semibold">{delivery.productType}</span>
               </div>
               <div className="flex justify-between items-center py-1 border-b border-gray-100/30 dark:border-blue-900/50">
-                <span className="text-gray-505 dark:text-gray-400">Litres:</span> 
-                <span className="text-gray-955 dark:text-blue-50 font-mono font-semibold">{formatLitres(delivery.litres)} L</span>
+                <span className="text-gray-500 dark:text-gray-400">Litres:</span> 
+                <span className="text-gray-900 dark:text-blue-50 font-mono font-semibold">{formatLitres(delivery.litres)} L</span>
               </div>
               <div className="flex justify-between items-center py-1">
-                <span className="text-gray-505 dark:text-gray-400">Total Amount:</span> 
+                <span className="text-gray-500 dark:text-gray-400">Total Amount:</span> 
                 <span className="text-blue-600 dark:text-blue-400 font-mono font-bold">{formatCurrency(delivery.totalAmount)}</span>
               </div>
             </div>
 
             {error && (
-              <div className="p-3 bg-red-50 dark:bg-red-955/30 border border-red-100 dark:border-red-900/50 rounded-lg flex gap-2 items-start text-red-700 dark:text-red-400 text-sm font-semibold">
+              <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-900/50 rounded-lg flex gap-2 items-start text-red-700 dark:text-red-400 text-sm font-semibold">
                 <AlertTriangle className="w-5 h-5 shrink-0" />
                 <span>{error}</span>
               </div>
@@ -79,9 +80,9 @@ function DeleteDeliveryConfirmModal({
           </button>
           <button 
             type="button" 
-            onClick={onConfirm}
+            onClick={async () => await onConfirm()}
             disabled={isDeleting}
-            className="px-4 py-2 bg-red-650 hover:bg-red-600 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5"
+            className="px-4 py-2 bg-red-600 hover:bg-red-600 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5"
             style={{ backgroundColor: '#dc2626' }}
           >
             {isDeleting ? 'Deleting...' : 'Delete Delivery'}
@@ -130,13 +131,13 @@ function DeleteMultipleConfirmModal({
             </p>
             <div className="bg-gray-50 dark:bg-blue-950/40 p-4 rounded-lg space-y-2 border border-gray-100 dark:border-blue-900 text-sm font-medium">
               <div className="flex justify-between items-center py-1">
-                <span className="text-gray-505 dark:text-gray-400">Total Value:</span> 
+                <span className="text-gray-500 dark:text-gray-400">Total Value:</span> 
                 <span className="text-red-600 dark:text-red-400 font-mono font-bold">{formatCurrency(totalValue)}</span>
               </div>
             </div>
 
             {error && (
-              <div className="p-3 bg-red-50 dark:bg-red-955/30 border border-red-100 dark:border-red-900/50 rounded-lg flex gap-2 items-start text-red-700 dark:text-red-400 text-sm font-semibold">
+              <div className="p-3 bg-red-50 dark:bg-red-900/30 border border-red-100 dark:border-red-900/50 rounded-lg flex gap-2 items-start text-red-700 dark:text-red-400 text-sm font-semibold">
                 <AlertTriangle className="w-5 h-5 shrink-0" />
                 <span>{error}</span>
               </div>
@@ -155,9 +156,9 @@ function DeleteMultipleConfirmModal({
           </button>
           <button 
             type="button" 
-            onClick={onConfirm}
+            onClick={async () => await onConfirm()}
             disabled={isDeleting}
-            className="px-4 py-2 bg-red-650 hover:bg-red-600 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5"
+            className="px-4 py-2 bg-red-600 hover:bg-red-600 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5"
             style={{ backgroundColor: '#dc2626' }}
             id="btn-confirm-bulk-delete"
           >
@@ -170,6 +171,8 @@ function DeleteMultipleConfirmModal({
 }
 
 export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: string) => void }) {
+  const { user } = useAuth();
+  const isAdmin = (user as any)?.role === 'admin' || user?.email?.includes('admin');
   const { deliveries, loading } = useDeliveries();
   const { customers } = useCustomers();
   const [search, setSearch] = useState('');
@@ -250,25 +253,25 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
       if (customerChanged) {
         const oldCustomer = customers.find(c => c.id === originalDelivery.customerId);
         if (oldCustomer) {
-          await updateCustomer(oldCustomer.id, {
-            balance: (oldCustomer.balance || 0) - originalDelivery.totalAmount,
-            totalPurchases: Math.max(0, (oldCustomer.totalPurchases || 0) - originalDelivery.totalAmount)
+          await updateCustomer(oldCustomer.id, {}, {
+            balance: -originalDelivery.totalAmount,
+            totalPurchases: -originalDelivery.totalAmount
           });
         }
         const newCustomer = customers.find(c => c.id === newCustomerId);
         if (newCustomer) {
-          await updateCustomer(newCustomer.id, {
-            balance: (newCustomer.balance || 0) + newAmt,
-            totalPurchases: (newCustomer.totalPurchases || 0) + newAmt
+          await updateCustomer(newCustomer.id, {}, {
+            balance: newAmt,
+            totalPurchases: newAmt
           });
         }
       } else if (amountChanged) {
         const difference = newAmt - originalDelivery.totalAmount;
         const customer = customers.find(c => c.id === originalDelivery.customerId);
         if (customer) {
-          await updateCustomer(customer.id, {
-            balance: (customer.balance || 0) + difference,
-            totalPurchases: Math.max(0, (customer.totalPurchases || 0) + difference)
+          await updateCustomer(customer.id, {}, {
+            balance: difference,
+            totalPurchases: difference
           });
         }
       }
@@ -297,6 +300,23 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
     }
   };
 
+  const exportDeliveries = () => {
+    const csv = Papa.unparse(filtered.map(d => ({
+        Date: format(d.date, 'yyyy-MM-dd HH:mm'),
+        Customer: customers.find(c => c.id === d.customerId)?.name || 'Unknown',
+        Product: d.productType,
+        Litres: d.litres,
+        Amount: d.totalAmount
+    })));
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `deliveries-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const confirmDelete = async () => {
     if (!deletingDelivery) return;
     setIsDeleting(true);
@@ -304,9 +324,9 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
     try {
       const customer = customers.find(c => c.id === deletingDelivery.customerId);
       if (customer) {
-        await updateCustomer(customer.id, {
-          balance: (customer.balance || 0) - deletingDelivery.totalAmount,
-          totalPurchases: Math.max(0, (customer.totalPurchases || 0) - deletingDelivery.totalAmount)
+        await updateCustomer(customer.id, {}, {
+          balance: -deletingDelivery.totalAmount,
+          totalPurchases: -deletingDelivery.totalAmount
         });
       }
       await deleteDelivery(deletingDelivery.id);
@@ -413,9 +433,9 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
       for (const [customerId, amount] of customerAdjustments.entries()) {
         const customer = customers.find(c => c.id === customerId);
         if (customer) {
-          await updateCustomer(customerId, {
-            balance: (customer.balance || 0) - amount,
-            totalPurchases: Math.max(0, (customer.totalPurchases || 0) - amount)
+          await updateCustomer(customerId, {}, {
+            balance: -amount,
+            totalPurchases: -amount
           });
         }
       }
@@ -434,6 +454,22 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
       setIsBulkDeleting(false);
     }
   };
+
+  const stats = useMemo(() => {
+    const totalVolume = filtered.reduce((sum, d) => sum + d.litres, 0);
+    const dieselVolume = filtered.filter(d => d.productType === 'Diesel').reduce((sum, d) => sum + d.litres, 0);
+    const superVolume = filtered.filter(d => d.productType === 'Super').reduce((sum, d) => sum + d.litres, 0);
+    const totalValue = filtered.reduce((sum, d) => sum + d.totalAmount, 0);
+    const customerCount = new Set(filtered.map(d => d.customerId)).size;
+    
+    return {
+      totalVolume,
+      dieselVolume,
+      superVolume,
+      totalValue,
+      customerCount
+    };
+  }, [filtered]);
 
   const bulkDeleteTotalValue = selectedIds.reduce((sum, id) => {
     const d = deliveries.find(x => x.id === id);
@@ -473,6 +509,22 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
           </button>
         </div>
         <div className="flex items-center gap-3 w-full lg:w-auto">
+          {selectedIds.length > 0 && (
+            <button
+              onClick={() => setShowBulkDeleteModal(true)}
+              className="w-full sm:w-auto bg-red-100/80 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-950/60 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 px-4 py-2.5 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete Selected ({selectedIds.length})
+            </button>
+          )}
+          <button 
+            onClick={exportDeliveries}
+            className="w-full sm:w-auto bg-gray-100/80 hover:bg-gray-100 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 text-gray-700 dark:text-blue-300 border border-gray-200 dark:border-blue-700/50 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
+          >
+            <Download className="w-4 h-4" />
+            Export CSV
+          </button>
           <button 
             onClick={() => setShowAIModal(true)}
             className="w-full sm:w-auto bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:hover:bg-blue-800/60 dark:text-blue-300 dark:border-blue-700/50 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors border border-blue-200"
@@ -512,7 +564,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                 setSortBy('date-desc');
                 setSearch('');
               }}
-              className="text-xs font-semibold text-gray-550 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 flex items-center gap-1 transition-colors cursor-pointer"
+              className="text-xs font-semibold text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 flex items-center gap-1 transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               Reset All Filters
@@ -657,11 +709,100 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
         />
       )}
 
+      {/* Mini Dashboard Above Table */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="deliveries-mini-dashboard">
+        {/* Card 1: Total Delivered Value */}
+        <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 rounded-xl p-5 shadow-sm transition-colors flex items-start justify-between">
+          <div className="space-y-1.5 overflow-hidden">
+            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider block truncate overflow-ellipsis">Total Delivered Value</span>
+            <div className="text-2xl font-extrabold font-mono text-blue-600 dark:text-blue-400 truncate">
+              {formatCurrency(stats.totalValue)}
+            </div>
+            <p className="text-2xs text-gray-400 dark:text-gray-500 truncate">Based on {filtered.length} filtered records</p>
+          </div>
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-100/50 dark:border-blue-800/30 shrink-0">
+            <Coins className="w-5 h-5" />
+          </div>
+        </div>
+
+        {/* Card 2: Total Volume Delivered */}
+        <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 rounded-xl p-5 shadow-sm transition-colors flex items-start justify-between">
+          <div className="space-y-1.5 overflow-hidden">
+            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider block truncate overflow-ellipsis">Total Fuel Volume</span>
+            <div className="text-2xl font-extrabold font-mono text-gray-900 dark:text-blue-100 truncate">
+              {formatLitres(stats.totalVolume)} <span className="text-sm font-semibold text-gray-400 font-sans">L</span>
+            </div>
+            <p className="text-2xs text-gray-400 dark:text-gray-500 truncate">Dispatched across stations</p>
+          </div>
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-100/50 dark:border-blue-800/30 shrink-0">
+            <Fuel className="w-5 h-5" />
+          </div>
+        </div>
+
+        {/* Card 3: Fuel Type Breakdown Progress */}
+        <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 rounded-xl p-5 shadow-sm transition-colors space-y-2.5">
+          <div className="flex justify-between items-start">
+            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Product Mix</span>
+            <div className="p-1.5 bg-gray-50 dark:bg-blue-900/30 text-gray-500 dark:text-blue-500 rounded-lg shrink-0">
+              <Flame className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <div className="flex justify-between text-xs font-bold gap-2">
+              <span className="text-amber-500 dark:text-amber-400 truncate">DSL: {formatLitres(stats.dieselVolume)} L</span>
+              <span className="text-emerald-600 dark:text-emerald-400 truncate font-bold">SUP: {formatLitres(stats.superVolume)} L</span>
+            </div>
+            <div className="h-1.5 w-full bg-gray-100 dark:bg-blue-900 rounded-full overflow-hidden flex shrink-0">
+              <div 
+                className="bg-amber-500 h-full transition-all duration-500" 
+                style={{ width: `${stats.totalVolume > 0 ? (stats.dieselVolume / stats.totalVolume) * 100 : 50}%` }}
+              />
+              <div 
+                className="bg-emerald-500 h-full transition-all duration-500" 
+                style={{ width: `${stats.totalVolume > 0 ? (stats.superVolume / stats.totalVolume) * 100 : 50}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-2xs font-semibold text-gray-400 dark:text-gray-500">
+              <span>Diesel: {stats.totalVolume > 0 ? Math.round((stats.dieselVolume / stats.totalVolume) * 100) : 0}%</span>
+              <span>Super: {stats.totalVolume > 0 ? Math.round((stats.superVolume / stats.totalVolume) * 100) : 0}%</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4: Serviced Accounts */}
+        <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 rounded-xl p-5 shadow-sm transition-colors flex items-start justify-between">
+          <div className="space-y-1.5 overflow-hidden">
+            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider block truncate overflow-ellipsis">Active Customers</span>
+            <div className="text-2xl font-extrabold font-mono text-gray-900 dark:text-blue-100 truncate">
+              {stats.customerCount}
+            </div>
+            <p className="text-2xs text-gray-400 dark:text-gray-500 truncate">Sourcing fuel currently</p>
+          </div>
+          <div className="p-3 bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-xl border border-blue-100/50 dark:border-blue-800/30 shrink-0">
+            <Users className="w-5 h-5" />
+          </div>
+        </div>
+      </div>
+
       <div className="bg-white dark:bg-blue-950 rounded border border-gray-200 dark:border-blue-900 overflow-hidden shadow-sm transition-colors">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead className="bg-blue-50 dark:bg-blue-900 border-b border-gray-200 dark:border-blue-900 transition-colors">
               <tr>
+                <th className="px-4 py-3.5 w-12 text-center">
+                  <input
+                    type="checkbox"
+                    checked={filtered.length > 0 && selectedIds.length === filtered.length}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedIds(filtered.map(d => d.id));
+                      } else {
+                        setSelectedIds([]);
+                      }
+                    }}
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:bg-blue-900 dark:border-blue-800 cursor-pointer"
+                  />
+                </th>
                 <th className="px-4 py-3.5 font-bold text-blue-900 dark:text-blue-100/90 text-base uppercase tracking-wider text-left">Date</th>
                 <th className="px-4 py-3.5 font-bold text-blue-900 dark:text-blue-100/90 text-base uppercase tracking-wider text-left">Customer</th>
                 <th className="px-4 py-3.5 font-bold text-blue-900 dark:text-blue-100/90 text-base uppercase tracking-wider text-left">Product</th>
@@ -704,9 +845,23 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                 return (
                   <tr 
                     key={d.id} 
-                    className={`${isEditing ? 'bg-blue-50/45 dark:bg-blue-950/15' : 'hover:bg-gray-105 dark:hover:bg-blue-900/50'} transition-colors animate-fade-in font-medium text-gray-900 dark:text-blue-100`}
+                    className={`${isEditing ? 'bg-blue-50/45 dark:bg-blue-950/15' : 'hover:bg-gray-50 dark:hover:bg-blue-900/50'} transition-colors animate-fade-in font-medium text-gray-900 dark:text-blue-100`}
                     style={{ animationDelay: `${idx * 30}ms`, animationFillMode: 'both' }}
                   >
+                    <td className="px-4 py-4 text-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(d.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedIds(prev => [...prev, d.id]);
+                          } else {
+                            setSelectedIds(prev => prev.filter(id => id !== d.id));
+                          }
+                        }}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:bg-blue-900 dark:border-blue-800 cursor-pointer"
+                      />
+                    </td>
                     <td className="px-4 py-4 text-base text-gray-600 dark:text-gray-400 whitespace-nowrap">{format(d.date, 'MMM d, yyyy HH:mm')}</td>
                     <td className="px-4 py-4 text-base font-bold text-gray-900 dark:text-blue-100">
                       {isEditing && editForm ? (
@@ -717,7 +872,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                             className="w-full px-2 py-1 bg-blue-50/50 dark:bg-blue-900 border border-blue-200 dark:border-blue-800 rounded-lg text-sm text-gray-900 dark:text-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                           >
                             {customers.map(c => (
-                              <option key={c.id} value={c.id} className="dark:bg-blue-955">{c.name}</option>
+                              <option key={c.id} value={c.id} className="dark:bg-blue-950">{c.name}</option>
                             ))}
                           </select>
                         </div>
@@ -739,8 +894,8 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                           onChange={e => setEditForm({ ...editForm, productType: e.target.value as 'Diesel' | 'Super' })}
                           className="px-2 py-1 bg-blue-50/50 dark:bg-blue-900 border border-blue-200 dark:border-blue-800 rounded-lg text-sm font-bold text-gray-900 dark:text-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                         >
-                          <option value="Diesel" className="dark:bg-blue-955">Diesel</option>
-                          <option value="Super" className="dark:bg-blue-955">Super</option>
+                          <option value="Diesel" className="dark:bg-blue-950">Diesel</option>
+                          <option value="Super" className="dark:bg-blue-950">Super</option>
                         </select>
                       ) : (
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-sm font-bold uppercase tracking-wider ${d.productType === 'Diesel' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400' : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400'}`}>
@@ -838,13 +993,27 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
     if (match) matchedCustomerId = match.id;
   }
 
-  const [form, setForm] = useState({
-    customerId: matchedCustomerId || '',
-    productType: initialData?.productType || 'Diesel' as 'Diesel' | 'Super',
-    litres: initialData?.litres ? String(initialData.litres) : '',
-    totalAmount: initialData?.amount || initialData?.totalAmount ? String(initialData.amount || initialData.totalAmount) : '',
-    date: format(new Date(), 'yyyy-MM-dd')
+  const [form, setForm] = useState(() => {
+    const saved = localStorage.getItem('addDeliveryForm');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse saved delivery form', e);
+      }
+    }
+    return {
+      customerId: matchedCustomerId || '',
+      productType: initialData?.productType || 'Diesel' as 'Diesel' | 'Super',
+      litres: initialData?.litres ? String(initialData.litres) : '',
+      totalAmount: initialData?.amount || initialData?.totalAmount ? String(initialData.amount || initialData.totalAmount) : '',
+      date: format(new Date(), 'yyyy-MM-dd')
+    };
   });
+
+  useEffect(() => {
+    localStorage.setItem('addDeliveryForm', JSON.stringify(form));
+  }, [form]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -860,14 +1029,15 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
         litres: parseFloat(form.litres),
         totalAmount: amt,
         createdBy: user?.uid || 'unknown'
-      });
+      }, user?.email || 'system');
       const customer = customers.find(c => c.id === form.customerId);
       if (customer) {
-        await updateCustomer(customer.id, {
-          balance: (customer.balance || 0) + amt,
-          totalPurchases: (customer.totalPurchases || 0) + amt
+        await updateCustomer(customer.id, {}, {
+          balance: amt,
+          totalPurchases: amt
         });
       }
+      localStorage.removeItem('addDeliveryForm');
       onClose();
     } catch (err) {
       console.error(err);

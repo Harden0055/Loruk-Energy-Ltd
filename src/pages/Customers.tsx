@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { useCustomers, createCustomer, deleteCustomer, updateCustomer, createAdjustment } from '../lib/db';
+import React, { useState, useEffect } from 'react';
+import { useCustomers, createCustomer, deleteCustomer, updateCustomer, createAdjustment, useDeliveries, usePayments, useAdjustments, recalculateCustomerBalance } from '../lib/db';
 import { formatCurrency } from '../lib/utils';
-import { Search, Plus, Trash2, Pencil, AlertTriangle, X, ArrowUpDown, Eye, Truck } from 'lucide-react';
+import { Search, Plus, Trash2, Pencil, AlertTriangle, X, ArrowUpDown, Eye, Truck, Download, RefreshCw } from 'lucide-react';
 import { Customer } from '../types';
 import { useAuth } from '../lib/auth';
 import { format } from 'date-fns';
+import Papa from 'papaparse';
 
 interface CustomersProps {
   onViewCustomer?: (id: string) => void;
@@ -13,6 +14,9 @@ interface CustomersProps {
 
 export default function Customers({ onViewCustomer, onNavigate }: CustomersProps = {}) {
   const { customers, loading } = useCustomers();
+  const { deliveries } = useDeliveries();
+  const { payments } = usePayments();
+  const { adjustments } = useAdjustments();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'credit_risk'>('all');
   const [isAdding, setIsAdding] = useState(false);
@@ -34,19 +38,60 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
     return idA.localeCompare(idB, undefined, { numeric: true, sensitivity: 'base' });
   });
 
+  useEffect(() => {
+    if (!sessionStorage.getItem('loruk_balance_fixed_v2') && !loading && customers.length > 0) {
+      sessionStorage.setItem('loruk_balance_fixed_v2', 'true');
+      const fixAll = async () => {
+         for (const c of customers) {
+            await recalculateCustomerBalance(
+              c.id,
+              deliveries.filter(d => d.customerId === c.id),
+              payments.filter(p => p.customerId === c.id),
+              adjustments.filter(a => a.customerId === c.id),
+              c.openingBalance || 0,
+              c.openingBalanceType || 'arrears'
+            );
+         }
+         console.log('Automated balance recalculation complete for all customers');
+      };
+      fixAll();
+    }
+  }, [customers, deliveries, payments, adjustments, loading]);
+
   const confirmDelete = async () => {
+    console.log('confirmDelete called for customer:', deletingCustomer?.name);
     if (!deletingCustomer) return;
     setIsDeleting(true);
     setDeleteError(null);
     try {
       await deleteCustomer(deletingCustomer.id);
+      console.log('Customer deleted successfully');
       setDeletingCustomer(null);
     } catch (err) {
-      console.error(err);
+      console.error('Error deleting customer:', err);
       setDeleteError('Failed to delete customer. Please try again.');
     } finally {
       setIsDeleting(false);
+      console.log('confirmDelete finished');
     }
+  };
+
+  const exportCustomers = () => {
+    const csv = Papa.unparse(filtered.map(c => ({
+        ID: c.customerId,
+        Name: c.name,
+        CreditLimit: c.creditLimit,
+        OpeningBalance: c.openingBalance,
+        Balance: c.balance,
+        Status: c.status
+    })));
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `customers-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -73,6 +118,13 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
             <option value="credit_risk" className="dark:bg-blue-950">Credit Risk</option>
           </select>
         </div>
+        <button 
+          onClick={exportCustomers}
+          className="px-5 py-2.5 bg-gray-100/75 hover:bg-gray-100 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 text-gray-700 dark:text-blue-300 border border-gray-200 dark:border-blue-800/50 rounded-lg text-base font-semibold flex items-center gap-2 transition-all shadow-sm shadow-blue-900/5 cursor-pointer"
+        >
+          <Download className="w-5 h-5" />
+          Export CSV
+        </button>
         <button 
           onClick={() => setIsAdding(true)}
           className="px-5 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-lg text-base font-semibold flex items-center gap-2 transition-all shadow-sm shadow-blue-900/5 cursor-pointer"
@@ -196,7 +248,7 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
                       {onViewCustomer && (
                         <button 
                           onClick={() => onViewCustomer(c.id)}
-                          className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-450 hover:bg-blue-50 dark:hover:bg-blue-900/25 transition-colors rounded-md cursor-pointer"
+                          className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/25 transition-colors rounded-md cursor-pointer"
                           title="View Customer Dashboard"
                           id={`btn-view-${c.id}`}
                         >
@@ -210,6 +262,26 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
                         id={`btn-adjust-${c.id}`}
                       >
                         <ArrowUpDown className="w-5 h-5" />
+                      </button>
+                      <button 
+                        onClick={async () => {
+                          if (confirm(`Recalculate and fix balance for ${c.name}?`)) {
+                            await recalculateCustomerBalance(
+                              c.id,
+                              deliveries.filter(d => d.customerId === c.id),
+                              payments.filter(p => p.customerId === c.id),
+                              adjustments.filter(a => a.customerId === c.id),
+                              c.openingBalance || 0,
+                              c.openingBalanceType || 'arrears'
+                            );
+                            alert('Balance recalculated for ' + c.name);
+                          }
+                        }}
+                        className="p-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors rounded-md"
+                        title="Recalculate & Fix Balance"
+                        id={`btn-recalc-${c.id}`}
+                      >
+                        <RefreshCw className="w-5 h-5" />
                       </button>
                       <button 
                         onClick={() => setEditingCustomer(c)}
@@ -245,6 +317,7 @@ interface ModalProps {
 }
 
 function AddCustomerModal({ onClose, customers }: ModalProps) {
+  const { user } = useAuth();
   const [form, setForm] = useState({
     customerId: '',
     name: '',
@@ -288,7 +361,9 @@ function AddCustomerModal({ onClose, customers }: ModalProps) {
         totalPurchases: 0, 
         status: 'active',
         openingBalance: opBal,
-        openingBalanceType: form.openingBalanceType as 'arrears' | 'advance'
+        openingBalanceType: form.openingBalanceType as 'arrears' | 'advance',
+        updatedBy: user?.email || 'system',
+        actionType: 'create'
       });
       onClose();
     } catch (err) {
@@ -426,6 +501,7 @@ interface EditProps {
 }
 
 function EditCustomerModal({ customer, customers, onClose }: EditProps) {
+  const { user } = useAuth();
   const [form, setForm] = useState({
     customerId: customer.customerId || '',
     name: customer.name || '',
@@ -477,7 +553,8 @@ function EditCustomerModal({ customer, customers, onClose }: EditProps) {
         status: form.status as 'active' | 'credit_risk',
         openingBalance: newOpeningBalance,
         openingBalanceType: newType as 'arrears' | 'advance',
-        balance: (customer.balance || 0) + balanceDiff,
+      }, {
+         balance: balanceDiff,
       });
       onClose();
     } catch (err) {
@@ -632,7 +709,7 @@ function DeleteConfirmModal({ customer, isDeleting, error, onConfirm, onClose }:
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-white dark:bg-blue-950 rounded-xl shadow-2xl border border-gray-200 dark:border-blue-900 w-full max-w-md overflow-hidden">
         <div className="p-6">
-          <div className="flex items-center gap-3.5 text-red-650 dark:text-red-500 mb-4 bg-red-50 dark:bg-red-950/20 p-4 rounded-xl border border-red-100 dark:border-red-900/50">
+          <div className="flex items-center gap-3.5 text-red-600 dark:text-red-500 mb-4 bg-red-50 dark:bg-red-950/20 p-4 rounded-xl border border-red-100 dark:border-red-900/50">
             <AlertTriangle className="w-8 h-8 shrink-0 text-red-600 dark:text-red-400" />
             <div>
               <h3 className="text-lg font-bold text-gray-950 dark:text-blue-50">Confirm Deletion</h3>
@@ -649,7 +726,7 @@ function DeleteConfirmModal({ customer, isDeleting, error, onConfirm, onClose }:
             </p>
 
             {error && (
-              <div className="p-3 bg-red-50 dark:bg-red-955 border border-red-200 text-red-700 rounded-lg text-sm font-semibold">
+              <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 text-red-700 rounded-lg text-sm font-semibold">
                 {error}
               </div>
             )}
@@ -667,9 +744,9 @@ function DeleteConfirmModal({ customer, isDeleting, error, onConfirm, onClose }:
           </button>
           <button 
             type="button" 
-            onClick={onConfirm}
+            onClick={async () => await onConfirm()}
             disabled={isDeleting}
-            className="px-4 py-2 bg-red-650 hover:bg-red-600 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5"
+            className="px-4 py-2 bg-red-600 hover:bg-red-600 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5"
             style={{ backgroundColor: '#dc2626' }}
           >
             {isDeleting ? 'Deleting...' : 'Delete Customer'}
@@ -717,7 +794,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
         amount: amountVal,
         description: description.trim(),
         createdBy: user?.uid || 'unknown'
-      });
+      }, user?.email || 'system');
 
       // 2. Adjust customer balance
       // debit = increases customer outstanding balance (debit balance / customer owes more)
@@ -725,9 +802,9 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
       const balanceChange = type === 'debit' ? amountVal : -amountVal;
       const totalPurchasesChange = type === 'debit' ? amountVal : 0;
 
-      await updateCustomer(customer.id, {
-        balance: (customer.balance || 0) + balanceChange,
-        totalPurchases: Math.max(0, (customer.totalPurchases || 0) + totalPurchasesChange)
+      await updateCustomer(customer.id, {}, { 
+        balance: balanceChange, 
+        totalPurchases: totalPurchasesChange 
       });
 
       onClose();
@@ -758,7 +835,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {error && (
-            <div className="p-3 bg-red-50 dark:bg-red-955 border border-red-200 text-red-700 rounded-lg text-sm font-semibold flex gap-2 shadow-sm">
+            <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 text-red-700 rounded-lg text-sm font-semibold flex gap-2 shadow-sm">
               <AlertTriangle className="w-5 h-5 shrink-0" />
               <span>{error}</span>
             </div>
@@ -790,7 +867,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
                 onClick={() => setType('debit')}
                 className={`py-2 px-4 rounded-lg border text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 ${
                   type === 'debit'
-                    ? 'border-red-500 bg-red-50 dark:bg-red-955/20 text-red-650 dark:text-red-400 ring-2 ring-red-500/10'
+                    ? 'border-red-500 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 ring-2 ring-red-500/10'
                     : 'border-blue-200 dark:border-blue-700 bg-white dark:bg-blue-950 text-blue-500 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/50'
                 }`}
               >

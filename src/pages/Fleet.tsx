@@ -8,6 +8,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import AIInputModal from '../components/AIInputModal';
 import { FleetExpense } from '../types';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 const CAR_REGISTRATIONS = ['KDE 179Y', 'KDL 019S', 'KCY 842Y', 'KCF 119R', 'KDW 028Y'];
 const STATIONS = ['Loruk - Ndalu', 'Loruk - Junction', 'Gel - Bungoma', 'Gel - Kapenguria'] as const;
@@ -24,12 +25,24 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
   const [amount, setAmount] = useState('');
   const [distance, setDistance] = useState('');
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  
+  const [deleteDialog, setDeleteDialog] = useState<{isOpen: boolean, id: string | null}>({ isOpen: false, id: null });
+  const lastActivity = useMemo(() => {
+    const map = new Map<string, number>();
+    expenses.forEach(e => {
+      if (!map.has(e.carRegistration) || e.date > map.get(e.carRegistration)!) {
+        map.set(e.carRegistration, e.date);
+      }
+    });
+    return map;
+  }, [expenses]);
 
+  const [isDeleting, setIsDeleting] = useState(false);
   const [selectedCar, setSelectedCar] = useState<string>('all');
   const [selectedStation, setSelectedStation] = useState<string>('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
-  const [showAIModal, setShowAIModal] = useState(false);
+  // const [showAIModal, setShowAIModal] = useState(false); // Commented out to reduce complexity if unused
 
   const filteredExpenses = useMemo(() => {
     let result = expenses;
@@ -39,6 +52,22 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
     if (dateTo) result = result.filter(e => e.date <= new Date(dateTo).getTime() + 86399999);
     return result;
   }, [expenses, selectedCar, selectedStation, dateFrom, dateTo]);
+
+  const efficiencyTrendData = useMemo(() => {
+    const last30Days = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const recent = filteredExpenses.filter(e => e.date >= last30Days);
+    const groups: Record<string, { totalDist: number, totalAmount: number }> = {};
+    recent.forEach(e => {
+      const d = format(e.date, 'MMM dd');
+      if (!groups[d]) groups[d] = { totalDist: 0, totalAmount: 0 };
+      groups[d].totalDist += e.distance || 0;
+      groups[d].totalAmount += e.amount;
+    });
+    return Object.entries(groups).map(([date, data]) => ({
+      date,
+      efficiency: data.totalAmount > 0 ? data.totalDist / data.totalAmount : 0
+    })).sort((a, b) => a.date.localeCompare(b.date));
+  }, [filteredExpenses]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,19 +136,34 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {CAR_REGISTRATIONS.map(reg => {
           const totalConsumption = expenses.filter(e => e.carRegistration === reg).reduce((acc, e) => acc + e.amount, 0);
+          const lastDate = lastActivity.get(reg) || 0;
+          const isInactive = (Date.now() - lastDate) > 48 * 60 * 60 * 1000;
           return (
             <div 
               key={reg} 
-              className="bg-white dark:bg-blue-950 p-4 border border-gray-200 dark:border-blue-900 rounded-xl shadow-sm"
+              className={`p-4 border rounded-xl shadow-sm relative ${
+                isInactive 
+                ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/60' 
+                : 'bg-white dark:bg-blue-950 border-gray-200 dark:border-blue-900'
+              }`}
             >
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{reg}</p>
-              <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{reg}</p>
+                {isInactive && (
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  </span>
+                )}
+              </div>
+              <h3 className={`text-xl font-bold ${isInactive ? 'text-red-700 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`}>
                 {formatCurrency(totalConsumption)}
               </h3>
             </div>
           );
         })}
       </div>
+
 
       {/* Mini Dashboard */}
       <div className="bg-white dark:bg-blue-950 p-6 border border-gray-200 dark:border-blue-900 rounded-xl shadow-sm mb-6 flex flex-col md:flex-row gap-6">
@@ -156,9 +200,23 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
            </h3>
            <p className="text-xs text-blue-500 mt-1">{filteredExpenses.length} logs</p>
         </div>
+        
+        <div className="flex-1 min-w-[300px] bg-white dark:bg-blue-950 p-4 rounded-lg border border-gray-200 dark:border-blue-900">
+          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Efficiency Trend (Km/KES)</h3>
+          <div className="h-32">
+            <ResponsiveContainer>
+                <LineChart data={efficiencyTrendData}>
+                    <XAxis dataKey="date" hide />
+                    <YAxis hide />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="efficiency" stroke="#10b981" strokeWidth={2} dot={false} />
+                </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
 
-      <div className="bg-white dark:bg-blue-950 rounded border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)] overflow-hidden">
+      <div className="bg-white dark:bg-blue-950 rounded border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)] overflow-x-auto overflow-y-hidden">
         <table className="w-full text-left">
           <thead>
             <tr className="bg-blue-50 dark:bg-blue-900">
@@ -187,13 +245,60 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                 </td>
                 <td className="px-4 py-3 text-right font-mono font-bold text-blue-600 dark:text-blue-400">{formatCurrency(e.amount)}</td>
                 <td className="px-4 py-3 text-right">
-                  <button onClick={() => { setEditingExpenseId(e.id); setCarReg(e.carRegistration); setAmount(e.amount.toString()); setIsAdding(true); }} className="p-1 text-blue-600"><Pencil className="w-4 h-4" /></button>
+                  <div className="flex items-center justify-end gap-1.5">
+                    <button onClick={() => { setEditingExpenseId(e.id); setCarReg(e.carRegistration); setAmount(e.amount.toString()); setIsAdding(true); }} className="p-1 text-blue-600 hover:text-blue-800 transition-colors cursor-pointer" title="Edit Expense"><Pencil className="w-4 h-4" /></button>
+                    <button 
+                      onClick={() => setDeleteDialog({ isOpen: true, id: e.id! })} 
+                      className="p-1 text-red-500 hover:text-red-700 transition-colors cursor-pointer" 
+                      title="Delete Expense"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {deleteDialog.isOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100] transition-opacity">
+          <div className="bg-white dark:bg-blue-950 w-full max-w-sm rounded-xl shadow-2xl p-6 border border-gray-150 dark:border-blue-900/40 transform transition-all">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-blue-50 mb-2">Confirm Action</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+              Are you sure you want to permanently delete this fleet expense log?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button 
+                disabled={isDeleting}
+                onClick={() => setDeleteDialog({ isOpen: false, id: null })}
+                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 rounded-lg transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button 
+                disabled={isDeleting}
+                onClick={async () => {
+                  if(!deleteDialog.id) return;
+                  setIsDeleting(true);
+                  try {
+                    await deleteFleetExpense(deleteDialog.id);
+                  } catch (e) {
+                    console.error(e);
+                  } finally {
+                    setIsDeleting(false);
+                    setDeleteDialog({ isOpen: false, id: null });
+                  }
+                }}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors cursor-pointer"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

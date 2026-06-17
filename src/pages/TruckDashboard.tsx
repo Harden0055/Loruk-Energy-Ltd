@@ -13,7 +13,9 @@ import {
   Tooltip, 
   CartesianGrid, 
   AreaChart,
-  Area
+  Area,
+  LineChart,
+  Line
 } from 'recharts';
 
 const CAR_REGISTRATIONS = [
@@ -62,6 +64,22 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck }: { truckR
     });
 
     return Object.values(grouped).slice(-10);
+  }, [expenses]);
+
+  const efficiencyTrendData = useMemo(() => {
+    const last30Days = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const recent = expenses.filter(e => e.date >= last30Days);
+    const groups: Record<string, { totalDist: number, totalAmount: number }> = {};
+    recent.forEach(e => {
+      const d = format(e.date, 'MMM dd');
+      if (!groups[d]) groups[d] = { totalDist: 0, totalAmount: 0 };
+      groups[d].totalDist += e.distance || 0;
+      groups[d].totalAmount += e.amount;
+    });
+    return Object.entries(groups).map(([date, data]) => ({
+      date,
+      efficiency: data.totalAmount > 0 ? data.totalDist / data.totalAmount : 0
+    })).sort((a, b) => a.date.localeCompare(b.date));
   }, [expenses]);
 
   return (
@@ -124,20 +142,35 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck }: { truckR
                 </ResponsiveContainer>
             </div>
         </div>
+        <div className="bg-white dark:bg-blue-950 border p-5 rounded-xl lg:col-span-2">
+            <h3 className="font-bold text-lg mb-4">Fuel Efficiency Trend (Km/KES)</h3>
+            <div className="h-64">
+                <ResponsiveContainer>
+                    <LineChart data={efficiencyTrendData}>
+                        <XAxis dataKey="date" />
+                        <YAxis />
+                        <Tooltip />
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <Line type="monotone" dataKey="efficiency" stroke="#10b981" strokeWidth={2} />
+                    </LineChart>
+                </ResponsiveContainer>
+            </div>
+        </div>
        </div>
 
        <div className="bg-white dark:bg-blue-950 rounded border overflow-hidden mt-6">
         <h3 className="font-bold text-lg p-4 border-b">Historic Expenses</h3>
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-gray-100 dark:bg-blue-900/50">
-              <th className="px-4 py-3">Date</th>
-              <th className="px-4 py-3">Car Reg</th>
-              <th className="px-4 py-3">Station</th>
-              <th className="px-4 py-3 text-right">Amount</th>
-              <th className="px-4 py-3 text-right">Distance</th>
-            </tr>
-          </thead>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-gray-100 dark:bg-blue-900/50">
+                <th className="px-4 py-3">Date</th>
+                <th className="px-4 py-3">Car Reg</th>
+                <th className="px-4 py-3">Station</th>
+                <th className="px-4 py-3 text-right">Amount</th>
+                <th className="px-4 py-3 text-right">Distance</th>
+              </tr>
+            </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-blue-900">
             {expenses.sort((a, b) => b.date - a.date).map(e => {
               const badgeClass = e.station === 'Gel - Bungoma' ? 'bg-pink-100 dark:bg-pink-900/50 text-pink-800 dark:text-pink-200' 
@@ -162,6 +195,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck }: { truckR
             })}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

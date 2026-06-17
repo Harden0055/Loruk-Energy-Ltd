@@ -62,6 +62,293 @@
         "data": { "type": "object" }
       },
       "required": ["date", "location", "bankable"]
+    },
+    "FuelRate": {
+      "title": "Fuel Rate",
+      "description": "Fuel retail rate at a station",
+      "type": "object",
+      "properties": {
+        "date": { "type": "number" },
+        "station": { "type": "string", "enum": ["Ndalu", "Junction"] },
+        "product": { "type": "string", "enum": ["Super", "Diesel"] },
+        "rate": { "type": "number" },
+        "stationId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["date", "station", "product", "rate", "stationId", "createdAt", "updatedAt"]
+    },
+    "DailyPumpReading": {
+      "title": "Daily Pump Reading",
+      "description": "Daily reading of fuel pumps",
+      "type": "object",
+      "properties": {
+        "date": { "type": "number" },
+        "station": { "type": "string", "enum": ["Ndalu", "Junction"] },
+        "product": { "type": "string", "enum": ["Super", "Diesel"] },
+        "litresStart": { "type": "number" },
+        "litresStop": { "type": "number" },
+        "ratePerLitre": { "type": "number" },
+        "manualRevenue": { "type": "number" },
+        "litresSold": { "type": "number" },
+        "calculatedRevenue": { "type": "number" },
+        "difference": { "type": "number" },
+        "stationId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["date", "station", "product", "litresStart", "litresStop", "ratePerLitre", "manualRevenue", "litresSold", "calculatedRevenue", "difference", "stationId", "createdAt", "updatedAt"]
+    },
+    "LPGSale": {
+      "title": "LPG Sale",
+      "description": "LPG sale records",
+      "type": "object",
+      "properties": {
+        "date": { "type": "number" },
+        "station": { "type": "string", "enum": ["Ndalu", "Junction"] },
+        "cylindersSold": { "type": "number" },
+        "totalSalesAmount": { "type": "number" },
+        "stationId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["date", "station", "cylindersSold", "totalSalesAmount", "stationId", "createdAt", "updatedAt"]
+    },
+    "LPGPurchase": {
+      "title": "LPG Purchase",
+      "description": "LPG purchase records",
+      "type": "object",
+      "properties": {
+        "date": { "type": "number" },
+        "station": { "type": "string", "enum": ["Ndalu", "Junction"] },
+        "cylindersBought": { "type": "number" },
+        "purchaseCost": { "type": "number" },
+        "stationId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["date", "station", "cylindersBought", "purchaseCost", "stationId", "createdAt", "updatedAt"]
+    },
+    "BurnerSale": {
+      "title": "Burner Sale",
+      "description": "Burner sale records",
+      "type": "object",
+      "properties": {
+        "date": { "type": "number" },
+        "station": { "type": "string", "enum": ["Ndalu", "Junction"] },
+        "quantity": { "type": "number" },
+        "salesAmount": { "type": "number" },
+        "stationId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["date", "station", "quantity", "salesAmount", "stationId", "createdAt", "updatedAt"]
+    },
+    "BurnerPurchase": {
+      "title": "Burner Purchase",
+      "description": "Burner purchase records",
+      "type": "object",
+      "properties": {
+        "date": { "type": "number" },
+        "station": { "type": "string", "enum": ["Ndalu", "Junction"] },
+        "quantity": { "type": "number" },
+        "purchaseCost": { "type": "number" },
+        "stationId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["date", "station", "quantity", "purchaseCost", "stationId", "createdAt", "updatedAt"]
+    },
+    "GrillSale": {
+      "title": "Grill Sale",
+      "description": "Grill sale records",
+      "type": "object",
+      "properties": {
+        "date": { "type": "number" },
+        "station": { "type": "string", "enum": ["Ndalu", "Junction"] },
+        "quantity": { "type": "number" },
+        "salesAmount": { "type": "number" },
+        "stationId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["date", "station", "quantity", "salesAmount", "stationId", "createdAt", "updatedAt"]
+    },
+    "GrillPurchase": {
+      "title": "Grill Purchase",
+      "description": "Grill purchase records",
+      "type": "object",
+      "properties": {
+        "date": { "type": "number" },
+        "station": { "type": "string", "enum": ["Ndalu", "Junction"] },
+        "quantity": { "type": "number" },
+        "purchaseCost": { "type": "number" },
+        "stationId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["date", "station", "quantity", "purchaseCost", "stationId", "createdAt", "updatedAt"]
+    },
+    "DailyExpense": {
+      "title": "Daily Expense",
+      "description": "Daily operational expense at a station",
+      "type": "object",
+      "properties": {
+        "date": { "type": "number" },
+        "station": { "type": "string", "enum": ["Ndalu", "Junction"] },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "amount": { "type": "number" },
+        "stationId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["date", "station", "category", "description", "amount", "stationId", "createdAt", "updatedAt"]
+    },
+    "ExpenseCategory": {
+      "title": "Expense Category",
+      "description": "Categories of expenses",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "stationId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["name", "stationId", "createdAt", "updatedAt"]
+    },
+    "CashPosition": {
+      "title": "Cash Position",
+      "description": "Cash reconciliation status",
+      "type": "object",
+      "properties": {
+        "date": { "type": "number" },
+        "station": { "type": "string", "enum": ["Ndalu", "Junction"] },
+        "mpesaBalance": { "type": "number" },
+        "cashAtHand": { "type": "number" },
+        "stationId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["date", "station", "mpesaBalance", "cashAtHand", "stationId", "createdAt", "updatedAt"]
+    },
+    "DailyInvoice": {
+      "title": "Daily Invoice",
+      "description": "Customer invoice records",
+      "type": "object",
+      "properties": {
+        "invoiceNumber": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerCategory": { "type": "string", "enum": ["Credit Account", "Cash Customer", "Contractor"] },
+        "station": { "type": "string", "enum": ["Ndalu", "Junction"] },
+        "invoiceDate": { "type": "number" },
+        "invoiceAmount": { "type": "number" },
+        "paidAmount": { "type": "number" },
+        "balance": { "type": "number" },
+        "status": { "type": "string", "enum": ["PAID", "PARTIAL", "UNPAID"] },
+        "stationId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["invoiceNumber", "customerName", "station", "invoiceDate", "invoiceAmount", "paidAmount", "balance", "status", "stationId", "createdAt", "updatedAt"]
+    },
+    "Station": {
+      "title": "Station",
+      "description": "Fuel station profile",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "code": { "type": "string" },
+        "location": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive"] },
+        "stationId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["name", "code", "location", "status", "stationId", "createdAt", "updatedAt"]
+    },
+    "StationCustomer": {
+      "title": "Station Customer",
+      "description": "Customer specific to Ndalu or Junction station",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "station": { "type": "string", "enum": ["Ndalu", "Junction"] },
+        "category": { "type": "string", "enum": ["Credit Account", "Cash Customer", "Contractor"] },
+        "balance": { "type": "number" },
+        "totalPurchases": { "type": "number" },
+        "status": { "type": "string", "enum": ["active", "credit_risk"] },
+        "openingBalance": { "type": "number" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["name", "station", "category", "balance", "totalPurchases", "status", "createdAt"]
+    },
+    "LPGInventory": {
+      "title": "LPG Inventory",
+      "description": "Inventory level of LPG cylinders at a station",
+      "type": "object",
+      "properties": {
+        "station": { "type": "string", "enum": ["Ndalu", "Junction"] },
+        "cylinderSize": { "type": "string" },
+        "stockLevel": { "type": "number" },
+        "lastUpdated": { "type": "number" },
+        "stationId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["station", "cylinderSize", "stockLevel", "lastUpdated", "stationId", "createdAt", "updatedAt"]
+    },
+    "BurnerInventory": {
+      "title": "Burner Inventory",
+      "description": "Inventory level of burners at a station",
+      "type": "object",
+      "properties": {
+        "station": { "type": "string", "enum": ["Ndalu", "Junction"] },
+        "quantity": { "type": "number" },
+        "lastUpdated": { "type": "number" },
+        "stationId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["station", "quantity", "lastUpdated", "stationId", "createdAt", "updatedAt"]
+    },
+    "InvoicePayment": {
+      "title": "Invoice Payment",
+      "description": "Payments made towards dynamic customer invoices",
+      "type": "object",
+      "properties": {
+        "invoiceId": { "type": "string" },
+        "invoiceNumber": { "type": "string" },
+        "customerId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerCategory": { "type": "string", "enum": ["Credit Account", "Cash Customer", "Contractor"] },
+        "station": { "type": "string", "enum": ["Ndalu", "Junction"] },
+        "amountPaid": { "type": "number" },
+        "paymentDate": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "stationId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["invoiceId", "invoiceNumber", "customerName", "station", "amountPaid", "paymentDate", "paymentMethod", "stationId", "createdAt", "updatedAt"]
+    },
+    "DailyReportRecord": {
+      "title": "Daily Report Record",
+      "description": "Multi-station daily summaries and aggregations",
+      "type": "object",
+      "properties": {
+        "date": { "type": "number" },
+        "station": { "type": "string", "enum": ["Ndalu", "Junction"] },
+        "totalSales": { "type": "number" },
+        "totalExpenses": { "type": "number" },
+        "bankableCash": { "type": "number" },
+        "variance": { "type": "number" },
+        "stationId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["date", "station", "totalSales", "totalExpenses", "bankableCash", "variance", "stationId", "createdAt", "updatedAt"]
     }
   },
   "firestore": {
@@ -84,6 +371,78 @@
     "reports/{reportId}": {
       "schema": { "$ref": "#/entities/DailyReport" },
       "description": "Daily station reports"
+    },
+    "fuel_rates/{rateId}": {
+      "schema": { "$ref": "#/entities/FuelRate" },
+      "description": "Fuel station rate configuration"
+    },
+    "pump_readings/{readingId}": {
+      "schema": { "$ref": "#/entities/DailyPumpReading" },
+      "description": "Pumps readings and revenue calculations"
+    },
+    "lpg_sales/{saleId}": {
+      "schema": { "$ref": "#/entities/LPGSale" },
+      "description": "LPG cylinders sales"
+    },
+    "lpg_purchases/{purchaseId}": {
+      "schema": { "$ref": "#/entities/LPGPurchase" },
+      "description": "LPG cylinders stock purchases"
+    },
+    "burner_sales/{saleId}": {
+      "schema": { "$ref": "#/entities/BurnerSale" },
+      "description": "Burners sales"
+    },
+    "burner_purchases/{purchaseId}": {
+      "schema": { "$ref": "#/entities/BurnerPurchase" },
+      "description": "Burners stock purchases"
+    },
+    "grill_sales/{saleId}": {
+      "schema": { "$ref": "#/entities/GrillSale" },
+      "description": "Grills sales"
+    },
+    "grill_purchases/{purchaseId}": {
+      "schema": { "$ref": "#/entities/GrillPurchase" },
+      "description": "Grills stock purchases"
+    },
+    "expenses/{expenseId}": {
+      "schema": { "$ref": "#/entities/DailyExpense" },
+      "description": "Daily operational station expenditures"
+    },
+    "expense_categories/{categoryId}": {
+      "schema": { "$ref": "#/entities/ExpenseCategory" },
+      "description": "Expenditure lookup categorization"
+    },
+    "cash_positions/{positionId}": {
+      "schema": { "$ref": "#/entities/CashPosition" },
+      "description": "Daily liquidity positions and reconciliations"
+    },
+    "invoices/{invoiceId}": {
+      "schema": { "$ref": "#/entities/DailyInvoice" },
+      "description": "Daily customer invoicing & aging collections"
+    },
+    "stations/{stationId}": {
+      "schema": { "$ref": "#/entities/Station" },
+      "description": "List of fuel stations"
+    },
+    "station_customers/{customerId}": {
+      "schema": { "$ref": "#/entities/StationCustomer" },
+      "description": "Customers specific to operations at Ndalu or Junction"
+    },
+    "lpg_inventory/{inventoryId}": {
+      "schema": { "$ref": "#/entities/LPGInventory" },
+      "description": "Dynamic LPG cylinder stock levels"
+    },
+    "burner_inventory/{inventoryId}": {
+      "schema": { "$ref": "#/entities/BurnerInventory" },
+      "description": "Dynamic burner stock levels"
+    },
+    "invoice_payments/{paymentId}": {
+      "schema": { "$ref": "#/entities/InvoicePayment" },
+      "description": "Dynamic invoice payment ledger"
+    },
+    "daily_reports/{reportId}": {
+      "schema": { "$ref": "#/entities/DailyReportRecord" },
+      "description": "Multi-station daily summaries and aggregations"
     }
   }
 }

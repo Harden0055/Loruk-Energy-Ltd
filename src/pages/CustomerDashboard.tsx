@@ -9,6 +9,11 @@ import {
   createAdjustment, 
   updateCustomer 
 } from '../lib/db';
+import { 
+  useDailyInvoices,
+  updateDailyInvoice,
+  useInvoicePayments
+} from '../lib/operationsDb';
 import { formatCurrency } from '../lib/utils';
 import { useAuth } from '../lib/auth';
 import { format } from 'date-fns';
@@ -55,12 +60,31 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const { deliveries } = useDeliveries();
   const { payments } = usePayments();
   const { adjustments } = useAdjustments();
+  const { invoices } = useDailyInvoices();
+  const { payments: invoicePaymentsList } = useInvoicePayments();
 
   // Selected state
   const [filterType, setFilterType] = useState<'all' | 'delivery' | 'payment' | 'adjustment'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
+  // Verify balance utility
+  const verifyBalance = () => {
+    if (!customer) return;
+    // Re-aggregate: Invoices total - Invoices paid
+    const customerInvoices = invoices.filter(i => i.customerName === customer.name);
+    const customerInvoicePayments = invoicePaymentsList.filter(p => p.customerName === customer.name);
+    
+    const invoiceTotal = customerInvoices.reduce((sum, i) => sum + (i.invoiceAmount || 0), 0);
+    const paymentsTotal = customerInvoicePayments.reduce((sum, p) => sum + (p.amountPaid || 0), 0);
+    const adjustmentsTotal = customerAdjustments.reduce((sum, a) => sum + (a.type === 'debit' ? (a.amount || 0) : -(a.amount || 0)), 0);
+    
+    // This is a simplified logic based on the user request.
+    const trueBalance = invoiceTotal - paymentsTotal + adjustmentsTotal;
+    
+    alert(`Verified Balance based on invoices: ${formatCurrency(trueBalance)}`);
+  };
 
   // Quick action modals
   const [activeModal, setActiveModal] = useState<'delivery' | 'payment' | 'adjustment' | null>(null);
@@ -70,9 +94,12 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [deliveryProduct, setDeliveryProduct] = useState<'Diesel' | 'Super'>('Diesel');
   const [deliveryLitres, setDeliveryLitres] = useState('');
   const [deliveryAmount, setDeliveryAmount] = useState('');
+  const [deliveryDate, setDeliveryDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentDate, setPaymentDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [adjustType, setAdjustType] = useState<'credit' | 'debit'>('credit');
   const [adjustAmount, setAdjustAmount] = useState('');
+  const [adjustDate, setAdjustDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [adjustReason, setAdjustReason] = useState('');
 
   // Retrieve current customer
@@ -97,6 +124,26 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const textMatches = (text: string, search: string) => {
     return text.toLowerCase().includes(search.toLowerCase());
   };
+
+  const calculatedBalance = useMemo(() => {
+    if (!customer) return 0;
+    let balance = customer.openingBalance 
+      ? (customer.openingBalanceType === 'advance' ? -customer.openingBalance : customer.openingBalance) 
+      : 0;
+    
+    // Add all deliveries
+    customerDeliveries.forEach(d => { balance += (d.totalAmount || 0); });
+    
+    // Subtract all payments
+    customerPayments.forEach(p => { balance -= (p.amount || 0); });
+    
+    // Adjust for adjustments
+    customerAdjustments.forEach(a => {
+        balance += (a.type === 'debit' ? (a.amount || 0) : -(a.amount || 0));
+    });
+
+    return balance;
+  }, [customer, customerDeliveries, customerPayments, customerAdjustments]);
 
   const timelineEvents = useMemo(() => {
     const allEvents: Array<{
@@ -196,7 +243,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   }, [customerDeliveries]);
 
   const totalPaymentsValue = useMemo(() => {
-    return customerPayments.reduce((sum, p) => sum + p.amount, 0);
+    return customerPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
   }, [customerPayments]);
 
   const remainingCredit = useMemo(() => {
@@ -211,7 +258,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
     // Generate running balance history in chronological order
     const chronologicalEvents = [
       ...customerDeliveries.map(d => ({ date: d.date, type: 'delivery', val: d.totalAmount })),
-      ...customerPayments.map(p => ({ date: p.date, type: 'payment', val: -p.amount })),
+      ...customerPayments.map(p => ({ date: p.date, type: 'payment', val: -(p.amount || 0) })),
       ...customerAdjustments.map(a => ({ date: a.date, type: 'adjustment', val: a.type === 'debit' ? a.amount : -a.amount }))
     ].sort((a, b) => a.date - b.date);
 
@@ -320,18 +367,15 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
     try {
       await createDelivery({
         customerId: customer.id,
-        date: Date.now(),
+        date: new Date(deliveryDate).getTime(),
         productType: deliveryProduct,
         litres: litresVal,
         totalAmount: amountVal,
         createdBy: user?.email || 'Unknown'
-      });
+      }, user?.email || 'Unknown');
 
       // Update customer balance & purchases volume
-      await updateCustomer(customer.id, {
-        balance: (customer.balance || 0) + amountVal,
-        totalPurchases: (customer.totalPurchases || 0) + amountVal,
-      });
+      await updateCustomer(customer.id, {}, { balance: amountVal, totalPurchases: amountVal }, user?.email || 'Unknown');
 
       setActiveModal(null);
       setDeliveryLitres('');
@@ -355,20 +399,37 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
     setModalLoading(true);
     try {
-      await createPayment({
-        customerId: customer.id,
-        date: Date.now(),
-        amount: amountVal,
-        createdBy: user?.email || 'Unknown'
-      });
+      // 1. Find the first unpaid invoice for this customer
+      const invoice = invoices.find(i => i.customerName === customer.name && i.balance > 0);
+      
+      const paymentPromises = [
+        createPayment({
+          customerId: customer.id,
+          date: new Date(paymentDate).getTime(),
+          amount: amountVal,
+          createdBy: user?.email || 'Unknown'
+        }, user?.email || 'Unknown'),
+        updateCustomer(customer.id, {}, { balance: -amountVal }, user?.email || 'Unknown')
+      ];
 
-      // Reduce customer outstanding balance
-      await updateCustomer(customer.id, {
-        balance: (customer.balance || 0) - amountVal
-      });
+      // 2. If invoice found, update it
+      if (invoice) {
+        const newPaidAmount = Math.min(invoice.invoiceAmount, (invoice.paidAmount || 0) + amountVal);
+        const newBalance = invoice.invoiceAmount - newPaidAmount;
+        
+        paymentPromises.push(
+            updateDailyInvoice(invoice.id!, {
+                paidAmount: newPaidAmount,
+                balance: newBalance,
+                status: newBalance <= 0 ? 'PAID' : 'PARTIAL'
+            })
+        );
+      }
 
       setActiveModal(null);
       setPaymentAmount('');
+
+      await Promise.all(paymentPromises);
     } catch (err) {
       console.error(err);
       alert('Error recording payment');
@@ -390,20 +451,17 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
     try {
       await createAdjustment({
         customerId: customer.id,
-        date: Date.now(),
+        date: new Date(adjustDate).getTime(),
         type: adjustType,
         amount: amountVal,
         description: adjustReason.trim(),
         createdBy: user?.uid ? 'Admin App' : (user?.email || 'Unknown')
-      });
+      }, user?.email || 'Unknown');
 
       // Adjust customer balance
       const balChange = adjustType === 'debit' ? amountVal : -amountVal;
       const purchChange = adjustType === 'debit' ? amountVal : 0;
-      await updateCustomer(customer.id, {
-        balance: (customer.balance || 0) + balChange,
-        totalPurchases: Math.max(0, (customer.totalPurchases || 0) + purchChange)
-      });
+      await updateCustomer(customer.id, {}, { balance: balChange, totalPurchases: purchChange }, user?.email || 'Unknown');
 
       setActiveModal(null);
       setAdjustAmount('');
@@ -509,22 +567,28 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         {/* Card 1: Outstanding Balance */}
         <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 rounded-xl p-5 shadow-sm transition-colors">
           <div className="flex justify-between items-start">
-            <p className="text-sm font-bold text-gray-550 dark:text-gray-400 uppercase tracking-wider">Outstanding Balance</p>
-            <div className={`p-2 rounded-lg ${customer.balance < 0 ? 'bg-emerald-100/70 dark:bg-emerald-950/45' : 'bg-blue-50 dark:bg-blue-900/35'}`}>
-              <DollarSign className={`w-5 h-5 ${customer.balance < 0 ? 'text-emerald-600' : 'text-blue-600'}`} />
+            <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Outstanding Balance</p>
+            <button
+               onClick={verifyBalance}
+               className="text-xs text-blue-600 font-bold hover:underline"
+            >
+              Verify
+            </button>
+            <div className={`p-2 rounded-lg ${calculatedBalance < 0 ? 'bg-emerald-100/70 dark:bg-emerald-950/45' : 'bg-blue-50 dark:bg-blue-900/35'}`}>
+              <DollarSign className={`w-5 h-5 ${calculatedBalance < 0 ? 'text-emerald-600' : 'text-blue-600'}`} />
             </div>
           </div>
           <div className="mt-4">
             <h3 className={`text-2xl font-black font-mono tracking-tight leading-none ${
-              customer.balance > 0 
+              calculatedBalance > 0 
                 ? 'text-red-600 dark:text-red-400' 
-                : customer.balance < 0 
+                : calculatedBalance < 0 
                   ? 'text-emerald-600 dark:text-emerald-400' 
                   : 'text-gray-900 dark:text-blue-100'
             }`}>
-              {formatCurrency(customer.balance)}
+              {formatCurrency(calculatedBalance)}
             </h3>
-            {customer.balance < 0 ? (
+            {calculatedBalance < 0 ? (
               <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-2 flex items-center gap-1.5 uppercase tracking-wide">
                 <CheckCircle className="w-3.5 h-3.5" /> Advance Balance Credit
               </p>
@@ -543,7 +607,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         {/* Card 2: Credit Limit & remaining space */}
         <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 rounded-xl p-5 shadow-sm transition-colors">
           <div className="flex justify-between items-start">
-            <p className="text-sm font-bold text-gray-550 dark:text-gray-400 uppercase tracking-wider">Credit Allocation</p>
+            <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Credit Allocation</p>
             <div className="p-2 bg-blue-50 dark:bg-blue-900/35 rounded-lg text-blue-600">
               <FileText className="w-5 h-5" />
             </div>
@@ -570,9 +634,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         {/* Card 3: Total Purchases */}
         <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 rounded-xl p-5 shadow-sm transition-colors">
           <div className="flex justify-between items-start">
-            <p className="text-sm font-bold text-gray-550 dark:text-gray-400 uppercase tracking-wider">Total Deliveries</p>
+            <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Deliveries</p>
             <div className="p-2 bg-blue-50 dark:bg-blue-950/40 rounded-lg text-blue-600 border border-blue-200/40 dark:border-blue-800/40">
-              <Truck className="w-5 h-5 hover:scale-105 transition-transform" />
+              <Truck className="w-5 h-5 hover:scale-100 transition-transform" />
             </div>
           </div>
           <div className="mt-4">
@@ -588,7 +652,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         {/* Card 4: Total Payments Received */}
         <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 rounded-xl p-5 shadow-sm transition-colors">
           <div className="flex justify-between items-start">
-            <p className="text-sm font-bold text-gray-550 dark:text-gray-400 uppercase tracking-wider">Total Received Payments</p>
+            <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Received Payments</p>
             <div className="p-2 bg-emerald-50 dark:bg-emerald-950/20 rounded-lg text-emerald-600">
               <CheckCircle className="w-5 h-5" />
             </div>
@@ -657,14 +721,14 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
           <div className="space-y-4">
             <div className="flex justify-between items-center p-3 bg-gray-50 dark:bg-blue-900/20 rounded-xl border border-gray-100 dark:border-blue-900/50">
-              <span className="text-sm font-semibold text-gray-650 dark:text-gray-300">Opening Balance Context</span>
+              <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">Opening Balance Context</span>
               <span className="text-sm font-mono font-bold text-gray-900 dark:text-blue-100">
                 {customer.openingBalanceType === 'advance' ? '-' : ''}{formatCurrency(customer.openingBalance || 0)}
               </span>
             </div>
             
             <div className="pt-2">
-              <p className="text-xs font-bold text-gray-400 dark:text-gray-550 uppercase mb-3 tracking-wider">Summary Indicators</p>
+              <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-3 tracking-wider">Summary Indicators</p>
               <div className="space-y-3.5">
                 <div>
                   <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">
@@ -699,7 +763,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               </div>
             </div>
             
-            <div className="pt-4 border-t border-gray-105 dark:border-blue-900 text-center">
+            <div className="pt-4 border-t border-gray-100 dark:border-blue-900 text-center">
               <p className="text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline cursor-pointer flex justify-center items-center gap-1" onClick={handleExportStatement}>
                 <Calendar className="w-3.5 h-3.5" /> Open printable timeline report
               </p>
@@ -725,7 +789,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   onClick={() => setFilterType(f)}
                   className={`px-3 py-1 text-xs font-bold rounded-md uppercase transition-colors cursor-pointer ${
                     filterType === f 
-                      ? 'bg-blue-650 dark:bg-blue-600 text-white shadow-sm'
+                      ? 'bg-blue-600 dark:bg-blue-600 text-white shadow-sm'
                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-blue-200'
                   }`}
                 >
@@ -744,7 +808,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 placeholder="Search description, author..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-blue-50/50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800 focus:border-blue-500 dark:focus:border-blue-400 rounded-lg text-sm text-gray-955 dark:text-blue-50 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-blue-400/75"
+                className="w-full pl-9 pr-3 py-2 bg-blue-50/50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800 focus:border-blue-500 dark:focus:border-blue-400 rounded-lg text-sm text-gray-950 dark:text-blue-50 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-blue-400/75"
               />
             </div>
             
@@ -817,15 +881,15 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                         </span>
                       </div>
                     </td>
-                    <td className="border border-gray-200 dark:border-blue-900 px-6 py-4 text-base font-medium text-gray-650 dark:text-gray-300">
+                    <td className="border border-gray-200 dark:border-blue-900 px-6 py-4 text-base font-medium text-gray-600 dark:text-gray-300">
                       {e.description}
                     </td>
-                    <td className="border border-gray-200 dark:border-blue-900 px-6 py-4 text-base text-gray-550 dark:text-blue-200/80">
+                    <td className="border border-gray-200 dark:border-blue-900 px-6 py-4 text-base text-gray-500 dark:text-blue-200/80">
                       {e.createdBy}
                     </td>
                     <td className={`border border-gray-200 dark:border-blue-900 px-6 py-4 text-right font-mono font-bold text-base ${
                       e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit'))
-                        ? 'text-amber-650 dark:text-amber-400'
+                        ? 'text-amber-600 dark:text-amber-400'
                         : 'text-emerald-600 dark:text-emerald-400 font-medium'
                     }`}>
                       {e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit')) ? '+' : '-'}
@@ -836,7 +900,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                         ? 'text-red-600 dark:text-red-400'
                         : e.balanceAfter < 0
                           ? 'text-emerald-600 dark:text-emerald-400'
-                          : 'text-gray-650 dark:text-gray-300'
+                          : 'text-gray-600 dark:text-gray-300'
                     }`}>
                       {formatCurrency(e.balanceAfter)}
                     </td>
@@ -861,6 +925,16 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-blue-400 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
               </div>
               <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Date *</label>
+                  <input 
+                    type="date"
+                    required
+                    value={deliveryDate}
+                    onChange={e => setDeliveryDate(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                  />
+                </div>
                 <div>
                   <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Fuel Product</label>
                   <select 
@@ -931,6 +1005,16 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               </div>
               <div className="p-6 space-y-4">
                 <div>
+                  <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Date *</label>
+                  <input 
+                    type="date"
+                    required
+                    value={paymentDate}
+                    onChange={e => setPaymentDate(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                  />
+                </div>
+                <div>
                   <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Payment Amount (KES) *</label>
                   <input 
                     type="number"
@@ -995,13 +1079,23 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       onClick={() => setAdjustType('debit')}
                       className={`py-2 px-3 rounded-lg border text-sm font-bold transition-all shadow-sm ${
                         adjustType === 'debit'
-                          ? 'border-red-500 bg-red-50 text-red-600 dark:bg-red-955/20 dark:text-red-400 ring-2 ring-red-500/10'
+                          ? 'border-red-500 bg-red-50 text-red-600 dark:bg-red-950/20 dark:text-red-400 ring-2 ring-red-500/10'
                           : 'border-blue-200 dark:border-blue-700 text-blue-500 dark:text-blue-400 bg-white dark:bg-blue-950 hover:bg-blue-50 dark:hover:bg-blue-900/50'
                       }`}
                     >
                       Debit (+)
                     </button>
                   </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Date *</label>
+                  <input 
+                    type="date"
+                    required
+                    value={adjustDate}
+                    onChange={e => setAdjustDate(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Override Amount (KES) *</label>

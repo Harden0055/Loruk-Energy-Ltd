@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Truck, DollarSign, FileText, Settings, LogOut, Fuel, BookOpen, CarFront, Sun, Moon, MapPin } from 'lucide-react';
+import { LayoutDashboard, Users, Truck, DollarSign, FileText, Settings, LogOut, Fuel, BookOpen, CarFront, Sun, Moon, MapPin, ClipboardList } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { cn } from '../lib/utils';
 import { useTheme } from '../lib/theme';
@@ -14,12 +14,14 @@ export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'customers', label: 'Customers', icon: Users },
+    { id: 'operations', label: 'Daily Operations', icon: ClipboardList },
     { id: 'deliveries', label: 'Fuel Deliveries', icon: Truck },
     { id: 'payments', label: 'Payments', icon: DollarSign },
+    { id: 'customers', label: 'Customers', icon: Users },
     { id: 'ledger', label: 'Ledger', icon: BookOpen },
     { id: 'fleet', label: 'Fleet Expenses', icon: CarFront },
     { id: 'reports', label: 'Reports', icon: FileText },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
 
