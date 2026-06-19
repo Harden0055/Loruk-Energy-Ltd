@@ -201,8 +201,8 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
 
       {/* Summary Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <MetricCard title="Total Fleet Expenses" value={formatCurrency(totalFleetExpenses)} icon={TrendingUp} color="text-red-600 dark:text-red-400" />
         <MetricCard title="Total Outstanding Balances" value={formatCurrency(outstandingBalance)} icon={DollarSign} color={outstandingBalanceColor} />
+        <MetricCard title="Total Fleet Expenses" value={formatCurrency(totalFleetExpenses)} icon={TrendingUp} color="text-orange-500 dark:text-orange-400" />
         <MetricCard title="Average Expense per Truck" value={formatCurrency(avgExpensePerTruck)} icon={CarFront} color="text-blue-600 dark:text-blue-400" />
         <MetricCard title="Active Customers" value={activeCustomers.toString()} icon={Users} color="text-emerald-600 dark:text-emerald-400" />
         <MetricCard title="Active Trucks" value={activeTrucksCount.toString()} icon={Truck} color="text-purple-600 dark:text-purple-400" />

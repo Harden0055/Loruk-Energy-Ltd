@@ -818,9 +818,7 @@ export async function getPreviousStopReading(station: string, product: string, d
         try {
           const q = query(
             collection(db, 'pump_readings'), 
-            where('station', '==', station),
-            where('product', '==', product),
-            orderBy('date', 'desc')
+            where('station', '==', station)
           );
           const snap = await getDocs(q);
           return snap.docs.map(doc => doc.data() as DailyPumpReading);

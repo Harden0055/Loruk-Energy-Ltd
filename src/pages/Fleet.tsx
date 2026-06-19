@@ -8,10 +8,10 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import AIInputModal from '../components/AIInputModal';
 import { FleetExpense } from '../types';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 const CAR_REGISTRATIONS = ['KDE 179Y', 'KDL 019S', 'KCY 842Y', 'KCF 119R', 'KDW 028Y'];
-const STATIONS = ['Loruk - Ndalu', 'Loruk - Junction', 'Gel - Bungoma', 'Gel - Kapenguria'] as const;
+const STATIONS = ['Loruk - Ndalu', 'Loruk - Junction', 'Gel - Bungoma', 'Gel - Kapenguria', 'Kengas'] as const;
 type Station = typeof STATIONS[number];
 
 export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToTruck?: (reg: string) => void, onNavigate?: (page: string) => void }) {
@@ -53,36 +53,45 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
     return result;
   }, [expenses, selectedCar, selectedStation, dateFrom, dateTo]);
 
-  const efficiencyTrendData = useMemo(() => {
-    const last30Days = Date.now() - 30 * 24 * 60 * 60 * 1000;
-    const recent = filteredExpenses.filter(e => e.date >= last30Days);
-    const groups: Record<string, { totalDist: number, totalAmount: number }> = {};
-    recent.forEach(e => {
-      const d = format(e.date, 'MMM dd');
-      if (!groups[d]) groups[d] = { totalDist: 0, totalAmount: 0 };
-      groups[d].totalDist += e.distance || 0;
-      groups[d].totalAmount += e.amount;
-    });
-    return Object.entries(groups).map(([date, data]) => ({
-      date,
-      efficiency: data.totalAmount > 0 ? data.totalDist / data.totalAmount : 0
-    })).sort((a, b) => a.date.localeCompare(b.date));
+  const fleetExpensesSummary = useMemo(() => {
+    return filteredExpenses.reduce((acc, curr) => {
+      let car = acc.find(c => c.carRegistration === curr.carRegistration);
+      if (!car) {
+        car = { carRegistration: curr.carRegistration, Amount: 0 };
+        acc.push(car);
+      }
+      car.Amount += curr.amount;
+      return acc;
+    }, [] as { carRegistration: string; Amount: number }[])
+    .sort((a, b) => b.Amount - a.Amount);
   }, [filteredExpenses]);
+
+  const TruckTick = (props: any) => {
+    const { x, y, payload } = props;
+    return (
+      <text x={x} y={y} dy={4} textAnchor="end" fill="#9ca3af" fontSize={10} onClick={() => onNavigateToTruck?.(payload.value)} className="cursor-pointer hover:fill-blue-500 dark:hover:fill-blue-400">
+        {payload.value}
+      </text>
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!amount || isNaN(Number(amount))) return;
     try {
-      const data: Omit<FleetExpense, 'id'> = {
-        carRegistration: carReg, station, amount: Number(amount), date: new Date(date).getTime(), createdBy: user?.email || 'Unknown', distance: distance ? Number(distance) : undefined
+      const data: any = {
+        carRegistration: carReg, station, amount: Number(amount), date: new Date(date).getTime(), createdBy: user?.email || 'Unknown'
       };
+      if (distance) data.distance = Number(distance);
+      
       if (editingExpenseId) await updateFleetExpense(editingExpenseId, data);
       else await createFleetExpense(data);
       setIsAdding(false);
       setEditingExpenseId(null);
       setAmount(''); setDistance(''); setDate(format(new Date(), 'yyyy-MM-dd'));
     } catch (e) {
-      alert('Failed to save expense');
+      console.error(e);
+      alert('Failed to save expense: ' + (e instanceof Error ? e.message : String(e)));
     }
   };
 
@@ -115,11 +124,28 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
             </button>
           )}
           <button onClick={generatePDF} className="bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:hover:bg-blue-800/60 dark:text-blue-300 dark:border-blue-700/50 px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 transition-colors cursor-pointer border border-blue-200 dark:border-blue-800"><Download className="w-5 h-5" /> Export</button>
-          <button onClick={() => setIsAdding(!isAdding)} className="px-5 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-lg text-base font-semibold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-900/5 cursor-pointer w-full sm:w-auto"><Plus className="w-5 h-5" /> Add Expense</button>
+          <button 
+            onClick={() => {
+              if (editingExpenseId) {
+                setEditingExpenseId(null);
+                setAmount(''); 
+                setDistance(''); 
+                setDate(format(new Date(), 'yyyy-MM-dd'));
+                setCarReg(CAR_REGISTRATIONS[0]);
+                setStation(STATIONS[0]);
+                setIsAdding(true);
+              } else {
+                setIsAdding(!isAdding);
+              }
+            }} 
+            className="px-5 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-lg text-base font-semibold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-900/5 cursor-pointer w-full sm:w-auto"
+          >
+            <Plus className="w-5 h-5" /> Add Expense
+          </button>
         </div>
       </div>
       {isAdding && (
-        <div className="bg-white/95 dark:bg-blue-950/80 p-6 border border-gray-200 dark:border-blue-900 rounded-xl shadow-sm">
+        <div id="add-expense-form-container" className="bg-white/95 dark:bg-blue-950/80 p-6 border border-gray-200 dark:border-blue-900 rounded-xl shadow-sm">
           <h3 className="text-lg font-bold text-gray-900 dark:text-blue-100 mb-4">{editingExpenseId ? 'Edit' : 'Add'} Expense</h3>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
             <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border rounded-lg" />
@@ -127,41 +153,72 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
             <select value={station} onChange={(e) => setStation(e.target.value as Station)} className="w-full px-3 py-2 bg-blue-50/50 dark:bg-blue-900/40 border rounded-lg">{STATIONS.map(s => <option key={s} value={s}>{s}</option>)}</select>
             <input type="number" required min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border rounded-lg" placeholder="Amount (KES)" />
             <input type="number" min="0" step="0.1" value={distance} onChange={(e) => setDistance(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border rounded-lg" placeholder="Distance (km)" />
-            <button type="submit" className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium">{editingExpenseId ? 'Update' : 'Save'}</button>
+            <div className="flex gap-2 w-full">
+              <button 
+                type="submit" 
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer"
+              >
+                {editingExpenseId ? 'Update' : 'Save'}
+              </button>
+              <button 
+                type="button" 
+                onClick={() => {
+                  setIsAdding(false);
+                  setEditingExpenseId(null);
+                  setAmount(''); 
+                  setDistance(''); 
+                  setDate(format(new Date(), 'yyyy-MM-dd'));
+                }}
+                className="px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-blue-800 rounded-lg font-medium transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
           </form>
         </div>
       )}
 
       {/* Individual Trucks Summary */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        {CAR_REGISTRATIONS.map(reg => {
-          const totalConsumption = expenses.filter(e => e.carRegistration === reg).reduce((acc, e) => acc + e.amount, 0);
-          const lastDate = lastActivity.get(reg) || 0;
-          const isInactive = (Date.now() - lastDate) > 48 * 60 * 60 * 1000;
-          return (
-            <div 
-              key={reg} 
-              className={`p-4 border rounded-xl shadow-sm relative ${
-                isInactive 
-                ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/60' 
-                : 'bg-white dark:bg-blue-950 border-gray-200 dark:border-blue-900'
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">{reg}</p>
-                {isInactive && (
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                  </span>
-                )}
+        {(() => {
+          const stats = CAR_REGISTRATIONS.map(reg => {
+            const totalConsumption = expenses.filter(e => e.carRegistration === reg).reduce((acc, e) => acc + e.amount, 0);
+            const lastDate = lastActivity.get(reg) || 0;
+            const isInactive = (Date.now() - lastDate) > 48 * 60 * 60 * 1000;
+            return { reg, totalConsumption, isInactive };
+          }).sort((a, b) => b.totalConsumption - a.totalConsumption);
+          
+          const textColors = [
+            'text-blue-600 dark:text-blue-400',
+            'text-emerald-600 dark:text-emerald-400',
+            'text-purple-600 dark:text-purple-400',
+            'text-orange-600 dark:text-orange-400',
+            'text-yellow-600 dark:text-yellow-400',
+          ];
+
+          return stats.map(({ reg, totalConsumption, isInactive }, index) => {
+            const colorClass = textColors[index] || textColors[textColors.length - 1];
+            return (
+              <div 
+                key={reg} 
+                className="p-5 border rounded-xl shadow-sm relative bg-blue-50/50 dark:bg-blue-900/10 border-blue-300 dark:border-blue-800"
+              >
+                <div className="flex items-center justify-between mb-2 text-gray-500 dark:text-gray-400">
+                  <p className="text-xs font-bold uppercase tracking-widest">{reg}</p>
+                  {isInactive && (
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                    </span>
+                  )}
+                </div>
+                <h3 className={`text-2xl font-black font-mono ${colorClass}`}>
+                  {formatCurrency(totalConsumption)}
+                </h3>
               </div>
-              <h3 className={`text-xl font-bold ${isInactive ? 'text-red-700 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'}`}>
-                {formatCurrency(totalConsumption)}
-              </h3>
-            </div>
-          );
-        })}
+            );
+          });
+        })()}
       </div>
 
 
@@ -201,17 +258,28 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
            <p className="text-xs text-blue-500 mt-1">{filteredExpenses.length} logs</p>
         </div>
         
-        <div className="flex-1 min-w-[300px] bg-white dark:bg-blue-950 p-4 rounded-lg border border-gray-200 dark:border-blue-900">
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Efficiency Trend (Km/KES)</h3>
-          <div className="h-32">
-            <ResponsiveContainer>
-                <LineChart data={efficiencyTrendData}>
-                    <XAxis dataKey="date" hide />
-                    <YAxis hide />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="efficiency" stroke="#10b981" strokeWidth={2} dot={false} />
-                </LineChart>
-            </ResponsiveContainer>
+        <div className="flex-1 min-w-[300px] bg-white dark:bg-blue-950 p-4 rounded-lg border border-gray-200 dark:border-blue-900 flex flex-col transition-colors">
+          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
+             <Truck className="w-4 h-4" /> Fleet Expenses Comparison
+          </h3>
+          <div className="h-64 w-full text-xs">
+             {fleetExpensesSummary.length === 0 ? (
+               <div className="text-center text-sm text-gray-400 py-8">No fleet expenses logged yet.</div>
+             ) : (
+               <ResponsiveContainer width="100%" height="100%">
+                 <BarChart data={fleetExpensesSummary} layout="vertical" margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
+                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.3} horizontal={false} />
+                   <XAxis type="number" stroke="#9ca3af" tickLine={false} axisLine={false} hide />
+                   <YAxis dataKey="carRegistration" type="category" tick={<TruckTick />} stroke="#9ca3af" tickLine={false} axisLine={false} width={80} />
+                   <Tooltip 
+                     contentStyle={{ backgroundColor: '#1e3a8a', color: '#f3f4f6', border: '1px solid #3b82f6', borderRadius: '4px', fontSize: '12px' }} 
+                     cursor={{fill: '#1e40af', opacity: 0.2}} 
+                     formatter={(value: number) => [formatCurrency(value), 'Total Amount']}
+                   />
+                   <Bar dataKey="Amount" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={12} />
+                 </BarChart>
+               </ResponsiveContainer>
+             )}
           </div>
         </div>
       </div>
@@ -237,6 +305,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                       e.station === 'Gel - Bungoma' ? 'bg-pink-100 dark:bg-pink-900/50 text-pink-800 dark:text-pink-200' 
                       : e.station === 'Gel - Kapenguria' ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200' 
+                      : e.station === 'Kengas' ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200'
                       : ''
                     }`}>
                       {e.station}
@@ -246,7 +315,36 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                 <td className="px-4 py-3 text-right font-mono font-bold text-blue-600 dark:text-blue-400">{formatCurrency(e.amount)}</td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center justify-end gap-1.5">
-                    <button onClick={() => { setEditingExpenseId(e.id); setCarReg(e.carRegistration); setAmount(e.amount.toString()); setIsAdding(true); }} className="p-1 text-blue-600 hover:text-blue-800 transition-colors cursor-pointer" title="Edit Expense"><Pencil className="w-4 h-4" /></button>
+                    <button 
+                      onClick={() => { 
+                        setEditingExpenseId(e.id); 
+                        setCarReg(e.carRegistration); 
+                        setAmount(e.amount.toString()); 
+                        if (e.station) {
+                          setStation(e.station);
+                        } else {
+                          setStation(STATIONS[0]);
+                        }
+                        setDistance(e.distance != null ? e.distance.toString() : '');
+                        
+                        let dateObj = new Date();
+                        if (e.date) {
+                          const d = new Date(e.date);
+                          if (!isNaN(d.getTime())) {
+                            dateObj = d;
+                          }
+                        }
+                        setDate(format(dateObj, 'yyyy-MM-dd'));
+                        
+                        setIsAdding(true); 
+                        // Smoothly scroll the page to the top so the form is visible
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }} 
+                      className="p-1 text-blue-600 hover:text-blue-800 transition-colors cursor-pointer" 
+                      title="Edit Expense"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
                     <button 
                       onClick={() => setDeleteDialog({ isOpen: true, id: e.id! })} 
                       className="p-1 text-red-500 hover:text-red-700 transition-colors cursor-pointer" 

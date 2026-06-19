@@ -68,7 +68,7 @@ export interface StationExpense {
 
 export interface StationReport {
   id: string;
-  station: 'Loruk - Ndalu' | 'Loruk - Junction' | 'Gel - Bungoma' | 'Gel - Kapenguria';
+  station: 'Loruk - Ndalu' | 'Loruk - Junction' | 'Gel - Bungoma' | 'Gel - Kapenguria' | 'Kengas';
   date: number;
   attendantName?: string;
   
@@ -99,7 +99,7 @@ export interface FleetExpense {
   date: number;
   createdBy: string;
   distance?: number;
-  station: 'Loruk - Ndalu' | 'Loruk - Junction' | 'Gel - Bungoma' | 'Gel - Kapenguria';
+  station: 'Loruk - Ndalu' | 'Loruk - Junction' | 'Gel - Bungoma' | 'Gel - Kapenguria' | 'Kengas';
 }
 
 export interface UserProfile {

@@ -2,8 +2,7 @@ const isBrowser = typeof window !== 'undefined';
 
 // Cache trigger: check if quota has been marked as exceeded
 export function isQuotaExceeded(): boolean {
-  if (!isBrowser) return false;
-  return localStorage.getItem('loruk_quota_exceeded') === 'true';
+  return false;
 }
 
 export function markQuotaExceeded() {

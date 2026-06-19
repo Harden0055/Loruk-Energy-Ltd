@@ -25,6 +25,7 @@ export function getStationColor(station: string) {
     case 'Loruk - Ndalu': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400';
     case 'Gel - Bungoma': return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400';
     case 'Gel - Kapenguria': return 'bg-sky-100 dark:bg-sky-900/30 text-sky-800 dark:text-sky-400';
+    case 'Kengas': return 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400';
     default: return 'bg-gray-100 dark:bg-blue-900/30 text-gray-800 dark:text-blue-400';
   }
 }

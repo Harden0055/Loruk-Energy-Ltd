@@ -842,12 +842,12 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           <table className="w-full text-left border-collapse">
             <thead className="bg-blue-50 dark:bg-blue-900 border-b border-gray-200 dark:border-blue-900 transition-colors">
               <tr>
-                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider">Date & Time</th>
-                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider">Activity</th>
-                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider">Description</th>
+                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider whitespace-nowrap">Date & Time</th>
+                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider whitespace-nowrap w-48">Activity</th>
+                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider w-64">Description</th>
                 <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider">Author</th>
-                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider text-right w-36 animate-fade-in">Amount</th>
-                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider text-right w-36 animate-fade-in">Balance</th>
+                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider text-right w-48 animate-fade-in">Amount</th>
+                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider text-right w-48 animate-fade-in">Balance</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-blue-900">
@@ -860,10 +860,10 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               ) : (
                 timelineEvents.map(e => (
                   <tr key={e.id} className="hover:bg-gray-50 dark:hover:bg-blue-900/40 transition-colors">
-                    <td className="border border-gray-200 dark:border-blue-900 px-6 py-4 text-sm text-gray-500 dark:text-gray-400 font-mono font-medium">
+                    <td className="border border-gray-200 dark:border-blue-900 px-6 py-4 text-sm text-gray-500 dark:text-gray-400 font-mono font-medium whitespace-nowrap">
                       {format(e.date, 'dd-MMM-yyyy HH:mm')}
                     </td>
-                    <td className="border border-gray-200 dark:border-blue-900 px-6 py-4">
+                    <td className="border border-gray-200 dark:border-blue-900 px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2.5">
                         <div className={`p-1.5 rounded-md ${
                           e.type === 'delivery' 
@@ -881,13 +881,13 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                         </span>
                       </div>
                     </td>
-                    <td className="border border-gray-200 dark:border-blue-900 px-6 py-4 text-base font-medium text-gray-600 dark:text-gray-300">
+                    <td className="border border-gray-200 dark:border-blue-900 px-6 py-4 text-base font-medium text-gray-600 dark:text-gray-300 truncate max-w-[200px]" title={e.description}>
                       {e.description}
                     </td>
-                    <td className="border border-gray-200 dark:border-blue-900 px-6 py-4 text-base text-gray-500 dark:text-blue-200/80">
+                    <td className="border border-gray-200 dark:border-blue-900 px-6 py-4 text-base text-gray-500 dark:text-blue-200/80 whitespace-nowrap">
                       {e.createdBy}
                     </td>
-                    <td className={`border border-gray-200 dark:border-blue-900 px-6 py-4 text-right font-mono font-bold text-base ${
+                    <td className={`border border-gray-200 dark:border-blue-900 px-6 py-4 text-right font-mono font-bold text-base whitespace-nowrap ${
                       e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit'))
                         ? 'text-amber-600 dark:text-amber-400'
                         : 'text-emerald-600 dark:text-emerald-400 font-medium'
@@ -895,7 +895,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       {e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit')) ? '+' : '-'}
                       {formatCurrency(e.amount)}
                     </td>
-                    <td className={`border border-gray-200 dark:border-blue-900 px-6 py-4 text-right font-mono font-bold text-base ${
+                    <td className={`border border-gray-200 dark:border-blue-900 px-6 py-4 text-right font-mono font-bold text-base whitespace-nowrap ${
                       e.balanceAfter > 0
                         ? 'text-red-600 dark:text-red-400'
                         : e.balanceAfter < 0

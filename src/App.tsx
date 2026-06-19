@@ -18,6 +18,8 @@ import Settings from './pages/Settings';
 import { Fuel, LogIn, RefreshCcw, Printer, Menu } from 'lucide-react';
 import { format } from 'date-fns';
 
+import { DataMigration } from './lib/DataMigration';
+
 type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'settings';
 
 function AuthenticatedApp() {
@@ -34,6 +36,7 @@ function AuthenticatedApp() {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-blue-950 text-gray-900 dark:text-blue-100 font-sans overflow-hidden transition-colors relative">
+      <DataMigration />
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
         <div 
@@ -269,7 +272,13 @@ function Main() {
           await signupWithEmail(email, password);
         }
       } catch (err: any) {
-        setError(err.message || 'An error occurred during authentication.');
+        let msg = err.message || 'An error occurred during authentication.';
+        if (err.code === 'auth/invalid-credential' || msg.includes('auth/invalid-credential')) {
+          msg = 'Invalid email or password. Please check your credentials and try again.';
+        } else if (err.code === 'auth/email-already-in-use' || msg.includes('auth/email-already-in-use')) {
+          msg = 'This email is already registered. Please sign in instead.';
+        }
+        setError(msg);
       } finally {
         setLoading(false);
       }
@@ -365,7 +374,13 @@ function Main() {
               try {
                 await login();
               } catch (err: any) {
-                setError(err.message || 'Error signing in with Google');
+                let msg = err.message || 'Error signing in with Google';
+                if (err.code === 'auth/popup-closed-by-user' || msg.includes('auth/popup-closed-by-user')) {
+                  msg = 'Sign in was cancelled.';
+                } else if (err.code === 'auth/unauthorized-domain' || msg.includes('auth/unauthorized-domain')) {
+                  msg = 'This domain is not authorized for Google Sign-In. Please add it to your Firebase Console under Authentication > Settings > Authorized domains.';
+                }
+                setError(msg);
               }
             }}
             className="w-full py-2.5 px-4 bg-white dark:bg-blue-900 border border-gray-300 dark:border-blue-700 hover:bg-gray-50 dark:hover:bg-blue-800 text-gray-700 dark:text-blue-50 rounded-lg flex items-center justify-center gap-2 font-semibold transition-all shadow-sm"

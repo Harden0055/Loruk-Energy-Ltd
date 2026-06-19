@@ -26,7 +26,7 @@ const CAR_REGISTRATIONS = [
   'KDW 028Y'
 ];
 
-const STATIONS = ['Loruk - Ndalu', 'Loruk - Junction', 'Gel - Bungoma', 'Gel - Kapenguria'] as const;
+const STATIONS = ['Loruk - Ndalu', 'Loruk - Junction', 'Gel - Bungoma', 'Gel - Kapenguria', 'Kengas'] as const;
 
 export default function TruckDashboard({ truckReg, onNavigateToTruck }: { truckReg?: string | null, onNavigateToTruck?: (reg: string) => void }) {
   const { expenses: allExpenses } = useFleetExpenses();
@@ -175,6 +175,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck }: { truckR
             {expenses.sort((a, b) => b.date - a.date).map(e => {
               const badgeClass = e.station === 'Gel - Bungoma' ? 'bg-pink-100 dark:bg-pink-900/50 text-pink-800 dark:text-pink-200' 
                                 : e.station === 'Gel - Kapenguria' ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200' 
+                                : e.station === 'Kengas' ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200'
                                 : '';
               
               return (

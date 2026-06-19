@@ -1,11 +1,12 @@
 import { collection, onSnapshot, query, addDoc, updateDoc, doc, deleteDoc, orderBy, getDocs, increment, setDoc } from 'firebase/firestore';
-import { db } from './firebase';
+import { db, auth } from './firebase';
 import { Customer, Delivery, Payment, FleetExpense, StationReport, Adjustment } from '../types';
 import { useState, useEffect } from 'react';
 import { useAuth } from './auth';
 import { 
   isQuotaExceeded, markQuotaExceeded, getLocalCollection, addLocalDoc, updateLocalDoc, deleteLocalDoc
 } from './localDbFallback';
+import { addToSyncQueue } from './sync';
 
 function isQuotaError(error: any) {
   const message = error instanceof Error ? error.message : String(error);
@@ -153,24 +154,99 @@ export function useStationReports() {
 
 // ---------------- MUTATIONS WRAPPER ----------------
 
+enum OperationType {
+  CREATE = 'create',
+  UPDATE = 'update',
+  DELETE = 'delete',
+  LIST = 'list',
+  GET = 'get',
+  WRITE = 'write',
+}
+
+interface FirestoreErrorInfo {
+  error: string;
+  operationType: OperationType;
+  path: string | null;
+  authInfo: {
+    userId?: string | null;
+    email?: string | null;
+    emailVerified?: boolean | null;
+    isAnonymous?: boolean | null;
+    tenantId?: string | null;
+    providerInfo?: {
+      providerId?: string | null;
+      email?: string | null;
+    }[];
+  }
+}
+
+function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
+  const errInfo: FirestoreErrorInfo = {
+    error: error instanceof Error ? error.message : String(error),
+    authInfo: {
+      userId: auth.currentUser?.uid,
+      email: auth.currentUser?.email,
+      emailVerified: auth.currentUser?.emailVerified,
+      isAnonymous: auth.currentUser?.isAnonymous,
+      tenantId: auth.currentUser?.tenantId,
+      providerInfo: auth.currentUser?.providerData?.map(provider => ({
+        providerId: provider.providerId,
+        email: provider.email,
+      })) || []
+    },
+    operationType,
+    path
+  }
+  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  throw new Error(JSON.stringify(errInfo));
+}
+
 async function executeDbMutation(
   collectionName: string,
   firebaseOp: () => Promise<any>,
-  localOp?: () => any
+  localOp?: () => any,
+  action?: 'create' | 'update' | 'delete',
+  docId?: string,
+  dataPayload?: any
 ) {
   if (isQuotaExceeded() && localOp) {
     return localOp();
   }
+
+  const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
+
+  if (isOffline) {
+    if (localOp) {
+      const localResult = localOp();
+      const finalDocId = docId || localResult?.id || `local_${Date.now()}`;
+      const finalData = dataPayload || localResult || {};
+      
+      addToSyncQueue(collectionName, action || 'create', finalDocId, finalData);
+      return localResult;
+    }
+    throw new Error('Offline mode active, and no local fallback operation is configured.');
+  }
+
   try {
     const result = await firebaseOp();
     return result;
-  } catch (error) {
-    console.error('Firebase operation failed:', error);
-    if (isQuotaError(error)) {
-      markQuotaExceeded();
-      if (localOp) return localOp();
+  } catch (error: any) {
+    const isNetworkError = error?.code === 'unavailable' || 
+                           error?.code === 'deadline-exceeded' ||
+                           error?.message?.toLowerCase().includes('network') ||
+                           error?.message?.toLowerCase().includes('offline');
+
+    if (isNetworkError && localOp) {
+      console.warn('Network issue detected. Saving update locally and queueing for background sync...');
+      const localResult = localOp();
+      const finalDocId = docId || localResult?.id || `local_${Date.now()}`;
+      const finalData = dataPayload || localResult || {};
+      
+      addToSyncQueue(collectionName, action || 'create', finalDocId, finalData);
+      return localResult;
     }
-    throw error;
+
+    handleFirestoreError(error, OperationType.WRITE, collectionName);
   }
 }
 
@@ -185,7 +261,10 @@ export const createCustomer = async (data: Omit<Customer, 'id' | 'createdAt' | '
   return executeDbMutation(
     'customers',
     () => addDoc(collection(db, 'customers'), payload),
-    () => addLocalDoc('customers', payload)
+    () => addLocalDoc('customers', payload),
+    'create',
+    undefined,
+    payload
   );
 };
 
@@ -199,7 +278,10 @@ export const createDelivery = async (data: Omit<Delivery, 'id' | 'updatedBy' | '
   return executeDbMutation(
     'deliveries',
     () => addDoc(collection(db, 'deliveries'), payload),
-    () => addLocalDoc('deliveries', payload)
+    () => addLocalDoc('deliveries', payload),
+    'create',
+    undefined,
+    payload
   );
 };
 
@@ -213,7 +295,10 @@ export const createPayment = async (data: Omit<Payment, 'id' | 'updatedBy' | 'ac
   return executeDbMutation(
     'payments',
     () => addDoc(collection(db, 'payments'), payload),
-    () => addLocalDoc('payments', payload)
+    () => addLocalDoc('payments', payload),
+    'create',
+    undefined,
+    payload
   );
 };
 
@@ -227,21 +312,32 @@ export const createAdjustment = async (data: Omit<Adjustment, 'id' | 'updatedBy'
   return executeDbMutation(
     'adjustments',
     () => addDoc(collection(db, 'adjustments'), payload),
-    () => addLocalDoc('adjustments', payload)
+    () => addLocalDoc('adjustments', payload),
+    'create',
+    undefined,
+    payload
   );
 };
 
 export const createFleetExpense = async (data: Omit<FleetExpense, 'id'>) => {
   return executeDbMutation(
     'fleetExpenses',
-    () => addDoc(collection(db, 'fleetExpenses'), data)
+    () => addDoc(collection(db, 'fleetExpenses'), data),
+    () => addLocalDoc('fleetExpenses', data),
+    'create',
+    undefined,
+    data
   );
 };
 
 export const createStationReport = async (data: Omit<StationReport, 'id'>) => {
   return executeDbMutation(
     'stationReports',
-    () => addDoc(collection(db, 'stationReports'), data)
+    () => addDoc(collection(db, 'stationReports'), data),
+    () => addLocalDoc('stationReports', data),
+    'create',
+    undefined,
+    data
   );
 };
 
@@ -249,7 +345,9 @@ export const deleteFleetExpense = async (id: string) => {
   return executeDbMutation(
     'fleetExpenses',
     () => deleteDoc(doc(db, 'fleetExpenses', id)),
-    () => deleteLocalDoc('fleetExpenses', id)
+    () => deleteLocalDoc('fleetExpenses', id),
+    'delete',
+    id
   );
 };
 
@@ -257,7 +355,9 @@ export const deleteStationReport = async (id: string) => {
   return executeDbMutation(
     'stationReports',
     () => deleteDoc(doc(db, 'stationReports', id)),
-    () => deleteLocalDoc('stationReports', id)
+    () => deleteLocalDoc('stationReports', id),
+    'delete',
+    id
   );
 };
 
@@ -265,7 +365,9 @@ export const deleteCustomer = async (id: string) => {
   return executeDbMutation(
     'customers',
     () => deleteDoc(doc(db, 'customers', id)),
-    () => deleteLocalDoc('customers', id)
+    () => deleteLocalDoc('customers', id),
+    'delete',
+    id
   );
 };
 
@@ -273,7 +375,9 @@ export const deleteDelivery = async (id: string) => {
   return executeDbMutation(
     'deliveries',
     () => deleteDoc(doc(db, 'deliveries', id)),
-    () => deleteLocalDoc('deliveries', id)
+    () => deleteLocalDoc('deliveries', id),
+    'delete',
+    id
   );
 };
 
@@ -282,7 +386,10 @@ export const updateDelivery = async (id: string, data: Partial<Delivery>) => {
   return executeDbMutation(
     'deliveries',
     () => updateDoc(doc(db, 'deliveries', id), payload),
-    () => updateLocalDoc('deliveries', id, payload)
+    () => updateLocalDoc('deliveries', id, payload),
+    'update',
+    id,
+    payload
   );
 };
 
@@ -290,7 +397,9 @@ export const deletePayment = async (id: string) => {
   return executeDbMutation(
     'payments',
     () => deleteDoc(doc(db, 'payments', id)),
-    () => deleteLocalDoc('payments', id)
+    () => deleteLocalDoc('payments', id),
+    'delete',
+    id
   );
 };
 
@@ -299,7 +408,10 @@ export const updatePayment = async (id: string, data: Partial<Payment>) => {
   return executeDbMutation(
     'payments',
     () => updateDoc(doc(db, 'payments', id), payload),
-    () => updateLocalDoc('payments', id, payload)
+    () => updateLocalDoc('payments', id, payload),
+    'update',
+    id,
+    payload
   );
 };
 
@@ -308,7 +420,10 @@ export const updateFleetExpense = async (id: string, data: Partial<FleetExpense>
   return executeDbMutation(
     'fleetExpenses',
     () => updateDoc(doc(db, 'fleetExpenses', id), payload),
-    () => updateLocalDoc('fleetExpenses', id, payload)
+    () => updateLocalDoc('fleetExpenses', id, payload),
+    'update',
+    id,
+    payload
   );
 };
 
@@ -316,7 +431,9 @@ export const deleteAdjustment = async (id: string) => {
   return executeDbMutation(
     'adjustments',
     () => deleteDoc(doc(db, 'adjustments', id)),
-    () => deleteLocalDoc('adjustments', id)
+    () => deleteLocalDoc('adjustments', id),
+    'delete',
+    id
   );
 };
 
@@ -367,7 +484,10 @@ export const updateCustomer = async (id: string, data: Partial<Customer>, increm
         }
       }
       updateLocalDoc('customers', id, localPayload);
-    }
+    },
+    'update',
+    id,
+    updateData
   );
 };
 
@@ -426,33 +546,29 @@ export async function clearDeliveriesAndPayments() {
 
 export async function deleteSeedData() {
   const collectionsToClean = [
-    { name: 'customers', field: 'customerId', values: ['CUST-004'] },
-    { name: 'stations', field: 'code', values: ['ST-001', 'ST-002'] },
-    { name: 'lpg_inventory', field: 'stockLevel', values: [45, 25, 30, 20] },
-    { name: 'burner_inventory', field: 'quantity', values: [15, 12] },
-    { name: 'daily_reports', field: 'totalSales', values: [155000, 120000] },
-    { name: 'invoice_payments', field: 'invoiceId', values: ['seed_inv_1'] },
-    { name: 'fuel_rates', field: 'rate', values: [175, 162, 176, 163] },
-    { name: 'pump_readings', field: 'litresStart', values: [10000, 20000, 5000, 12000] },
-    { name: 'lpg_sales', field: 'cylindersSold', values: [8, 5] },
-    { name: 'lpg_purchases', field: 'cylindersBought', values: [15, 10] },
-    { name: 'burner_sales', field: 'quantity', values: [4, 2] },
-    { name: 'burner_purchases', field: 'quantity', values: [10, 8] },
-    { name: 'grill_sales', field: 'salesAmount', values: [4500] },
-    { name: 'grill_purchases', field: 'purchaseCost', values: [9000, 6000] },
-    { name: 'expenses', field: 'description', values: ['Electricity token', 'Lunch / Airtime'] },
-    { name: 'cash_positions', field: 'mpesaBalance', values: [45000, 32000] },
-    { name: 'invoices', field: 'invoiceNumber', values: ['INV-1001', 'INV-1002'] }
+    'customers', 'deliveries', 'payments', 'stations', 'lpg_inventory',
+    'burner_inventory', 'daily_reports', 'invoice_payments', 'fuel_rates',
+    'pump_readings', 'lpg_sales', 'lpg_purchases', 'burner_sales',
+    'burner_purchases', 'grill_sales', 'grill_purchases', 'expenses',
+    'cash_positions', 'invoices'
   ];
 
   try {
-    for (const col of collectionsToClean) {
-      const snap = await getDocs(collection(db, col.name));
+    for (const colName of collectionsToClean) {
+      const snap = await getDocs(collection(db, colName));
       for (const docSnap of snap.docs) {
         const data = docSnap.data();
-        const val = data[col.field];
-        if ((col.values as any[]).includes(val)) {
-          await deleteDoc(doc(db, col.name, docSnap.id));
+        const docId = docSnap.id;
+        
+        // Identifiers for mock/seed data
+        const isSystemUpdated = data.updatedBy === 'system';
+        const isSeedId = docId.includes('seed') || docId.startsWith('cust_seed') || docId.startsWith('st_');
+        const isCreditRiskMock = data.status === 'credit_risk' && data.openingBalance === 4575900;
+        const isCombinedMock = data.customerId === 'CUST-001' || data.customerId === 'CUST-002' || data.customerId === 'CUST-004' || data.code === 'ST-001' || data.code === 'ST-002';
+        
+        if (isSystemUpdated || isSeedId || isCreditRiskMock || isCombinedMock) {
+          console.log(`Deleting mock data in ${colName}: ${docId}`);
+          await deleteDoc(doc(db, colName, docId));
         }
       }
     }
