@@ -15,10 +15,8 @@ import Customers from './pages/Customers';
 import Reports from './pages/Reports';
 import CustomerDashboard from './pages/CustomerDashboard';
 import Settings from './pages/Settings';
-import { Fuel, LogIn, RefreshCcw, Printer, Menu } from 'lucide-react';
+import { Fuel, LogIn, RefreshCcw, Printer, Menu, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
-
-import { DataMigration } from './lib/DataMigration';
 
 type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'settings';
 
@@ -36,7 +34,6 @@ function AuthenticatedApp() {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-blue-950 text-gray-900 dark:text-blue-100 font-sans overflow-hidden transition-colors relative">
-      <DataMigration />
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
         <div 
@@ -294,8 +291,47 @@ function Main() {
           <p className="text-gray-400 text-center mb-6 text-lg">
             {isForgotPassword ? 'Reset your password' : 'Sign in to manage fuel distribution'}
           </p>
+
+          {isLogin && !isForgotPassword && (
+            <div className="text-xs text-blue-600 dark:text-blue-400 text-center mb-6 bg-blue-500/5 p-3 rounded-lg border border-blue-100 dark:border-blue-900/40 leading-relaxed">
+              💡 <strong>First Time?</strong> If you have not created an email/password account yet, click <strong>Sign up</strong> at the bottom to register your email <strong>enockloriso@gmail.com</strong>.
+            </div>
+          )}
           
-          {error && <div className="w-full p-3 mb-4 text-sm text-red-600 bg-red-50 dark:bg-red-900/40 dark:text-red-300 rounded-lg border border-red-200 dark:border-red-800">{error}</div>}
+          {error && (
+            <div className="w-full p-4 mb-4 text-sm text-red-800 dark:text-red-200 bg-red-50 dark:bg-red-950/40 rounded-lg border border-red-200 dark:border-red-900/50">
+              {error.includes('unauthorized-domain') || error.includes('Authorized domains') ? (
+                <div className="space-y-3 text-left">
+                  <p className="font-bold flex items-center gap-1.5 text-red-700 dark:text-red-400">
+                    <AlertTriangle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
+                    Google Domain Unauthorized
+                  </p>
+                  <p className="text-xs leading-relaxed text-gray-600 dark:text-red-300">
+                    This preview is running on a secure domain which is not yet authorized in your Firebase Settings under Authentication.
+                  </p>
+                  <div className="space-y-1.5 bg-red-100/50 dark:bg-red-950/40 p-2.5 rounded border border-red-200/50 dark:border-red-900/30">
+                    <p className="font-semibold text-xs text-gray-700 dark:text-red-300">Authorized Domains to add:</p>
+                    <code className="block text-[10px] bg-white dark:bg-blue-955 p-1.5 rounded border border-red-200/50 dark:border-red-900/40 font-mono select-all text-gray-800 dark:text-blue-100 break-all">
+                      ais-dev-nr6cexrzz3du42f5xspexk-895108710933.europe-west2.run.app
+                    </code>
+                    <code className="block text-[10px] bg-white dark:bg-blue-955 p-1.5 rounded border border-red-200/50 dark:border-red-900/40 font-mono select-all text-gray-800 dark:text-blue-100 break-all font-semibold">
+                      ais-pre-nr6cexrzz3du42f5xspexk-895108710933.europe-west2.run.app
+                    </code>
+                  </div>
+                  <ol className="list-decimal pl-4 text-[11px] space-y-1 text-gray-600 dark:text-red-350">
+                    <li>Go to your <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="underline text-blue-650 dark:text-blue-400 font-bold">Firebase Console</a></li>
+                    <li>Click on <b>Authentication &gt; Settings &gt; Authorized domains</b></li>
+                    <li>Add the domains listed above!</li>
+                  </ol>
+                  <div className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 mt-2 bg-emerald-500/10 p-2.5 rounded-lg border border-emerald-500/20 leading-snug">
+                    💡 <strong>Quick Fallback:</strong> Register with Email &amp; Password (click <strong>Sign up</strong> below), which works instantly and has no domain requirements!
+                  </div>
+                </div>
+              ) : (
+                error
+              )}
+            </div>
+          )}
           {message && <div className="w-full p-3 mb-4 text-sm text-emerald-600 bg-emerald-50 dark:bg-emerald-900/40 dark:text-emerald-300 rounded-lg border border-emerald-200 dark:border-emerald-800">{message}</div>}
           
           <form onSubmit={handleEmailAuth} className="w-full mb-6">
