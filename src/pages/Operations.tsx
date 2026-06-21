@@ -443,30 +443,32 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
   }, [filteredLpgSalesList, filteredLpgPurchasesList, filteredBurnerSalesList, filteredBurnerPurchasesList, filteredGrillSalesList, filteredGrillPurchasesList]);
 
   // MODULE 12: PDF REPORTS GENERATION
-  const handleDownloadPDF = (reportType: 'daily' | 'weekly' | 'monthly') => {
+  const handleDownloadPDF = async (reportType: 'daily' | 'weekly' | 'monthly') => {
     try {
       const doc = new jsPDF();
+      const { setupPdfHeader, addPdfFooter } = await import('../lib/pdfTemplate');
       const timestamp = format(Date.now(), 'yyyy-MM-dd_HH-mm');
       const docHeader = `Loruk Energy - Advanced Operations (${reportType.toUpperCase()})`;
       const chosenStation = selectedStation === 'Combined' ? 'All Stations (Combined)' : `${selectedStation} Station`;
 
-      // Title & Subtitle Styling 
-      doc.setFontSize(22);
-      doc.setTextColor(30, 41, 59); // deep slate slate-800
-      doc.text(docHeader, 14, 20);
-
-      doc.setFontSize(11);
-      doc.setTextColor(100, 116, 139); // slate-500
-      doc.text(`Station Scope: ${chosenStation}`, 14, 27);
-      doc.text(`Report Generation Date: ${format(new Date(), 'MMMM d, yyyy h:mm a')}`, 14, 33);
-
-      doc.setDrawColor(226, 232, 240); // slate-200
-      doc.line(14, 38, 196, 38);
-
-      let currentY = 46;
+      let currentY = await setupPdfHeader({
+        doc,
+        title: 'OPERATIONS REPORT',
+        leftBoxLines: [
+          'Loruk Energy Limited',
+          `T/A ${chosenStation}`,
+          'P.O BOX 342',
+          `Station: ${chosenStation}`
+        ],
+        rightBoxLines: [
+          { label: 'Report Type :', value: reportType.toUpperCase() },
+          { label: 'Generated :', value: format(new Date(), 'MMM d, yyyy') }
+        ]
+      });
 
       // Fuel Sales table 
       doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
       doc.setTextColor(30, 41, 59);
       doc.text('1. Daily Fuel Pump Readings & Diagnostics', 14, currentY);
 
@@ -487,9 +489,10 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
         startY: currentY + 4,
         head: [['Date', 'Station', 'Product', 'Start L', 'Stop L', 'Litres Sold', 'Rate', 'Calc Rev', 'Collected', 'Difference']],
         body: fuelRows,
-        theme: 'striped',
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [30, 41, 59] }
+        theme: 'grid',
+        headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
+        bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] },
+        styles: { fontSize: 8 }
       });
 
       currentY = (doc as any).lastAutoTable.finalY + 14;
@@ -600,8 +603,9 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
         head: [['Customer Category', 'Total Invoiced', 'Total Paid', 'Outstanding']],
         body: catRows,
         theme: 'grid',
-        styles: { fontSize: 10, fontStyle: 'bold' },
-        headStyles: { fillColor: [100, 116, 139] }
+        headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
+        bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] },
+        styles: { fontSize: 10 }
       });
 
       currentY = (doc as any).lastAutoTable.finalY + 14;
@@ -628,12 +632,16 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
         startY: currentY + 4,
         body: plRows,
         theme: 'grid',
-        styles: { fontSize: 10, fontStyle: 'bold' },
+        bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] },
+        styles: { fontSize: 10 },
         columnStyles: {
           0: { cellWidth: 120 },
           1: { cellWidth: 60, halign: 'right' }
         }
       });
+
+      // @ts-ignore
+      addPdfFooter(doc, doc.lastAutoTable.finalY + 10);
 
       doc.save(`Loruk_Energy_${selectedStation}_${reportType}_Report_${timestamp}.pdf`);
     } catch (err) {

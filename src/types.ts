@@ -280,6 +280,8 @@ export interface StationInfo {
   location: string;
   status: 'active' | 'inactive';
   stationId?: string;
+  tradingAs?: string;
+  poBox?: string;
   createdAt: number;
   updatedAt?: number;
 }

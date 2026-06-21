@@ -281,47 +281,28 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   }, [customerDeliveries, customerPayments, customerAdjustments, customer]);
 
   // PDF Export statement
-  const handleExportStatement = () => {
+  const handleExportStatement = async () => {
     if (!customer) return;
     try {
       const doc = new jsPDF();
-      doc.setFont('source-sans-pro', 'sans-serif');
-      
-      // Header Section
-      doc.setFillColor(30, 41, 59); // deep slate/blue
-      doc.rect(0, 0, 210, 40, 'F');
-      
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(22);
-      doc.text('Customer Statement of Account', 15, 25);
-      doc.setFontSize(10);
-      doc.text(`Generated on: ${format(new Date(), 'dd-MMM-yyyy HH:mm')}`, 145, 25);
-      
-      // Customer details and stats panel
-      doc.setTextColor(30, 41, 59);
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Account Information', 15, 52);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10);
-      doc.text(`Customer ID: ${customer.customerId}`, 15, 60);
-      doc.text(`Customer Name: ${customer.name}`, 15, 66);
-      doc.text(`Status: ${customer.status.toUpperCase()}`, 15, 72);
-      doc.text(`Credit Limit: KES ${customer.creditLimit.toLocaleString()}`, 15, 78);
-      
-      // Balance summaries box
-      doc.setFillColor(243, 244, 246);
-      doc.rect(125, 48, 70, 36, 'F');
-      doc.setTextColor(55, 65, 81);
-      doc.text('STATEMENT SUMMARY', 130, 55);
-      doc.text(`Outstanding Bal:`, 130, 63);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`KES ${customer.balance.toLocaleString()}`, 165, 63);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Total Purchases:`, 130, 71);
-      doc.text(`KES ${totalSalesValue.toLocaleString()}`, 165, 71);
-      doc.text(`Total Payments:`, 130, 79);
-      doc.text(`KES ${totalPaymentsValue.toLocaleString()}`, 165, 79);
+      const { setupPdfHeader, addPdfFooter } = await import('../lib/pdfTemplate');
+
+      let currentY = await setupPdfHeader({
+        doc,
+        title: 'CUSTOMER STATEMENT',
+        leftBoxLines: [
+          'Loruk Energy Limited',
+          'T/A Sales & Distribution',
+          'P.O BOX 342',
+          `Customer ID: ${customer.customerId}`,
+          `Customer Name: ${customer.name}`
+        ],
+        rightBoxLines: [
+          { label: 'Outstanding Bal :', value: `KES ${customer.balance.toLocaleString()}` },
+          { label: 'Total Purchases :', value: `KES ${totalSalesValue.toLocaleString()}` },
+          { label: 'Total Payments :', value: `KES ${totalPaymentsValue.toLocaleString()}` }
+        ]
+      });
 
       // Line item table
       const tableHeaders = [['Date & Time', 'Transaction Type', 'Description', 'Created By', 'Amount (KES)']];
@@ -336,14 +317,19 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       autoTable(doc, {
         head: tableHeaders,
         body: tableRows,
-        startY: 92,
-        theme: 'striped',
-        headStyles: { fillColor: [59, 130, 246], textColor: [255, 255, 255] },
+        startY: currentY,
+        theme: 'grid',
+        headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
+        bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] },
+        footStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
         styles: { fontSize: 9 },
         columnStyles: {
           4: { halign: 'right' }
         }
       });
+
+      // @ts-ignore
+      addPdfFooter(doc, doc.lastAutoTable.finalY + 10);
 
       doc.save(`Statement_${customer.customerId}_${format(new Date(), 'yyyyMMdd')}.pdf`);
     } catch (err) {

@@ -19,8 +19,9 @@ export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
     { id: 'payments', label: 'Payments', icon: DollarSign },
     { id: 'customers', label: 'Customers', icon: Users },
     { id: 'ledger', label: 'Ledger', icon: BookOpen },
-    { id: 'fleet', label: 'Fleet Expenses', icon: CarFront },
+    { id: 'fleet', label: 'Fleet Fueling', icon: CarFront },
     { id: 'reports', label: 'Reports', icon: FileText },
+    { id: 'stations', label: 'Stations', icon: MapPin },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 

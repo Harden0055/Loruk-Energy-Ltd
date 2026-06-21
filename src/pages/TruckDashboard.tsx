@@ -159,7 +159,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck }: { truckR
        </div>
 
        <div className="bg-white dark:bg-blue-950 rounded border overflow-hidden mt-6">
-        <h3 className="font-bold text-lg p-4 border-b">Historic Expenses</h3>
+        <h3 className="font-bold text-lg p-4 border-b">Historic Fueling</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>

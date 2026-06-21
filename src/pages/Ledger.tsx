@@ -228,31 +228,38 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
     return trxSum + openingBal;
   }, [ledgerEntries, customers]);
 
-  const generatePDF = () => {
+  const generatePDF = async () => {
     const doc = new jsPDF();
+    const { setupPdfHeader, addPdfFooter } = await import('../lib/pdfTemplate');
     const customerName = selectedCustomerId === 'all' ? 'All Customers' : getCustomerName(selectedCustomerId);
     
-    doc.setFontSize(22);
-    doc.text('General Ledger Report', 14, 22);
-    
-    doc.setFontSize(11);
-    doc.setTextColor(100);
-    doc.text(`Generated on: ${format(new Date(), 'MMM dd, yyyy HH:mm')}`, 14, 30);
-    doc.text(`Customer: ${customerName}`, 14, 36);
-    doc.text(`Period: ${dateFrom ? format(new Date(dateFrom), 'MMM dd, yyyy') : 'Start'} to ${dateTo ? format(new Date(dateTo), 'MMM dd, yyyy') : 'Present'}`, 14, 42);
-
-    let startY = 50;
+    let currentY = await setupPdfHeader({
+      doc,
+      title: 'GENERAL LEDGER REPORT',
+      leftBoxLines: [
+        'Loruk Energy Limited',
+        'T/A Finance & Accounting',
+        'P.O BOX 342',
+        `Customer: ${customerName}`
+      ],
+      rightBoxLines: [
+        { label: 'From Date    :', value: dateFrom ? format(new Date(dateFrom), 'MMM dd, yyyy') : 'Start' },
+        { label: 'To Date        :', value: dateTo ? format(new Date(dateTo), 'MMM dd, yyyy') : 'Present' }
+      ]
+    });
 
     // Summary Section
-    doc.setFontSize(14);
-    doc.setTextColor(0);
-    doc.text('Summary', 14, startY);
-    
     doc.setFontSize(11);
-    doc.text(`Total Debits: ${formatCurrency(totalDebits)}`, 14, startY + 8);
-    doc.text(`Total Credits: ${formatCurrency(totalCredits)}`, 14, startY + 14);
+    doc.setFont("helvetica", "bold");
+    doc.text('Summary:', 14, currentY);
+    doc.setFont("helvetica", "normal");
+    
+    doc.text(`Total Debits: ${formatCurrency(totalDebits)}`, 14, currentY + 6);
+    doc.text(`Total Credits: ${formatCurrency(totalCredits)}`, 14, currentY + 12);
     const netChange = totalDebits - totalCredits;
-    doc.text(`Net Change: ${formatCurrency(Math.abs(netChange))} ${netChange > 0 ? 'Due' : 'Credit'}`, 14, startY + 20);
+    doc.text(`Net Change: ${formatCurrency(Math.abs(netChange))} ${netChange > 0 ? 'Due' : 'Credit'}`, 14, currentY + 18);
+
+    currentY += 24;
 
     const headRow = ['Date', 'Note', 'Debit', 'Credit', 'Balance'];
     if (selectedCustomerId === 'all') {
@@ -274,18 +281,17 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
     });
 
     autoTable(doc, {
-      startY: startY + 28,
+      startY: currentY,
       head: [headRow],
       body: rows,
       theme: 'grid',
-      headStyles: { fillColor: [59, 130, 246] },
+      headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
+      bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] },
       styles: { fontSize: 9 }
     });
 
-    const finalY = (doc as any).lastAutoTable.finalY || startY + 28;
-    doc.setFontSize(10);
-    doc.setTextColor(150);
-    doc.text('End of Report', 14, finalY + 10);
+    // @ts-ignore
+    addPdfFooter(doc, doc.lastAutoTable.finalY + 10);
 
     doc.save(`ledger-report-${format(new Date(), 'yyyyMMdd')}.pdf`);
   };

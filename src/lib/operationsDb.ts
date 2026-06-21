@@ -659,6 +659,27 @@ export async function addStation(data: Omit<StationInfo, 'id'>) {
   );
 }
 
+export async function updateStation(id: string, data: Partial<StationInfo>) {
+  const payload = { ...data, updatedAt: Date.now() };
+  return executeMutation(
+    'stations',
+    () => updateDoc(doc(db, 'stations', id), payload),
+    () => updateLocalDoc('stations', id, payload),
+    OperationType.UPDATE,
+    `stations/${id}`
+  );
+}
+
+export async function deleteStation(id: string) {
+  return executeMutation(
+    'stations',
+    () => deleteDoc(doc(db, 'stations', id)),
+    () => deleteLocalDoc('stations', id),
+    OperationType.DELETE,
+    `stations/${id}`
+  );
+}
+
 export async function addLpgInventory(data: Omit<LPGInventory, 'id'>) {
   const now = Date.now();
   const payload = {

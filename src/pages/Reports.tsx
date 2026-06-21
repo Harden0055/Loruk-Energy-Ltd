@@ -29,22 +29,28 @@ export default function Reports() {
       const customerPayments = payments.filter(p => p.customerId === selectedCustomerId).sort((a,b) => b.date - a.date);
 
       const doc = new jsPDF();
+      const { setupPdfHeader, addPdfFooter } = await import('../lib/pdfTemplate');
 
-      // Header
-      doc.setFontSize(20);
-      doc.text('FuelCore ERP - Customer Report', 14, 22);
-      
-      doc.setFontSize(12);
-      doc.text(`Customer Name: ${customer.name}`, 14, 32);
-      doc.text(`Current Outstanding Balance: ${formatCurrency(customer.balance)}`, 14, 40);
-      doc.text(`Total Purchases: ${formatCurrency(customer.totalPurchases)}`, 14, 48);
-      doc.text(`Generated On: ${format(Date.now(), 'MMM d, yyyy HH:mm')}`, 14, 56);
-
-      let startY = 70;
+      let currentY = await setupPdfHeader({
+        doc,
+        title: 'CUSTOMER REPORT',
+        leftBoxLines: [
+          'Loruk Energy Limited',
+          'T/A Sales & Distribution',
+          'P.O BOX 342',
+          `Customer Name: ${customer.name}`
+        ],
+        rightBoxLines: [
+          { label: 'Generated :', value: format(Date.now(), 'MMM d, yyyy') },
+          { label: 'Outst. Bal :', value: `${formatCurrency(customer.balance)}` },
+          { label: 'Purchases :', value: `${formatCurrency(customer.totalPurchases)}` }
+        ]
+      });
 
       // Deliveries Table
       doc.setFontSize(14);
-      doc.text('Fuel Deliveries History', 14, startY);
+      doc.setFont("helvetica", "bold");
+      doc.text('Fuel Deliveries History', 14, currentY);
       
       const deliveryRows = customerDeliveries.map(d => [
         format(d.date, 'MM/dd/yyyy'),
@@ -54,18 +60,20 @@ export default function Reports() {
       ]);
 
       autoTable(doc, {
-        startY: startY + 5,
+        startY: currentY + 5,
         head: [['Date', 'Product', 'Litres', 'Total Amount']],
         body: deliveryRows,
         theme: 'grid',
-        headStyles: { fillColor: [59, 130, 246] }
+        headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
+        bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] }
       });
 
-      startY = (doc as any).lastAutoTable.finalY + 15;
+      let nextY = (doc as any).lastAutoTable.finalY + 15;
 
       // Payments Table
       doc.setFontSize(14);
-      doc.text('Payments History', 14, startY);
+      doc.setFont("helvetica", "bold");
+      doc.text('Payments History', 14, nextY);
 
       const paymentRows = customerPayments.map(p => [
         format(p.date, 'MM/dd/yyyy'),
@@ -73,12 +81,16 @@ export default function Reports() {
       ]);
 
       autoTable(doc, {
-        startY: startY + 5,
+        startY: nextY + 5,
         head: [['Date', 'Amount Paid']],
         body: paymentRows,
         theme: 'grid',
-        headStyles: { fillColor: [16, 185, 129] }
+        headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
+        bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] }
       });
+
+      // @ts-ignore
+      addPdfFooter(doc, doc.lastAutoTable.finalY + 10);
 
       const pdfBlob = doc.output('blob');
       const filename = `${customer.name.replace(/\s+/g, '_')}_Report_${Date.now()}.pdf`;
@@ -105,20 +117,28 @@ export default function Reports() {
         const dailyPayments = payments.filter(p => p.date >= todayTime && p.date < tomorrowTime);
 
         const doc = new jsPDF();
+        const { setupPdfHeader, addPdfFooter } = await import('../lib/pdfTemplate');
 
-        // Header
-        doc.setFontSize(20);
-        doc.text('FuelCore ERP - Daily Summary Report', 14, 22);
-      
-        doc.setFontSize(12);
-        doc.text(`Date: ${format(today, 'MMM d, yyyy')}`, 14, 32);
-        doc.text(`Generated On: ${format(Date.now(), 'MMM d, yyyy HH:mm')}`, 14, 40);
-
-        let startY = 60;
+        let currentY = await setupPdfHeader({
+          doc,
+          title: 'DAILY SUMMARY REPORT',
+          leftBoxLines: [
+            'Loruk Energy Limited',
+            'T/A Management',
+            'P.O BOX 342',
+            `Date: ${format(today, 'MMM d, yyyy')}`
+          ],
+          rightBoxLines: [
+            { label: 'Generated :', value: format(Date.now(), 'MMM d, yyyy') },
+            { label: 'Deliveries :', value: `${dailyDeliveries.length}` },
+            { label: 'Payments :', value: `${dailyPayments.length}` }
+          ]
+        });
 
         // Deliveries Table
         doc.setFontSize(14);
-        doc.text('Deliveries Today', 14, startY);
+        doc.setFont("helvetica", "bold");
+        doc.text('Deliveries Today', 14, currentY);
         
         const deliveryRows = dailyDeliveries.map(d => [
           customers.find(c => c.id === d.customerId)?.name || 'Unknown',
@@ -128,18 +148,20 @@ export default function Reports() {
         ]);
 
         autoTable(doc, {
-          startY: startY + 5,
+          startY: currentY + 5,
           head: [['Customer', 'Product', 'Litres', 'Total Amount']],
           body: deliveryRows,
           theme: 'grid',
-          headStyles: { fillColor: [59, 130, 246] }
+          headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
+          bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] }
         });
 
-        startY = (doc as any).lastAutoTable.finalY + 15;
+        let nextY = (doc as any).lastAutoTable.finalY + 15;
 
         // Payments Table
         doc.setFontSize(14);
-        doc.text('Payments Today', 14, startY);
+        doc.setFont("helvetica", "bold");
+        doc.text('Payments Today', 14, nextY);
 
         const paymentRows = dailyPayments.map(p => [
           customers.find(c => c.id === p.customerId)?.name || 'Unknown',
@@ -147,12 +169,16 @@ export default function Reports() {
         ]);
 
         autoTable(doc, {
-          startY: startY + 5,
+          startY: nextY + 5,
           head: [['Customer', 'Amount Paid']],
           body: paymentRows,
           theme: 'grid',
-          headStyles: { fillColor: [16, 185, 129] }
+          headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
+          bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] }
         });
+
+        // @ts-ignore
+        addPdfFooter(doc, doc.lastAutoTable.finalY + 10);
 
         const filename = `Daily_Summary_${format(today, 'yyyy-MM-dd')}.pdf`;
         doc.save(filename);

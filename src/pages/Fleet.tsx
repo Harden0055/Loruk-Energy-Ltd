@@ -97,29 +97,24 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
 
   const generatePDF = async () => {
     const doc = new jsPDF();
+    const { setupPdfHeader, addPdfFooter } = await import('../lib/pdfTemplate');
 
-    try {
-      const { getLogoDataUrl } = await import('../lib/logo');
-      const logoData = await getLogoDataUrl();
-      // Add image: data, format, x, y, width, height
-      doc.addImage(logoData, 'PNG', 14, 10, 30, 30);
-    } catch (err) {
-      console.warn('Failed to load logo:', err);
-    }
+    let currentY = await setupPdfHeader({
+      doc,
+      title: 'FLEET FUELING REPORT',
+      leftBoxLines: [
+        'Loruk Energy Limited',
+        selectedStation === 'all' ? 'T/A Fleet Operations' : `T/A ${selectedStation}`,
+        'P.O BOX 342',
+        `Car Reg: ${selectedCar === 'all' ? 'All Cars' : selectedCar}`
+      ],
+      rightBoxLines: [
+        { label: 'From Date    :', value: dateFrom ? format(new Date(dateFrom), 'PPP') : 'All Dates' },
+        { label: 'To Date        :', value: dateTo ? format(new Date(dateTo), 'PPP') : 'All Dates' }
+      ]
+    });
 
-    doc.setFontSize(16);
-    doc.text('Loruk Energy Ltd - Fleet Expenses Report', 50, 22);
-    doc.setFontSize(11);
-    doc.text(`Generated on: ${format(new Date(), 'PPpp')}`, 50, 30);
-
-    // Summary section
-    let currentY = 50;
     const totalAmount = filteredExpenses.reduce((acc, e) => acc + e.amount, 0);
-    doc.setFontSize(11);
-    doc.text(`Total Logs: ${filteredExpenses.length}`, 14, currentY);
-    currentY += 6;
-    doc.text(`Total Amount: ${formatCurrency(totalAmount)}`, 14, currentY);
-    currentY += 10;
 
     const carTotals: Record<string, number> = {};
     const stationTotals: Record<string, number> = {};
@@ -129,7 +124,31 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
         stationTotals[e.station] = (stationTotals[e.station] || 0) + e.amount;
       }
     });
+
+    // Small elegant box for total
+    doc.setFillColor(245, 247, 250);
+    doc.setDrawColor(218, 223, 230);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(14, currentY, 90, 14, 2, 2, 'FD');
+
+    // Text inside box
+    doc.setFontSize(9.5);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(60, 60, 60);
+    doc.text('Total Fueling Expenses:', 18, currentY + 9);
     
+    // Value
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(0, 0, 0);
+    doc.text(formatCurrency(totalAmount), 62, currentY + 9);
+    
+    // Reset colors & font for layout
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(0, 0, 0);
+    currentY += 21;
+
+    // Summary block
+    doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
     doc.text('Summary by Car:', 14, currentY);
     doc.setFont("helvetica", "normal");
@@ -144,28 +163,47 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
       currentY += 2;
       doc.setFont("helvetica", "bold");
       doc.text('Summary by Station:', 14, currentY);
+      doc.setFont("helvetica", "normal");
       currentY += 6;
       
       Object.entries(stationTotals).forEach(([station, amount]) => {
         doc.text(`${station}: ${formatCurrency(amount)}`, 14, currentY);
         currentY += 6;
       });
-      doc.setFont("helvetica", "normal");
     }
 
+    currentY += 2;
+
+    // Table
     autoTable(doc, {
-      startY: currentY + 4,
+      startY: currentY,
+      theme: 'grid',
+      headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
+      bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] },
+      footStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
       head: [['Date', 'Car Reg', 'Station', 'Amount', 'Distance']],
-      body: filteredExpenses.map(e => [format(e.date, 'MM/dd/yyyy'), e.carRegistration, e.station || '-', formatCurrency(e.amount), e.distance ? `${e.distance} km` : '-']),
+      body: filteredExpenses.map(e => [
+        format(e.date, 'MMM d, yyyy'), 
+        e.carRegistration, 
+        e.station || '-', 
+        `${e.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KES`, 
+        e.distance ? `${e.distance} km` : '-'
+      ]),
+      foot: [['', '', 'Total Amount', `${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KES`, '']],
     });
-    doc.save(`fleet-expenses-${format(new Date(), 'yyyyMMdd')}.pdf`);
+
+    // Footer section
+    // @ts-ignore
+    addPdfFooter(doc, doc.lastAutoTable.finalY + 10);
+
+    doc.save(`fleet-fueling-${format(new Date(), 'yyyyMMdd')}.pdf`);
   };
 
   return (
     <div className="space-y-6 font-sans">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-blue-100">Fleet Expenses</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-blue-100">Fleet Fueling</h2>
           <p className="text-gray-500">Track fuel consumption logs</p>
         </div>
         <div className="flex gap-3">
@@ -318,11 +356,11 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
         
         <div className="flex-1 min-w-[300px] bg-white dark:bg-blue-950 p-4 rounded-lg border border-gray-200 dark:border-blue-900 flex flex-col transition-colors">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
-             <Truck className="w-4 h-4" /> Fleet Expenses Comparison
+             <Truck className="w-4 h-4" /> Fleet Fueling Comparison
           </h3>
           <div className="h-64 w-full text-xs">
              {fleetExpensesSummary.length === 0 ? (
-               <div className="text-center text-sm text-gray-400 py-8">No fleet expenses logged yet.</div>
+               <div className="text-center text-sm text-gray-400 py-8">No fleet fueling logs yet.</div>
              ) : (
                <ResponsiveContainer width="100%" height="100%">
                  <BarChart data={fleetExpensesSummary} layout="vertical" margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
@@ -423,7 +461,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
           <div className="bg-white dark:bg-blue-950 w-full max-w-sm rounded-xl shadow-2xl p-6 border border-gray-150 dark:border-blue-900/40 transform transition-all">
             <h3 className="text-lg font-bold text-gray-900 dark:text-blue-50 mb-2">Confirm Action</h3>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
-              Are you sure you want to permanently delete this fleet expense log?
+              Are you sure you want to permanently delete this fleet fueling log?
             </p>
             <div className="flex justify-end gap-3">
               <button 

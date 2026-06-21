@@ -15,10 +15,11 @@ import Customers from './pages/Customers';
 import Reports from './pages/Reports';
 import CustomerDashboard from './pages/CustomerDashboard';
 import Settings from './pages/Settings';
+import Stations from './pages/Stations';
 import { Fuel, LogIn, RefreshCcw, Printer, Menu, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 
-type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'settings';
+type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'settings' | 'stations';
 
 function AuthenticatedApp() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -217,6 +218,7 @@ function AuthenticatedApp() {
             )}
             {currentPage === 'reports' && <Reports />}
             {currentPage === 'settings' && <Settings />}
+            {currentPage === 'stations' && <Stations />}
           </ErrorBoundary>
         </main>
       </div>

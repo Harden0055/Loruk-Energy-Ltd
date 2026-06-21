@@ -74,7 +74,7 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
       .map(([reg, date]) => ({ reg, lastDate: date }));
   }, [expenses]);
 
-  // Compute combined recent activity based on Fleet Expenses
+  // Compute combined recent activity based on Fleet Fueling
   const activities = useMemo(() => {
     return expenses.map(e => ({
       id: e.id,
@@ -89,7 +89,7 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
     .slice(0, 10);
   }, [expenses]);
 
-  // Group fleet expenses by date for trend chart
+  // Group fleet fueling by date for trend chart
   const fleetTrend = useMemo(() => {
     const grouped = expenses.reduce((acc, curr) => {
       const dateStr = new Date(curr.date).toLocaleDateString(undefined, {month: 'short', day:'numeric'});
@@ -202,7 +202,7 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
       {/* Summary Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <MetricCard title="Total Outstanding Balances" value={formatCurrency(outstandingBalance)} icon={DollarSign} color={outstandingBalanceColor} />
-        <MetricCard title="Total Fleet Expenses" value={formatCurrency(totalFleetExpenses)} icon={TrendingUp} color="text-orange-500 dark:text-orange-400" />
+        <MetricCard title="Total Fleet Fueling" value={formatCurrency(totalFleetExpenses)} icon={TrendingUp} color="text-orange-500 dark:text-orange-400" />
         <MetricCard title="Average Expense per Truck" value={formatCurrency(avgExpensePerTruck)} icon={CarFront} color="text-blue-600 dark:text-blue-400" />
         <MetricCard title="Active Customers" value={activeCustomers.toString()} icon={Users} color="text-emerald-600 dark:text-emerald-400" />
         <MetricCard title="Active Trucks" value={activeTrucksCount.toString()} icon={Truck} color="text-purple-600 dark:text-purple-400" />
@@ -235,12 +235,12 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
       <InventoryDashboard selectedStation={selectedStation} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Fleet Expenses Trend Chart */}
+        {/* Fleet Fueling Trend Chart */}
         <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 p-4 rounded shadow-sm flex flex-col transition-colors lg:col-span-2">
-          <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4 tracking-wide">Fleet Expenses Trend</h2>
+          <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4 tracking-wide">Fleet Fueling Trend</h2>
           <div className="h-[220px] w-full text-xs">
             {fleetTrend.length === 0 ? (
-              <div className="text-center text-sm text-gray-400 py-8">No fleet expenses logged yet.</div>
+              <div className="text-center text-sm text-gray-400 py-8">No fleet fueling logged yet.</div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={fleetTrend}>
@@ -255,14 +255,14 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
           </div>
         </div>
 
-        {/* Fleet Expenses Comparison Widget */}
+        {/* Fleet Fueling Comparison Widget */}
         <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 p-4 rounded shadow-sm flex flex-col transition-colors">
           <h2 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4 tracking-wide flex items-center gap-2">
-             <CarFront className="w-4 h-4" /> Fleet Expenses Comparison
+             <CarFront className="w-4 h-4" /> Fleet Fueling Comparison
           </h2>
           <div className="h-[220px] w-full text-xs">
              {fleetExpensesSummary.length === 0 ? (
-               <div className="text-center text-sm text-gray-400 py-8">No fleet expenses logged yet.</div>
+               <div className="text-center text-sm text-gray-400 py-8">No fleet fueling logged yet.</div>
              ) : (
                <ResponsiveContainer width="100%" height="100%">
                  <BarChart data={fleetExpensesSummary} layout="vertical" margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
@@ -310,7 +310,7 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
           <div className="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-blue-900 pb-3">
             <h2 className="text-base font-semibold text-gray-950 dark:text-blue-100 flex items-center gap-2">
               <Activity className="w-5 h-5 text-red-500" />
-              Fleet Expenses Activity Feed
+              Fleet Fueling Activity Feed
             </h2>
             <span className="text-xs font-mono font-medium text-gray-400 dark:text-blue-500">
               Live updates
