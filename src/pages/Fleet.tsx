@@ -224,38 +224,41 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
 
       {/* Mini Dashboard */}
       <div className="bg-white dark:bg-blue-950 p-6 border border-gray-200 dark:border-blue-900 rounded-xl shadow-sm mb-6 flex flex-col md:flex-row gap-6">
-        {/* Filters */}
-        <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Car</label>
-              <select value={selectedCar} onChange={e => setSelectedCar(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="all">All Cars</option>
-                {CAR_REGISTRATIONS.map(r => <option key={r} value={r}>{r}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Station</label>
-              <select value={selectedStation} onChange={e => setSelectedStation(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="all">All Stations</option>
-                {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">From Date</label>
-              <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">To Date</label>
-              <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-        </div>
-        {/* Consumption Summary */}
-        <div className="w-full md:w-64 bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg flex flex-col justify-center border border-blue-100 dark:border-blue-800">
-           <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">Filtered Consumption</p>
-           <h3 className="text-2xl font-bold text-blue-900 dark:text-blue-100">
-             {formatCurrency(filteredExpenses.reduce((acc, e) => acc + e.amount, 0))}
-           </h3>
-           <p className="text-xs text-blue-500 mt-1">{filteredExpenses.length} logs</p>
+        {/* Left Column: Filters & Summary */}
+        <div className="flex-1 flex flex-col gap-6">
+          {/* Filters */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Car</label>
+                <select value={selectedCar} onChange={e => setSelectedCar(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="all">All Cars</option>
+                  {CAR_REGISTRATIONS.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Station</label>
+                <select value={selectedStation} onChange={e => setSelectedStation(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="all">All Stations</option>
+                  {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">From Date</label>
+                <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">To Date</label>
+                <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+          </div>
+          {/* Consumption Summary */}
+          <div className="w-full bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg flex flex-col justify-center border border-blue-100 dark:border-blue-800">
+             <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">Filtered Consumption</p>
+             <h3 className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+               {formatCurrency(filteredExpenses.reduce((acc, e) => acc + e.amount, 0))}
+             </h3>
+             <p className="text-xs text-blue-500 mt-1">{filteredExpenses.length} logs</p>
+          </div>
         </div>
         
         <div className="flex-1 min-w-[300px] bg-white dark:bg-blue-950 p-4 rounded-lg border border-gray-200 dark:border-blue-900 flex flex-col transition-colors">

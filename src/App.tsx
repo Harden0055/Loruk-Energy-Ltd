@@ -327,6 +327,30 @@ function Main() {
                     💡 <strong>Quick Fallback:</strong> Register with Email &amp; Password (click <strong>Sign up</strong> below), which works instantly and has no domain requirements!
                   </div>
                 </div>
+              ) : error.includes('Invalid email or password') || error.includes('invalid-credential') ? (
+                <div className="space-y-2 text-left">
+                  <p className="font-bold flex items-center gap-1.5 text-red-700 dark:text-red-400">
+                    <AlertTriangle className="w-4.5 h-4.5 text-red-600 dark:text-red-400 shrink-0" />
+                    Authentication Failed
+                  </p>
+                  <p className="text-xs leading-relaxed text-gray-700 dark:text-red-300">
+                    Invalid email or password credentials.
+                  </p>
+                  <div className="bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-900/50 p-2.5 rounded-md mt-2 text-[11px] text-blue-800 dark:text-blue-200 leading-normal">
+                    💡 <strong>Don't have an email login yet?</strong> If this is your first time using email sign-in, you must register your email address first. 
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setIsLogin(false);
+                        setError('');
+                        setMessage('');
+                      }}
+                      className="block mt-1.5 font-bold underline hover:text-blue-900 dark:hover:text-white"
+                    >
+                      Click here to switch to Sign Up Form &rarr;
+                    </button>
+                  </div>
+                </div>
               ) : (
                 error
               )}
