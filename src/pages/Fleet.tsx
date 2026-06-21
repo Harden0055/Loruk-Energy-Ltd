@@ -95,15 +95,31 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
     }
   };
 
-  const generatePDF = () => {
+  const generatePDF = async () => {
     const doc = new jsPDF();
-    doc.text('Loruk Energy Ltd - Fleet Expenses Report', 14, 22);
+
+    try {
+      const { getLogoDataUrl } = await import('../lib/logo');
+      const logoData = await getLogoDataUrl();
+      // Add image: data, format, x, y, width, height
+      doc.addImage(logoData, 'PNG', 14, 10, 30, 30);
+    } catch (err) {
+      console.warn('Failed to load logo:', err);
+    }
+
+    doc.setFontSize(16);
+    doc.text('Loruk Energy Ltd - Fleet Expenses Report', 50, 22);
+    doc.setFontSize(11);
+    doc.text(`Generated on: ${format(new Date(), 'PPpp')}`, 50, 30);
 
     // Summary section
+    let currentY = 50;
     const totalAmount = filteredExpenses.reduce((acc, e) => acc + e.amount, 0);
     doc.setFontSize(11);
-    doc.text(`Total Logs: ${filteredExpenses.length}`, 14, 30);
-    doc.text(`Total Amount: ${formatCurrency(totalAmount)}`, 14, 36);
+    doc.text(`Total Logs: ${filteredExpenses.length}`, 14, currentY);
+    currentY += 6;
+    doc.text(`Total Amount: ${formatCurrency(totalAmount)}`, 14, currentY);
+    currentY += 10;
 
     const carTotals: Record<string, number> = {};
     const stationTotals: Record<string, number> = {};
@@ -114,8 +130,9 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
       }
     });
     
-    let currentY = 44;
+    doc.setFont("helvetica", "bold");
     doc.text('Summary by Car:', 14, currentY);
+    doc.setFont("helvetica", "normal");
     currentY += 6;
     
     Object.entries(carTotals).forEach(([car, amount]) => {
@@ -123,14 +140,18 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
       currentY += 6;
     });
 
-    currentY += 2;
-    doc.text('Summary by Station:', 14, currentY);
-    currentY += 6;
-    
-    Object.entries(stationTotals).forEach(([station, amount]) => {
-      doc.text(`${station}: ${formatCurrency(amount)}`, 14, currentY);
+    if (selectedStation === 'all') {
+      currentY += 2;
+      doc.setFont("helvetica", "bold");
+      doc.text('Summary by Station:', 14, currentY);
       currentY += 6;
-    });
+      
+      Object.entries(stationTotals).forEach(([station, amount]) => {
+        doc.text(`${station}: ${formatCurrency(amount)}`, 14, currentY);
+        currentY += 6;
+      });
+      doc.setFont("helvetica", "normal");
+    }
 
     autoTable(doc, {
       startY: currentY + 4,
