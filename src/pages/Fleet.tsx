@@ -106,8 +106,12 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
     doc.text(`Total Amount: ${formatCurrency(totalAmount)}`, 14, 36);
 
     const carTotals: Record<string, number> = {};
+    const stationTotals: Record<string, number> = {};
     filteredExpenses.forEach(e => {
       carTotals[e.carRegistration] = (carTotals[e.carRegistration] || 0) + e.amount;
+      if (e.station) {
+        stationTotals[e.station] = (stationTotals[e.station] || 0) + e.amount;
+      }
     });
     
     let currentY = 44;
@@ -116,6 +120,15 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
     
     Object.entries(carTotals).forEach(([car, amount]) => {
       doc.text(`${car}: ${formatCurrency(amount)}`, 14, currentY);
+      currentY += 6;
+    });
+
+    currentY += 2;
+    doc.text('Summary by Station:', 14, currentY);
+    currentY += 6;
+    
+    Object.entries(stationTotals).forEach(([station, amount]) => {
+      doc.text(`${station}: ${formatCurrency(amount)}`, 14, currentY);
       currentY += 6;
     });
 
