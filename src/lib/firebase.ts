@@ -20,5 +20,5 @@ const analytics = typeof window !== "undefined" ? getAnalytics(app) : null;
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
-export const db = getFirestore(app, (firebaseConfig as unknown as any).firestoreDatabaseId);
+export const db = getFirestore(app);
 export const storage = getStorage(app);

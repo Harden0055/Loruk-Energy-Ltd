@@ -13,10 +13,12 @@ interface CustomersProps {
 }
 
 export default function Customers({ onViewCustomer, onNavigate }: CustomersProps = {}) {
-  const { customers, loading } = useCustomers();
-  const { deliveries } = useDeliveries();
-  const { payments } = usePayments();
-  const { adjustments } = useAdjustments();
+  const { customers, loading: customersLoading } = useCustomers();
+  const { deliveries, loading: deliveriesLoading } = useDeliveries();
+  const { payments, loading: paymentsLoading } = usePayments();
+  const { adjustments, loading: adjustmentsLoading } = useAdjustments();
+  const loading = customersLoading || deliveriesLoading || paymentsLoading || adjustmentsLoading;
+
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'credit_risk'>('all');
   const [isAdding, setIsAdding] = useState(false);
@@ -25,6 +27,28 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
   const [adjustingCustomer, setAdjustingCustomer] = useState<Customer | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const getCustomerBalance = (c: Customer) => {
+    let bal = c.openingBalance 
+      ? (c.openingBalanceType === 'advance' ? -c.openingBalance : c.openingBalance) 
+      : 0;
+    
+    // Add all deliveries
+    const cDeliveries = deliveries.filter(d => d.customerId === c.id);
+    cDeliveries.forEach(d => { bal += (d.totalAmount || 0); });
+    
+    // Subtract all payments
+    const cPayments = payments.filter(p => p.customerId === c.id);
+    cPayments.forEach(p => { bal -= (p.amount || 0); });
+    
+    // Adjust for adjustments
+    const cAdjustments = adjustments.filter(a => a.customerId === c.id);
+    cAdjustments.forEach(a => {
+      bal += (a.type === 'debit' ? (a.amount || 0) : -(a.amount || 0));
+    });
+    
+    return bal;
+  };
 
   const filtered = customers.filter(c => 
     (c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -38,24 +62,26 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
     return idA.localeCompare(idB, undefined, { numeric: true, sensitivity: 'base' });
   });
 
+  // Automated background self-healing balance synchronization
   useEffect(() => {
-    if (!sessionStorage.getItem('loruk_balance_fixed_v2') && !loading && customers.length > 0) {
-      sessionStorage.setItem('loruk_balance_fixed_v2', 'true');
-      const fixAll = async () => {
-         for (const c of customers) {
-            await recalculateCustomerBalance(
-              c.id,
-              deliveries.filter(d => d.customerId === c.id),
-              payments.filter(p => p.customerId === c.id),
-              adjustments.filter(a => a.customerId === c.id),
-              c.openingBalance || 0,
-              c.openingBalanceType || 'arrears'
-            );
-         }
-         console.log('Automated balance recalculation complete for all customers');
-      };
-      fixAll();
-    }
+    if (loading || customers.length === 0) return;
+
+    const syncStaleBalances = async () => {
+      for (const c of customers) {
+        const computed = Math.round(getCustomerBalance(c) * 100) / 100;
+        const stored = Math.round((c.balance || 0) * 100) / 100;
+        if (stored !== computed) {
+          console.log(`Self-healing balance for ${c.name}: Stored=${c.balance}, Computed=${computed}`);
+          try {
+            await updateCustomer(c.id, { balance: computed });
+          } catch (e) {
+            console.error(`Failed to self-heal balance for ${c.name}`, e);
+          }
+        }
+      }
+    };
+
+    syncStaleBalances();
   }, [customers, deliveries, payments, adjustments, loading]);
 
   const confirmDelete = async () => {
@@ -82,7 +108,7 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
         Name: c.name,
         CreditLimit: c.creditLimit,
         OpeningBalance: c.openingBalance,
-        Balance: c.balance,
+        Balance: getCustomerBalance(c),
         Status: c.status
     })));
     const blob = new Blob([csv], { type: 'text/csv' });
@@ -221,18 +247,23 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
                       <span className="block text-[10px] uppercase tracking-wider font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5">Advance</span>
                     )}
                   </td>
-                  <td className={`px-6 py-4 text-base font-mono font-bold text-right ${
-                    c.balance > 0 
-                      ? 'text-red-600 dark:text-red-400' 
-                      : c.balance < 0 
-                        ? 'text-emerald-600 dark:text-emerald-400 font-semibold' 
-                        : 'text-gray-700 dark:text-gray-300'
-                  }`}>
-                    {formatCurrency(c.balance)}
-                    {c.balance < 0 && (
-                      <span className="block text-[10px] uppercase tracking-wider font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5">Advance Balance</span>
-                    )}
-                  </td>
+                  {(() => {
+                    const dynamicBalance = getCustomerBalance(c);
+                    return (
+                      <td className={`px-6 py-4 text-base font-mono font-bold text-right ${
+                        dynamicBalance > 0 
+                          ? 'text-red-650 dark:text-red-400' 
+                          : dynamicBalance < 0 
+                            ? 'text-emerald-600 dark:text-emerald-400 font-semibold' 
+                            : 'text-gray-700 dark:text-gray-300'
+                      }`}>
+                        {formatCurrency(dynamicBalance)}
+                        {dynamicBalance < 0 && (
+                          <span className="block text-[10px] uppercase tracking-wider font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5">Advance Balance</span>
+                        )}
+                      </td>
+                    );
+                  })()}
                   <td className="px-6 py-4 text-base font-mono text-blue-600 dark:text-blue-400 text-right font-medium">{formatCurrency(c.totalPurchases)}</td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider ${
