@@ -97,9 +97,30 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
 
   const generatePDF = () => {
     const doc = new jsPDF();
-    doc.text('Galana Energy - Fleet Expenses Report', 14, 22);
+    doc.text('Loruk Energy Ltd - Fleet Expenses Report', 14, 22);
+
+    // Summary section
+    const totalAmount = filteredExpenses.reduce((acc, e) => acc + e.amount, 0);
+    doc.setFontSize(11);
+    doc.text(`Total Logs: ${filteredExpenses.length}`, 14, 30);
+    doc.text(`Total Amount: ${formatCurrency(totalAmount)}`, 14, 36);
+
+    const carTotals: Record<string, number> = {};
+    filteredExpenses.forEach(e => {
+      carTotals[e.carRegistration] = (carTotals[e.carRegistration] || 0) + e.amount;
+    });
+    
+    let currentY = 44;
+    doc.text('Summary by Car:', 14, currentY);
+    currentY += 6;
+    
+    Object.entries(carTotals).forEach(([car, amount]) => {
+      doc.text(`${car}: ${formatCurrency(amount)}`, 14, currentY);
+      currentY += 6;
+    });
+
     autoTable(doc, {
-      startY: 30,
+      startY: currentY + 4,
       head: [['Date', 'Car Reg', 'Station', 'Amount', 'Distance']],
       body: filteredExpenses.map(e => [format(e.date, 'MM/dd/yyyy'), e.carRegistration, e.station || '-', formatCurrency(e.amount), e.distance ? `${e.distance} km` : '-']),
     });
