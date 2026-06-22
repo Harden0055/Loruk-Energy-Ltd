@@ -60,12 +60,96 @@ export const setupPdfHeader = async ({ doc, title, leftBoxLines, rightBoxLines }
   return boxY + boxHeight + 8;
 };
 
+export const addPdfStamp = (doc: jsPDF, cx: number, cy: number, date: Date) => {
+  const originalDrawColor = doc.getDrawColor();
+  const originalTextColor = doc.getTextColor();
+  const originalLineWidth = doc.getLineWidth();
+
+  // Stamp Color: Blue
+  doc.setDrawColor(20, 50, 150);
+  doc.setTextColor(20, 50, 150);
+  
+  // Ellipses for oval shape
+  doc.setLineWidth(0.6);
+  doc.ellipse(cx, cy, 30, 20);
+  doc.setLineWidth(0.3);
+  doc.ellipse(cx, cy, 22, 13);
+  doc.ellipse(cx, cy, 29.3, 19.3); // slight double border for outer
+
+  const drawCurvedText = (text: string, rx: number, ry: number, startAngle: number, endAngle: number, isBottom: boolean) => {
+    const chars = text.split("");
+    const angleStep = (endAngle - startAngle) / (chars.length - 1);
+    for (let i = 0; i < chars.length; i++) {
+      const angle = startAngle + i * angleStep;
+      const rad = (angle * Math.PI) / 180;
+      const x = cx + rx * Math.cos(rad);
+      const y = cy + ry * Math.sin(rad);
+      
+      const dx = -rx * Math.sin(rad);
+      const dy = ry * Math.cos(rad);
+      const tangentAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+      
+      let textRot = -tangentAngle;
+      if (isBottom) textRot = -(tangentAngle + 180);
+      
+      doc.text(chars[i], x, y, {
+        angle: textRot,
+        align: "center",
+        baseline: "middle"
+      });
+    }
+  };
+
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  drawCurvedText("LORUK ENERGY", 26, 16.5, 210, 330, false);
+  
+  doc.setFontSize(8);
+  drawCurvedText("P.O Box 342-30600.", 26, 16.5, 145, 35, true); 
+  
+  // Stars
+  doc.setFontSize(12);
+  doc.text("*", cx - 25, cy, { align: "center", baseline: "middle" });
+  doc.text("*", cx + 25, cy, { align: "center", baseline: "middle" });
+
+  // Inside content
+  // Date (red color)
+  doc.setTextColor(200, 30, 30);
+  doc.setFontSize(10);
+  const dateStr = format(date, 'dd MMM yyyy').toUpperCase();
+  doc.text(dateStr, cx, cy - 3, { align: "center" });
+
+  // Signature (just a blue cursive/scribble)
+  doc.setDrawColor(20, 50, 150);
+  doc.setLineWidth(0.4);
+  // draw a small scribble across
+  doc.lines([[0, 0], [4, -4], [3, 2], [5, -2], [4, 4], [6, -3], [2, 1]], cx - 12, cy + 3, [1, 1]);
+
+  // Tel
+  doc.setTextColor(20, 50, 150);
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "normal");
+  doc.text("Tel: +254726 962 226", cx, cy + 9, { align: "center" });
+
+  // Restore colors
+  doc.setDrawColor(originalDrawColor);
+  doc.setTextColor(originalTextColor);
+  doc.setLineWidth(originalLineWidth);
+};
+
 export const addPdfFooter = (doc: jsPDF, finalY: number, station?: string, poBox?: string) => {
-  // Add page if near bottom
-  if (finalY > 255) {
+  // We need enough space for Stamp (45) + Footer (22) = ~67
+  if (finalY > 225) {
     doc.addPage();
     finalY = 20;
   }
+  
+  // Draw Stamp
+  const stampCx = 150; // shift to right side
+  const stampCy = finalY + 25;
+  addPdfStamp(doc, stampCx, stampCy, new Date());
+  
+  finalY = stampCy + 28; // set finalY for the footer banner below the stamp
   
   doc.setFillColor(245, 245, 245);
   doc.lines([[140, 0], [-10, 20], [-130, 0], [0, -20]], 14, finalY, [1, 1], 'F', true);

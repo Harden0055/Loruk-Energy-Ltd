@@ -35,6 +35,38 @@ function AuthenticatedApp() {
   const [showPrintWarning, setShowPrintWarning] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const navigateTo = (page: Page, params?: { customerId?: string | null, truckReg?: string | null }) => {
+    const customerId = params?.customerId !== undefined ? params.customerId : (page === 'customerDashboard' ? selectedCustomerId : null);
+    const truckReg = params?.truckReg !== undefined ? params.truckReg : (page === 'truckDashboard' ? selectedTruckReg : null);
+    
+    setCurrentPage(page);
+    setSelectedCustomerId(customerId);
+    setSelectedTruckReg(truckReg);
+    
+    window.history.pushState({ page, customerId, truckReg }, '');
+    setIsMobileMenuOpen(false);
+  };
+
+  useEffect(() => {
+    window.history.replaceState({ page: 'dashboard', customerId: null, truckReg: null }, '');
+
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state;
+      if (state && state.page) {
+        setCurrentPage(state.page);
+        setSelectedCustomerId(state.customerId || null);
+        setSelectedTruckReg(state.truckReg || null);
+      } else {
+        setCurrentPage('dashboard');
+        setSelectedCustomerId(null);
+        setSelectedTruckReg(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-blue-950 text-gray-900 dark:text-blue-100 font-sans overflow-hidden transition-colors relative">
       {/* Mobile Sidebar Overlay */}
@@ -79,14 +111,7 @@ function AuthenticatedApp() {
 
       <div className={`fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 lg:relative lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <Sidebar currentPage={currentPage} onNavigate={(p) => {
-          setCurrentPage(p);
-          if (p !== 'customerDashboard') {
-            setSelectedCustomerId(null);
-          }
-          if (p !== 'truckDashboard') {
-            setSelectedTruckReg(null);
-          }
-          setIsMobileMenuOpen(false);
+          navigateTo(p as Page);
         }} />
       </div>
 
@@ -159,12 +184,10 @@ function AuthenticatedApp() {
               <Dashboard 
                 selectedStation={selectedStation}
                 onNavigateToCustomer={(id) => {
-                  setSelectedCustomerId(id);
-                  setCurrentPage('customerDashboard');
+                  navigateTo('customerDashboard', { customerId: id });
                 }}
                 onNavigateToTruck={(reg) => {
-                  setSelectedTruckReg(reg);
-                  setCurrentPage('truckDashboard');
+                  navigateTo('truckDashboard', { truckReg: reg });
                 }}
               />
             )}
@@ -177,44 +200,41 @@ function AuthenticatedApp() {
             {currentPage === 'deliveries' && (
               <Deliveries 
                 onViewCustomer={(id) => {
-                  setSelectedCustomerId(id);
-                  setCurrentPage('customerDashboard');
+                  navigateTo('customerDashboard', { customerId: id });
                 }}
               />
             )}
             {currentPage === 'payments' && (
               <Payments 
                 onViewCustomer={(id) => {
-                  setSelectedCustomerId(id);
-                  setCurrentPage('customerDashboard');
+                  navigateTo('customerDashboard', { customerId: id });
                 }}
               />
             )}
             {currentPage === 'ledger' && (
               <Ledger 
                 onViewCustomer={(id) => {
-                  setSelectedCustomerId(id);
-                  setCurrentPage('customerDashboard');
+                  navigateTo('customerDashboard', { customerId: id });
                 }}
               />
             )}
-            {currentPage === 'fleet' && <Fleet onNavigate={(p) => setCurrentPage(p as Page)} onNavigateToTruck={(reg) => { setSelectedTruckReg(reg); setCurrentPage('truckDashboard'); }} />}
-            {currentPage === 'truckDashboard' && <TruckDashboard truckReg={selectedTruckReg} onNavigateToTruck={(reg) => { setSelectedTruckReg(reg); }}/>}
+            {currentPage === 'fleet' && <Fleet onNavigate={(p) => navigateTo(p as Page)} onNavigateToTruck={(reg) => { navigateTo('truckDashboard', { truckReg: reg }); }} />}
+            {currentPage === 'truckDashboard' && <TruckDashboard truckReg={selectedTruckReg} onNavigateToTruck={(reg) => { navigateTo('truckDashboard', { truckReg: reg }); }} onBack={() => window.history.back()} />}
             {currentPage === 'customers' && (
               <Customers 
                 onViewCustomer={(id) => {
-                  setSelectedCustomerId(id);
-                  setCurrentPage('customerDashboard');
+                  navigateTo('customerDashboard', { customerId: id });
                 }}
-                onNavigate={(p) => setCurrentPage(p as Page)}
+                onNavigate={(p) => navigateTo(p as Page)}
               />
             )}
             {currentPage === 'customerDashboard' && (
               <CustomerDashboard 
                 customerId={selectedCustomerId || ''} 
                 onBack={() => {
-                  setCurrentPage('customers');
-                  setSelectedCustomerId(null);
+                  // Standard back behavior: if there's history, we go back, but we can just navigate to customers for explicit back button.
+                  // For the browser back button, it's handled by popstate. For the UI back button, let's navigate to customers.
+                  window.history.back();
                 }} 
               />
             )}

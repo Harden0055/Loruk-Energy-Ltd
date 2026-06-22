@@ -28,7 +28,7 @@ const CAR_REGISTRATIONS = [
 
 const STATIONS = ['Loruk - Ndalu', 'Loruk - Junction', 'Gel - Bungoma', 'Gel - Kapenguria', 'Kengas'] as const;
 
-export default function TruckDashboard({ truckReg, onNavigateToTruck }: { truckReg?: string | null, onNavigateToTruck?: (reg: string) => void }) {
+export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: { truckReg?: string | null, onNavigateToTruck?: (reg: string) => void, onBack?: () => void }) {
   const { expenses: allExpenses } = useFleetExpenses();
 
   const expenses = useMemo(() => {
@@ -84,8 +84,19 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck }: { truckR
 
   return (
     <div className="space-y-6 animate-fade-in font-sans p-2">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-blue-100">Truck Fleet Performance Dashboard</h2>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3">
+          {onBack && (
+            <button 
+              onClick={onBack}
+              className="px-3 py-1.5 bg-white dark:bg-blue-950/80 hover:bg-gray-50 dark:hover:bg-blue-900 border border-gray-200 dark:border-blue-900 text-gray-700 dark:text-blue-200 text-sm font-semibold rounded-lg flex items-center gap-2 transition-colors cursor-pointer shadow-sm"
+              title="Go Back"
+            >
+              &larr; Back
+            </button>
+          )}
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-blue-100">Truck Fleet Performance Dashboard</h2>
+        </div>
         <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 cursor-pointer transition-colors shadow-sm">
            <Download className="w-4 h-4" /> Export Report
         </button>
