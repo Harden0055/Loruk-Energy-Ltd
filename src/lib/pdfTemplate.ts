@@ -60,28 +60,33 @@ export const setupPdfHeader = async ({ doc, title, leftBoxLines, rightBoxLines }
   return boxY + boxHeight + 8;
 };
 
-export const addPdfFooter = (doc: jsPDF, finalY: number) => {
+export const addPdfFooter = (doc: jsPDF, finalY: number, station?: string, poBox?: string) => {
   // Add page if near bottom
-  if (finalY > 240) {
+  if (finalY > 255) {
     doc.addPage();
     finalY = 20;
   }
   
   doc.setFillColor(245, 245, 245);
   doc.lines([[140, 0], [-10, 20], [-130, 0], [0, -20]], 14, finalY, [1, 1], 'F', true);
-  doc.rect(14, finalY, 182, 35, 'F');
+  doc.rect(14, finalY, 182, 22, 'F');
   
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(50, 50, 50);
-  const disclaimer = "This statement is assumed correct and accurate unless notice of disagreement accompanied by reconciliation is received within 14 days from the date of this letter. All invoices are payable within the agreed payment terms. Overdue Invoices shall attract a late payment charge at the rate of Five (5) percentage points above the current Commercial Banks' lending Rate. Such interest shall run from the day immediately after the invoice due date until the date payment is received by the Seller's bank and is applicable to all overdue balances. Payment will be credited first to late payment charges and next to the unpaid invoice amount. Customers are responsible for all collection and legal fees necessitated by such lateness or default in payment.";
+  const disclaimer = "This statement is assumed correct and accurate unless notice of disagreement accompanied by reconciliation.";
   
   // @ts-ignore
   const disclaimerLines = doc.splitTextToSize(disclaimer, 175);
-  doc.text(disclaimerLines, 18, finalY + 6);
+  doc.text(disclaimerLines, 18, finalY + 7);
 
-  const footerY = finalY + 45;
+  // Station and PO Box info
+  doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
-  doc.setTextColor(0, 0, 0);
-  doc.text("LORUK ENERGY LIMITED, P.O. BOX 342, BUNGOMA | WWW.LORUKENERGY.COM", 105, footerY, { align: "center" });
+  doc.setTextColor(30, 41, 59);
+  
+  const displayStation = station ? station : "Loruk Energy Limited";
+  const displayPoBox = poBox ? poBox : "P.O BOX 342";
+  
+  doc.text(`${displayStation} | ${displayPoBox}`, 18, finalY + 15);
 };

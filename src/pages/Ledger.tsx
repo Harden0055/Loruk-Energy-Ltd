@@ -290,8 +290,29 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
       styles: { fontSize: 9 }
     });
 
+    // Add summary section (Closing Balance)
+    let summaryY = (doc as any).lastAutoTable.finalY + 10;
+    if (summaryY + 20 > 270) {
+      doc.addPage();
+      summaryY = 20;
+    }
+
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.1);
+    doc.rect(14, summaryY, 182, 14, 'S');
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(30, 41, 59);
+    
+    const closingBalanceValue = filteredEntries.length > 0 
+      ? filteredEntries[filteredEntries.length - 1].runningBalance 
+      : 0;
+    const balanceValText = closingBalanceValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    doc.text(`Closing Balance (KES) :   ${balanceValText}`, 192, summaryY + 9, { align: 'right' });
+
     // @ts-ignore
-    addPdfFooter(doc, doc.lastAutoTable.finalY + 10);
+    addPdfFooter(doc, summaryY + 14 + 10);
 
     doc.save(`ledger-report-${format(new Date(), 'yyyyMMdd')}.pdf`);
   };

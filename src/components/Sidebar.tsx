@@ -1,7 +1,8 @@
-import { LayoutDashboard, Users, Truck, DollarSign, FileText, Settings, LogOut, Fuel, BookOpen, CarFront, Sun, Moon, MapPin, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, Users, Truck, DollarSign, FileText, Settings, LogOut, Fuel, BookOpen, CarFront, Sun, Moon, MapPin, ClipboardList, BotMessageSquare } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { cn } from '../lib/utils';
 import { useTheme } from '../lib/theme';
+import FireLEIcon from './FireLEIcon';
 
 interface SidebarProps {
   currentPage: string;
@@ -22,6 +23,7 @@ export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
     { id: 'fleet', label: 'Fleet Fueling', icon: CarFront },
     { id: 'reports', label: 'Reports', icon: FileText },
     { id: 'stations', label: 'Stations', icon: MapPin },
+    { id: 'assistant', label: 'AI Assistant', icon: BotMessageSquare },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
@@ -29,8 +31,8 @@ export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
   return (
     <aside className="w-64 border-r border-gray-200 dark:border-blue-900 flex flex-col bg-white dark:bg-blue-950 transition-colors">
       <div className="px-5 py-6 flex items-center gap-3">
-        <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-          <Fuel className="w-5 h-5 text-white" />
+        <div className="w-9 h-9 bg-slate-50 dark:bg-blue-900/40 border border-gray-200/60 dark:border-blue-800 rounded-lg flex items-center justify-center shadow-xs">
+          <FireLEIcon className="w-6.5 h-6.5" />
         </div>
         <span className="font-bold text-2xl tracking-tight dark:text-white transition-colors">Loruk Energy Ltd</span>
       </div>

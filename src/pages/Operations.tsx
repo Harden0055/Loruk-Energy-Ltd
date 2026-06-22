@@ -472,7 +472,8 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
       doc.setTextColor(30, 41, 59);
       doc.text('1. Daily Fuel Pump Readings & Diagnostics', 14, currentY);
 
-      const fuelRows = filteredReadingsList.map(r => [
+      const sortedReadings = [...filteredReadingsList].sort((a, b) => a.date - b.date);
+      const fuelRows = sortedReadings.map(r => [
         format(r.date, 'MM/dd/yyyy'),
         r.station,
         r.product,
@@ -501,7 +502,8 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
       doc.setFontSize(14);
       doc.text('2. Expenditure Summary', 14, currentY);
 
-      const expenseRows = filteredExpensesList.map(e => [
+      const sortedExpenses = [...filteredExpensesList].sort((a, b) => a.date - b.date);
+      const expenseRows = sortedExpenses.map(e => [
         format(e.date, 'MM/dd/yyyy'),
         e.station,
         e.category,
@@ -509,7 +511,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
         formatCurrency(e.amount)
       ]);
 
-      const totalExpSum = filteredExpensesList.reduce((sum, e) => sum + e.amount, 0);
+      const totalExpSum = sortedExpenses.reduce((sum, e) => sum + e.amount, 0);
 
       autoTable(doc, {
         startY: currentY + 4,
@@ -555,7 +557,8 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
       doc.setFontSize(14);
       doc.text('4. Account Receivables (Invoices)', 14, currentY);
 
-      const invoiceRows = filteredInvoicesList.map(i => [
+      const sortedInvoices = [...filteredInvoicesList].sort((a, b) => a.invoiceDate - b.invoiceDate);
+      const invoiceRows = sortedInvoices.map(i => [
         i.invoiceNumber,
         i.customerName,
         i.customerCategory || 'N/A',
@@ -641,7 +644,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
       });
 
       // @ts-ignore
-      addPdfFooter(doc, doc.lastAutoTable.finalY + 10);
+      addPdfFooter(doc, doc.lastAutoTable.finalY + 10, chosenStation, 'P.O BOX 342');
 
       doc.save(`Loruk_Energy_${selectedStation}_${reportType}_Report_${timestamp}.pdf`);
     } catch (err) {

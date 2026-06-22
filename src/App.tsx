@@ -16,10 +16,12 @@ import Reports from './pages/Reports';
 import CustomerDashboard from './pages/CustomerDashboard';
 import Settings from './pages/Settings';
 import Stations from './pages/Stations';
+import AIAssistant from './pages/AIAssistant';
+import FireLEIcon from './components/FireLEIcon';
 import { Fuel, LogIn, RefreshCcw, Printer, Menu, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 
-type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'settings' | 'stations';
+type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'settings' | 'stations' | 'assistant';
 
 function AuthenticatedApp() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -217,6 +219,7 @@ function AuthenticatedApp() {
               />
             )}
             {currentPage === 'reports' && <Reports />}
+            {currentPage === 'assistant' && <AIAssistant />}
             {currentPage === 'settings' && <Settings />}
             {currentPage === 'stations' && <Stations />}
           </ErrorBoundary>
@@ -286,8 +289,8 @@ function Main() {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-blue-950 text-gray-900 dark:text-blue-100 font-sans font-medium transition-colors">
         <div className="w-full max-w-sm p-8 bg-white dark:bg-blue-950 rounded-xl border border-gray-200 dark:border-blue-900 flex flex-col items-center transition-colors">
-          <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-6">
-            <Fuel className="w-6 h-6 text-white" />
+          <div className="w-16 h-16 bg-slate-50 dark:bg-blue-900/40 border border-gray-200 dark:border-blue-800 rounded-xl flex items-center justify-center mb-6 shadow-sm">
+            <FireLEIcon className="w-12 h-12" />
           </div>
           <h2 className="text-4xl font-bold tracking-tight mb-2 text-center text-gray-900 dark:text-blue-100">Loruk Energy Ltd Pro</h2>
           <p className="text-gray-400 text-center mb-6 text-lg">

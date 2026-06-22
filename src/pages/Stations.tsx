@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStations, addStation, updateStation, deleteStation } from '../lib/operationsDb';
 import { Search, Plus, Trash2, Pencil, MapPin, AlertTriangle, X, Building2, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { StationInfo } from '../types';
@@ -7,6 +7,23 @@ export default function Stations() {
   const { stations, loading } = useStations();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  
+  useEffect(() => {
+    if (loading) return;
+    const defaultStations = [
+      { name: 'Loruk - Ndalu', code: 'LRK-NDL', location: 'Ndalu', status: 'active', tradingAs: 'T/A Loruk Ndalu', poBox: 'P.O BOX 342' },
+      { name: 'Loruk - Junction', code: 'LRK-JCT', location: 'Junction', status: 'active', tradingAs: 'T/A Loruk Junction', poBox: 'P.O BOX 342' },
+      { name: 'Gel - Bungoma', code: 'GEL-BGM', location: 'Bungoma', status: 'active', tradingAs: 'T/A Gel Bungoma', poBox: 'P.O BOX 342' },
+      { name: 'Gel - Kapenguria', code: 'GEL-KPG', location: 'Kapenguria', status: 'active', tradingAs: 'T/A Gel Kapenguria', poBox: 'P.O BOX 342' },
+      { name: 'Kengas', code: 'KGS-001', location: 'Kengas', status: 'active', tradingAs: 'T/A Kengas', poBox: 'P.O BOX 342' }
+    ];
+    
+    defaultStations.forEach((ds) => {
+      if (!stations.some(s => s.name === ds.name)) {
+        addStation(ds as any).catch(console.error);
+      }
+    });
+  }, [stations, loading]);
   
   // Modals state
   const [isFormOpen, setIsFormOpen] = useState(false);

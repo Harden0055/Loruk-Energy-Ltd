@@ -25,8 +25,9 @@ export default function Reports() {
       const customer = customers.find(c => c.id === selectedCustomerId);
       if (!customer) return;
 
-      const customerDeliveries = deliveries.filter(d => d.customerId === selectedCustomerId).sort((a,b) => b.date - a.date);
-      const customerPayments = payments.filter(p => p.customerId === selectedCustomerId).sort((a,b) => b.date - a.date);
+      const customerDeliveries = deliveries.filter(d => d.customerId === selectedCustomerId).sort((a,b) => a.date - b.date);
+      const customerPayments = payments.filter(p => p.customerId === selectedCustomerId).sort((a,b) => a.date - b.date);
+      const totalLitres = customerDeliveries.reduce((sum, d) => sum + d.litres, 0);
 
       const doc = new jsPDF();
       const { setupPdfHeader, addPdfFooter } = await import('../lib/pdfTemplate');
@@ -43,7 +44,8 @@ export default function Reports() {
         rightBoxLines: [
           { label: 'Generated :', value: format(Date.now(), 'MMM d, yyyy') },
           { label: 'Outst. Bal :', value: `${formatCurrency(customer.balance)}` },
-          { label: 'Purchases :', value: `${formatCurrency(customer.totalPurchases)}` }
+          { label: 'Purchases :', value: `${formatCurrency(customer.totalPurchases)}` },
+          { label: 'Total Litres :', value: formatLitres(totalLitres) }
         ]
       });
 
@@ -89,8 +91,26 @@ export default function Reports() {
         bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] }
       });
 
+      // Add summary section (Total Balance)
+      let summaryY = (doc as any).lastAutoTable.finalY + 10;
+      if (summaryY + 20 > 270) {
+        doc.addPage();
+        summaryY = 20;
+      }
+
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.1);
+      doc.rect(14, summaryY, 182, 14, 'S');
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(30, 41, 59);
+      
+      const balanceValText = customer.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      doc.text(`Total Balance (KES) :   ${balanceValText}`, 192, summaryY + 9, { align: 'right' });
+
       // @ts-ignore
-      addPdfFooter(doc, doc.lastAutoTable.finalY + 10);
+      addPdfFooter(doc, summaryY + 14 + 10);
 
       const pdfBlob = doc.output('blob');
       const filename = `${customer.name.replace(/\s+/g, '_')}_Report_${Date.now()}.pdf`;
@@ -113,8 +133,8 @@ export default function Reports() {
         const todayTime = today.getTime();
         const tomorrowTime = todayTime + 24 * 60 * 60 * 1000;
 
-        const dailyDeliveries = deliveries.filter(d => d.date >= todayTime && d.date < tomorrowTime);
-        const dailyPayments = payments.filter(p => p.date >= todayTime && p.date < tomorrowTime);
+        const dailyDeliveries = deliveries.filter(d => d.date >= todayTime && d.date < tomorrowTime).sort((a, b) => a.date - b.date);
+        const dailyPayments = payments.filter(p => p.date >= todayTime && p.date < tomorrowTime).sort((a, b) => a.date - b.date);
 
         const doc = new jsPDF();
         const { setupPdfHeader, addPdfFooter } = await import('../lib/pdfTemplate');

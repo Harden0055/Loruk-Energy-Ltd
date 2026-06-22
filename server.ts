@@ -157,6 +157,33 @@ async function startServer() {
     }
   });
 
+  // API Route: Generic chat assistant
+  app.post("/api/gemini/chat", async (req, res) => {
+    try {
+      const { message, context } = req.body;
+      
+      const prompt = `
+      You are an AI assistant for a fuel management system (Loruk Energy Ltd).
+      Answer the user's question clearly and concisely.
+      
+      User's context data (if provided):
+      ${context || "No specific context provided."}
+      
+      Question: ${message}
+      `;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: prompt
+      });
+
+      res.json({ text: response.text });
+    } catch (error) {
+      console.error("Gemini API Chat Error:", error);
+      res.status(500).json({ error: "Failed to communicate with AI Assistant." });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

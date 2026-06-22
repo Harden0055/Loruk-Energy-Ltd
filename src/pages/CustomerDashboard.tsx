@@ -14,7 +14,7 @@ import {
   updateDailyInvoice,
   useInvoicePayments
 } from '../lib/operationsDb';
-import { formatCurrency } from '../lib/utils';
+import { formatCurrency, formatLitres } from '../lib/utils';
 import { useAuth } from '../lib/auth';
 import { format } from 'date-fns';
 import { 
@@ -300,18 +300,19 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         rightBoxLines: [
           { label: 'Outstanding Bal :', value: `KES ${customer.balance.toLocaleString()}` },
           { label: 'Total Purchases :', value: `KES ${totalSalesValue.toLocaleString()}` },
-          { label: 'Total Payments :', value: `KES ${totalPaymentsValue.toLocaleString()}` }
+          { label: 'Total Payments :', value: `KES ${totalPaymentsValue.toLocaleString()}` },
+          { label: 'Total Litres :', value: formatLitres(totalFuelLitres) }
         ]
       });
 
       // Line item table
-      const tableHeaders = [['Date & Time', 'Transaction Type', 'Description', 'Created By', 'Amount (KES)']];
-      const tableRows = timelineEvents.map(e => [
-        format(e.date, 'yyyy-MM-dd HH:mm'),
+      const tableHeaders = [['Date', 'Transaction Type', 'Description', 'Amount (KES)', 'Closing Balance (KES)']];
+      const tableRows = [...timelineEvents].sort((a,b) => a.date - b.date).map(e => [
+        format(e.date, 'yyyy-MM-dd'),
         e.title,
         e.description,
-        e.createdBy,
-        `${e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit')) ? '+' : '-'}${e.amount.toLocaleString()}`
+        `${e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit')) ? '+' : '-'}${e.amount.toLocaleString()}`,
+        e.balanceAfter.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
       ]);
 
       autoTable(doc, {
@@ -324,12 +325,31 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         footStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
         styles: { fontSize: 9 },
         columnStyles: {
+          3: { halign: 'right' },
           4: { halign: 'right' }
         }
       });
 
+      // Add summary section (Total Balance)
+      let summaryY = (doc as any).lastAutoTable.finalY + 10;
+      if (summaryY + 20 > 270) {
+        doc.addPage();
+        summaryY = 20;
+      }
+
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.1);
+      doc.rect(14, summaryY, 182, 14, 'S');
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(30, 41, 59);
+      
+      const balanceValText = customer.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      doc.text(`Total Balance (KES) :   ${balanceValText}`, 192, summaryY + 9, { align: 'right' });
+
       // @ts-ignore
-      addPdfFooter(doc, doc.lastAutoTable.finalY + 10);
+      addPdfFooter(doc, summaryY + 14 + 10);
 
       doc.save(`Statement_${customer.customerId}_${format(new Date(), 'yyyyMMdd')}.pdf`);
     } catch (err) {
@@ -831,15 +851,14 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider whitespace-nowrap">Date & Time</th>
                 <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider whitespace-nowrap w-48">Activity</th>
                 <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider w-64">Description</th>
-                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider">Author</th>
                 <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider text-right w-48 animate-fade-in">Amount</th>
-                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider text-right w-48 animate-fade-in">Balance</th>
+                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider text-right w-48 animate-fade-in">Closing Balance</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-blue-900">
               {timelineEvents.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="border border-gray-200 dark:border-blue-900 px-6 py-12 text-center text-gray-500 dark:text-gray-405 text-base font-medium">
+                  <td colSpan={5} className="border border-gray-200 dark:border-blue-900 px-6 py-12 text-center text-gray-500 dark:text-gray-405 text-base font-medium">
                     No matching activity logs registered for this filter set.
                   </td>
                 </tr>
@@ -869,9 +888,6 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     </td>
                     <td className="border border-gray-200 dark:border-blue-900 px-6 py-4 text-base font-medium text-gray-600 dark:text-gray-300 truncate max-w-[200px]" title={e.description}>
                       {e.description}
-                    </td>
-                    <td className="border border-gray-200 dark:border-blue-900 px-6 py-4 text-base text-gray-500 dark:text-blue-200/80 whitespace-nowrap">
-                      {e.createdBy}
                     </td>
                     <td className={`border border-gray-200 dark:border-blue-900 px-6 py-4 text-right font-mono font-bold text-base whitespace-nowrap ${
                       e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit'))

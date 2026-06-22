@@ -182,7 +182,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
       bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] },
       footStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
       head: [['Date', 'Car Reg', 'Station', 'Amount', 'Distance']],
-      body: filteredExpenses.map(e => [
+      body: [...filteredExpenses].sort((a,b) => a.date - b.date).map(e => [
         format(e.date, 'MMM d, yyyy'), 
         e.carRegistration, 
         e.station || '-', 
@@ -194,7 +194,12 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
 
     // Footer section
     // @ts-ignore
-    addPdfFooter(doc, doc.lastAutoTable.finalY + 10);
+    addPdfFooter(
+      doc, 
+      (doc as any).lastAutoTable.finalY + 10, 
+      selectedStation === 'all' ? 'All Stations' : `${selectedStation} Station`,
+      'P.O BOX 342'
+    );
 
     doc.save(`fleet-fueling-${format(new Date(), 'yyyyMMdd')}.pdf`);
   };
