@@ -9,8 +9,9 @@ import ExpensesView from './views/ExpensesView';
 import InvoicesView from './views/InvoicesView';
 import CashPositionView from './views/CashPositionView';
 import ReportsView from './views/ReportsView';
+import ProductsView from './views/ProductsView';
 
-export type ViewType = 'Dashboard' | 'Pump Readings' | 'LPG' | 'Inventory' | 'Expenses' | 'Invoices' | 'Cash Position' | 'Reports';
+export type ViewType = 'Dashboard' | 'Pump Readings' | 'LPG' | 'Inventory' | 'Expenses' | 'Invoices' | 'Cash Position' | 'Reports' | 'Products';
 
 const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen }: { currentView: ViewType, setCurrentView: (v: ViewType) => void, onBackToMain: () => void, isOpen: boolean, setIsOpen: (o: boolean) => void }) => {
   const { activeStation, setActiveStation } = useFuel();
@@ -19,6 +20,7 @@ const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen 
     { name: 'Pump Readings', icon: Fuel },
     { name: 'LPG', icon: Flame },
     { name: 'Inventory', icon: Box },
+    { name: 'Products', icon: Box },
     { name: 'Expenses', icon: ReceiptText },
     { name: 'Invoices', icon: FileText },
     { name: 'Cash Position', icon: Wallet },
@@ -102,6 +104,7 @@ const MainContent = ({ currentView, onOpenSidebar }: { currentView: ViewType, on
         {currentView === 'Pump Readings' && <PumpReadingsView />}
         {currentView === 'LPG' && <LPGView />}
         {currentView === 'Inventory' && <InventoryView />}
+        {currentView === 'Products' && <ProductsView />}
         {currentView === 'Expenses' && <ExpensesView />}
         {currentView === 'Invoices' && <InvoicesView />}
         {currentView === 'Cash Position' && <CashPositionView />}

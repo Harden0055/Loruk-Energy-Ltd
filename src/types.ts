@@ -1,3 +1,10 @@
+export interface ProductDef {
+  id: string;
+  name: string;
+  createdAt?: number;
+  createdBy?: string;
+}
+
 export interface Customer {
   id: string;
   customerId: string;
@@ -18,7 +25,7 @@ export interface Delivery {
   id: string;
   customerId: string;
   date: number;
-  productType: 'Diesel' | 'Super' | 'Petrol' | 'Kerosene' | 'Engine oil';
+  productType: string;
   litres: number;
   totalAmount: number;
   createdBy: string;
@@ -52,7 +59,7 @@ export interface Adjustment {
 }
 
 export interface PumpReading {
-  fuelType: 'Diesel' | 'Super';
+  fuelType: string;
   salesStart: number;
   salesStop: number;
   salesAmount: number;
@@ -114,7 +121,7 @@ export interface FuelRate {
   id?: string;
   date: number;
   station: Station;
-  product: 'Super' | 'Diesel' | 'Petrol' | 'Kerosene' | 'Engine oil';
+  product: string;
   rate: number;
   stationId?: string;
   createdAt?: number;
@@ -125,7 +132,7 @@ export interface DailyPumpReading {
   id?: string;
   date: number;
   station: Station;
-  product: 'Super' | 'Diesel' | 'Petrol' | 'Kerosene' | 'Engine oil';
+  product: string;
   litresStart: number;
   litresStop: number;
   ratePerLitre: number;

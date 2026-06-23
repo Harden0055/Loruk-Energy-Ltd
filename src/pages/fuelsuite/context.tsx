@@ -52,6 +52,11 @@ export interface CashPosition {
   cashOnHand: number;
 }
 
+export interface Product {
+  id: string;
+  name: string;
+}
+
 interface FuelContextType {
   activeStation: Station;
   setActiveStation: (station: Station) => void;
@@ -67,15 +72,22 @@ interface FuelContextType {
   setInvoices: React.Dispatch<React.SetStateAction<Invoice[]>>;
   cashPositions: CashPosition[];
   setCashPositions: React.Dispatch<React.SetStateAction<CashPosition[]>>;
+  products: Product[];
+  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
 }
 
 const FuelContext = createContext<FuelContextType | undefined>(undefined);
 
 export const FuelProvider = ({ children }: { children: ReactNode }) => {
   const [activeStation, setActiveStation] = useState<Station>('Combined Total');
+  const [products, setProducts] = useState<Product[]>([
+    { id: '1', name: 'Super Petrol' },
+    { id: '2', name: 'Diesel Fuel' },
+    { id: '3', name: 'Engine oil' },
+  ]);
   const [pumpReadings, setPumpReadings] = useState<PumpReading[]>([
-    { id: '1', date: '2023-10-01', station: 'Ndalu Station', product: 'Diesel', startReading: 1000, stopReading: 1200, ratePerLitre: 200, manualCash: 40000 },
-    { id: '2', date: '2023-10-01', station: 'Junction Station', product: 'Petrol', startReading: 500, stopReading: 800, ratePerLitre: 210, manualCash: 63000 },
+    { id: '1', date: '2023-10-01', station: 'Ndalu Station', product: 'Diesel Fuel', startReading: 1000, stopReading: 1200, ratePerLitre: 200, manualCash: 40000 },
+    { id: '2', date: '2023-10-01', station: 'Junction Station', product: 'Super Petrol', startReading: 500, stopReading: 800, ratePerLitre: 210, manualCash: 63000 },
   ]);
   const [lpgTransactions, setLpgTransactions] = useState<LPGTransaction[]>([
     { id: '1', date: '2023-10-01', type: 'sale', item: '6kg Cylinder', quantity: 5, amount: 6000 },
@@ -106,6 +118,7 @@ export const FuelProvider = ({ children }: { children: ReactNode }) => {
       expenses, setExpenses,
       invoices, setInvoices,
       cashPositions, setCashPositions,
+      products, setProducts,
     }}>
       {children}
     </FuelContext.Provider>

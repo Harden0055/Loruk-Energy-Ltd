@@ -12,7 +12,8 @@ import {
 import { 
   useDailyInvoices,
   updateDailyInvoice,
-  useInvoicePayments
+  useInvoicePayments,
+  useProducts
 } from '../lib/operationsDb';
 import { formatCurrency, formatLitres } from '../lib/utils';
 import { useAuth } from '../lib/auth';
@@ -91,7 +92,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [modalLoading, setModalLoading] = useState(false);
 
   // Modal input states
-  const [deliveryProduct, setDeliveryProduct] = useState<'Diesel' | 'Super' | 'Petrol' | 'Kerosene' | 'Engine oil'>('Diesel');
+  const [deliveryProduct, setDeliveryProduct] = useState<string>('Diesel');
   const [deliveryLitres, setDeliveryLitres] = useState('');
   const [deliveryAmount, setDeliveryAmount] = useState('');
   const [deliveryDate, setDeliveryDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -101,6 +102,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [adjustAmount, setAdjustAmount] = useState('');
   const [adjustDate, setAdjustDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [adjustReason, setAdjustReason] = useState('');
+
+  const { data: productDefs } = useProducts();
 
   // Retrieve current customer
   const customer = useMemo(() => {
@@ -944,11 +947,11 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     onChange={e => setDeliveryProduct(e.target.value as any)}
                     className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg text-blue-900 dark:text-blue-50 font-semibold cursor-pointer outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
                   >
-                    <option value="Diesel">Diesel</option>
-                    <option value="Super">Super (Premium)</option>
-                    <option value="Petrol">Petrol</option>
-                    <option value="Kerosene">Kerosene</option>
-                    <option value="Engine oil">Engine oil</option>
+                    {!productDefs?.some(p => p.name === 'Diesel') && <option value="Diesel">Diesel</option>}
+                    {!productDefs?.some(p => p.name === 'Super') && <option value="Super">Super (Premium)</option>}
+                    {productDefs?.map(p => (
+                      <option key={p.id} value={p.name}>{p.name}</option>
+                    ))}
                   </select>
                 </div>
                 <div>

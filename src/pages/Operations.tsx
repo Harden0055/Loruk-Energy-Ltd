@@ -10,7 +10,7 @@ import {
   deleteDailyPumpReading, deleteLPGSale, deleteLPGPurchase, deleteBurnerSale, deleteBurnerPurchase,
   deleteGrillSale, deleteGrillPurchase, deleteDailyExpense, deleteCashPosition, deleteDailyInvoice,
   useOpeningStocks, saveOpeningStock, useStationCustomers, addStationCustomer, updateStationCustomer, deleteStationCustomer,
-  addInvoicePayment, useInvoicePayments
+  addInvoicePayment, useInvoicePayments, useProducts
 } from '../lib/operationsDb';
 import { isQuotaExceeded } from '../lib/localDbFallback';
 import { formatCurrency, formatLitres } from '../lib/utils';
@@ -52,6 +52,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
   const { customers: stationCustomers, loading: custLoad } = useStationCustomers();
   const { payments: invoicePayments, loading: paymentsLoad } = useInvoicePayments();
   const { openingStocks, loading: stocksLoad } = useOpeningStocks();
+  const { data: productDefs } = useProducts();
 
   // MODULE: STATION CUSTOMER FORM STATES
   const [scName, setScName] = useState('');
@@ -72,7 +73,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
   }, [selectedStation]);
 
   // MODULE 1: PUMPS FORM STATES
-  const [pumpProduct, setPumpProduct] = useState<'Super' | 'Diesel' | 'Petrol' | 'Kerosene' | 'Engine oil'>('Super');
+  const [pumpProduct, setPumpProduct] = useState<string>('Super');
   const [litresStart, setLitresStart] = useState<string>('');
   
   const [deleteDialog, setDeleteDialog] = useState<{isOpen: boolean, title: string, message: string, action: () => Promise<void>}>({
@@ -85,7 +86,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
   const [litresStop, setLitresStop] = useState<string>('');
   const [ratePerLitre, setRatePerLitre] = useState<string>('');
   const [manualRevenue, setManualRevenue] = useState<string>('');
-  const [rateSetupProduct, setRateSetupProduct] = useState<'Super' | 'Diesel' | 'Petrol' | 'Kerosene' | 'Engine oil'>('Super');
+  const [rateSetupProduct, setRateSetupProduct] = useState<string>('Super');
   const [newRateValue, setNewRateValue] = useState<string>('');
   const [rateError, setRateError] = useState<string>('');
   const [pumpError, setPumpError] = useState<string>('');
@@ -1107,11 +1108,11 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
                     onChange={(e) => setPumpProduct(e.target.value as any)}
                     className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm text-gray-900 dark:text-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold"
                   >
-                    <option value="Super">Super Petrol</option>
-                    <option value="Diesel">Diesel Fuel</option>
-                    <option value="Petrol">Petrol</option>
-                    <option value="Kerosene">Kerosene</option>
-                    <option value="Engine oil">Engine oil</option>
+                    {!productDefs?.some(p => p.name === 'Super') && <option value="Super">Super Petrol</option>}
+                    {!productDefs?.some(p => p.name === 'Diesel') && <option value="Diesel">Diesel Fuel</option>}
+                    {productDefs?.map(p => (
+                      <option key={p.id} value={p.name}>{p.name}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -1210,11 +1211,11 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
                       onChange={(e) => setRateSetupProduct(e.target.value as any)}
                       className="px-2 py-1.5 bg-gray-50 dark:bg-blue-950 border border-gray-200 rounded-lg text-xs"
                     >
-                      <option value="Super">Super Petrol</option>
-                      <option value="Diesel">Diesel</option>
-                      <option value="Petrol">Petrol</option>
-                      <option value="Kerosene">Kerosene</option>
-                      <option value="Engine oil">Engine oil</option>
+                      {!productDefs?.some(p => p.name === 'Super') && <option value="Super">Super Petrol</option>}
+                      {!productDefs?.some(p => p.name === 'Diesel') && <option value="Diesel">Diesel Fuel</option>}
+                      {productDefs?.map(p => (
+                        <option key={p.id} value={p.name}>{p.name}</option>
+                      ))}
                     </select>
                     <input 
                       type="number"

@@ -4,14 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table,
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
 
 export default function PumpReadingsView() {
-  const { activeStation, pumpReadings, setPumpReadings } = useFuel();
+  const { activeStation, pumpReadings, setPumpReadings, products } = useFuel();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [form, setForm] = useState<Partial<PumpReading>>({
     date: new Date().toISOString().split('T')[0],
     station: 'Ndalu Station',
-    product: 'Petrol',
+    product: products[0]?.name || 'Super Petrol',
     startReading: 0,
     stopReading: 0,
     ratePerLitre: 0,
@@ -24,7 +24,7 @@ export default function PumpReadingsView() {
     setForm({
       date: new Date().toISOString().split('T')[0],
       station: 'Ndalu Station',
-      product: 'Petrol',
+      product: products[0]?.name || 'Super Petrol',
       startReading: 0,
       stopReading: 0,
       ratePerLitre: 0,
@@ -93,10 +93,9 @@ export default function PumpReadingsView() {
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Product</label>
                 <Select value={form.product} onChange={e => setForm({...form, product: e.target.value})}>
-                  <option value="Petrol">Petrol</option>
-                  <option value="Diesel">Diesel</option>
-                  <option value="Kerosene">Kerosene</option>
-                  <option value="Engine oil">Engine oil</option>
+                  {products.map(p => (
+                    <option key={p.id} value={p.name}>{p.name}</option>
+                  ))}
                 </Select>
               </div>
               <div>
@@ -146,7 +145,7 @@ export default function PumpReadingsView() {
                 <tr key={r.id} className="hover:bg-[#13162b] transition-colors">
                   <Td>{r.date}</Td>
                   <Td>{r.station}</Td>
-                  <Td><span className={`px-2 py-1 rounded text-xs font-semibold ${r.product === 'Petrol' ? 'bg-amber-500/10 text-amber-500' : r.product === 'Diesel' ? 'bg-emerald-500/10 text-emerald-500' : r.product === 'Kerosene' ? 'bg-purple-500/10 text-purple-500' : 'bg-rose-500/10 text-rose-500'}`}>{r.product}</span></Td>
+                  <Td><span className="px-2 py-1 rounded text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">{r.product}</span></Td>
                   <Td>{volume.toFixed(2)}</Td>
                   <Td>{expected.toLocaleString()}</Td>
                   <Td>{r.manualCash.toLocaleString()}</Td>

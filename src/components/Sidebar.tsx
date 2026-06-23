@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, Truck, DollarSign, FileText, Settings, LogOut, Fuel, BookOpen, CarFront, Sun, Moon, MapPin, ClipboardList, BotMessageSquare } from 'lucide-react';
+import { LayoutDashboard, Users, Truck, DollarSign, FileText, Settings, LogOut, Fuel, BookOpen, CarFront, Sun, Moon, MapPin, ClipboardList, BotMessageSquare, Box } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { cn } from '../lib/utils';
 import { useTheme } from '../lib/theme';
@@ -24,6 +24,7 @@ export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
     { id: 'fleet', label: 'Fleet Fueling', icon: CarFront },
     { id: 'reports', label: 'Reports', icon: FileText },
     { id: 'stations', label: 'Stations', icon: MapPin },
+    { id: 'products', label: 'Products', icon: Box },
     { id: 'assistant', label: 'AI Assistant', icon: BotMessageSquare },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];

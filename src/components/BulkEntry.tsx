@@ -105,7 +105,7 @@ export function BulkEntry() {
           await addDailyPumpReading({
             station: station as 'Ndalu' | 'Junction',
             date,
-            product: product === 'Diesel' ? 'Diesel' : 'Super',
+            product: String(product),
             litresStart: start,
             litresStop: stop,
             litresSold: stop - start,

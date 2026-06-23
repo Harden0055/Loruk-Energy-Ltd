@@ -16,13 +16,14 @@ import Reports from './pages/Reports';
 import CustomerDashboard from './pages/CustomerDashboard';
 import Settings from './pages/Settings';
 import Stations from './pages/Stations';
+import Products from './pages/Products';
 import AIAssistant from './pages/AIAssistant';
 import FuelSuiteApp from './pages/fuelsuite/FuelSuiteApp';
 import FireLEIcon from './components/FireLEIcon';
 import { Fuel, LogIn, RefreshCcw, Printer, Menu, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 
-type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'settings' | 'stations' | 'assistant' | 'fuelsuite';
+type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'settings' | 'stations' | 'products' | 'assistant' | 'fuelsuite';
 
 function AuthenticatedApp() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -247,6 +248,7 @@ function AuthenticatedApp() {
             {currentPage === 'assistant' && <AIAssistant />}
             {currentPage === 'settings' && <Settings />}
             {currentPage === 'stations' && <Stations />}
+            {currentPage === 'products' && <Products />}
           </ErrorBoundary>
         </main>
       </div>

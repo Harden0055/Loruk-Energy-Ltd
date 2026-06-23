@@ -1,11 +1,15 @@
 import { collection, onSnapshot, query, addDoc, updateDoc, doc, deleteDoc, orderBy, setDoc, getDocs, where } from 'firebase/firestore';
-import { db } from './firebase';
+import { db, auth } from './firebase';
 import { useState, useEffect } from 'react';
 import { 
   DailyPumpReading, LPGSale, LPGPurchase, BurnerPurchase, BurnerSale, 
   GrillPurchase, GrillSale, DailyExpense, ExpenseCategory, CashPosition, DailyInvoice, Station, FuelRate,
-  StationInfo, LPGInventory, BurnerInventory, InvoicePayment, DailyReportRecord, OpeningStock, StationCustomer
+  StationInfo, LPGInventory, BurnerInventory, InvoicePayment, DailyReportRecord, OpeningStock, StationCustomer, ProductDef
 } from '../types';
+
+export function useProducts() {
+  return useGenericCollection<ProductDef>('products', 'createdAt', 'asc');
+}
 import { 
   isQuotaExceeded, markQuotaExceeded, getLocalCollection, saveLocalCollection, 
   addLocalDoc, updateLocalDoc, deleteLocalDoc 
@@ -155,8 +159,8 @@ async function executeMutation(
       return localOp();
     } else {
       handleFirestoreError(error, operationType, errorPath);
-      // Fallback in case of any unhandled permissions error to keep the app highly resilient
-      return localOp();
+      // Propagate original error to caller to allow explicit error handling and state feedback in components
+      throw error;
     }
   }
 }
@@ -261,6 +265,55 @@ export function useOpeningStocks() {
 }
 
 // ---------------- MUTATIONS ----------------
+
+export async function addProduct(data: Omit<ProductDef, 'id' | 'createdAt'>) {
+  return executeMutation(
+    'products',
+    async () => {
+      const payload = { 
+        ...data, 
+        createdAt: Date.now(),
+        createdBy: auth.currentUser?.email || auth.currentUser?.uid || 'System'
+      };
+      const docRef = await addDoc(collection(db, 'products'), payload);
+      return docRef.id;
+    },
+    () => {
+      const payload = { 
+        ...data, 
+        createdAt: Date.now(),
+        createdBy: auth.currentUser?.email || auth.currentUser?.uid || 'System'
+      };
+      return addLocalDoc('products', payload);
+    },
+    OperationType.CREATE,
+    'products'
+  );
+}
+
+export async function updateProduct(id: string, updates: Partial<ProductDef>) {
+  return executeMutation(
+    'products',
+    async () => {
+      await updateDoc(doc(db, 'products', id), updates);
+    },
+    () => updateLocalDoc('products', id, updates),
+    OperationType.UPDATE,
+    `products/${id}`
+  );
+}
+
+export async function deleteProduct(id: string) {
+  return executeMutation(
+    'products',
+    async () => {
+      await deleteDoc(doc(db, 'products', id));
+    },
+    () => deleteLocalDoc('products', id),
+    OperationType.DELETE,
+    `products/${id}`
+  );
+}
 
 export async function addFuelRate(data: Omit<FuelRate, 'id'>) {
   const now = Date.now();
