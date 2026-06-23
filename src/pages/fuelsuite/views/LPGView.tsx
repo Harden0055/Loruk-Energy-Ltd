@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useFuel, LPGTransaction } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td, MetricCard } from '../components';
-import { Plus, CheckSquare, ShoppingCart, RefreshCcw } from 'lucide-react';
+import { Plus, CheckSquare, ShoppingCart, RefreshCcw, Pencil, Trash2, X } from 'lucide-react';
 
 export default function LPGView() {
   const { lpgTransactions, setLpgTransactions } = useFuel();
   const [activeTab, setActiveTab] = useState<'sales' | 'purchases'>('sales');
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const [form, setForm] = useState<Partial<LPGTransaction>>({
     date: new Date().toISOString().split('T')[0],
@@ -21,15 +22,42 @@ export default function LPGView() {
   const totalSold = lpgTransactions.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.quantity, 0);
   const currentInv = totalBought - totalSold;
 
+  const resetForm = () => {
+    setForm({
+      date: new Date().toISOString().split('T')[0],
+      item: '6kg Cylinder',
+      quantity: 1,
+      amount: 0,
+    });
+    setEditingId(null);
+    setIsFormOpen(false);
+  };
+
+  const handleEdit = (tx: LPGTransaction) => {
+    setForm({ ...tx });
+    setEditingId(tx.id);
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('Are you sure you want to delete this record?')) {
+      setLpgTransactions(lpgTransactions.filter(t => t.id !== id));
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newTx: LPGTransaction = {
-      id: Math.random().toString(36).substr(2, 9),
-      type: activeTab === 'sales' ? 'sale' : 'purchase',
-      ...form as Omit<LPGTransaction, 'id' | 'type'>
-    };
-    setLpgTransactions([...lpgTransactions, newTx]);
-    setIsFormOpen(false);
+    if (editingId) {
+      setLpgTransactions(lpgTransactions.map(t => t.id === editingId ? { ...t, ...form as LPGTransaction } : t));
+    } else {
+      const newTx: LPGTransaction = {
+        id: Math.random().toString(36).substr(2, 9),
+        type: activeTab === 'sales' ? 'sale' : 'purchase',
+        ...form as Omit<LPGTransaction, 'id' | 'type'>
+      };
+      setLpgTransactions([...lpgTransactions, newTx]);
+    }
+    resetForm();
   };
 
   return (
@@ -50,28 +78,28 @@ export default function LPGView() {
       <div className="flex gap-4 border-b border-[#2d325a]">
         <button 
           className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'sales' ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-slate-400'}`}
-          onClick={() => { setActiveTab('sales'); setIsFormOpen(false); }}
+          onClick={() => { setActiveTab('sales'); resetForm(); }}
         >
           LPG Sales
         </button>
         <button 
           className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'purchases' ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-slate-400'}`}
-          onClick={() => { setActiveTab('purchases'); setIsFormOpen(false); }}
+          onClick={() => { setActiveTab('purchases'); resetForm(); }}
         >
           LPG Purchases
         </button>
       </div>
 
       <div className="flex justify-end">
-        <Button onClick={() => setIsFormOpen(!isFormOpen)} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Add {activeTab === 'sales' ? 'Sale' : 'Purchase'}
+        <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
+          {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add {activeTab === 'sales' ? 'Sale' : 'Purchase'}</>}
         </Button>
       </div>
 
       {isFormOpen && (
         <Card>
           <CardHeader>
-            <CardTitle>New {activeTab === 'sales' ? 'Sale' : 'Purchase'}</CardTitle>
+            <CardTitle>{editingId ? `Edit ${activeTab === 'sales' ? 'Sale' : 'Purchase'}` : `New ${activeTab === 'sales' ? 'Sale' : 'Purchase'}`}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -95,7 +123,7 @@ export default function LPGView() {
                 <Input type="number" step="0.01" value={form.amount} onChange={e => setForm({...form, amount: parseFloat(e.target.value)})} required />
               </div>
               <div className="col-span-1 md:col-span-5 flex justify-end mt-2">
-                <Button type="submit">Save Entry</Button>
+                <Button type="submit">{editingId ? 'Update Entry' : 'Save Entry'}</Button>
               </div>
             </form>
           </CardContent>
@@ -110,6 +138,7 @@ export default function LPGView() {
               <Th>Item Details</Th>
               <Th>Quantity</Th>
               <Th>Total Amount (KES)</Th>
+              <Th>Actions</Th>
             </tr>
           </thead>
           <tbody>
@@ -119,11 +148,21 @@ export default function LPGView() {
                 <Td><span className="font-semibold text-slate-200">{t.item}</span></Td>
                 <Td>{t.quantity}</Td>
                 <Td>{t.amount.toLocaleString()}</Td>
+                <Td>
+                  <div className="flex gap-3">
+                    <button onClick={() => handleEdit(t)} className="text-slate-400 hover:text-cyan-400 transition-colors">
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => handleDelete(t.id)} className="text-slate-400 hover:text-red-400 transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </Td>
               </tr>
             ))}
             {filteredData.length === 0 && (
               <tr>
-                <Td colSpan={4} className="text-center py-8 text-slate-500">No {activeTab} records found.</Td>
+                <Td colSpan={5} className="text-center py-8 text-slate-500">No {activeTab} records found.</Td>
               </tr>
             )}
           </tbody>

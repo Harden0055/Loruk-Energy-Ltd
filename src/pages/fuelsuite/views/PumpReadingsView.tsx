@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useFuel, PumpReading } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td } from '../components';
-import { Plus } from 'lucide-react';
+import { Plus, Pencil, Trash2, X } from 'lucide-react';
 
 export default function PumpReadingsView() {
   const { activeStation, pumpReadings, setPumpReadings } = useFuel();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const [form, setForm] = useState<Partial<PumpReading>>({
     date: new Date().toISOString().split('T')[0],
@@ -19,14 +20,44 @@ export default function PumpReadingsView() {
 
   const filteredReadings = pumpReadings.filter(r => activeStation === 'Combined Total' || r.station === activeStation);
 
+  const resetForm = () => {
+    setForm({
+      date: new Date().toISOString().split('T')[0],
+      station: 'Ndalu Station',
+      product: 'Petrol',
+      startReading: 0,
+      stopReading: 0,
+      ratePerLitre: 0,
+      manualCash: 0,
+    });
+    setEditingId(null);
+    setIsFormOpen(false);
+  };
+
+  const handleEdit = (reading: PumpReading) => {
+    setForm({ ...reading });
+    setEditingId(reading.id);
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('Are you sure you want to delete this reading?')) {
+      setPumpReadings(pumpReadings.filter(r => r.id !== id));
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newReading: PumpReading = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...form as Omit<PumpReading, 'id'>
-    };
-    setPumpReadings([...pumpReadings, newReading]);
-    setIsFormOpen(false);
+    if (editingId) {
+      setPumpReadings(pumpReadings.map(r => r.id === editingId ? { ...r, ...form as PumpReading } : r));
+    } else {
+      const newReading: PumpReading = {
+        id: Math.random().toString(36).substr(2, 9),
+        ...form as Omit<PumpReading, 'id'>
+      };
+      setPumpReadings([...pumpReadings, newReading]);
+    }
+    resetForm();
   };
 
   return (
@@ -36,15 +67,15 @@ export default function PumpReadingsView() {
           <h1 className="text-2xl font-bold text-slate-100">Pump Readings</h1>
           <p className="text-slate-400 mt-1">Log and track daily fuel dispenser readings.</p>
         </div>
-        <Button onClick={() => setIsFormOpen(!isFormOpen)} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Add Reading
+        <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
+          {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Reading</>}
         </Button>
       </div>
 
       {isFormOpen && (
         <Card>
           <CardHeader>
-            <CardTitle>New Pump Reading</CardTitle>
+            <CardTitle>{editingId ? 'Edit Pump Reading' : 'New Pump Reading'}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -65,6 +96,7 @@ export default function PumpReadingsView() {
                   <option value="Petrol">Petrol</option>
                   <option value="Diesel">Diesel</option>
                   <option value="Kerosene">Kerosene</option>
+                  <option value="Engine oil">Engine oil</option>
                 </Select>
               </div>
               <div>
@@ -84,7 +116,7 @@ export default function PumpReadingsView() {
                 <Input type="number" step="0.01" value={form.manualCash} onChange={e => setForm({...form, manualCash: parseFloat(e.target.value)})} required />
               </div>
               <div className="flex items-end">
-                <Button type="submit" className="w-full">Save Reading</Button>
+                <Button type="submit" className="w-full">{editingId ? 'Update Reading' : 'Save Reading'}</Button>
               </div>
             </form>
           </CardContent>
@@ -102,6 +134,7 @@ export default function PumpReadingsView() {
               <Th>Expected (KES)</Th>
               <Th>Collected (KES)</Th>
               <Th>Variance</Th>
+              <Th>Actions</Th>
             </tr>
           </thead>
           <tbody>
@@ -113,7 +146,7 @@ export default function PumpReadingsView() {
                 <tr key={r.id} className="hover:bg-[#13162b] transition-colors">
                   <Td>{r.date}</Td>
                   <Td>{r.station}</Td>
-                  <Td><span className={`px-2 py-1 rounded text-xs font-semibold ${r.product === 'Petrol' ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}`}>{r.product}</span></Td>
+                  <Td><span className={`px-2 py-1 rounded text-xs font-semibold ${r.product === 'Petrol' ? 'bg-amber-500/10 text-amber-500' : r.product === 'Diesel' ? 'bg-emerald-500/10 text-emerald-500' : r.product === 'Kerosene' ? 'bg-purple-500/10 text-purple-500' : 'bg-rose-500/10 text-rose-500'}`}>{r.product}</span></Td>
                   <Td>{volume.toFixed(2)}</Td>
                   <Td>{expected.toLocaleString()}</Td>
                   <Td>{r.manualCash.toLocaleString()}</Td>
@@ -122,12 +155,22 @@ export default function PumpReadingsView() {
                       {variance > 0 ? '+' : ''}{variance.toLocaleString()}
                     </span>
                   </Td>
+                  <Td>
+                    <div className="flex gap-3">
+                      <button onClick={() => handleEdit(r)} className="text-slate-400 hover:text-cyan-400 transition-colors">
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => handleDelete(r.id)} className="text-slate-400 hover:text-red-400 transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </Td>
                 </tr>
               );
             })}
             {filteredReadings.length === 0 && (
               <tr>
-                <Td colSpan={7} className="text-center py-8 text-slate-500">No readings found for {activeStation}.</Td>
+                <Td colSpan={8} className="text-center py-8 text-slate-500">No readings found for {activeStation}.</Td>
               </tr>
             )}
           </tbody>

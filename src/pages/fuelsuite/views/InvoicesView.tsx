@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useFuel, Invoice } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Button, Table, Th, Td } from '../components';
-import { Plus } from 'lucide-react';
+import { Plus, Pencil, Trash2, X } from 'lucide-react';
 
 export default function InvoicesView() {
   const { invoices, setInvoices } = useFuel();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const [form, setForm] = useState<Partial<Invoice>>({
     customerName: '',
@@ -13,14 +14,40 @@ export default function InvoicesView() {
     paidAmount: 0,
   });
 
+  const resetForm = () => {
+    setForm({
+      customerName: '',
+      totalAmount: 0,
+      paidAmount: 0,
+    });
+    setEditingId(null);
+    setIsFormOpen(false);
+  };
+
+  const handleEdit = (invoice: Invoice) => {
+    setForm({ ...invoice });
+    setEditingId(invoice.id);
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('Are you sure you want to delete this invoice?')) {
+      setInvoices(invoices.filter(i => i.id !== id));
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newInv: Invoice = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...form as Omit<Invoice, 'id'>
-    };
-    setInvoices([...invoices, newInv]);
-    setIsFormOpen(false);
+    if (editingId) {
+      setInvoices(invoices.map(inv => inv.id === editingId ? { ...inv, ...form as Invoice } : inv));
+    } else {
+      const newInv: Invoice = {
+        id: Math.random().toString(36).substr(2, 9),
+        ...form as Omit<Invoice, 'id'>
+      };
+      setInvoices([...invoices, newInv]);
+    }
+    resetForm();
   };
 
   return (
@@ -30,15 +57,15 @@ export default function InvoicesView() {
           <h1 className="text-2xl font-bold text-slate-100">Fleet Invoices</h1>
           <p className="text-slate-400 mt-1">Track and manage customer invoices.</p>
         </div>
-        <Button onClick={() => setIsFormOpen(!isFormOpen)} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Add Invoice
+        <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
+          {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Invoice</>}
         </Button>
       </div>
 
       {isFormOpen && (
         <Card>
           <CardHeader>
-            <CardTitle>New Invoice</CardTitle>
+            <CardTitle>{editingId ? 'Edit Invoice' : 'New Invoice'}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -55,7 +82,7 @@ export default function InvoicesView() {
                 <Input type="number" step="0.01" value={form.paidAmount} onChange={e => setForm({...form, paidAmount: parseFloat(e.target.value)})} required />
               </div>
               <div className="col-span-1 md:col-span-4 flex justify-end mt-2">
-                <Button type="submit">Save Invoice</Button>
+                <Button type="submit">{editingId ? 'Update Invoice' : 'Save Invoice'}</Button>
               </div>
             </form>
           </CardContent>
@@ -71,6 +98,7 @@ export default function InvoicesView() {
               <Th>Paid (KES)</Th>
               <Th>Balance (KES)</Th>
               <Th>Status</Th>
+              <Th>Actions</Th>
             </tr>
           </thead>
           <tbody>
@@ -93,12 +121,22 @@ export default function InvoicesView() {
                   <Td>{t.paidAmount.toLocaleString()}</Td>
                   <Td>{balance.toLocaleString()}</Td>
                   <Td><span className={`px-2 py-1 rounded text-xs font-bold ${statusClass}`}>{statusText}</span></Td>
+                  <Td>
+                    <div className="flex gap-3">
+                      <button onClick={() => handleEdit(t)} className="text-slate-400 hover:text-cyan-400 transition-colors">
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => handleDelete(t.id)} className="text-slate-400 hover:text-red-400 transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </Td>
                 </tr>
               );
             })}
             {invoices.length === 0 && (
               <tr>
-                <Td colSpan={5} className="text-center py-8 text-slate-500">No invoices recorded.</Td>
+                <Td colSpan={6} className="text-center py-8 text-slate-500">No invoices recorded.</Td>
               </tr>
             )}
           </tbody>

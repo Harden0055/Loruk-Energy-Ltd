@@ -214,7 +214,10 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
             </p>
           </div>
           <button
-            onClick={() => window.history.pushState(null, '', '/?page=fuelsuite') || window.dispatchEvent(new PopStateEvent('popstate', { state: { page: 'fuelsuite' } }))}
+            onClick={() => {
+              window.history.pushState(null, '', '/?page=fuelsuite');
+              window.dispatchEvent(new PopStateEvent('popstate', { state: { page: 'fuelsuite' } }));
+            }}
             className="shrink-0 px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold rounded-lg shadow-lg shadow-cyan-500/20 transition-all flex items-center gap-2"
           >
             Launch FuelSuite <TrendingUp className="w-4 h-4" />

@@ -91,7 +91,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [modalLoading, setModalLoading] = useState(false);
 
   // Modal input states
-  const [deliveryProduct, setDeliveryProduct] = useState<'Diesel' | 'Super'>('Diesel');
+  const [deliveryProduct, setDeliveryProduct] = useState<'Diesel' | 'Super' | 'Petrol' | 'Kerosene' | 'Engine oil'>('Diesel');
   const [deliveryLitres, setDeliveryLitres] = useState('');
   const [deliveryAmount, setDeliveryAmount] = useState('');
   const [deliveryDate, setDeliveryDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -946,6 +946,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   >
                     <option value="Diesel">Diesel</option>
                     <option value="Super">Super (Premium)</option>
+                    <option value="Petrol">Petrol</option>
+                    <option value="Kerosene">Kerosene</option>
+                    <option value="Engine oil">Engine oil</option>
                   </select>
                 </div>
                 <div>

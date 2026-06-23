@@ -72,7 +72,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
   }, [selectedStation]);
 
   // MODULE 1: PUMPS FORM STATES
-  const [pumpProduct, setPumpProduct] = useState<'Super' | 'Diesel'>('Super');
+  const [pumpProduct, setPumpProduct] = useState<'Super' | 'Diesel' | 'Petrol' | 'Kerosene' | 'Engine oil'>('Super');
   const [litresStart, setLitresStart] = useState<string>('');
   
   const [deleteDialog, setDeleteDialog] = useState<{isOpen: boolean, title: string, message: string, action: () => Promise<void>}>({
@@ -85,7 +85,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
   const [litresStop, setLitresStop] = useState<string>('');
   const [ratePerLitre, setRatePerLitre] = useState<string>('');
   const [manualRevenue, setManualRevenue] = useState<string>('');
-  const [rateSetupProduct, setRateSetupProduct] = useState<'Super' | 'Diesel'>('Super');
+  const [rateSetupProduct, setRateSetupProduct] = useState<'Super' | 'Diesel' | 'Petrol' | 'Kerosene' | 'Engine oil'>('Super');
   const [newRateValue, setNewRateValue] = useState<string>('');
   const [rateError, setRateError] = useState<string>('');
   const [pumpError, setPumpError] = useState<string>('');
@@ -1101,21 +1101,18 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
             <form onSubmit={handleAddPumpReading} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Product Type</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button 
-                    type="button"
-                    onClick={() => setPumpProduct('Super')}
-                    className={`py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${pumpProduct === 'Super' ? 'bg-blue-600 text-white border-blue-600' : 'bg-transparent border-gray-200 dark:border-blue-900 text-gray-600 dark:text-gray-300'}`}
+                <div className="grid grid-cols-1 gap-2">
+                  <select 
+                    value={pumpProduct}
+                    onChange={(e) => setPumpProduct(e.target.value as any)}
+                    className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm text-gray-900 dark:text-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 font-semibold"
                   >
-                    Super Petrol
-                  </button>
-                  <button 
-                    type="button"
-                    onClick={() => setPumpProduct('Diesel')}
-                    className={`py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${pumpProduct === 'Diesel' ? 'bg-amber-600 text-white border-amber-600' : 'bg-transparent border-gray-200 dark:border-blue-900 text-gray-600 dark:text-gray-300'}`}
-                  >
-                    Diesel Fuel
-                  </button>
+                    <option value="Super">Super Petrol</option>
+                    <option value="Diesel">Diesel Fuel</option>
+                    <option value="Petrol">Petrol</option>
+                    <option value="Kerosene">Kerosene</option>
+                    <option value="Engine oil">Engine oil</option>
+                  </select>
                 </div>
               </div>
 
@@ -1210,11 +1207,14 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
                   <div className="grid grid-cols-2 gap-2">
                     <select
                       value={rateSetupProduct}
-                      onChange={(e) => setRateSetupProduct(e.target.value as 'Super' | 'Diesel')}
+                      onChange={(e) => setRateSetupProduct(e.target.value as any)}
                       className="px-2 py-1.5 bg-gray-50 dark:bg-blue-950 border border-gray-200 rounded-lg text-xs"
                     >
                       <option value="Super">Super Petrol</option>
                       <option value="Diesel">Diesel</option>
+                      <option value="Petrol">Petrol</option>
+                      <option value="Kerosene">Kerosene</option>
+                      <option value="Engine oil">Engine oil</option>
                     </select>
                     <input 
                       type="number"

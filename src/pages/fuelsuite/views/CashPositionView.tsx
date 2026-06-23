@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { useFuel, CashPosition } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Button, Table, Th, Td } from '../components';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Plus } from 'lucide-react';
+import { Plus, Pencil, Trash2, X } from 'lucide-react';
 
 const COLORS = ['#06b6d4', '#f59e0b'];
 
 export default function CashPositionView() {
   const { cashPositions, setCashPositions } = useFuel();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const [form, setForm] = useState<Partial<CashPosition>>({
     date: new Date().toISOString().split('T')[0],
@@ -22,14 +23,40 @@ export default function CashPositionView() {
     { name: 'Cash on Hand', value: latest.cashOnHand },
   ];
 
+  const resetForm = () => {
+    setForm({
+      date: new Date().toISOString().split('T')[0],
+      mPesa: 0,
+      cashOnHand: 0,
+    });
+    setEditingId(null);
+    setIsFormOpen(false);
+  };
+
+  const handleEdit = (pos: CashPosition) => {
+    setForm({ ...pos });
+    setEditingId(pos.id);
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('Are you sure you want to delete this position?')) {
+      setCashPositions(cashPositions.filter(p => p.id !== id));
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newPos: CashPosition = {
-      id: Math.random().toString(36).substr(2, 9),
-      ...form as Omit<CashPosition, 'id'>
-    };
-    setCashPositions([...cashPositions, newPos]);
-    setIsFormOpen(false);
+    if (editingId) {
+      setCashPositions(cashPositions.map(pos => pos.id === editingId ? { ...pos, ...form as CashPosition } : pos));
+    } else {
+      const newPos: CashPosition = {
+        id: Math.random().toString(36).substr(2, 9),
+        ...form as Omit<CashPosition, 'id'>
+      };
+      setCashPositions([...cashPositions, newPos]);
+    }
+    resetForm();
   };
 
   return (
@@ -39,8 +66,8 @@ export default function CashPositionView() {
           <h1 className="text-2xl font-bold text-slate-100">Cash Position</h1>
           <p className="text-slate-400 mt-1">Track daily bank, M-Pesa, and cash totals.</p>
         </div>
-        <Button onClick={() => setIsFormOpen(!isFormOpen)} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Add Position
+        <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
+          {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Position</>}
         </Button>
       </div>
 
@@ -85,7 +112,7 @@ export default function CashPositionView() {
           {isFormOpen && (
             <Card>
               <CardHeader>
-                <CardTitle>Log Cash Position</CardTitle>
+                <CardTitle>{editingId ? 'Edit Cash Position' : 'Log Cash Position'}</CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -102,7 +129,7 @@ export default function CashPositionView() {
                     <Input type="number" step="0.01" value={form.cashOnHand} onChange={e => setForm({...form, cashOnHand: parseFloat(e.target.value)})} required />
                   </div>
                   <div className="col-span-1 md:col-span-3 flex justify-end mt-2">
-                    <Button type="submit">Save Position</Button>
+                    <Button type="submit">{editingId ? 'Update Position' : 'Save Position'}</Button>
                   </div>
                 </form>
               </CardContent>
@@ -117,6 +144,7 @@ export default function CashPositionView() {
                   <Th>M-Pesa</Th>
                   <Th>Cash</Th>
                   <Th>Total</Th>
+                  <Th>Actions</Th>
                 </tr>
               </thead>
               <tbody>
@@ -126,11 +154,21 @@ export default function CashPositionView() {
                     <Td className="text-cyan-400">{t.mPesa.toLocaleString()}</Td>
                     <Td className="text-amber-400">{t.cashOnHand.toLocaleString()}</Td>
                     <Td className="font-bold text-slate-200">{(t.mPesa + t.cashOnHand).toLocaleString()}</Td>
+                    <Td>
+                      <div className="flex gap-3">
+                        <button onClick={() => handleEdit(t)} className="text-slate-400 hover:text-cyan-400 transition-colors">
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDelete(t.id)} className="text-slate-400 hover:text-red-400 transition-colors">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </Td>
                   </tr>
                 ))}
                 {cashPositions.length === 0 && (
                   <tr>
-                    <Td colSpan={4} className="text-center py-8 text-slate-500">No positions recorded.</Td>
+                    <Td colSpan={5} className="text-center py-8 text-slate-500">No positions recorded.</Td>
                   </tr>
                 )}
               </tbody>

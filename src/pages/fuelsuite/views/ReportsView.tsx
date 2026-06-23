@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useFuel } from '../context';
-import { Card, CardContent, CardHeader, CardTitle, Table, Th, Td } from '../components';
+import { Card, CardContent, CardHeader, CardTitle } from '../components';
+import { FileDown } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { format } from 'date-fns';
 
 export default function ReportsView() {
   const { activeStation, pumpReadings, expenses, lpgTransactions } = useFuel();
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const filteredReadings = pumpReadings.filter(r => activeStation === 'Combined Total' || r.station === activeStation);
   const filteredExpenses = expenses; // Assuming expenses apply globally or could be filtered similarly
@@ -21,11 +26,91 @@ export default function ReportsView() {
   const grossProfit = totalRevenue - totalCOGS;
   const netProfit = grossProfit - operatingExpenses;
 
+  const handleDownloadPDF = async () => {
+    try {
+      setIsGenerating(true);
+      const doc = new jsPDF();
+      const { setupPdfHeader, addPdfFooter } = await import('../../../lib/pdfTemplate');
+      const timestamp = format(Date.now(), 'yyyy-MM-dd_HH-mm');
+      
+      let currentY = await setupPdfHeader({
+        doc,
+        title: 'FINANCIAL PROFIT & LOSS',
+        leftBoxLines: [
+          'Loruk Energy Limited',
+          `T/A ${activeStation}`,
+          'P.O BOX 342',
+        ],
+        rightBoxLines: [
+          { label: 'Report :', value: 'P&L Statement' },
+          { label: 'Station :', value: activeStation },
+          { label: 'Date :', value: format(new Date(), 'MMM d, yyyy') }
+        ]
+      });
+
+      autoTable(doc, {
+        startY: currentY + 10,
+        head: [['Account Category', 'Amount (KES)']],
+        body: [
+          ['REVENUE', ''],
+          ['  Fuel Sales', fuelRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+          ['  LPG Sales', lpgRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+          ['Total Revenue', totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+          ['COST OF GOODS SOLD', ''],
+          ['  Fuel COGS (Est.)', fuelCOGS.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+          ['  LPG Purchases', lpgCOGS.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+          ['Total COGS', totalCOGS.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+          ['GROSS PROFIT', grossProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+          ['OPERATING EXPENSES', ''],
+          ['  General Expenses', operatingExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+          ['Total Expenses', operatingExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+          ['NET PROFIT', netProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })]
+        ],
+        theme: 'striped',
+        headStyles: { fillColor: [6, 182, 212] },
+        styles: { fontSize: 10, cellPadding: 5 },
+        didParseCell: function (data) {
+          const rowText = data.row.raw[0] as string;
+          if (rowText === 'REVENUE' || rowText === 'COST OF GOODS SOLD' || rowText === 'OPERATING EXPENSES') {
+             data.cell.styles.fontStyle = 'bold';
+             data.cell.styles.textColor = [15, 23, 42];
+          }
+          if (rowText === 'Total Revenue' || rowText === 'Total COGS' || rowText === 'Total Expenses') {
+             data.cell.styles.fontStyle = 'bold';
+          }
+          if (rowText === 'GROSS PROFIT' || rowText === 'NET PROFIT') {
+             data.cell.styles.fontStyle = 'bold';
+             data.cell.styles.textColor = [255, 255, 255];
+             data.cell.styles.fillColor = rowText === 'NET PROFIT' ? [15, 23, 42] : [71, 85, 105];
+          }
+        }
+      });
+
+      addPdfFooter(doc, (doc as any).lastAutoTable.finalY + 15, activeStation, 'P.O BOX 342');
+      
+      doc.save(`FuelSuite_PL_${timestamp}.pdf`);
+    } catch (err) {
+      console.error('Error generating PDF', err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-100">Financial Reports</h1>
-        <p className="text-slate-400 mt-1">Profit & Loss Statement for {activeStation}</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-100">Financial Reports</h1>
+          <p className="text-slate-400 mt-1">Profit & Loss Statement for {activeStation}</p>
+        </div>
+        <button
+          onClick={handleDownloadPDF}
+          disabled={isGenerating}
+          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-bold transition-all shadow-lg active:scale-95 disabled:opacity-50"
+        >
+          <FileDown className="w-5 h-5" />
+          {isGenerating ? 'Generating...' : 'Export P&L PDF'}
+        </button>
       </div>
 
       <Card className="max-w-4xl mx-auto">
