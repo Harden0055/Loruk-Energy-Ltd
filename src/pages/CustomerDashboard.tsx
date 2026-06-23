@@ -536,7 +536,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               {customer.status === 'active' ? 'Active Account' : 'Credit Risk'}
             </span>
           </div>
-          <h2 className="text-3xl font-black text-gray-900 dark:text-blue-50 tracking-tight">{customer.name}</h2>
+          <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">{customer.name}</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
             Account activated: <span className="text-gray-700 dark:text-gray-300">{format(customer.createdAt || Date.now(), 'PPP')}</span>
           </p>
@@ -619,13 +619,13 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             </div>
           </div>
           <div className="mt-4">
-            <h3 className="text-2xl font-black font-mono text-gray-900 dark:text-blue-50 tracking-tight leading-none">
+            <h3 className="text-2xl font-black font-mono text-gray-900 dark:text-white tracking-tight leading-none">
               {formatCurrency(customer.creditLimit)}
             </h3>
             <div className="mt-2.5 space-y-1">
               <div className="flex justify-between text-xs font-semibold text-gray-500 dark:text-gray-400">
                 <span>Remaining credit power</span>
-                <span className="font-mono text-gray-800 dark:text-blue-250">{formatCurrency(remainingCredit)}</span>
+                <span className="font-mono text-gray-800 dark:text-white">{formatCurrency(remainingCredit)}</span>
               </div>
               <div className="h-1.5 bg-gray-100 dark:bg-blue-900/40 rounded-full overflow-hidden">
                 <div 
@@ -684,8 +684,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               <p className="text-xs text-gray-500 dark:text-gray-400">Time-series tracking of outstanding balance evolution</p>
             </div>
             <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/40 px-3 py-1.5 rounded-lg border border-blue-200/50 dark:border-blue-800">
-              <TrendingUp className="w-4 h-4 text-blue-600" />
-              <span className="text-xs font-bold text-blue-800 dark:text-blue-350 uppercase">Balance Scale</span>
+              <TrendingUp className="w-4 h-4 text-blue-600 dark:text-cyan-400" />
+              <span className="text-xs font-bold text-blue-800 dark:text-cyan-300 uppercase">Balance Scale</span>
             </div>
           </div>
           

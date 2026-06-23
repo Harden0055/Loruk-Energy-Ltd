@@ -17,11 +17,12 @@ import CustomerDashboard from './pages/CustomerDashboard';
 import Settings from './pages/Settings';
 import Stations from './pages/Stations';
 import AIAssistant from './pages/AIAssistant';
+import FuelSuiteApp from './pages/fuelsuite/FuelSuiteApp';
 import FireLEIcon from './components/FireLEIcon';
 import { Fuel, LogIn, RefreshCcw, Printer, Menu, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 
-type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'settings' | 'stations' | 'assistant';
+type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'settings' | 'stations' | 'assistant' | 'fuelsuite';
 
 function AuthenticatedApp() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -66,6 +67,10 @@ function AuthenticatedApp() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  if (currentPage === 'fuelsuite') {
+    return <FuelSuiteApp onBackToMain={() => navigateTo('dashboard')} />;
+  }
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-blue-950 text-gray-900 dark:text-blue-100 font-sans overflow-hidden transition-colors relative">

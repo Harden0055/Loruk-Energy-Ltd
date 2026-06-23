@@ -1,0 +1,138 @@
+import React, { useState } from 'react';
+import { useFuel, PumpReading } from '../context';
+import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td } from '../components';
+import { Plus } from 'lucide-react';
+
+export default function PumpReadingsView() {
+  const { activeStation, pumpReadings, setPumpReadings } = useFuel();
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const [form, setForm] = useState<Partial<PumpReading>>({
+    date: new Date().toISOString().split('T')[0],
+    station: 'Ndalu Station',
+    product: 'Petrol',
+    startReading: 0,
+    stopReading: 0,
+    ratePerLitre: 0,
+    manualCash: 0,
+  });
+
+  const filteredReadings = pumpReadings.filter(r => activeStation === 'Combined Total' || r.station === activeStation);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newReading: PumpReading = {
+      id: Math.random().toString(36).substr(2, 9),
+      ...form as Omit<PumpReading, 'id'>
+    };
+    setPumpReadings([...pumpReadings, newReading]);
+    setIsFormOpen(false);
+  };
+
+  return (
+    <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-100">Pump Readings</h1>
+          <p className="text-slate-400 mt-1">Log and track daily fuel dispenser readings.</p>
+        </div>
+        <Button onClick={() => setIsFormOpen(!isFormOpen)} className="flex items-center gap-2">
+          <Plus className="w-4 h-4" /> Add Reading
+        </Button>
+      </div>
+
+      {isFormOpen && (
+        <Card>
+          <CardHeader>
+            <CardTitle>New Pump Reading</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Date</label>
+                <Input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} required />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Station</label>
+                <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
+                  <option value="Ndalu Station">Ndalu Station</option>
+                  <option value="Junction Station">Junction Station</option>
+                </Select>
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Product</label>
+                <Select value={form.product} onChange={e => setForm({...form, product: e.target.value})}>
+                  <option value="Petrol">Petrol</option>
+                  <option value="Diesel">Diesel</option>
+                  <option value="Kerosene">Kerosene</option>
+                </Select>
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Rate per Litre</label>
+                <Input type="number" step="0.01" value={form.ratePerLitre} onChange={e => setForm({...form, ratePerLitre: parseFloat(e.target.value)})} required />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Start Reading</label>
+                <Input type="number" step="0.01" value={form.startReading} onChange={e => setForm({...form, startReading: parseFloat(e.target.value)})} required />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Stop Reading</label>
+                <Input type="number" step="0.01" value={form.stopReading} onChange={e => setForm({...form, stopReading: parseFloat(e.target.value)})} required />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Manual Cash Collected</label>
+                <Input type="number" step="0.01" value={form.manualCash} onChange={e => setForm({...form, manualCash: parseFloat(e.target.value)})} required />
+              </div>
+              <div className="flex items-end">
+                <Button type="submit" className="w-full">Save Reading</Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <Table>
+          <thead>
+            <tr>
+              <Th>Date</Th>
+              <Th>Station</Th>
+              <Th>Product</Th>
+              <Th>Volume (L)</Th>
+              <Th>Expected (KES)</Th>
+              <Th>Collected (KES)</Th>
+              <Th>Variance</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredReadings.map(r => {
+              const volume = r.stopReading - r.startReading;
+              const expected = volume * r.ratePerLitre;
+              const variance = r.manualCash - expected;
+              return (
+                <tr key={r.id} className="hover:bg-[#13162b] transition-colors">
+                  <Td>{r.date}</Td>
+                  <Td>{r.station}</Td>
+                  <Td><span className={`px-2 py-1 rounded text-xs font-semibold ${r.product === 'Petrol' ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}`}>{r.product}</span></Td>
+                  <Td>{volume.toFixed(2)}</Td>
+                  <Td>{expected.toLocaleString()}</Td>
+                  <Td>{r.manualCash.toLocaleString()}</Td>
+                  <Td>
+                    <span className={`font-semibold ${variance === 0 ? 'text-slate-400' : variance > 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                      {variance > 0 ? '+' : ''}{variance.toLocaleString()}
+                    </span>
+                  </Td>
+                </tr>
+              );
+            })}
+            {filteredReadings.length === 0 && (
+              <tr>
+                <Td colSpan={7} className="text-center py-8 text-slate-500">No readings found for {activeStation}.</Td>
+              </tr>
+            )}
+          </tbody>
+        </Table>
+      </Card>
+    </div>
+  );
+}

@@ -199,6 +199,29 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
         </div>
       )}
 
+      {/* FuelSuite Pro Banner */}
+      <div className="bg-gradient-to-r from-[#13162b] to-[#1a1d36] border border-cyan-500/30 p-6 rounded-xl shadow-lg relative overflow-hidden group transition-all hover:border-cyan-400">
+        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+          <Activity className="w-32 h-32 text-cyan-400" />
+        </div>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-cyan-400 flex items-center gap-2">
+               FuelSuite Pro <span className="bg-cyan-500/20 text-cyan-300 text-xs px-2 py-0.5 rounded uppercase tracking-widest border border-cyan-500/30">New</span>
+            </h2>
+            <p className="text-slate-300 mt-1 max-w-xl">
+              Access the dedicated energy management dashboard for complete station analytics, pump readings, LPG tracking, and real-time P&L reporting.
+            </p>
+          </div>
+          <button
+            onClick={() => window.history.pushState(null, '', '/?page=fuelsuite') || window.dispatchEvent(new PopStateEvent('popstate', { state: { page: 'fuelsuite' } }))}
+            className="shrink-0 px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-bold rounded-lg shadow-lg shadow-cyan-500/20 transition-all flex items-center gap-2"
+          >
+            Launch FuelSuite <TrendingUp className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
       {/* Summary Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <MetricCard title="Total Outstanding Balances" value={formatCurrency(outstandingBalance)} icon={DollarSign} color={outstandingBalanceColor} />

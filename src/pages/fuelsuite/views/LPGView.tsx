@@ -1,0 +1,134 @@
+import React, { useState } from 'react';
+import { useFuel, LPGTransaction } from '../context';
+import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td, MetricCard } from '../components';
+import { Plus, CheckSquare, ShoppingCart, RefreshCcw } from 'lucide-react';
+
+export default function LPGView() {
+  const { lpgTransactions, setLpgTransactions } = useFuel();
+  const [activeTab, setActiveTab] = useState<'sales' | 'purchases'>('sales');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const [form, setForm] = useState<Partial<LPGTransaction>>({
+    date: new Date().toISOString().split('T')[0],
+    item: '6kg Cylinder',
+    quantity: 1,
+    amount: 0,
+  });
+
+  const filteredData = lpgTransactions.filter(t => t.type === (activeTab === 'sales' ? 'sale' : 'purchase'));
+
+  const totalBought = lpgTransactions.filter(t => t.type === 'purchase').reduce((acc, t) => acc + t.quantity, 0);
+  const totalSold = lpgTransactions.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.quantity, 0);
+  const currentInv = totalBought - totalSold;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newTx: LPGTransaction = {
+      id: Math.random().toString(36).substr(2, 9),
+      type: activeTab === 'sales' ? 'sale' : 'purchase',
+      ...form as Omit<LPGTransaction, 'id' | 'type'>
+    };
+    setLpgTransactions([...lpgTransactions, newTx]);
+    setIsFormOpen(false);
+  };
+
+  return (
+    <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-100">LPG Sales & Inventory</h1>
+          <p className="text-slate-400 mt-1">Manage LPG gas cylinders tracking.</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <MetricCard title="Total Bought" value={`${totalBought} Cylinders`} icon={ShoppingCart} colorClass="bg-[#2d325a] text-slate-300" />
+        <MetricCard title="Total Sold" value={`${totalSold} Cylinders`} icon={CheckSquare} colorClass="bg-cyan-500/10 text-cyan-400" />
+        <MetricCard title="Current Inventory" value={`${currentInv} Cylinders`} icon={RefreshCcw} colorClass="bg-emerald-500/10 text-emerald-400" />
+      </div>
+
+      <div className="flex gap-4 border-b border-[#2d325a]">
+        <button 
+          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'sales' ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-slate-400'}`}
+          onClick={() => { setActiveTab('sales'); setIsFormOpen(false); }}
+        >
+          LPG Sales
+        </button>
+        <button 
+          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'purchases' ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-slate-400'}`}
+          onClick={() => { setActiveTab('purchases'); setIsFormOpen(false); }}
+        >
+          LPG Purchases
+        </button>
+      </div>
+
+      <div className="flex justify-end">
+        <Button onClick={() => setIsFormOpen(!isFormOpen)} className="flex items-center gap-2">
+          <Plus className="w-4 h-4" /> Add {activeTab === 'sales' ? 'Sale' : 'Purchase'}
+        </Button>
+      </div>
+
+      {isFormOpen && (
+        <Card>
+          <CardHeader>
+            <CardTitle>New {activeTab === 'sales' ? 'Sale' : 'Purchase'}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Date</label>
+                <Input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} required />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-xs text-slate-400 mb-1">Item Size</label>
+                <Select value={form.item} onChange={e => setForm({...form, item: e.target.value})}>
+                  <option value="6kg Cylinder">6kg Cylinder</option>
+                  <option value="13kg Cylinder">13kg Cylinder</option>
+                </Select>
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Qty</label>
+                <Input type="number" value={form.quantity} onChange={e => setForm({...form, quantity: parseInt(e.target.value)})} required />
+              </div>
+              <div className="col-span-1">
+                <label className="block text-xs text-slate-400 mb-1">Total Amount (KES)</label>
+                <Input type="number" step="0.01" value={form.amount} onChange={e => setForm({...form, amount: parseFloat(e.target.value)})} required />
+              </div>
+              <div className="col-span-1 md:col-span-5 flex justify-end mt-2">
+                <Button type="submit">Save Entry</Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <Table>
+          <thead>
+            <tr>
+              <Th>Date</Th>
+              <Th>Item Details</Th>
+              <Th>Quantity</Th>
+              <Th>Total Amount (KES)</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredData.map(t => (
+              <tr key={t.id} className="hover:bg-[#13162b] transition-colors">
+                <Td>{t.date}</Td>
+                <Td><span className="font-semibold text-slate-200">{t.item}</span></Td>
+                <Td>{t.quantity}</Td>
+                <Td>{t.amount.toLocaleString()}</Td>
+              </tr>
+            ))}
+            {filteredData.length === 0 && (
+              <tr>
+                <Td colSpan={4} className="text-center py-8 text-slate-500">No {activeTab} records found.</Td>
+              </tr>
+            )}
+          </tbody>
+        </Table>
+      </Card>
+    </div>
+  );
+}
