@@ -22,6 +22,7 @@ import FuelSuiteApp from './pages/fuelsuite/FuelSuiteApp';
 import FireLEIcon from './components/FireLEIcon';
 import { Fuel, LogIn, RefreshCcw, Printer, Menu, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
+import { useProducts, addProduct } from './lib/operationsDb';
 
 type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'settings' | 'stations' | 'products' | 'assistant' | 'fuelsuite';
 
@@ -36,6 +37,25 @@ function AuthenticatedApp() {
   // Add state for print warning
   const [showPrintWarning, setShowPrintWarning] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const { data: products, loading: productsLoading } = useProducts();
+
+  useEffect(() => {
+    if (!productsLoading && products) {
+      const seed = async () => {
+        try {
+          const missingDiesel = !products.some(p => p.name.toLowerCase() === 'diesel');
+          const missingSuper = !products.some(p => p.name.toLowerCase().includes('super'));
+          
+          if (missingDiesel) await addProduct({ name: 'Diesel' });
+          if (missingSuper) await addProduct({ name: 'Super (Premium)' });
+        } catch (e) {
+          console.error('Seed error:', e);
+        }
+      };
+      seed();
+    }
+  }, [products, productsLoading]);
 
   const navigateTo = (page: Page, params?: { customerId?: string | null, truckReg?: string | null }) => {
     const customerId = params?.customerId !== undefined ? params.customerId : (page === 'customerDashboard' ? selectedCustomerId : null);

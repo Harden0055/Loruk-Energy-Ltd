@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useProducts, addProduct, updateProduct, deleteProduct } from '../lib/operationsDb';
 import { ProductDef } from '../types';
 import { Plus, Pencil, Trash2, X, Box } from 'lucide-react';
@@ -9,6 +9,23 @@ export default function Products() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!loading && products) {
+      const seed = async () => {
+        try {
+          const missingDiesel = !products.some(p => p.name.toLowerCase() === 'diesel');
+          const missingSuper = !products.some(p => p.name.toLowerCase().includes('super'));
+          
+          if (missingDiesel) await addProduct({ name: 'Diesel' });
+          if (missingSuper) await addProduct({ name: 'Super (Premium)' });
+        } catch (e) {
+          console.error('Seed error:', e);
+        }
+      };
+      seed();
+    }
+  }, [products, loading]);
 
   const [form, setForm] = useState<Partial<ProductDef>>({
     name: '',
