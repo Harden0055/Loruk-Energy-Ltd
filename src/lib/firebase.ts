@@ -5,13 +5,13 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDKQhVVBycpobnRX1u-UYUD0715GjzJKL0",
-  authDomain: "operating-vial-rmln4.firebaseapp.com",
-  projectId: "operating-vial-rmln4",
-  storageBucket: "operating-vial-rmln4.firebasestorage.app",
-  messagingSenderId: "277508777653",
-  appId: "1:277508777653:web:4e01319628b9fe409cc0fc",
-  measurementId: ""
+  apiKey: "AIzaSyB8LRKRxmgVQaV2bTNDzOK_ajS1GAXCKTg",
+  authDomain: "loruk-energy-ltd.firebaseapp.com",
+  projectId: "loruk-energy-ltd",
+  storageBucket: "loruk-energy-ltd.firebasestorage.app",
+  messagingSenderId: "318142535444",
+  appId: "1:318142535444:web:823f491fdf19407a7f1401",
+  measurementId: "G-B8Y3X8JS7Q"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -20,5 +20,5 @@ const analytics = typeof window !== "undefined" ? getAnalytics(app) : null;
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
-export const db = getFirestore(app, "ai-studio-5d6e3954-eb18-4c54-be5b-cc1e8d03dca1");
+export const db = getFirestore(app);
 export const storage = getStorage(app);

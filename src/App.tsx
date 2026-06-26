@@ -362,12 +362,9 @@ function Main() {
                     This preview is running on a secure domain which is not yet authorized in your Firebase Settings under Authentication.
                   </p>
                   <div className="space-y-1.5 bg-red-100/50 dark:bg-red-950/40 p-2.5 rounded border border-red-200/50 dark:border-red-900/30">
-                    <p className="font-semibold text-xs text-gray-700 dark:text-red-300">Authorized Domains to add:</p>
-                    <code className="block text-[10px] bg-white dark:bg-blue-955 p-1.5 rounded border border-red-200/50 dark:border-red-900/40 font-mono select-all text-gray-800 dark:text-blue-100 break-all">
-                      ais-dev-nr6cexrzz3du42f5xspexk-895108710933.europe-west2.run.app
-                    </code>
+                    <p className="font-semibold text-xs text-gray-700 dark:text-red-300">Authorized Domain to add:</p>
                     <code className="block text-[10px] bg-white dark:bg-blue-955 p-1.5 rounded border border-red-200/50 dark:border-red-900/40 font-mono select-all text-gray-800 dark:text-blue-100 break-all font-semibold">
-                      ais-pre-nr6cexrzz3du42f5xspexk-895108710933.europe-west2.run.app
+                      {window.location.hostname}
                     </code>
                   </div>
                   <ol className="list-decimal pl-4 text-[11px] space-y-1 text-gray-600 dark:text-red-350">
@@ -401,6 +398,19 @@ function Main() {
                     >
                       Click here to switch to Sign Up Form &rarr;
                     </button>
+                  </div>
+                </div>
+              ) : error.includes('operation-not-allowed') ? (
+                <div className="space-y-2 text-left">
+                  <p className="font-bold flex items-center gap-1.5 text-red-700 dark:text-red-400">
+                    <AlertTriangle className="w-4.5 h-4.5 text-red-600 dark:text-red-400 shrink-0" />
+                    Sign-in Method Disabled
+                  </p>
+                  <p className="text-xs leading-relaxed text-gray-700 dark:text-red-300">
+                    This authentication method is not allowed by your Firebase project's configuration.
+                  </p>
+                  <div className="bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-900/50 p-2.5 rounded-md mt-2 text-[11px] text-blue-800 dark:text-blue-200 leading-normal">
+                    💡 <strong>Did you just enable it?</strong> If you are testing this on Netlify, make sure you have deployed the latest version of the app so Netlify uses the correct Firebase Configuration. Currently, Netlify might be using an older configuration where these sign-in methods were not enabled.
                   </div>
                 </div>
               ) : (
