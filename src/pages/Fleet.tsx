@@ -9,6 +9,7 @@ import autoTable from 'jspdf-autotable';
 import AIInputModal from '../components/AIInputModal';
 import { FleetExpense } from '../types';
 import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { setupPdfHeader, addPdfFooter } from '../lib/pdfTemplate';
 
 const CAR_REGISTRATIONS = ['KDE 179Y', 'KDL 019S', 'KCY 842Y', 'KCF 119R', 'KDW 028Y'];
 const STATIONS = ['Loruk - Ndalu', 'Loruk - Junction', 'Gel - Bungoma', 'Gel - Kapenguria', 'Kengas'] as const;
@@ -97,7 +98,6 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
 
   const generatePDF = async () => {
     const doc = new jsPDF();
-    const { setupPdfHeader, addPdfFooter } = await import('../lib/pdfTemplate');
 
     let currentY = await setupPdfHeader({
       doc,

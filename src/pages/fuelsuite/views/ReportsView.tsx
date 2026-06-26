@@ -5,6 +5,7 @@ import { FileDown } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
+import { setupPdfHeader, addPdfFooter } from '../../../lib/pdfTemplate';
 
 export default function ReportsView() {
   const { activeStation, pumpReadings, expenses, lpgTransactions } = useFuel();
@@ -30,7 +31,6 @@ export default function ReportsView() {
     try {
       setIsGenerating(true);
       const doc = new jsPDF();
-      const { setupPdfHeader, addPdfFooter } = await import('../../../lib/pdfTemplate');
       const timestamp = format(Date.now(), 'yyyy-MM-dd_HH-mm');
       
       let currentY = await setupPdfHeader({

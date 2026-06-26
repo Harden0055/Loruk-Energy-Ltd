@@ -23,6 +23,7 @@ import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, end
 import { motion, AnimatePresence } from 'motion/react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { setupPdfHeader, addPdfFooter } from '../lib/pdfTemplate';
 
 interface OperationsProps {
   selectedStation: 'Ndalu' | 'Junction' | 'Combined';
@@ -447,7 +448,6 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
   const handleDownloadPDF = async (reportType: 'daily' | 'weekly' | 'monthly') => {
     try {
       const doc = new jsPDF();
-      const { setupPdfHeader, addPdfFooter } = await import('../lib/pdfTemplate');
       const timestamp = format(Date.now(), 'yyyy-MM-dd_HH-mm');
       const docHeader = `Loruk Energy - Advanced Operations (${reportType.toUpperCase()})`;
       const chosenStation = selectedStation === 'Combined' ? 'All Stations (Combined)' : `${selectedStation} Station`;

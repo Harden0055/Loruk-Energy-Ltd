@@ -15,6 +15,7 @@ import { useAuth } from '../lib/auth';
 import { Search, Filter, Download, Wallet, Trash2, AlertTriangle, Truck, Coins, ArrowUp, ArrowDown } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { setupPdfHeader, addPdfFooter } from '../lib/pdfTemplate';
 
 interface LedgerEntry {
   id: string;
@@ -230,7 +231,6 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
 
   const generatePDF = async () => {
     const doc = new jsPDF();
-    const { setupPdfHeader, addPdfFooter } = await import('../lib/pdfTemplate');
     const customerName = selectedCustomerId === 'all' ? 'All Customers' : getCustomerName(selectedCustomerId);
     
     let currentY = await setupPdfHeader({

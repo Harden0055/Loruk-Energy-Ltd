@@ -7,6 +7,7 @@ import { FileText, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
+import { setupPdfHeader, addPdfFooter } from '../lib/pdfTemplate';
 
 export default function Reports() {
   const { customers, loading: cl } = useCustomers();
@@ -30,7 +31,6 @@ export default function Reports() {
       const totalLitres = customerDeliveries.reduce((sum, d) => sum + d.litres, 0);
 
       const doc = new jsPDF();
-      const { setupPdfHeader, addPdfFooter } = await import('../lib/pdfTemplate');
 
       let currentY = await setupPdfHeader({
         doc,
@@ -137,7 +137,6 @@ export default function Reports() {
         const dailyPayments = payments.filter(p => p.date >= todayTime && p.date < tomorrowTime).sort((a, b) => a.date - b.date);
 
         const doc = new jsPDF();
-        const { setupPdfHeader, addPdfFooter } = await import('../lib/pdfTemplate');
 
         let currentY = await setupPdfHeader({
           doc,

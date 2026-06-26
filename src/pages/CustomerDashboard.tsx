@@ -49,6 +49,7 @@ import {
 } from 'recharts';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { setupPdfHeader, addPdfFooter } from '../lib/pdfTemplate';
 
 interface CustomerDashboardProps {
   customerId: string;
@@ -288,7 +289,6 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
     if (!customer) return;
     try {
       const doc = new jsPDF();
-      const { setupPdfHeader, addPdfFooter } = await import('../lib/pdfTemplate');
 
       let currentY = await setupPdfHeader({
         doc,
