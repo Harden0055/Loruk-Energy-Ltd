@@ -211,7 +211,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
     setEditingId(d.id);
     setEditForm({
       customerId: d.customerId,
-      productType: d.productType,
+      productType: d.productType as 'Diesel' | 'Super',
       litres: String(d.litres),
       totalAmount: String(d.totalAmount)
     });

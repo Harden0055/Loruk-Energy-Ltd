@@ -925,3 +925,6 @@ export async function getPreviousStopReading(station: string, product: string, d
 export { deleteLpgSale as deleteLPGSale };
 export { deleteLpgPurchase as deleteLPGPurchase };
 
+export { updateLpgStock, updateFuelVolume } from './inventoryUpdate';
+
+

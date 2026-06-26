@@ -647,3 +647,6 @@ export async function restoreLostCustomers() {
     }
   }
 }
+
+export { updateLpgStock, updateFuelVolume } from './inventoryUpdate';
+

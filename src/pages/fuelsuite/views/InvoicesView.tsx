@@ -1,21 +1,25 @@
 import React, { useState } from 'react';
 import { useFuel, Invoice } from '../context';
-import { Card, CardContent, CardHeader, CardTitle, Input, Button, Table, Th, Td } from '../components';
+import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td } from '../components';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
 
 export default function InvoicesView() {
-  const { invoices, setInvoices } = useFuel();
+  const { invoices, setInvoices, activeStation } = useFuel();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [form, setForm] = useState<Partial<Invoice>>({
+    station: activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation,
     customerName: '',
     totalAmount: 0,
     paidAmount: 0,
   });
 
+  const filteredData = invoices.filter(i => activeStation === 'Combined Total' || i.station === activeStation);
+
   const resetForm = () => {
     setForm({
+      station: activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation,
       customerName: '',
       totalAmount: 0,
       paidAmount: 0,
@@ -43,7 +47,8 @@ export default function InvoicesView() {
     } else {
       const newInv: Invoice = {
         id: Math.random().toString(36).substr(2, 9),
-        ...form as Omit<Invoice, 'id'>
+        station: form.station || (activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation),
+        ...form as Omit<Invoice, 'id' | 'station'>
       };
       setInvoices([...invoices, newInv]);
     }
@@ -68,7 +73,14 @@ export default function InvoicesView() {
             <CardTitle>{editingId ? 'Edit Invoice' : 'New Invoice'}</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Station</label>
+                <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
+                  <option value="Ndalu Station">Ndalu Station</option>
+                  <option value="Junction Station">Junction Station</option>
+                </Select>
+              </div>
               <div className="col-span-2">
                 <label className="block text-xs text-slate-400 mb-1">Customer Name</label>
                 <Input type="text" value={form.customerName} onChange={e => setForm({...form, customerName: e.target.value})} required />
@@ -93,6 +105,7 @@ export default function InvoicesView() {
         <Table>
           <thead>
             <tr>
+              <Th>Station</Th>
               <Th>Customer</Th>
               <Th>Total (KES)</Th>
               <Th>Paid (KES)</Th>
@@ -102,7 +115,7 @@ export default function InvoicesView() {
             </tr>
           </thead>
           <tbody>
-            {invoices.map(t => {
+            {filteredData.map(t => {
               const balance = t.totalAmount - t.paidAmount;
               let statusText = 'UNPAID';
               let statusClass = 'bg-red-500/10 text-red-500';
@@ -116,6 +129,7 @@ export default function InvoicesView() {
 
               return (
                 <tr key={t.id} className="hover:bg-[#13162b] transition-colors">
+                  <Td><span className="text-xs text-slate-400 uppercase tracking-tight font-medium">{t.station}</span></Td>
                   <Td><span className="font-semibold text-slate-200">{t.customerName}</span></Td>
                   <Td>{t.totalAmount.toLocaleString()}</Td>
                   <Td>{t.paidAmount.toLocaleString()}</Td>

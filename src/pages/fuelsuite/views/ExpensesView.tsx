@@ -4,19 +4,23 @@ import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table,
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
 
 export default function ExpensesView() {
-  const { expenses, setExpenses } = useFuel();
+  const { expenses, setExpenses, activeStation } = useFuel();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [form, setForm] = useState<Partial<Expense>>({
     date: new Date().toISOString().split('T')[0],
+    station: activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation,
     category: 'Electricity',
     amount: 0,
   });
 
+  const filteredData = expenses.filter(e => activeStation === 'Combined Total' || e.station === activeStation);
+
   const resetForm = () => {
     setForm({
       date: new Date().toISOString().split('T')[0],
+      station: activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation,
       category: 'Electricity',
       amount: 0,
     });
@@ -43,7 +47,8 @@ export default function ExpensesView() {
     } else {
       const newEx: Expense = {
         id: Math.random().toString(36).substr(2, 9),
-        ...form as Omit<Expense, 'id'>
+        station: form.station || (activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation),
+        ...form as Omit<Expense, 'id' | 'station'>
       };
       setExpenses([...expenses, newEx]);
     }
@@ -68,10 +73,17 @@ export default function ExpensesView() {
             <CardTitle>{editingId ? 'Edit Expense' : 'New Expense'}</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Date</label>
                 <Input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} required />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Station</label>
+                <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
+                  <option value="Ndalu Station">Ndalu Station</option>
+                  <option value="Junction Station">Junction Station</option>
+                </Select>
               </div>
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Category</label>
@@ -81,7 +93,7 @@ export default function ExpensesView() {
                 <label className="block text-xs text-slate-400 mb-1">Amount (KES)</label>
                 <Input type="number" step="0.01" value={form.amount} onChange={e => setForm({...form, amount: parseFloat(e.target.value)})} required />
               </div>
-              <div className="col-span-1 md:col-span-3 flex justify-end mt-2">
+              <div className="col-span-1 md:col-span-4 flex justify-end mt-2">
                 <Button type="submit">{editingId ? 'Update Expense' : 'Save Expense'}</Button>
               </div>
             </form>
@@ -94,15 +106,17 @@ export default function ExpensesView() {
           <thead>
             <tr>
               <Th>Date</Th>
+              <Th>Station</Th>
               <Th>Category</Th>
               <Th>Amount (KES)</Th>
               <Th>Actions</Th>
             </tr>
           </thead>
           <tbody>
-            {expenses.map(t => (
+            {filteredData.map(t => (
               <tr key={t.id} className="hover:bg-[#13162b] transition-colors">
                 <Td>{t.date}</Td>
+                <Td><span className="text-xs text-slate-400 uppercase tracking-tight font-medium">{t.station}</span></Td>
                 <Td><span className="font-semibold text-slate-200">{t.category}</span></Td>
                 <Td className="text-red-400">{t.amount.toLocaleString()}</Td>
                 <Td>

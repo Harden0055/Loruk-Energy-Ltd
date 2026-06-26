@@ -16,6 +16,7 @@ export interface PumpReading {
 export interface LPGTransaction {
   id: string;
   date: string;
+  station: Station;
   type: 'sale' | 'purchase' | 'opening';
   item: string;
   quantity: number;
@@ -25,6 +26,7 @@ export interface LPGTransaction {
 export interface InventoryItem {
   id: string;
   date: string;
+  station: Station;
   type: 'in' | 'out' | 'opening';
   item: string;
   quantity: number;
@@ -34,12 +36,14 @@ export interface InventoryItem {
 export interface Expense {
   id: string;
   date: string;
+  station: Station;
   category: string;
   amount: number;
 }
 
 export interface Invoice {
   id: string;
+  station: Station;
   customerName: string;
   totalAmount: number;
   paidAmount: number;
@@ -90,20 +94,20 @@ export const FuelProvider = ({ children }: { children: ReactNode }) => {
     { id: '2', date: '2023-10-01', station: 'Junction Station', product: 'Super Petrol', startReading: 500, stopReading: 800, ratePerLitre: 210, manualCash: 63000 },
   ]);
   const [lpgTransactions, setLpgTransactions] = useState<LPGTransaction[]>([
-    { id: '1', date: '2023-10-01', type: 'sale', item: '6kg Cylinder', quantity: 5, amount: 6000 },
-    { id: '2', date: '2023-10-02', type: 'purchase', item: '13kg Cylinder', quantity: 10, amount: 25000 },
+    { id: '1', date: '2023-10-01', station: 'Ndalu Station', type: 'sale', item: '6kg Cylinder', quantity: 5, amount: 6000 },
+    { id: '2', date: '2023-10-02', station: 'Junction Station', type: 'purchase', item: '13kg Cylinder', quantity: 10, amount: 25000 },
   ]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([
-    { id: '1', date: '2023-10-01', type: 'in', item: 'Burner', quantity: 20, amount: 10000 },
-    { id: '2', date: '2023-10-03', type: 'out', item: 'Burner', quantity: 5, amount: 3000 },
+    { id: '1', date: '2023-10-01', station: 'Ndalu Station', type: 'in', item: 'Burner', quantity: 20, amount: 10000 },
+    { id: '2', date: '2023-10-03', station: 'Junction Station', type: 'out', item: 'Burner', quantity: 5, amount: 3000 },
   ]);
   const [expenses, setExpenses] = useState<Expense[]>([
-    { id: '1', date: '2023-10-01', category: 'Electricity', amount: 5000 },
-    { id: '2', date: '2023-10-02', category: 'Water', amount: 1500 },
+    { id: '1', date: '2023-10-01', station: 'Ndalu Station', category: 'Electricity', amount: 5000 },
+    { id: '2', date: '2023-10-02', station: 'Junction Station', category: 'Water', amount: 1500 },
   ]);
   const [invoices, setInvoices] = useState<Invoice[]>([
-    { id: '1', customerName: 'Acme Corp', totalAmount: 50000, paidAmount: 20000 },
-    { id: '2', customerName: 'Zetta Trans', totalAmount: 30000, paidAmount: 30000 },
+    { id: '1', station: 'Ndalu Station', customerName: 'Acme Corp', totalAmount: 50000, paidAmount: 20000 },
+    { id: '2', station: 'Junction Station', customerName: 'Zetta Trans', totalAmount: 30000, paidAmount: 30000 },
   ]);
   const [cashPositions, setCashPositions] = useState<CashPosition[]>([
     { id: '1', date: '2023-10-01', mPesa: 150000, cashOnHand: 45000 },

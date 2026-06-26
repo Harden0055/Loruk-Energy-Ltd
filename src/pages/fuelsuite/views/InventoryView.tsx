@@ -4,23 +4,28 @@ import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table,
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
 
 export default function InventoryView() {
-  const { inventoryItems, setInventoryItems } = useFuel();
+  const { inventoryItems, setInventoryItems, activeStation } = useFuel();
   const [activeTab, setActiveTab] = useState<'in' | 'out' | 'opening'>('in');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [form, setForm] = useState<Partial<InventoryItem>>({
     date: new Date().toISOString().split('T')[0],
+    station: activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation,
     item: 'Burner',
     quantity: 1,
     amount: 0,
   });
 
-  const filteredData = inventoryItems.filter(i => i.type === activeTab);
+  const filteredData = inventoryItems.filter(i => 
+    i.type === activeTab && 
+    (activeStation === 'Combined Total' || i.station === activeStation)
+  );
 
   const resetForm = () => {
     setForm({
       date: new Date().toISOString().split('T')[0],
+      station: activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation,
       item: 'Burner',
       quantity: 1,
       amount: 0,
@@ -48,8 +53,9 @@ export default function InventoryView() {
     } else {
       const newItem: InventoryItem = {
         id: Math.random().toString(36).substr(2, 9),
+        station: form.station || (activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation),
         type: activeTab,
-        ...form as Omit<InventoryItem, 'id' | 'type'>
+        ...form as Omit<InventoryItem, 'id' | 'type' | 'station'>
       };
       setInventoryItems([...inventoryItems, newItem]);
     }
@@ -98,12 +104,19 @@ export default function InventoryView() {
             <CardTitle>{editingId ? `Edit ${activeTab === 'in' ? 'Purchase' : activeTab === 'out' ? 'Sale' : 'Opening Stock'}` : `New ${activeTab === 'in' ? 'Purchase' : activeTab === 'out' ? 'Sale' : 'Opening Stock'}`}</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-6 gap-4">
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Date</label>
                 <Input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} required />
               </div>
-              <div className="col-span-2">
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Station</label>
+                <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
+                  <option value="Ndalu Station">Ndalu Station</option>
+                  <option value="Junction Station">Junction Station</option>
+                </Select>
+              </div>
+              <div className="col-span-1 md:col-span-1 lg:col-span-2">
                 <label className="block text-xs text-slate-400 mb-1">Item Description</label>
                 <Input type="text" value={form.item} onChange={e => setForm({...form, item: e.target.value})} placeholder="e.g. Burner" required />
               </div>
@@ -128,6 +141,7 @@ export default function InventoryView() {
           <thead>
             <tr>
               <Th>Date</Th>
+              <Th>Station</Th>
               <Th>Item Description</Th>
               <Th>Quantity</Th>
               <Th>Total Amount (KES)</Th>
@@ -138,6 +152,7 @@ export default function InventoryView() {
             {filteredData.map(t => (
               <tr key={t.id} className="hover:bg-[#13162b] transition-colors">
                 <Td>{t.date}</Td>
+                <Td><span className="text-xs text-slate-400 uppercase tracking-tight font-medium">{t.station}</span></Td>
                 <Td><span className="font-semibold text-slate-200">{t.item}</span></Td>
                 <Td>{t.quantity}</Td>
                 <Td>{t.amount.toLocaleString()}</Td>

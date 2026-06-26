@@ -8,7 +8,7 @@ export default function DashboardView() {
   const { activeStation, pumpReadings, expenses, lpgTransactions, cashPositions } = useFuel();
 
   const filteredReadings = pumpReadings.filter(r => activeStation === 'Combined Total' || r.station === activeStation);
-  const filteredExpenses = expenses.filter(e => activeStation === 'Combined Total' || true); // Simple default
+  const filteredExpenses = expenses.filter(e => activeStation === 'Combined Total' || e.station === activeStation);
   
   const totalFuelRevenue = filteredReadings.reduce((acc, r) => acc + ((r.stopReading - r.startReading) * r.ratePerLitre), 0);
   const totalFuelLitres = filteredReadings.reduce((acc, r) => acc + (r.stopReading - r.startReading), 0);
