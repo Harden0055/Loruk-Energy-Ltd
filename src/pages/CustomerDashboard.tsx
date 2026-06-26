@@ -848,14 +848,14 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse table-fixed">
             <thead className="bg-blue-50 dark:bg-blue-900 border-b border-gray-200 dark:border-blue-900 transition-colors">
               <tr>
-                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider whitespace-nowrap">Date & Time</th>
-                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider whitespace-nowrap w-48">Activity</th>
-                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider w-64">Description</th>
-                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider text-right w-48 animate-fade-in">Amount</th>
-                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider text-right w-48 animate-fade-in">Closing Balance</th>
+                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider whitespace-nowrap w-[15%] min-w-[150px]">Date & Time</th>
+                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider whitespace-nowrap w-[20%] min-w-[200px]">Activity</th>
+                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider w-auto min-w-[250px]">Description</th>
+                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider text-right w-[15%] min-w-[150px] animate-fade-in">Amount</th>
+                <th className="border border-gray-200 dark:border-blue-900 px-6 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider text-right w-[15%] min-w-[150px] animate-fade-in">Closing Balance</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-blue-900">
@@ -889,7 +889,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                         </span>
                       </div>
                     </td>
-                    <td className="border border-gray-200 dark:border-blue-900 px-6 py-4 text-base font-medium text-gray-600 dark:text-gray-300 truncate max-w-[200px]" title={e.description}>
+                    <td className="border border-gray-200 dark:border-blue-900 px-6 py-4 text-base font-medium text-gray-600 dark:text-gray-300 truncate" title={e.description}>
                       {e.description}
                     </td>
                     <td className={`border border-gray-200 dark:border-blue-900 px-6 py-4 text-right font-mono font-bold text-base whitespace-nowrap ${
