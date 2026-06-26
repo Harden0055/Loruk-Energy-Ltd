@@ -14,7 +14,6 @@ import ProductsView from './views/ProductsView';
 export type ViewType = 'Dashboard' | 'Pump Readings' | 'LPG' | 'Inventory' | 'Expenses' | 'Invoices' | 'Cash Position' | 'Reports' | 'Products';
 
 const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen }: { currentView: ViewType, setCurrentView: (v: ViewType) => void, onBackToMain: () => void, isOpen: boolean, setIsOpen: (o: boolean) => void }) => {
-  const { activeStation, setActiveStation } = useFuel();
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard },
     { name: 'Pump Readings', icon: Fuel },
@@ -41,19 +40,6 @@ const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen 
           <button className="lg:hidden p-1 text-slate-400 hover:text-white" onClick={() => setIsOpen(false)}>
             <X className="w-5 h-5" />
           </button>
-        </div>
-
-        <div className="p-4 border-b border-[#2d325a]">
-          <label className="text-xs text-slate-400 uppercase tracking-wider mb-2 block">Station Filter</label>
-          <select 
-            className="w-full bg-[#13162b] border border-[#2d325a] text-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-cyan-500"
-            value={activeStation}
-            onChange={(e) => setActiveStation(e.target.value as Station)}
-          >
-            <option value="Combined Total">Combined Total</option>
-            <option value="Ndalu Station">Ndalu Station</option>
-            <option value="Junction Station">Junction Station</option>
-          </select>
         </div>
 
         <nav className="flex-1 py-4">
@@ -91,13 +77,35 @@ const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen 
 };
 
 const MainContent = ({ currentView, onOpenSidebar }: { currentView: ViewType, onOpenSidebar: () => void }) => {
+  const { activeStation, setActiveStation } = useFuel();
+  
   return (
     <div className="flex-1 bg-[#13162b] overflow-hidden flex flex-col min-w-0">
-      <header className="lg:hidden p-4 border-b border-[#2d325a] bg-[#1a1d36] flex flex-row items-center gap-4">
-         <button onClick={onOpenSidebar} className="p-2 text-slate-300 hover:bg-[#2d325a] rounded-lg">
-            <Menu className="w-5 h-5" />
-         </button>
-         <h1 className="text-lg font-bold text-slate-200">{currentView}</h1>
+      <header className="p-4 border-b border-[#2d325a] bg-[#1a1d36] flex flex-row items-center justify-between gap-4 z-10 shadow-sm relative">
+         <div className="flex items-center gap-4">
+           <button onClick={onOpenSidebar} className="lg:hidden p-2 text-slate-300 hover:bg-[#2d325a] rounded-lg transition-colors">
+              <Menu className="w-5 h-5" />
+           </button>
+           <h1 className="text-lg font-bold text-slate-200 hidden sm:block">{currentView}</h1>
+         </div>
+         
+         <div className="flex items-center gap-3">
+           <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider hidden sm:block">Current Station</label>
+           <div className="relative">
+             <select 
+               className="appearance-none bg-cyan-500/10 border-2 border-cyan-500/50 text-cyan-400 rounded-lg pl-4 pr-10 py-2.5 text-sm font-bold focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-500/20 transition-all shadow-[0_0_15px_rgba(34,211,238,0.15)] hover:bg-cyan-500/20"
+               value={activeStation}
+               onChange={(e) => setActiveStation(e.target.value as Station)}
+             >
+               <option value="Combined Total" className="bg-[#1a1d36] text-slate-200 font-medium">Combined Total</option>
+               <option value="Ndalu Station" className="bg-[#1a1d36] text-slate-200 font-medium">Ndalu Station</option>
+               <option value="Junction Station" className="bg-[#1a1d36] text-slate-200 font-medium">Junction Station</option>
+             </select>
+             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-cyan-400">
+               <svg className="w-5 h-5 fill-current" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"></path></svg>
+             </div>
+           </div>
+         </div>
       </header>
       <div className="flex-1 overflow-auto">
         {currentView === 'Dashboard' && <DashboardView />}

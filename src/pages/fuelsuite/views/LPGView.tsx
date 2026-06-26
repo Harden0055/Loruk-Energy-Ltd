@@ -5,7 +5,7 @@ import { Plus, CheckSquare, ShoppingCart, RefreshCcw, Pencil, Trash2, X } from '
 
 export default function LPGView() {
   const { lpgTransactions, setLpgTransactions } = useFuel();
-  const [activeTab, setActiveTab] = useState<'sales' | 'purchases'>('sales');
+  const [activeTab, setActiveTab] = useState<'sales' | 'purchases' | 'opening'>('sales');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -16,11 +16,12 @@ export default function LPGView() {
     amount: 0,
   });
 
-  const filteredData = lpgTransactions.filter(t => t.type === (activeTab === 'sales' ? 'sale' : 'purchase'));
+  const filteredData = lpgTransactions.filter(t => t.type === (activeTab === 'sales' ? 'sale' : activeTab === 'purchases' ? 'purchase' : 'opening'));
 
   const totalBought = lpgTransactions.filter(t => t.type === 'purchase').reduce((acc, t) => acc + t.quantity, 0);
   const totalSold = lpgTransactions.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.quantity, 0);
-  const currentInv = totalBought - totalSold;
+  const totalOpening = lpgTransactions.filter(t => t.type === 'opening').reduce((acc, t) => acc + t.quantity, 0);
+  const currentInv = totalOpening + totalBought - totalSold;
 
   const resetForm = () => {
     setForm({
@@ -52,7 +53,7 @@ export default function LPGView() {
     } else {
       const newTx: LPGTransaction = {
         id: Math.random().toString(36).substr(2, 9),
-        type: activeTab === 'sales' ? 'sale' : 'purchase',
+        type: activeTab === 'sales' ? 'sale' : activeTab === 'purchases' ? 'purchase' : 'opening',
         ...form as Omit<LPGTransaction, 'id' | 'type'>
       };
       setLpgTransactions([...lpgTransactions, newTx]);
@@ -88,18 +89,24 @@ export default function LPGView() {
         >
           LPG Purchases
         </button>
+        <button 
+          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'opening' ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-slate-400'}`}
+          onClick={() => { setActiveTab('opening'); resetForm(); }}
+        >
+          Opening Stock
+        </button>
       </div>
 
       <div className="flex justify-end">
         <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
-          {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add {activeTab === 'sales' ? 'Sale' : 'Purchase'}</>}
+          {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add {activeTab === 'sales' ? 'Sale' : activeTab === 'purchases' ? 'Purchase' : 'Opening Stock'}</>}
         </Button>
       </div>
 
       {isFormOpen && (
         <Card>
           <CardHeader>
-            <CardTitle>{editingId ? `Edit ${activeTab === 'sales' ? 'Sale' : 'Purchase'}` : `New ${activeTab === 'sales' ? 'Sale' : 'Purchase'}`}</CardTitle>
+            <CardTitle>{editingId ? `Edit ${activeTab === 'sales' ? 'Sale' : activeTab === 'purchases' ? 'Purchase' : 'Opening Stock'}` : `New ${activeTab === 'sales' ? 'Sale' : activeTab === 'purchases' ? 'Purchase' : 'Opening Stock'}`}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-4">

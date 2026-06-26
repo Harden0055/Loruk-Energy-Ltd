@@ -5,7 +5,7 @@ import { Plus, Pencil, Trash2, X } from 'lucide-react';
 
 export default function InventoryView() {
   const { inventoryItems, setInventoryItems } = useFuel();
-  const [activeTab, setActiveTab] = useState<'in' | 'out'>('in');
+  const [activeTab, setActiveTab] = useState<'in' | 'out' | 'opening'>('in');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -78,18 +78,24 @@ export default function InventoryView() {
         >
           Sale (Out)
         </button>
+        <button 
+          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'opening' ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-slate-400'}`}
+          onClick={() => { setActiveTab('opening'); resetForm(); }}
+        >
+          Opening Stock
+        </button>
       </div>
 
       <div className="flex justify-end">
         <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
-          {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add {activeTab === 'in' ? 'Purchase' : 'Sale'}</>}
+          {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add {activeTab === 'in' ? 'Purchase' : activeTab === 'out' ? 'Sale' : 'Opening Stock'}</>}
         </Button>
       </div>
 
       {isFormOpen && (
         <Card>
           <CardHeader>
-            <CardTitle>{editingId ? `Edit ${activeTab === 'in' ? 'Purchase' : 'Sale'}` : `New ${activeTab === 'in' ? 'Purchase' : 'Sale'}`}</CardTitle>
+            <CardTitle>{editingId ? `Edit ${activeTab === 'in' ? 'Purchase' : activeTab === 'out' ? 'Sale' : 'Opening Stock'}` : `New ${activeTab === 'in' ? 'Purchase' : activeTab === 'out' ? 'Sale' : 'Opening Stock'}`}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-4">

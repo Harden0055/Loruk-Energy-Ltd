@@ -16,7 +16,7 @@ export interface PumpReading {
 export interface LPGTransaction {
   id: string;
   date: string;
-  type: 'sale' | 'purchase';
+  type: 'sale' | 'purchase' | 'opening';
   item: string;
   quantity: number;
   amount: number;
@@ -25,7 +25,7 @@ export interface LPGTransaction {
 export interface InventoryItem {
   id: string;
   date: string;
-  type: 'in' | 'out';
+  type: 'in' | 'out' | 'opening';
   item: string;
   quantity: number;
   amount: number;
