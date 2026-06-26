@@ -45,17 +45,21 @@ export const MetricCard = ({ title, value, icon: Icon, trend, colorClass }: { ti
   </Card>
 );
 
-export const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
-  <input
-    {...props}
-    className={`w-full bg-[#13162b] border border-[#2d325a] text-slate-200 rounded-lg px-4 py-2 placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors ${props.className || ''}`}
-  />
-);
+export const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => {
+  const value = typeof props.value === 'number' && Number.isNaN(props.value) ? '' : props.value;
+  return (
+    <input
+      {...props}
+      value={value}
+      className={`w-full bg-[#0f1123] border border-[#2d325a] text-slate-200 rounded-lg px-4 py-2 placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors ${props.className || ''}`}
+    />
+  );
+};
 
 export const Select = (props: React.SelectHTMLAttributes<HTMLSelectElement>) => (
   <select
     {...props}
-    className={`w-full bg-[#13162b] border border-[#2d325a] text-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-cyan-500 transition-colors ${props.className || ''}`}
+    className={`w-full bg-[#0f1123] border border-[#2d325a] text-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:border-cyan-500 transition-colors ${props.className || ''}`}
   >
     {props.children}
   </select>
@@ -84,7 +88,7 @@ export const Table = ({ children }: { children: React.ReactNode }) => (
 );
 
 export const Th = ({ children, className = '', ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) => (
-  <th {...props} className={`px-6 py-4 font-medium text-slate-300 bg-[#13162b] border-b border-[#2d325a] ${className}`}>
+  <th {...props} className={`px-6 py-4 font-medium text-slate-300 bg-[#0f1123] border-b border-[#2d325a] ${className}`}>
     {children}
   </th>
 );

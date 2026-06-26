@@ -149,7 +149,7 @@ export default function CashPositionView() {
               </thead>
               <tbody>
                 {cashPositions.map(t => (
-                  <tr key={t.id} className="hover:bg-[#13162b] transition-colors">
+                  <tr key={t.id} className="hover:bg-[#0f1123] transition-colors">
                     <Td>{t.date}</Td>
                     <Td className="text-cyan-400">{t.mPesa.toLocaleString()}</Td>
                     <Td className="text-amber-400">{t.cashOnHand.toLocaleString()}</Td>

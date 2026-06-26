@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table,
 import { Plus, CheckSquare, ShoppingCart, RefreshCcw, Pencil, Trash2, X } from 'lucide-react';
 
 export default function LPGView() {
-  const { lpgTransactions, setLpgTransactions, activeStation } = useFuel();
+  const { lpgTransactions, setLpgTransactions, inventoryItems, activeStation } = useFuel();
   const [activeTab, setActiveTab] = useState<'sales' | 'purchases' | 'opening'>('sales');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -17,12 +17,23 @@ export default function LPGView() {
     amount: 0,
   });
 
-  const filteredData = lpgTransactions.filter(t => 
+  const lpgInventoryItems = inventoryItems
+    .filter(i => i.type === 'opening' && (i.item === '6kg LPG' || i.item === '13kg LPG' || i.item === '6kg Cylinder' || i.item === '13kg Cylinder'))
+    .map(i => ({
+      ...i,
+      type: 'opening' as const,
+      item: i.item.replace('LPG', 'Cylinder').trim(), // Normalize naming
+      isFromInventory: true
+    }));
+
+  const allLpgData = [...lpgTransactions, ...lpgInventoryItems];
+
+  const filteredData = allLpgData.filter(t => 
     t.type === (activeTab === 'sales' ? 'sale' : activeTab === 'purchases' ? 'purchase' : 'opening') &&
     (activeStation === 'Combined Total' || t.station === activeStation)
   );
 
-  const statsData = lpgTransactions.filter(t => activeStation === 'Combined Total' || t.station === activeStation);
+  const statsData = allLpgData.filter(t => activeStation === 'Combined Total' || t.station === activeStation);
   const totalBought = statsData.filter(t => t.type === 'purchase').reduce((acc, t) => acc + t.quantity, 0);
   const totalSold = statsData.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.quantity, 0);
   const totalOpening = statsData.filter(t => t.type === 'opening').reduce((acc, t) => acc + t.quantity, 0);
@@ -165,21 +176,25 @@ export default function LPGView() {
           </thead>
           <tbody>
             {filteredData.map(t => (
-              <tr key={t.id} className="hover:bg-[#13162b] transition-colors">
+              <tr key={t.id} className="hover:bg-[#0f1123] transition-colors">
                 <Td>{t.date}</Td>
                 <Td><span className="text-xs text-slate-400 uppercase tracking-tight font-medium">{t.station}</span></Td>
                 <Td><span className="font-semibold text-slate-200">{t.item}</span></Td>
                 <Td>{t.quantity}</Td>
                 <Td>{t.amount.toLocaleString()}</Td>
                 <Td>
-                  <div className="flex gap-3">
-                    <button onClick={() => handleEdit(t)} className="text-slate-400 hover:text-cyan-400 transition-colors">
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => handleDelete(t.id)} className="text-slate-400 hover:text-red-400 transition-colors">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                  {!(t as any).isFromInventory ? (
+                    <div className="flex gap-3">
+                      <button onClick={() => handleEdit(t)} className="text-slate-400 hover:text-cyan-400 transition-colors">
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => handleDelete(t.id)} className="text-slate-400 hover:text-red-400 transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-slate-500 italic">via Inventory</span>
+                  )}
                 </Td>
               </tr>
             ))}

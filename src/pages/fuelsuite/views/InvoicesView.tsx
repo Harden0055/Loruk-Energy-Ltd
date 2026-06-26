@@ -128,7 +128,7 @@ export default function InvoicesView() {
               }
 
               return (
-                <tr key={t.id} className="hover:bg-[#13162b] transition-colors">
+                <tr key={t.id} className="hover:bg-[#0f1123] transition-colors">
                   <Td><span className="text-xs text-slate-400 uppercase tracking-tight font-medium">{t.station}</span></Td>
                   <Td><span className="font-semibold text-slate-200">{t.customerName}</span></Td>
                   <Td>{t.totalAmount.toLocaleString()}</Td>

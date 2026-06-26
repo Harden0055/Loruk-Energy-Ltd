@@ -192,7 +192,7 @@ export default function InventoryView() {
               </thead>
               <tbody>
                 {STANDARD_PRODUCTS.map(product => (
-                  <tr key={product} className="hover:bg-[#13162b] transition-colors">
+                  <tr key={product} className="hover:bg-[#0f1123] transition-colors">
                     <Td><span className="font-semibold text-slate-200">{product}</span></Td>
                     <Td className="text-right">{inventorySummary[product].opening.toLocaleString()}</Td>
                     <Td className="text-right text-green-400">+{inventorySummary[product].in.toLocaleString()}</Td>
@@ -287,7 +287,7 @@ export default function InventoryView() {
                 </thead>
                 <tbody>
                   {filteredData.map(t => (
-                    <tr key={t.id} className="hover:bg-[#13162b] transition-colors">
+                    <tr key={t.id} className="hover:bg-[#0f1123] transition-colors">
                       <Td>{t.date}</Td>
                       <Td><span className="text-xs text-slate-400 uppercase tracking-tight font-medium">{t.station}</span></Td>
                       <Td><span className="font-semibold text-slate-200">{t.item}</span></Td>

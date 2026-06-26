@@ -122,7 +122,7 @@ export default function ReportsView() {
           <table className="w-full text-left text-sm text-slate-200">
             <tbody>
               {/* REVENUE */}
-              <tr className="bg-[#13162b]">
+              <tr className="bg-[#0f1123]">
                 <td className="px-6 py-4 font-bold text-cyan-400" colSpan={2}>REVENUE</td>
               </tr>
               <tr className="border-b border-[#2d325a]">
@@ -139,7 +139,7 @@ export default function ReportsView() {
               </tr>
 
               {/* COGS */}
-              <tr className="bg-[#13162b]">
+              <tr className="bg-[#0f1123]">
                 <td className="px-6 py-4 font-bold text-orange-400" colSpan={2}>COST OF GOODS SOLD (Est.)</td>
               </tr>
               <tr className="border-b border-[#2d325a]">
@@ -162,7 +162,7 @@ export default function ReportsView() {
               </tr>
 
               {/* EXPENSES */}
-              <tr className="bg-[#13162b]">
+              <tr className="bg-[#0f1123]">
                 <td className="px-6 py-4 font-bold text-red-400" colSpan={2}>OPERATING EXPENSES</td>
               </tr>
               <tr className="border-b border-[#2d325a]">

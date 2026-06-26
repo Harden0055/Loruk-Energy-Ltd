@@ -142,7 +142,7 @@ export default function PumpReadingsView() {
               const expected = volume * r.ratePerLitre;
               const variance = r.manualCash - expected;
               return (
-                <tr key={r.id} className="hover:bg-[#13162b] transition-colors">
+                <tr key={r.id} className="hover:bg-[#0f1123] transition-colors">
                   <Td>{r.date}</Td>
                   <Td>{r.station}</Td>
                   <Td><span className="px-2 py-1 rounded text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">{r.product}</span></Td>

@@ -53,7 +53,7 @@ const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen 
                 className={`w-full flex items-center px-6 py-3 text-sm font-medium transition-colors ${
                   isActive 
                     ? 'bg-cyan-500/10 text-cyan-400 border-r-2 border-cyan-400' 
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-[#13162b]'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-[#0f1123]'
                 }`}
               >
                 <Icon className="w-5 h-5 mr-3" />
@@ -66,7 +66,7 @@ const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen 
         <div className="p-4 border-t border-[#2d325a]">
           <button 
             onClick={onBackToMain}
-            className="w-full flex items-center justify-center px-4 py-2 border border-[#2d325a] text-slate-400 rounded-lg hover:bg-[#13162b] hover:text-slate-200 transition-colors text-sm"
+            className="w-full flex items-center justify-center px-4 py-2 border border-[#2d325a] text-slate-400 rounded-lg hover:bg-[#0f1123] hover:text-slate-200 transition-colors text-sm"
           >
             Exit FuelSuite
           </button>
@@ -80,7 +80,7 @@ const MainContent = ({ currentView, onOpenSidebar }: { currentView: ViewType, on
   const { activeStation, setActiveStation } = useFuel();
   
   return (
-    <div className="flex-1 bg-[#13162b] overflow-hidden flex flex-col min-w-0">
+    <div className="flex-1 bg-[#0f1123] overflow-hidden flex flex-col min-w-0">
       <header className="p-4 border-b border-[#2d325a] bg-[#1a1d36] flex flex-row items-center justify-between gap-4 z-10 shadow-sm relative">
          <div className="flex items-center gap-4">
            <button onClick={onOpenSidebar} className="lg:hidden p-2 text-slate-300 hover:bg-[#2d325a] rounded-lg transition-colors">
@@ -128,7 +128,7 @@ export default function FuelSuiteApp({ onBackToMain }: { onBackToMain: () => voi
 
   return (
     <FuelProvider>
-      <div className="flex h-screen bg-[#13162b] font-sans selection:bg-cyan-500/30 overflow-hidden relative">
+      <div className="flex h-screen bg-[#0f1123] font-sans selection:bg-cyan-500/30 overflow-hidden relative">
         <Sidebar currentView={currentView} setCurrentView={setCurrentView} onBackToMain={onBackToMain} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
         <MainContent currentView={currentView} onOpenSidebar={() => setIsSidebarOpen(true)} />
       </div>

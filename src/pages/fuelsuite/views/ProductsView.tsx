@@ -91,7 +91,7 @@ export default function ProductsView() {
             </thead>
             <tbody>
               {products.map(p => (
-                <tr key={p.id} className="hover:bg-[#13162b] transition-colors">
+                <tr key={p.id} className="hover:bg-[#0f1123] transition-colors">
                   <Td>
                     <span className="font-semibold text-slate-200">{p.name}</span>
                   </Td>
