@@ -515,7 +515,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         <div className="flex items-center gap-2">
           <button
             onClick={handleExportStatement}
-            className="px-4 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-lg text-base font-semibold flex items-center gap-2 transition-all shadow-sm cursor-pointer"
+            className="px-4 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 text-cyan-400 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-lg text-base font-semibold flex items-center gap-2 transition-all shadow-sm cursor-pointer"
             id="btn-customer-dash-export-pdf"
           >
             <Download className="w-5 h-5" />
@@ -549,7 +549,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         <div className="flex flex-wrap gap-2.5">
           <button
             onClick={() => setActiveModal('delivery')}
-            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm rounded-lg shadow-md hover:shadow-blue-600/10 flex items-center gap-2 transition-all cursor-pointer"
+            className="px-4 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold text-sm rounded-lg shadow-md hover:shadow-blue-600/10 flex items-center gap-2 transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Log Delivery
@@ -579,12 +579,12 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Outstanding Balance</p>
             <button
                onClick={verifyBalance}
-               className="text-xs text-blue-600 font-bold hover:underline"
+               className="text-xs text-cyan-500 font-bold hover:underline"
             >
               Verify
             </button>
             <div className={`p-2 rounded-lg ${calculatedBalance < 0 ? 'bg-emerald-100/70 dark:bg-emerald-950/45' : 'bg-blue-50 dark:bg-blue-900/35'}`}>
-              <DollarSign className={`w-5 h-5 ${calculatedBalance < 0 ? 'text-emerald-600' : 'text-blue-600'}`} />
+              <DollarSign className={`w-5 h-5 ${calculatedBalance < 0 ? 'text-emerald-600' : 'text-cyan-500'}`} />
             </div>
           </div>
           <div className="mt-4">
@@ -617,7 +617,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 rounded-xl p-5 shadow-sm transition-colors">
           <div className="flex justify-between items-start">
             <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Credit Allocation</p>
-            <div className="p-2 bg-blue-50 dark:bg-blue-900/35 rounded-lg text-blue-600">
+            <div className="p-2 bg-blue-50 dark:bg-blue-900/35 rounded-lg text-cyan-500">
               <FileText className="w-5 h-5" />
             </div>
           </div>
@@ -644,16 +644,16 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 rounded-xl p-5 shadow-sm transition-colors">
           <div className="flex justify-between items-start">
             <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Deliveries</p>
-            <div className="p-2 bg-blue-50 dark:bg-blue-950/40 rounded-lg text-blue-600 border border-blue-200/40 dark:border-blue-800/40">
+            <div className="p-2 bg-blue-50 dark:bg-blue-950/40 rounded-lg text-cyan-500 border border-blue-200/40 dark:border-blue-800/40">
               <Truck className="w-5 h-5 hover:scale-100 transition-transform" />
             </div>
           </div>
           <div className="mt-4">
-            <h3 className="text-2xl font-black font-mono text-blue-600 dark:text-blue-400 tracking-tight leading-none">
+            <h3 className="text-2xl font-black font-mono text-cyan-500 dark:text-blue-400 tracking-tight leading-none">
               {formatCurrency(totalSalesValue)}
             </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium">
-              Dispensed total <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{totalFuelLitres.toLocaleString()} Litres</span>.
+              Dispensed total <span className="font-mono font-bold text-cyan-500 dark:text-blue-400">{totalFuelLitres.toLocaleString()} Litres</span>.
             </p>
           </div>
         </div>
@@ -687,7 +687,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               <p className="text-xs text-gray-500 dark:text-gray-400">Time-series tracking of outstanding balance evolution</p>
             </div>
             <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/40 px-3 py-1.5 rounded-lg border border-blue-200/50 dark:border-blue-800">
-              <TrendingUp className="w-4 h-4 text-blue-600 dark:text-cyan-400" />
+              <TrendingUp className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
               <span className="text-xs font-bold text-blue-800 dark:text-cyan-300 uppercase">Balance Scale</span>
             </div>
           </div>
@@ -773,7 +773,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             </div>
             
             <div className="pt-4 border-t border-gray-100 dark:border-blue-900 text-center">
-              <p className="text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline cursor-pointer flex justify-center items-center gap-1" onClick={handleExportStatement}>
+              <p className="text-xs text-cyan-500 dark:text-blue-400 font-bold hover:underline cursor-pointer flex justify-center items-center gap-1" onClick={handleExportStatement}>
                 <Calendar className="w-3.5 h-3.5" /> Open printable timeline report
               </p>
             </div>
@@ -798,7 +798,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   onClick={() => setFilterType(f)}
                   className={`px-3 py-1 text-xs font-bold rounded-md uppercase transition-colors cursor-pointer ${
                     filterType === f 
-                      ? 'bg-blue-600 dark:bg-blue-600 text-white shadow-sm'
+                      ? 'bg-blue-600 dark:bg-cyan-500 text-slate-900 shadow-sm'
                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-blue-200'
                   }`}
                 >
@@ -878,7 +878,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                             ? 'bg-amber-50 dark:bg-amber-950/20 text-amber-600' 
                             : e.type === 'payment' 
                               ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600' 
-                              : 'bg-blue-50 dark:bg-blue-900/35 text-blue-600'
+                              : 'bg-blue-50 dark:bg-blue-900/35 text-cyan-500'
                         }`}>
                           {e.type === 'delivery' && <Truck className="w-4 h-4" />}
                           {e.type === 'payment' && <DollarSign className="w-4 h-4" />}
@@ -925,9 +925,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               <div className="px-6 py-5 border-b border-blue-200 dark:border-blue-800 bg-blue-100/50 dark:bg-blue-950/50 flex justify-between items-center">
                 <div>
                   <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Log Fuel Delivery</h3>
-                  <p className="text-xs text-blue-700 dark:text-blue-300 font-medium pb-1">For {customer.name}</p>
+                  <p className="text-xs text-cyan-400 dark:text-blue-300 font-medium pb-1">For {customer.name}</p>
                 </div>
-                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-blue-400 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
+                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-blue-400 hover:text-cyan-500 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
               </div>
               <div className="p-6 space-y-4">
                 <div>
@@ -983,14 +983,14 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <button
                   type="button"
                   onClick={() => setActiveModal(null)}
-                  className="px-4 py-2 font-semibold text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
+                  className="px-4 py-2 font-semibold text-cyan-400 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={modalLoading}
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-md shadow-blue-500/20 disabled:opacity-50 transition-colors"
+                  className="px-5 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-900 rounded-lg text-sm font-bold shadow-md shadow-blue-500/20 disabled:opacity-50 transition-colors"
                 >
                   Save Delivery
                 </button>
@@ -1007,9 +1007,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               <div className="px-6 py-5 border-b border-blue-200 dark:border-blue-800 bg-blue-100/50 dark:bg-blue-950/50 flex justify-between items-center">
                 <div>
                   <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Record Payment</h3>
-                  <p className="text-xs text-blue-700 dark:text-blue-300 font-medium pb-1">For {customer.name}</p>
+                  <p className="text-xs text-cyan-400 dark:text-blue-300 font-medium pb-1">For {customer.name}</p>
                 </div>
-                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-blue-400 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
+                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-blue-400 hover:text-cyan-500 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
               </div>
               <div className="p-6 space-y-4">
                 <div>
@@ -1039,7 +1039,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <button
                   type="button"
                   onClick={() => setActiveModal(null)}
-                  className="px-4 py-2 font-semibold text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
+                  className="px-4 py-2 font-semibold text-cyan-400 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
                 >
                   Cancel
                 </button>
@@ -1063,9 +1063,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               <div className="px-6 py-5 border-b border-blue-200 dark:border-blue-800 bg-blue-100/50 dark:bg-blue-950/50 flex justify-between items-center">
                 <div>
                   <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Log Adjustment</h3>
-                  <p className="text-xs text-blue-700 dark:text-blue-300 font-medium pb-1">Manual Ledger Adjustment overriding standard log flows</p>
+                  <p className="text-xs text-cyan-400 dark:text-blue-300 font-medium pb-1">Manual Ledger Adjustment overriding standard log flows</p>
                 </div>
-                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-blue-400 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
+                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-blue-400 hover:text-cyan-500 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
               </div>
               <div className="p-6 space-y-4">
                 <div>
@@ -1133,7 +1133,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <button
                   type="button"
                   onClick={() => setActiveModal(null)}
-                  className="px-4 py-2 font-semibold text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
+                  className="px-4 py-2 font-semibold text-cyan-400 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
                 >
                   Cancel
                 </button>

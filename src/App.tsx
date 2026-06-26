@@ -126,7 +126,7 @@ function AuthenticatedApp() {
                   window.open(window.location.href, '_blank');
                   setShowPrintWarning(false);
                 }}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-medium rounded-lg transition-colors"
               >
                 Open in New Tab
               </button>
@@ -162,19 +162,19 @@ function AuthenticatedApp() {
             <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-slate-900 p-1 rounded-lg border border-gray-200 dark:border-blue-900/50">
               <button 
                 onClick={() => setSelectedStation('Combined')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${selectedStation === 'Combined' ? 'bg-blue-600 text-white shadow-xs' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'}`}
+                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${selectedStation === 'Combined' ? 'bg-cyan-500 text-slate-900 shadow-xs' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'}`}
               >
                 Combined Total
               </button>
               <button 
                 onClick={() => setSelectedStation('Ndalu')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${selectedStation === 'Ndalu' ? 'bg-blue-600 text-white shadow-xs' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'}`}
+                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${selectedStation === 'Ndalu' ? 'bg-cyan-500 text-slate-900 shadow-xs' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'}`}
               >
                 Ndalu Station
               </button>
               <button 
                 onClick={() => setSelectedStation('Junction')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${selectedStation === 'Junction' ? 'bg-blue-600 text-white shadow-xs' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'}`}
+                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${selectedStation === 'Junction' ? 'bg-cyan-500 text-slate-900 shadow-xs' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'}`}
               >
                 Junction Station
               </button>
@@ -345,7 +345,7 @@ function Main() {
           </p>
 
           {isLogin && !isForgotPassword && (
-            <div className="text-xs text-blue-600 dark:text-blue-400 text-center mb-6 bg-blue-500/5 p-3 rounded-lg border border-blue-100 dark:border-blue-900/40 leading-relaxed">
+            <div className="text-xs text-cyan-500 dark:text-blue-400 text-center mb-6 bg-blue-500/5 p-3 rounded-lg border border-blue-100 dark:border-blue-900/40 leading-relaxed">
               💡 <strong>First Time?</strong> If you have not created an email/password account yet, click <strong>Sign up</strong> at the bottom to register your email <strong>enockloriso@gmail.com</strong>.
             </div>
           )}
@@ -428,7 +428,7 @@ function Main() {
                   type="email" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-blue-900/40 border border-gray-300 dark:border-blue-800 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all dark:text-white"
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-blue-900/40 border border-gray-300 dark:border-blue-800 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all dark:text-white"
                   placeholder="Enter your email"
                   required
                 />
@@ -442,7 +442,7 @@ function Main() {
                       <button 
                         type="button" 
                         onClick={() => { setIsForgotPassword(true); setError(''); setMessage(''); }} 
-                        className="text-sm text-blue-600 dark:text-blue-400 font-semibold hover:underline"
+                        className="text-sm text-cyan-500 dark:text-blue-400 font-semibold hover:underline"
                       >
                         Forgot password?
                       </button>
@@ -452,7 +452,7 @@ function Main() {
                     type="password" 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-blue-900/40 border border-gray-300 dark:border-blue-800 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all dark:text-white"
+                    className="w-full px-4 py-2 bg-gray-50 dark:bg-blue-900/40 border border-gray-300 dark:border-blue-800 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all dark:text-white"
                     placeholder="Enter your password"
                     required
                   />
@@ -466,7 +466,7 @@ function Main() {
                     type="password" 
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-blue-900/40 border border-gray-300 dark:border-blue-800 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all dark:text-white"
+                    className="w-full px-4 py-2 bg-gray-50 dark:bg-blue-900/40 border border-gray-300 dark:border-blue-800 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all dark:text-white"
                     placeholder="Confirm your password"
                     required
                   />
@@ -476,7 +476,7 @@ function Main() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-semibold transition-all shadow-md shadow-blue-900/20"
+                className="w-full py-2.5 px-4 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-900 rounded-lg font-semibold transition-all shadow-md shadow-blue-900/20"
               >
                 {loading ? 'Processing...' : (isForgotPassword ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Sign Up'))}
               </button>
@@ -515,7 +515,7 @@ function Main() {
             {isForgotPassword ? (
               <button 
                 onClick={() => { setIsForgotPassword(false); setError(''); setMessage(''); }} 
-                className="text-blue-600 dark:text-blue-400 font-semibold hover:underline"
+                className="text-cyan-500 dark:text-blue-400 font-semibold hover:underline"
               >
                 Back to Sign In
               </button>
@@ -528,7 +528,7 @@ function Main() {
                     setError('');
                     setMessage('');
                   }} 
-                  className="text-blue-600 dark:text-blue-400 font-semibold hover:underline"
+                  className="text-cyan-500 dark:text-blue-400 font-semibold hover:underline"
                 >
                   {isLogin ? 'Sign up' : 'Sign in'}
                 </button>

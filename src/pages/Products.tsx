@@ -91,14 +91,14 @@ export default function Products() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-blue-100 flex items-center gap-2">
-            <Box className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <Box className="w-6 h-6 text-cyan-500 dark:text-blue-400" />
             Products Configuration
           </h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">Manage product types available for deliveries and operations.</p>
         </div>
         <button 
           onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} 
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-900 rounded-lg font-semibold transition-colors"
         >
           {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Product</>}
         </button>
@@ -133,13 +133,13 @@ export default function Products() {
                 onChange={e => setForm({...form, name: e.target.value})} 
                 placeholder="e.g. Super Premium" 
                 required 
-                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-blue-900/40 border border-gray-200 dark:border-blue-800/70 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-blue-900/40 border border-gray-200 dark:border-blue-800/70 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
               />
             </div>
             <div className="col-span-1 md:col-span-2 flex justify-end mt-2">
               <button 
                 type="submit"
-                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors"
+                className="px-5 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-900 rounded-lg font-semibold transition-colors"
                >
                 {editingId ? 'Update Product' : 'Save Product'}
                </button>
@@ -164,7 +164,7 @@ export default function Products() {
                 <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-blue-900/10 transition-colors">
                   <td className="px-6 py-4 font-semibold text-gray-900 dark:text-blue-100">{p.name}</td>
                   <td className="px-6 py-4 flex justify-end gap-3">
-                    <button onClick={() => handleEdit(p)} className="p-1.5 bg-blue-50 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-md hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors">
+                    <button onClick={() => handleEdit(p)} className="p-1.5 bg-blue-50 dark:bg-blue-900/40 text-cyan-500 dark:text-blue-400 rounded-md hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors">
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button onClick={() => handleDelete(p.id)} className="p-1.5 bg-red-50 dark:bg-red-900/40 text-red-600 dark:text-red-400 rounded-md hover:bg-red-100 dark:hover:bg-red-800 transition-colors">

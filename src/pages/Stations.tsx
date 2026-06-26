@@ -143,7 +143,7 @@ export default function Stations() {
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4" id="stations-overview-cards">
         <div className="bg-white dark:bg-blue-900/10 p-5 rounded-xl border border-gray-150 dark:border-blue-900/30 shadow-xs flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-blue-600">
+          <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-cyan-500">
             <Building2 className="w-6 h-6" />
           </div>
           <div>
@@ -200,7 +200,7 @@ export default function Stations() {
 
         <button
           onClick={handleAddClick}
-          className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-xs cursor-pointer"
+          className="flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-slate-900 px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-xs cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Add Station
@@ -211,7 +211,7 @@ export default function Stations() {
       <div className="bg-white dark:bg-blue-950 border border-gray-150 dark:border-blue-900 rounded-xl overflow-hidden shadow-xs" id="stations-table-container">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 text-gray-400 gap-3">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500"></div>
             <p className="text-sm font-medium">Loading stations...</p>
           </div>
         ) : filteredStations.length === 0 ? (
@@ -269,7 +269,7 @@ export default function Stations() {
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => handleEditClick(station)}
-                          className="p-1.5 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-blue-900/40 rounded-lg transition-colors cursor-pointer"
+                          className="p-1.5 text-gray-600 dark:text-gray-300 hover:text-cyan-500 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-blue-900/40 rounded-lg transition-colors cursor-pointer"
                           title="Edit Station"
                         >
                           <Pencil className="w-4 h-4" />
@@ -398,7 +398,7 @@ export default function Stations() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center justify-center min-w-[80px] disabled:opacity-50 cursor-pointer"
+                  className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-900 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center min-w-[80px] disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? 'Saving...' : 'Save'}
                 </button>

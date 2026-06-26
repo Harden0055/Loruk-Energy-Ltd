@@ -50,13 +50,13 @@ export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-base transition-colors",
                 isActive 
-                  ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 font-medium" 
+                  ? "bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400 font-medium" 
                   : item.id === 'fuelsuite'
                     ? "text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-900/10 hover:bg-cyan-100 dark:hover:bg-cyan-900/30"
                     : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-blue-900/50 dark:hover:text-gray-100"
               )}
             >
-              <Icon className={cn("w-5 h-5", isActive ? "text-blue-700 dark:text-blue-400" : item.id === 'fuelsuite' ? "text-cyan-600 dark:text-cyan-400" : "text-gray-500 dark:text-gray-400")} />
+              <Icon className={cn("w-5 h-5", isActive ? "text-cyan-600 dark:text-cyan-400" : item.id === 'fuelsuite' ? "text-cyan-600 dark:text-cyan-400" : "text-gray-500 dark:text-gray-400")} />
               {item.label}
               {item.id === 'fuelsuite' && (
                 <span className="ml-auto bg-cyan-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">NEW</span>

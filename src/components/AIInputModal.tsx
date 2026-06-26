@@ -73,17 +73,17 @@ export default function AIInputModal({ onClose, onResult }: AIInputModalProps) {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-blue-200 dark:border-blue-800 w-full max-w-lg overflow-hidden flex flex-col transform transition-all duration-300">
         <div className="px-6 py-5 border-b border-blue-200 dark:border-blue-800 flex justify-between items-center bg-blue-100/50 dark:bg-blue-950/50">
-          <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+          <div className="flex items-center gap-2 text-cyan-500 dark:text-blue-400">
             <Bot className="w-6 h-6" />
             <h3 className="font-bold text-blue-900 dark:text-blue-50 text-xl">AI Data Extraction</h3>
           </div>
-          <button onClick={onClose} className="p-1 px-2 text-blue-400 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer">
+          <button onClick={onClose} className="p-1 px-2 text-blue-400 hover:text-cyan-500 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
         
         <div className="p-6 flex-1 overflow-y-auto space-y-6">
-          <p className="text-sm text-blue-700 dark:text-blue-300 font-medium leading-relaxed">
+          <p className="text-sm text-cyan-400 dark:text-blue-300 font-medium leading-relaxed">
             Upload a receipt image or paste text. The AI agent will extract the relevant information and pre-fill the form for you to clarify before saving.
           </p>
 
@@ -121,7 +121,7 @@ export default function AIInputModal({ onClose, onResult }: AIInputModalProps) {
                 className="hidden"
               />
               {file ? (
-                <div className="text-sm text-blue-600 dark:text-blue-400 font-bold">
+                <div className="text-sm text-cyan-500 dark:text-blue-400 font-bold">
                   {file.name}
                 </div>
               ) : (
@@ -140,14 +140,14 @@ export default function AIInputModal({ onClose, onResult }: AIInputModalProps) {
         <div className="px-6 py-4 border-t border-blue-200 dark:border-blue-800 bg-blue-100/50 dark:bg-blue-950/50 flex justify-end gap-3 rounded-b-xl">
           <button
             onClick={onClose}
-            className="px-4 py-2 font-semibold text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
+            className="px-4 py-2 font-semibold text-cyan-400 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleExtract}
             disabled={loading || (!text && !file)}
-            className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold transition-colors shadow-md shadow-blue-500/20 flex items-center gap-2 disabled:opacity-50"
+            className="px-5 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-900 rounded-lg text-sm font-bold transition-colors shadow-md shadow-blue-500/20 flex items-center gap-2 disabled:opacity-50"
           >
             {loading ? (
               <>

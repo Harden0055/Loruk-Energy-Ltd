@@ -97,7 +97,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
           )}
           <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-blue-100">Truck Fleet Performance Dashboard</h2>
         </div>
-        <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 cursor-pointer transition-colors shadow-sm">
+        <button className="bg-cyan-500 hover:bg-cyan-400 text-slate-900 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 cursor-pointer transition-colors shadow-sm">
            <Download className="w-4 h-4" /> Export Report
         </button>
       </div>
@@ -106,7 +106,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900/60 p-5 rounded-xl">
            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Total Spent</p>
-           <h3 className="text-2xl font-black font-mono text-blue-600 dark:text-blue-400 mt-2">{formatCurrency(totalExpense)}</h3>
+           <h3 className="text-2xl font-black font-mono text-cyan-500 dark:text-blue-400 mt-2">{formatCurrency(totalExpense)}</h3>
         </div>
         <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900/60 p-5 rounded-xl">
            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Total Distance</p>
@@ -192,7 +192,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
               return (
                 <tr key={e.id} className="hover:bg-gray-50 dark:hover:bg-blue-800/10">
                   <td className="px-4 py-3">{format(e.date, 'MMM d, yyyy')}</td>
-                  <td className="px-4 py-3 font-semibold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
+                  <td className="px-4 py-3 font-semibold text-cyan-500 dark:text-blue-400 cursor-pointer hover:underline" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
                   <td className="px-4 py-3">
                     {e.station && (
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${badgeClass}`}>
@@ -200,7 +200,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right font-mono font-bold text-blue-600 dark:text-blue-400">{formatCurrency(e.amount)}</td>
+                  <td className="px-4 py-3 text-right font-mono font-bold text-cyan-500 dark:text-blue-400">{formatCurrency(e.amount)}</td>
                   <td className="px-4 py-3 text-right">{e.distance ? `${e.distance.toLocaleString()} km` : '-'}</td>
                 </tr>
               );

@@ -351,7 +351,7 @@ export default function InventoryDashboard({ selectedStation }: InventoryDashboa
         <div className="flex items-center gap-2 bg-gray-50 dark:bg-blue-950 px-3 py-1.5 rounded-lg border border-gray-150 dark:border-blue-900 text-xs text-gray-500 dark:text-gray-400">
           <RefreshCw className="w-3.5 h-3.5 animate-spin-slow text-blue-500" />
           <span>Active Scope: </span>
-          <span className="font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+          <span className="font-bold text-cyan-500 dark:text-blue-400 uppercase tracking-wider">
             {selectedStation === 'Combined' ? 'Entire Station Network' : `${selectedStation} Station`}
           </span>
         </div>

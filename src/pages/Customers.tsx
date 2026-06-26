@@ -153,7 +153,7 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
         </button>
         <button 
           onClick={() => setIsAdding(true)}
-          className="px-5 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-lg text-base font-semibold flex items-center gap-2 transition-all shadow-sm shadow-blue-900/5 cursor-pointer"
+          className="px-5 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 text-cyan-400 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-lg text-base font-semibold flex items-center gap-2 transition-all shadow-sm shadow-blue-900/5 cursor-pointer"
         >
           <Plus className="w-5 h-5" />
           Add Customer
@@ -230,7 +230,7 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
                     {onViewCustomer ? (
                       <button 
                         onClick={() => onViewCustomer(c.id)}
-                        className="hover:underline text-blue-600 dark:text-blue-400 font-bold cursor-pointer text-left focus:outline-none"
+                        className="hover:underline text-cyan-500 dark:text-blue-400 font-bold cursor-pointer text-left focus:outline-none"
                       >
                         {c.name}
                       </button>
@@ -264,7 +264,7 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
                       </td>
                     );
                   })()}
-                  <td className="px-6 py-4 text-base font-mono text-blue-600 dark:text-blue-400 text-right font-medium">{formatCurrency(c.totalPurchases)}</td>
+                  <td className="px-6 py-4 text-base font-mono text-cyan-500 dark:text-blue-400 text-right font-medium">{formatCurrency(c.totalPurchases)}</td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider ${
                       c.status === 'active' 
@@ -279,7 +279,7 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
                       {onViewCustomer && (
                         <button 
                           onClick={() => onViewCustomer(c.id)}
-                          className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/25 transition-colors rounded-md cursor-pointer"
+                          className="p-2 text-gray-500 dark:text-gray-400 hover:text-cyan-500 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/25 transition-colors rounded-md cursor-pointer"
                           title="View Customer Dashboard"
                           id={`btn-view-${c.id}`}
                         >
@@ -316,7 +316,7 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
                       </button>
                       <button 
                         onClick={() => setEditingCustomer(c)}
-                        className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors rounded-md"
+                        className="p-2 text-gray-500 dark:text-gray-400 hover:text-cyan-500 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors rounded-md"
                         title="Edit Customer"
                         id={`btn-edit-${c.id}`}
                       >
@@ -413,7 +413,7 @@ function AddCustomerModal({ onClose, customers }: ModalProps) {
             <button 
               type="button" 
               onClick={onClose}
-              className="text-blue-400 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 p-1 rounded-md transition-colors"
+              className="text-blue-400 hover:text-cyan-500 dark:text-blue-400 dark:hover:text-blue-300 p-1 rounded-md transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -482,7 +482,7 @@ function AddCustomerModal({ onClose, customers }: ModalProps) {
                   onClick={() => setForm({...form, openingBalanceType: 'arrears'})}
                   className={`px-3 py-2.5 border rounded-lg text-sm font-semibold text-center transition-colors shadow-sm cursor-pointer ${
                     form.openingBalanceType === 'arrears'
-                      ? 'bg-blue-50 dark:bg-blue-900 border-blue-500 text-blue-600 dark:text-blue-400 font-bold'
+                      ? 'bg-blue-50 dark:bg-blue-900 border-blue-500 text-cyan-500 dark:text-blue-400 font-bold'
                       : 'border-blue-200 dark:border-blue-700 text-blue-500 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/50 bg-white dark:bg-blue-950'
                   }`}
                 >
@@ -507,14 +507,14 @@ function AddCustomerModal({ onClose, customers }: ModalProps) {
               type="button" 
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 font-semibold text-blue-700 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-100 transition-colors"
+              className="px-4 py-2 font-semibold text-cyan-400 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-100 transition-colors"
             >
               Cancel
             </button>
             <button 
               type="submit" 
               disabled={loading}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors"
+              className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-900 rounded-lg text-sm font-semibold transition-colors"
             >
               {loading ? 'Adding...' : 'Add Customer'}
             </button>
@@ -604,7 +604,7 @@ function EditCustomerModal({ customer, customers, onClose }: EditProps) {
             <button 
               type="button" 
               onClick={onClose}
-              className="text-blue-400 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 p-1 rounded-md transition-colors"
+              className="text-blue-400 hover:text-cyan-500 dark:text-blue-400 dark:hover:text-blue-300 p-1 rounded-md transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -673,7 +673,7 @@ function EditCustomerModal({ customer, customers, onClose }: EditProps) {
                   onClick={() => setForm({...form, openingBalanceType: 'arrears'})}
                   className={`px-3 py-2.5 border rounded-lg text-sm font-semibold text-center transition-colors shadow-sm cursor-pointer ${
                     form.openingBalanceType === 'arrears'
-                      ? 'bg-blue-50 dark:bg-blue-900 border-blue-500 text-blue-600 dark:text-blue-400 font-bold'
+                      ? 'bg-blue-50 dark:bg-blue-900 border-blue-500 text-cyan-500 dark:text-blue-400 font-bold'
                       : 'border-blue-200 dark:border-blue-700 text-blue-500 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/50 bg-white dark:bg-blue-950'
                   }`}
                 >
@@ -709,14 +709,14 @@ function EditCustomerModal({ customer, customers, onClose }: EditProps) {
               type="button" 
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 font-semibold text-blue-700 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-100 transition-colors"
+              className="px-4 py-2 font-semibold text-cyan-400 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-100 transition-colors"
             >
               Cancel
             </button>
             <button 
               type="submit" 
               disabled={loading}
-              className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors"
+              className="px-5 py-2 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-900 rounded-lg text-sm font-semibold transition-colors"
             >
               {loading ? 'Saving...' : 'Save Changes'}
             </button>
@@ -853,12 +853,12 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
         <div className="px-6 py-4 border-b border-blue-200 dark:border-blue-800 bg-blue-100/50 dark:bg-blue-950/50 flex justify-between items-center">
           <div>
             <h3 className="text-lg font-bold text-blue-900 dark:text-blue-50">Adjust Customer Balance</h3>
-            <p className="text-xs text-blue-700 dark:text-blue-300 font-medium pb-1">Customer: {customer.name} ({customer.customerId})</p>
+            <p className="text-xs text-cyan-400 dark:text-blue-300 font-medium pb-1">Customer: {customer.name} ({customer.customerId})</p>
           </div>
           <button 
             type="button" 
             onClick={onClose}
-            className="p-1.5 text-blue-400 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors"
+            className="p-1.5 text-blue-400 hover:text-cyan-500 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -905,7 +905,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
                 Debit (+)
               </button>
             </div>
-            <p className="mt-1 text-xs text-blue-600 dark:text-blue-300 italic">
+            <p className="mt-1 text-xs text-cyan-500 dark:text-blue-300 italic">
               {type === 'credit' 
                 ? 'Credits deduct from outstanding balance (e.g., discounts, waivers, payment adjustments).' 
                 : 'Debits add to outstanding balance (e.g., surcharges, handling fees).'}
@@ -930,7 +930,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
               step="0.01"
               min="0.01"
               required
-              className="w-full px-4 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg text-base text-blue-900 dark:text-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors placeholder:text-blue-300 dark:placeholder:text-blue-700 shadow-sm"
+              className="w-full px-4 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg text-base text-blue-900 dark:text-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors placeholder:text-blue-300 dark:placeholder:text-cyan-400 shadow-sm"
               placeholder="0.00"
               value={amount}
               onChange={e => setAmount(e.target.value)}
@@ -942,7 +942,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
             <textarea
               required
               rows={3}
-              className="w-full px-4 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg text-base text-blue-900 dark:text-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors placeholder:text-blue-300 dark:placeholder:text-blue-700 resize-none shadow-sm"
+              className="w-full px-4 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg text-base text-blue-900 dark:text-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors placeholder:text-blue-300 dark:placeholder:text-cyan-400 resize-none shadow-sm"
               placeholder="E.g., Special weekend delivery fee waiver..."
               value={description}
               onChange={e => setDescription(e.target.value)}
@@ -954,14 +954,14 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 font-semibold text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
+              className="px-4 py-2 font-semibold text-cyan-400 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5 shadow-md shadow-blue-900/10"
+              className="px-5 py-2 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-900 rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5 shadow-md shadow-blue-900/10"
             >
               {loading ? 'Processing...' : 'Save Adjustment'}
             </button>

@@ -133,7 +133,7 @@ export default function ItemsSoldDashboard({ selectedStation }: ItemsSoldDashboa
         <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 p-5 rounded-2xl shadow-xs space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="text-sm font-bold text-gray-700 dark:text-blue-300">Station Retail Revenue Distribution</h3>
-            <span className="text-xs font-mono font-bold text-blue-600 dark:text-blue-400">
+            <span className="text-xs font-mono font-bold text-cyan-500 dark:text-blue-400">
               Total network retail: {formatCurrency(combinedTotalRevenue)}
             </span>
           </div>
@@ -154,7 +154,7 @@ export default function ItemsSoldDashboard({ selectedStation }: ItemsSoldDashboa
             </div>
 
             <div className="flex justify-between items-center text-xs font-semibold">
-              <div className="flex items-center gap-1.5 text-blue-600">
+              <div className="flex items-center gap-1.5 text-cyan-500">
                 <span className="w-3 h-3 bg-blue-600 rounded-sm"></span>
                 <span>Ndalu: {formatCurrency(ndalu.totalRevenue)} ({ndaluShare.toFixed(1)}%)</span>
               </div>
@@ -253,7 +253,7 @@ export default function ItemsSoldDashboard({ selectedStation }: ItemsSoldDashboa
             <div>
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-2">
-                  <div className="p-2 bg-blue-50 dark:bg-blue-950/40 rounded-xl text-blue-600">
+                  <div className="p-2 bg-blue-50 dark:bg-blue-950/40 rounded-xl text-cyan-500">
                     <Fuel className="w-5 h-5" />
                   </div>
                   <div>
@@ -278,7 +278,7 @@ export default function ItemsSoldDashboard({ selectedStation }: ItemsSoldDashboa
                     </div>
                     <div className="flex justify-between text-[11px] text-gray-400 font-mono">
                       <span>Volume Sold</span>
-                      <span className="font-semibold text-blue-600 dark:text-blue-400">{formatLitres(ndalu.diesel.litres)}</span>
+                      <span className="font-semibold text-cyan-500 dark:text-blue-400">{formatLitres(ndalu.diesel.litres)}</span>
                     </div>
                     {isCombined && (
                       <div className="w-full bg-gray-100 dark:bg-blue-900/10 h-1.5 rounded-full overflow-hidden">
@@ -300,7 +300,7 @@ export default function ItemsSoldDashboard({ selectedStation }: ItemsSoldDashboa
                     </div>
                     <div className="flex justify-between text-[11px] text-gray-400 font-mono">
                       <span>Volume Sold</span>
-                      <span className="font-semibold text-blue-600 dark:text-blue-400">{formatLitres(junction.diesel.litres)}</span>
+                      <span className="font-semibold text-cyan-500 dark:text-blue-400">{formatLitres(junction.diesel.litres)}</span>
                     </div>
                     {isCombined && (
                       <div className="w-full bg-gray-100 dark:bg-blue-900/10 h-1.5 rounded-full overflow-hidden">

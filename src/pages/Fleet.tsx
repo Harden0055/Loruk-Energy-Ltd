@@ -215,13 +215,13 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
           {onNavigate && (
             <button 
               onClick={() => onNavigate('truckDashboard')}
-              className="px-5 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-lg text-base font-semibold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-900/5 cursor-pointer"
+              className="px-5 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 text-cyan-400 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-lg text-base font-semibold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-900/5 cursor-pointer"
             >
                <Truck className="w-5 h-5" />
                Truck Dashboard
             </button>
           )}
-          <button onClick={generatePDF} className="bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:hover:bg-blue-800/60 dark:text-blue-300 dark:border-blue-700/50 px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 transition-colors cursor-pointer border border-blue-200 dark:border-blue-800"><Download className="w-5 h-5" /> Export</button>
+          <button onClick={generatePDF} className="bg-blue-50 hover:bg-blue-100 text-cyan-500 dark:bg-blue-900/40 dark:hover:bg-blue-800/60 dark:text-blue-300 dark:border-blue-700/50 px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 transition-colors cursor-pointer border border-blue-200 dark:border-blue-800"><Download className="w-5 h-5" /> Export</button>
           <button 
             onClick={() => {
               if (editingExpenseId) {
@@ -236,7 +236,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                 setIsAdding(!isAdding);
               }
             }} 
-            className="px-5 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-lg text-base font-semibold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-900/5 cursor-pointer w-full sm:w-auto"
+            className="px-5 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 text-cyan-400 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-lg text-base font-semibold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-900/5 cursor-pointer w-full sm:w-auto"
           >
             <Plus className="w-5 h-5" /> Add Expense
           </button>
@@ -254,7 +254,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
             <div className="flex gap-2 w-full">
               <button 
                 type="submit" 
-                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer"
+                className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-900 px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer"
               >
                 {editingExpenseId ? 'Update' : 'Save'}
               </button>
@@ -287,7 +287,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
           }).sort((a, b) => b.totalConsumption - a.totalConsumption);
           
           const textColors = [
-            'text-blue-600 dark:text-blue-400',
+            'text-cyan-500 dark:text-blue-400',
             'text-emerald-600 dark:text-emerald-400',
             'text-purple-600 dark:text-purple-400',
             'text-orange-600 dark:text-orange-400',
@@ -351,7 +351,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
           </div>
           {/* Consumption Summary */}
           <div className="w-full bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg flex flex-col justify-center border border-blue-100 dark:border-blue-800">
-             <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">Filtered Consumption</p>
+             <p className="text-sm font-medium text-cyan-500 dark:text-blue-400 mb-1">Filtered Consumption</p>
              <h3 className="text-2xl font-bold text-blue-900 dark:text-blue-100">
                {formatCurrency(filteredExpenses.reduce((acc, e) => acc + e.amount, 0))}
              </h3>
@@ -400,7 +400,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
             {filteredExpenses.map(e => (
               <tr key={e.id} className="hover:bg-gray-50 dark:hover:bg-blue-900/50 transition-colors duration-300">
                 <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{format(e.date, 'MMM d, yyyy')}</td>
-                <td className="px-4 py-3 font-semibold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
+                <td className="px-4 py-3 font-semibold text-cyan-500 dark:text-blue-400 cursor-pointer hover:underline" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
                 <td className="px-4 py-3">
                   {e.station && (
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
@@ -413,7 +413,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                     </span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-right font-mono font-bold text-blue-600 dark:text-blue-400">{formatCurrency(e.amount)}</td>
+                <td className="px-4 py-3 text-right font-mono font-bold text-cyan-500 dark:text-blue-400">{formatCurrency(e.amount)}</td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center justify-end gap-1.5">
                     <button 
@@ -441,7 +441,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                         // Smoothly scroll the page to the top so the form is visible
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }} 
-                      className="p-1 text-blue-600 hover:text-blue-800 transition-colors cursor-pointer" 
+                      className="p-1 text-cyan-500 hover:text-blue-800 transition-colors cursor-pointer" 
                       title="Edit Expense"
                     >
                       <Pencil className="w-4 h-4" />

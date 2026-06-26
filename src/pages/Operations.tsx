@@ -1183,7 +1183,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
                 </button>
                 <button 
                   type="submit"
-                  className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold transition-transform cursor-pointer"
+                  className="w-full py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-900 rounded-lg text-sm font-bold transition-transform cursor-pointer"
                 >
                   Log Pump Record
                 </button>
@@ -1273,7 +1273,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
                         <td className="px-3 py-2.5 whitespace-nowrap">{format(r.date, 'MM/dd/yyyy')}</td>
                         <td className="px-3 py-2.5">{r.station}</td>
                         <td className="px-3 py-2.5">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] ${r.product === 'Super' ? 'bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400' : 'bg-amber-50 dark:bg-yellow-950 text-amber-600 dark:text-yellow-400'}`}>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] ${r.product === 'Super' ? 'bg-blue-50 dark:bg-blue-950 text-cyan-500 dark:text-blue-400' : 'bg-amber-50 dark:bg-yellow-950 text-amber-600 dark:text-yellow-400'}`}>
                             {r.product}
                           </span>
                         </td>
@@ -1341,7 +1341,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
                   <button 
                     type="button"
                     onClick={() => setLpgIsBought(false)}
-                    className={`py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${!lpgIsBought ? 'bg-blue-600 text-white' : 'bg-transparent text-gray-500'}`}
+                    className={`py-2 text-xs font-bold rounded-lg border transition-all cursor-pointer ${!lpgIsBought ? 'bg-cyan-500 text-slate-900' : 'bg-transparent text-gray-500'}`}
                   >
                     Log Sales (Outputs)
                   </button>
@@ -1425,7 +1425,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
                   />
                 </div>
 
-                <button type="submit" className="w-full py-2 bg-blue-600 text-white rounded-lg text-xs font-bold cursor-pointer">
+                <button type="submit" className="w-full py-2 bg-cyan-500 text-slate-900 rounded-lg text-xs font-bold cursor-pointer">
                   Submit LPG Log
                 </button>
               </form>
@@ -1453,7 +1453,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
                   <div className="grid grid-cols-2 gap-1 bg-gray-150 dark:bg-blue-950 p-1 rounded-lg border border-blue-900/15">
                     <button 
                       type="button" onClick={() => setApplianceIsBought(false)}
-                      className={`text-[10px] font-bold py-1 rounded transition-colors cursor-pointer ${!applianceIsBought ? 'bg-blue-600 text-white' : 'text-gray-500'}`}
+                      className={`text-[10px] font-bold py-1 rounded transition-colors cursor-pointer ${!applianceIsBought ? 'bg-cyan-500 text-slate-900' : 'text-gray-500'}`}
                     >
                       Sale
                     </button>
@@ -1493,7 +1493,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
                   </div>
                 </div>
 
-                <button type="submit" className="w-full py-2 bg-blue-600 text-white rounded-lg text-xs font-bold cursor-pointer">
+                <button type="submit" className="w-full py-2 bg-cyan-500 text-slate-900 rounded-lg text-xs font-bold cursor-pointer">
                   Submit Appliance Flow
                 </button>
               </form>
@@ -1527,7 +1527,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
                         <td className="px-3 py-2">{log.station}</td>
                         <td className="px-3 py-2 font-bold">{log.type}</td>
                         <td className="px-3 py-2">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${log.action === 'Purchase' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'}`}>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${log.action === 'Purchase' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' : 'bg-blue-100 text-cyan-400 dark:bg-blue-900/30 dark:text-blue-400'}`}>
                             {log.action}
                           </span>
                         </td>
@@ -1574,7 +1574,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
                 <select
                   value={configStation}
                   onChange={(e) => setConfigStation(e.target.value as 'Ndalu' | 'Junction')}
-                  className="font-bold text-xs text-blue-600 dark:text-blue-400 bg-transparent border-0 ring-0 focus:ring-0 p-0 cursor-pointer"
+                  className="font-bold text-xs text-cyan-500 dark:text-blue-400 bg-transparent border-0 ring-0 focus:ring-0 p-0 cursor-pointer"
                 >
                   <option value="Ndalu">Loruk - Ndalu</option>
                   <option value="Junction">Loruk - Junction</option>
@@ -1814,7 +1814,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
                 />
               </div>
 
-              <button type="submit" className="w-full py-2.5 bg-blue-600 text-white rounded-lg text-xs font-bold cursor-pointer">
+              <button type="submit" className="w-full py-2.5 bg-cyan-500 text-slate-900 rounded-lg text-xs font-bold cursor-pointer">
                 Save Reconciliation Parameters
               </button>
             </form>
@@ -1845,7 +1845,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
                       <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-blue-900/5">
                         <td className="px-3 py-2.5">{format(p.date, 'MM/dd/yyyy')}</td>
                         <td className="px-3 py-2.5 font-bold">{p.station}</td>
-                        <td className="px-3 py-2 text-right font-mono text-blue-600 dark:text-blue-400">{formatCurrency(p.mpesaBalance)}</td>
+                        <td className="px-3 py-2 text-right font-mono text-cyan-500 dark:text-blue-400">{formatCurrency(p.mpesaBalance)}</td>
                         <td className="px-3 py-2 text-right font-mono text-emerald-600 dark:text-emerald-400">{formatCurrency(p.cashAtHand)}</td>
                         <td className="px-3 py-2 text-right font-mono text-gray-900 dark:text-blue-100 font-bold">
                           {formatCurrency(p.mpesaBalance + p.cashAtHand)}
@@ -2040,7 +2040,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
                                   createdAt: Date.now()
                                 });
                               }}
-                              className="text-blue-600 hover:text-blue-800 text-[10px] font-bold border border-blue-500/20 px-1.5 py-0.5 rounded cursor-pointer"
+                              className="text-cyan-500 hover:text-blue-800 text-[10px] font-bold border border-blue-500/20 px-1.5 py-0.5 rounded cursor-pointer"
                               title="Clear outstanding offset accounts"
                             >
                               Settle Full
@@ -2123,7 +2123,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
               <button 
                 type="submit" 
                 disabled={isScSubmitting}
-                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
+                className="w-full py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-900 rounded-lg text-xs font-bold transition-all disabled:opacity-50 cursor-pointer"
               >
                 {isScSubmitting ? 'Registering...' : 'Add Station Customer'}
               </button>
@@ -2158,7 +2158,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
                         <td className="px-3 py-3">
                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                             customer.category === 'Credit Account' ? 'bg-purple-50 text-purple-600' :
-                            customer.category === 'Contractor' ? 'bg-blue-50 text-blue-600' : 'bg-gray-50 text-gray-600'
+                            customer.category === 'Contractor' ? 'bg-blue-50 text-cyan-500' : 'bg-gray-50 text-gray-600'
                           }`}>
                             {customer.category}
                           </span>
@@ -2215,7 +2215,7 @@ export default function Operations({ selectedStation, setSelectedStation }: Oper
               </button>
               <button 
                 type="button" onClick={() => handleDownloadPDF('weekly')}
-                className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg cursor-pointer transition-transform"
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-900 text-xs font-bold rounded-lg cursor-pointer transition-transform"
               >
                 <FileDown className="w-4 h-4" /> Weekly PDF
               </button>
@@ -2446,7 +2446,7 @@ function TabButton({ id, active, onClick, icon: Icon, label }: TabButtonProps) {
       onClick={onClick}
       className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer ${
         active 
-          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-extrabold shadow-sm' 
+          ? 'bg-blue-50 dark:bg-blue-900/30 text-cyan-400 dark:text-blue-300 font-extrabold shadow-sm' 
           : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-blue-950'
       }`}
     >
@@ -2468,7 +2468,7 @@ function InventoryConfigField({ label, value, onChange, current }: InventoryConf
     <div className="space-y-1.5 p-3 bg-gray-50 dark:bg-blue-900/10 rounded-xl border border-gray-150 dark:border-blue-900/30 relative">
       <div className="flex justify-between items-start mb-1">
         <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider">{label}</label>
-        <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-100/50 dark:bg-blue-900/40 px-1.5 py-0.5 rounded">Live</span>
+        <span className="text-[10px] font-bold text-cyan-500 dark:text-blue-400 bg-blue-100/50 dark:bg-blue-900/40 px-1.5 py-0.5 rounded">Live</span>
       </div>
       <div className="text-xl font-bold text-gray-900 dark:text-blue-100 font-mono mb-2">
         {current.toLocaleString()}

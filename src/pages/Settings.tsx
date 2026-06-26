@@ -167,7 +167,7 @@ export default function Settings() {
       <div className="bg-white dark:bg-blue-900/20 border border-gray-200 dark:border-blue-900 rounded-xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-blue-100 flex items-center gap-2">
-            <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <Shield className="w-5 h-5 text-cyan-500 dark:text-blue-400" />
             Security & Account Preferences
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -252,7 +252,7 @@ export default function Settings() {
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-blue-950/40 border border-gray-200 dark:border-blue-800/70 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-blue-950/40 border border-gray-200 dark:border-blue-800/70 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
                   placeholder="Enter full name"
                 />
               </div>
@@ -261,7 +261,7 @@ export default function Settings() {
                 <button
                   type="submit"
                   disabled={profileLoading}
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                  className="px-5 py-2 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-900 rounded-lg font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
                   {profileLoading ? 'Saving...' : 'Save Changes'}
@@ -308,7 +308,7 @@ export default function Settings() {
                         type={showCurrent ? 'text' : 'password'}
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
-                        className="w-full pl-4 pr-11 py-2.5 bg-gray-50 dark:bg-blue-950/40 border border-gray-200 dark:border-blue-800/70 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                        className="w-full pl-4 pr-11 py-2.5 bg-gray-50 dark:bg-blue-950/40 border border-gray-200 dark:border-blue-800/70 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
                         placeholder="Enter current password"
                         required
                         autoComplete="current-password"
@@ -334,7 +334,7 @@ export default function Settings() {
                         type={showNew ? 'text' : 'password'}
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full pl-4 pr-11 py-2.5 bg-gray-50 dark:bg-blue-950/40 border border-gray-200 dark:border-blue-800/70 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                        className="w-full pl-4 pr-11 py-2.5 bg-gray-50 dark:bg-blue-950/40 border border-gray-200 dark:border-blue-800/70 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
                         placeholder="Create strong password"
                         required
                         autoComplete="new-password"
@@ -360,7 +360,7 @@ export default function Settings() {
                         type={showConfirm ? 'text' : 'password'}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full pl-4 pr-11 py-2.5 bg-gray-50 dark:bg-blue-950/40 border border-gray-200 dark:border-blue-800/70 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                        className="w-full pl-4 pr-11 py-2.5 bg-gray-50 dark:bg-blue-950/40 border border-gray-200 dark:border-blue-800/70 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
                         placeholder="Re-enter new password"
                         required
                         autoComplete="new-password"
@@ -379,7 +379,7 @@ export default function Settings() {
                     <button
                       type="submit"
                       disabled={passwordLoading}
-                      className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                      className="px-5 py-2 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-900 rounded-lg font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                     >
                       <Lock className="w-4 h-4" />
                       {passwordLoading ? 'Updating...' : 'Update Password securely'}
@@ -390,7 +390,7 @@ export default function Settings() {
             ) : (
               <div className="p-5 bg-gray-50 dark:bg-blue-900/10 border border-gray-200 dark:border-blue-900/40 rounded-xl space-y-3">
                 <div className="flex gap-3">
-                  <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400 shrink-0">
+                  <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-cyan-500 dark:text-blue-400 shrink-0">
                     <Shield className="w-5 h-5" />
                   </div>
                   <div>
@@ -400,7 +400,7 @@ export default function Settings() {
                     </p>
                   </div>
                 </div>
-                <div className="text-xs text-blue-600 dark:text-blue-400 font-medium pl-10">
+                <div className="text-xs text-cyan-500 dark:text-blue-400 font-medium pl-10">
                   No static password reset/update is needed inside the Loruk Energy distribution platform.
                 </div>
               </div>
@@ -445,7 +445,7 @@ export default function Settings() {
                     <button
                       type="button"
                       onClick={() => setShowRestoreConfirm(true)}
-                      className="px-4 py-2 font-semibold text-xs tracking-wide uppercase bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      className="px-4 py-2 font-semibold text-xs tracking-wide uppercase bg-cyan-500 hover:bg-cyan-400 text-slate-900 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                     >
                       Emergency Restore 
                     </button>
@@ -501,7 +501,7 @@ export default function Settings() {
               onClick={async () => {
                 await exportDataToJson();
               }}
-              className="px-4 py-2 font-semibold text-xs tracking-wide uppercase bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2 font-semibold text-xs tracking-wide uppercase bg-cyan-500 hover:bg-cyan-400 text-slate-900 rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
             >
               <Download className="w-4 h-4" />
               Backup Data (JSON)

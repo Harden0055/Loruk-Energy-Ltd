@@ -229,7 +229,7 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <MetricCard title="Total Outstanding Balances" value={formatCurrency(outstandingBalance)} icon={DollarSign} color={outstandingBalanceColor} />
         <MetricCard title="Total Fleet Fueling" value={formatCurrency(totalFleetExpenses)} icon={TrendingUp} color="text-orange-500 dark:text-orange-400" />
-        <MetricCard title="Average Expense per Truck" value={formatCurrency(avgExpensePerTruck)} icon={CarFront} color="text-blue-600 dark:text-blue-400" />
+        <MetricCard title="Average Expense per Truck" value={formatCurrency(avgExpensePerTruck)} icon={CarFront} color="text-cyan-500 dark:text-blue-400" />
         <MetricCard title="Active Customers" value={activeCustomers.toString()} icon={Users} color="text-emerald-600 dark:text-emerald-400" />
         <MetricCard title="Active Trucks" value={activeTrucksCount.toString()} icon={Truck} color="text-purple-600 dark:text-purple-400" />
       </div>
@@ -382,12 +382,12 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
                           </div>
                         </td>
                         <td className="border border-gray-200 dark:border-blue-900 py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-blue-800" onClick={() => onNavigateToTruck?.(act.carRegistration)}>
-                          <div className="font-bold text-blue-600 dark:text-blue-400 hover:underline">{act.carRegistration}</div>
+                          <div className="font-bold text-cyan-500 dark:text-blue-400 hover:underline">{act.carRegistration}</div>
                         </td>
                         <td className="border border-gray-200 dark:border-blue-900 py-3 px-4 text-gray-600 dark:text-gray-400">
                           {act.station}
                         </td>
-                        <td className="border border-gray-200 dark:border-blue-900 py-3 px-4 text-right font-mono font-bold text-blue-600 dark:text-blue-400">
+                        <td className="border border-gray-200 dark:border-blue-900 py-3 px-4 text-right font-mono font-bold text-cyan-500 dark:text-blue-400">
                           {formatCurrency(act.amount)}
                         </td>
                         <td className="border border-gray-200 dark:border-blue-900 py-3 px-4 text-xs font-mono font-medium text-gray-500 dark:text-gray-400 select-all max-w-[120px] truncate" title={act.createdBy}>

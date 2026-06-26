@@ -67,7 +67,7 @@ export default function Payments({ onViewCustomer }: { onViewCustomer?: (id: str
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <button 
             onClick={() => setShowAIModal(true)}
-            className="w-full sm:w-auto bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:hover:bg-blue-800/60 dark:text-blue-300 dark:border-blue-700/50 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors border border-blue-200"
+            className="w-full sm:w-auto bg-blue-50 hover:bg-blue-100 text-cyan-500 dark:bg-blue-900/40 dark:hover:bg-blue-800/60 dark:text-blue-300 dark:border-blue-700/50 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors border border-blue-200"
           >
             <Bot className="w-4 h-4" />
             AI Auto-Fill
@@ -77,7 +77,7 @@ export default function Payments({ onViewCustomer }: { onViewCustomer?: (id: str
               setInitialForm(null);
               setIsAdding(true);
             }}
-            className="w-full sm:w-auto bg-blue-100/75 hover:bg-blue-100 dark:bg-blue-900/40 dark:hover:bg-blue-800/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full sm:w-auto bg-blue-100/75 hover:bg-blue-100 dark:bg-blue-900/40 dark:hover:bg-blue-800/60 text-cyan-400 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Record Payment
@@ -121,7 +121,7 @@ export default function Payments({ onViewCustomer }: { onViewCustomer?: (id: str
               ) : filtered.map(p => (
                 <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-blue-900/50 transition-colors">
                   <td className="px-4 py-3 text-base text-gray-600 dark:text-gray-400">{format(p.date, 'MMM d, yyyy HH:mm')}</td>
-                  <td className="px-4 py-3 text-base font-medium text-gray-800 dark:text-blue-200"><button className="hover:underline text-blue-600 dark:text-blue-400 cursor-pointer" onClick={() => onViewCustomer?.(p.customerId)}>{customers.find(c => c.id === p.customerId)?.name || 'Unknown'}</button></td>
+                  <td className="px-4 py-3 text-base font-medium text-gray-800 dark:text-blue-200"><button className="hover:underline text-cyan-500 dark:text-blue-400 cursor-pointer" onClick={() => onViewCustomer?.(p.customerId)}>{customers.find(c => c.id === p.customerId)?.name || 'Unknown'}</button></td>
                   <td className="px-4 py-3 text-base font-mono font-medium text-emerald-600 dark:text-emerald-400 text-right">{formatCurrency(p.amount)}</td>
                   <td className="px-4 py-3 text-right space-x-1 whitespace-nowrap">
                     <button 
@@ -134,7 +134,7 @@ export default function Payments({ onViewCustomer }: { onViewCustomer?: (id: str
                         });
                         setIsAdding(true);
                       }}
-                      className="p-2 text-gray-400 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/25 transition-colors rounded-md inline-flex items-center justify-center cursor-pointer"
+                      className="p-2 text-gray-400 dark:text-blue-400 hover:text-cyan-500 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/25 transition-colors rounded-md inline-flex items-center justify-center cursor-pointer"
                       title="Edit Payment"
                       id={`btn-edit-payment-${p.id}`}
                     >
@@ -251,7 +251,7 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
         <form onSubmit={handleSubmit}>
           <div className="px-6 py-5 border-b border-blue-200 dark:border-blue-800 bg-blue-100/50 dark:bg-blue-950/50 flex justify-between items-center">
             <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">{isEditing ? 'Edit Payment' : 'Record Payment'}</h3>
-            <button type="button" onClick={onClose} className="text-blue-400 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"><X className="w-5 h-5"/></button>
+            <button type="button" onClick={onClose} className="text-blue-400 hover:text-cyan-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"><X className="w-5 h-5"/></button>
           </div>
           <div className="p-6 space-y-4">
             <div>
@@ -286,8 +286,8 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
             </div>
           </div>
           <div className="px-6 py-4 bg-blue-100/50 dark:bg-blue-950/50 border-t border-blue-200 dark:border-blue-800 flex justify-end gap-3">
-             <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-blue-700 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-100 transition-colors">Cancel</button>
-             <button type="submit" disabled={loading} className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg text-base font-semibold transition-colors">Save Payment</button>
+             <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-cyan-400 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-100 transition-colors">Cancel</button>
+             <button type="submit" disabled={loading} className="px-5 py-2 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-900 rounded-lg text-base font-semibold transition-colors">Save Payment</button>
           </div>
         </form>
       </div>

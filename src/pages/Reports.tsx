@@ -213,7 +213,7 @@ export default function Reports() {
     <div className="space-y-6 max-w-4xl">
       <div className="bg-white dark:bg-blue-950 rounded-xl shadow-xl border border-gray-200 dark:border-blue-900 p-8 transition-all duration-300">
         <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-200 dark:border-blue-900">
-          <div className="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-xl text-blue-600 dark:text-blue-400">
+          <div className="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-xl text-cyan-500 dark:text-blue-400">
             <FileText className="w-8 h-8" />
           </div>
           <div>
@@ -250,7 +250,7 @@ export default function Reports() {
             <button
               onClick={generateDailySummary}
               disabled={loading || isGenerating}
-              className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 dark:bg-blue-900/40 dark:hover:bg-blue-800/60 dark:text-blue-300 dark:border-blue-700/50 px-6 py-2.5 rounded-lg font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed text-lg"
+              className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 text-cyan-500 border border-blue-200 dark:bg-blue-900/40 dark:hover:bg-blue-800/60 dark:text-blue-300 dark:border-blue-700/50 px-6 py-2.5 rounded-lg font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed text-lg"
             >
               <Download className="w-5 h-5" />
               {isGenerating ? 'Generating...' : 'Generate Daily Summary PDF'}

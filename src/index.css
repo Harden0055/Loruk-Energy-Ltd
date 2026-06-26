@@ -8,12 +8,12 @@
   --animate-fade-in: fade-in 0.25s ease-out;
 
   /* Global Theme Backgrounds */
-  --color-blue-950: #13162b; /* Main Background */
+  --color-blue-950: #0f1123; /* Main Background */
   --color-blue-900: #1a1d36; /* Cards/Panels */
   --color-blue-800: #2d325a; /* Borders and subtle accents */
   
-  --color-gray-950: #13162b;
-  --color-slate-950: #13162b;
+  --color-gray-950: #0f1123;
+  --color-slate-950: #0f1123;
   --color-slate-900: #1a1d36;
   
   /* Restoring bright colors explicitly just in case */
