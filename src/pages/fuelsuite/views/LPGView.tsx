@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useFuel, LPGTransaction } from '../context';
+import { useFuel, LPGTransaction , STATIONS } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td, MetricCard } from '../components';
 import { Plus, CheckSquare, ShoppingCart, RefreshCcw, Pencil, Trash2, X } from 'lucide-react';
 
@@ -11,7 +11,7 @@ export default function LPGView() {
 
   const [form, setForm] = useState<Partial<LPGTransaction>>({
     date: new Date().toISOString().split('T')[0],
-    station: activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation,
+    station: activeStation === 'Combined Total' ? STATIONS[0] : activeStation,
     item: '6kg Cylinder',
     quantity: 1,
     amount: 0,
@@ -42,7 +42,7 @@ export default function LPGView() {
   const resetForm = () => {
     setForm({
       date: new Date().toISOString().split('T')[0],
-      station: activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation,
+      station: activeStation === 'Combined Total' ? STATIONS[0] : activeStation,
       item: '6kg Cylinder',
       quantity: 1,
       amount: 0,
@@ -70,7 +70,7 @@ export default function LPGView() {
     } else {
       const newTx: LPGTransaction = {
         id: Math.random().toString(36).substr(2, 9),
-        station: form.station || (activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation),
+        station: form.station || (activeStation === 'Combined Total' ? STATIONS[0] : activeStation),
         type: activeTab === 'sales' ? 'sale' : activeTab === 'purchases' ? 'purchase' : 'opening',
         ...form as Omit<LPGTransaction, 'id' | 'type' | 'station'>
       };
@@ -135,8 +135,7 @@ export default function LPGView() {
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Station</label>
                 <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                  <option value="Ndalu Station">Ndalu Station</option>
-                  <option value="Junction Station">Junction Station</option>
+                  {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
                 </Select>
               </div>
               <div className="col-span-1 md:col-span-1 lg:col-span-2">

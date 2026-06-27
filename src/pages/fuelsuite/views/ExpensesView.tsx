@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useFuel, Expense } from '../context';
+import { useFuel, Expense , STATIONS } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td } from '../components';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
 
@@ -10,7 +10,7 @@ export default function ExpensesView() {
 
   const [form, setForm] = useState<Partial<Expense>>({
     date: new Date().toISOString().split('T')[0],
-    station: activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation,
+    station: activeStation === 'Combined Total' ? STATIONS[0] : activeStation,
     category: 'Electricity',
     amount: 0,
   });
@@ -20,7 +20,7 @@ export default function ExpensesView() {
   const resetForm = () => {
     setForm({
       date: new Date().toISOString().split('T')[0],
-      station: activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation,
+      station: activeStation === 'Combined Total' ? STATIONS[0] : activeStation,
       category: 'Electricity',
       amount: 0,
     });
@@ -47,7 +47,7 @@ export default function ExpensesView() {
     } else {
       const newEx: Expense = {
         id: Math.random().toString(36).substr(2, 9),
-        station: form.station || (activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation),
+        station: form.station || (activeStation === 'Combined Total' ? STATIONS[0] : activeStation),
         ...form as Omit<Expense, 'id' | 'station'>
       };
       setExpenses([...expenses, newEx]);
@@ -81,8 +81,7 @@ export default function ExpensesView() {
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Station</label>
                 <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                  <option value="Ndalu Station">Ndalu Station</option>
-                  <option value="Junction Station">Junction Station</option>
+                  {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
                 </Select>
               </div>
               <div>

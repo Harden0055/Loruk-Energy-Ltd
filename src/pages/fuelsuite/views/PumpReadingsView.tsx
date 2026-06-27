@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useFuel, PumpReading } from '../context';
+import { useFuel, PumpReading , STATIONS } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td } from '../components';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
 
@@ -10,7 +10,7 @@ export default function PumpReadingsView() {
 
   const [form, setForm] = useState<Partial<PumpReading>>({
     date: new Date().toISOString().split('T')[0],
-    station: 'Ndalu Station',
+    station: STATIONS[0],
     product: products[0]?.name || 'Super Petrol',
     startReading: 0,
     stopReading: 0,
@@ -23,7 +23,7 @@ export default function PumpReadingsView() {
   const resetForm = () => {
     setForm({
       date: new Date().toISOString().split('T')[0],
-      station: 'Ndalu Station',
+      station: STATIONS[0],
       product: products[0]?.name || 'Super Petrol',
       startReading: 0,
       stopReading: 0,
@@ -86,8 +86,7 @@ export default function PumpReadingsView() {
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Station</label>
                 <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                  <option value="Ndalu Station">Ndalu Station</option>
-                  <option value="Junction Station">Junction Station</option>
+                  {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
                 </Select>
               </div>
               <div>

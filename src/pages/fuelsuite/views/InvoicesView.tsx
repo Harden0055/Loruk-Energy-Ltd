@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useFuel, Invoice } from '../context';
+import { useFuel, Invoice , STATIONS } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td } from '../components';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
 
@@ -9,7 +9,7 @@ export default function InvoicesView() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [form, setForm] = useState<Partial<Invoice>>({
-    station: activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation,
+    station: activeStation === 'Combined Total' ? STATIONS[0] : activeStation,
     customerName: '',
     totalAmount: 0,
     paidAmount: 0,
@@ -19,7 +19,7 @@ export default function InvoicesView() {
 
   const resetForm = () => {
     setForm({
-      station: activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation,
+      station: activeStation === 'Combined Total' ? STATIONS[0] : activeStation,
       customerName: '',
       totalAmount: 0,
       paidAmount: 0,
@@ -47,7 +47,7 @@ export default function InvoicesView() {
     } else {
       const newInv: Invoice = {
         id: Math.random().toString(36).substr(2, 9),
-        station: form.station || (activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation),
+        station: form.station || (activeStation === 'Combined Total' ? STATIONS[0] : activeStation),
         ...form as Omit<Invoice, 'id' | 'station'>
       };
       setInvoices([...invoices, newInv]);
@@ -77,8 +77,7 @@ export default function InvoicesView() {
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Station</label>
                 <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                  <option value="Ndalu Station">Ndalu Station</option>
-                  <option value="Junction Station">Junction Station</option>
+                  {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
                 </Select>
               </div>
               <div className="col-span-2">

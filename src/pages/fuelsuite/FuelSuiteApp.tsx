@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FuelProvider, useFuel, Station } from './context';
+import { FuelProvider, useFuel, Station, STATIONS } from './context';
 import { LayoutDashboard, Fuel, Flame, Box, ReceiptText, FileText, Wallet, BarChart3, Menu, X } from 'lucide-react';
 import DashboardView from './views/DashboardView';
 import PumpReadingsView from './views/PumpReadingsView';
@@ -98,8 +98,7 @@ const MainContent = ({ currentView, onOpenSidebar }: { currentView: ViewType, on
                onChange={(e) => setActiveStation(e.target.value as Station)}
              >
                <option value="Combined Total" className="bg-[#1a1d36] text-slate-200 font-medium">Combined Total</option>
-               <option value="Ndalu Station" className="bg-[#1a1d36] text-slate-200 font-medium">Ndalu Station</option>
-               <option value="Junction Station" className="bg-[#1a1d36] text-slate-200 font-medium">Junction Station</option>
+               {STATIONS.map(s => <option key={s} value={s} className="bg-[#1a1d36] text-slate-200 font-medium">{s}</option>)}
              </select>
              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-cyan-400">
                <svg className="w-5 h-5 fill-current" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"></path></svg>

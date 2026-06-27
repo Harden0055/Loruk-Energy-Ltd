@@ -1,6 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { collection, onSnapshot, setDoc, doc, deleteDoc } from 'firebase/firestore';
+import { db } from '../../lib/firebase';
 
-export type Station = 'Ndalu Station' | 'Junction Station' | 'Combined Total';
+export const STATIONS = ['Loruk Energy Ltd', 'Ndalu Station', 'Junction Station'] as const;
+export type Station = typeof STATIONS[number] | 'Combined Total';
 
 export interface PumpReading {
   id: string;
@@ -82,50 +85,65 @@ interface FuelContextType {
 
 const FuelContext = createContext<FuelContextType | undefined>(undefined);
 
-function usePersistedState<T extends {id?: string}[]>(key: string, defaultValue: T): [T, React.Dispatch<React.SetStateAction<T>>] {
-  const [state, setState] = useState<T>(() => {
-    try {
-      const saved = localStorage.getItem(key);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          // Erase old demo data with id '1' and '2' that was hardcoded, unless it's products
-          if (key !== 'fuelsuite_products') {
-            return parsed.filter((item: any) => item.id !== '1' && item.id !== '2') as unknown as T;
-          }
-        }
-        return parsed;
-      }
-    } catch (e) {
-      console.warn(`Error reading localStorage for key ${key}`, e);
-    }
-    return defaultValue;
-  });
+function useFirebaseCollection<T extends {id?: string}>(collectionName: string, defaultValue: T[]): [T[], React.Dispatch<React.SetStateAction<T[]>>] {
+  const [items, setItems] = useState<T[]>(defaultValue);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(key, JSON.stringify(state));
-    } catch (e) {
-      console.warn(`Error setting localStorage for key ${key}`, e);
-    }
-  }, [key, state]);
+    const unsub = onSnapshot(collection(db, collectionName), (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as T));
+      
+      if (data.length === 0 && defaultValue.length > 0 && collectionName === 'fuelsuite_products') {
+         defaultValue.forEach(item => {
+           if(item.id) setDoc(doc(db, collectionName, item.id), item);
+         });
+      } else {
+         setItems(data);
+      }
+    }, (error) => {
+      console.warn(`Error reading collection ${collectionName}`, error);
+    });
+    return unsub;
+  }, [collectionName]);
 
-  return [state, setState];
+  const setCollectionItems = useCallback((action: React.SetStateAction<T[]>) => {
+    setItems(prevItems => {
+      const newItems = typeof action === 'function' ? (action as any)(prevItems) : action;
+      
+      newItems.forEach((newItem: T) => {
+         const oldItem = prevItems.find(i => i.id === newItem.id);
+         if (!oldItem || JSON.stringify(oldItem) !== JSON.stringify(newItem)) {
+            if (newItem.id) {
+               setDoc(doc(db, collectionName, newItem.id), newItem);
+            }
+         }
+      });
+      
+      prevItems.forEach((oldItem: T) => {
+         if (oldItem.id && !newItems.find(i => i.id === oldItem.id)) {
+            deleteDoc(doc(db, collectionName, oldItem.id));
+         }
+      });
+
+      return newItems;
+    });
+  }, [collectionName]);
+
+  return [items, setCollectionItems as React.Dispatch<React.SetStateAction<T[]>>];
 }
 
 export const FuelProvider = ({ children }: { children: ReactNode }) => {
   const [activeStation, setActiveStation] = useState<Station>('Combined Total');
-  const [products, setProducts] = usePersistedState<Product[]>('fuelsuite_products', [
+  const [products, setProducts] = useFirebaseCollection<Product>('fuelsuite_products', [
     { id: '1', name: 'Super Petrol' },
     { id: '2', name: 'Diesel Fuel' },
     { id: '3', name: 'Engine oil' },
   ]);
-  const [pumpReadings, setPumpReadings] = usePersistedState<PumpReading[]>('fuelsuite_pumpReadings', []);
-  const [lpgTransactions, setLpgTransactions] = usePersistedState<LPGTransaction[]>('fuelsuite_lpgTransactions', []);
-  const [inventoryItems, setInventoryItems] = usePersistedState<InventoryItem[]>('fuelsuite_inventoryItems', []);
-  const [expenses, setExpenses] = usePersistedState<Expense[]>('fuelsuite_expenses', []);
-  const [invoices, setInvoices] = usePersistedState<Invoice[]>('fuelsuite_invoices', []);
-  const [cashPositions, setCashPositions] = usePersistedState<CashPosition[]>('fuelsuite_cashPositions', []);
+  const [pumpReadings, setPumpReadings] = useFirebaseCollection<PumpReading>('fuelsuite_pumpReadings', []);
+  const [lpgTransactions, setLpgTransactions] = useFirebaseCollection<LPGTransaction>('fuelsuite_lpgTransactions', []);
+  const [inventoryItems, setInventoryItems] = useFirebaseCollection<InventoryItem>('fuelsuite_inventoryItems', []);
+  const [expenses, setExpenses] = useFirebaseCollection<Expense>('fuelsuite_expenses', []);
+  const [invoices, setInvoices] = useFirebaseCollection<Invoice>('fuelsuite_invoices', []);
+  const [cashPositions, setCashPositions] = useFirebaseCollection<CashPosition>('fuelsuite_cashPositions', []);
 
   return (
     <FuelContext.Provider value={{

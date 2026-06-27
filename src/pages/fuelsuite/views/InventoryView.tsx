@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useFuel, InventoryItem } from '../context';
+import { useFuel, InventoryItem , STATIONS } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td } from '../components';
 import { Plus, Pencil, Trash2, X, AlertCircle } from 'lucide-react';
 
@@ -22,7 +22,7 @@ export default function InventoryView() {
 
   const [form, setForm] = useState<Partial<InventoryItem>>({
     date: new Date().toISOString().split('T')[0],
-    station: activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation,
+    station: activeStation === 'Combined Total' ? STATIONS[0] : activeStation,
     item: 'Diesel',
     quantity: 1,
     amount: 0,
@@ -36,7 +36,7 @@ export default function InventoryView() {
   const resetForm = () => {
     setForm({
       date: new Date().toISOString().split('T')[0],
-      station: activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation,
+      station: activeStation === 'Combined Total' ? STATIONS[0] : activeStation,
       item: 'Diesel',
       quantity: 1,
       amount: 0,
@@ -64,7 +64,7 @@ export default function InventoryView() {
     } else {
       const newItem: InventoryItem = {
         id: Math.random().toString(36).substr(2, 9),
-        station: form.station || (activeStation === 'Combined Total' ? 'Ndalu Station' : activeStation),
+        station: form.station || (activeStation === 'Combined Total' ? STATIONS[0] : activeStation),
         type: activeTab as any,
         ...form as Omit<InventoryItem, 'id' | 'type' | 'station'>
       };
@@ -244,8 +244,7 @@ export default function InventoryView() {
                   <div>
                     <label className="block text-xs text-slate-400 mb-1">Station</label>
                     <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                      <option value="Ndalu Station">Ndalu Station</option>
-                      <option value="Junction Station">Junction Station</option>
+                      {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
                     </Select>
                   </div>
                   <div className="col-span-1 md:col-span-1 lg:col-span-2">
