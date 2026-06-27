@@ -36,21 +36,21 @@ export default function ExpensesView() {
 
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this expense?')) {
-      setExpenses(expenses.filter(e => e.id !== id));
+      setExpenses(prev => prev.filter(e => e.id !== id));
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingId) {
-      setExpenses(expenses.map(exp => exp.id === editingId ? { ...exp, ...form as Expense } : exp));
+      setExpenses(prev => prev.map(exp => exp.id === editingId ? { ...exp, ...form as Expense } : exp));
     } else {
       const newEx: Expense = {
         id: Math.random().toString(36).substr(2, 9),
         station: form.station || (activeStation === 'Combined Total' ? STATIONS[0] : activeStation),
         ...form as Omit<Expense, 'id' | 'station'>
       };
-      setExpenses([...expenses, newEx]);
+      setExpenses(prev => [...prev, newEx]);
     }
     resetForm();
   };

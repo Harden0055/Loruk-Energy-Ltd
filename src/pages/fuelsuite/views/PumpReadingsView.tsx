@@ -42,20 +42,20 @@ export default function PumpReadingsView() {
 
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this reading?')) {
-      setPumpReadings(pumpReadings.filter(r => r.id !== id));
+      setPumpReadings(prev => prev.filter(r => r.id !== id));
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingId) {
-      setPumpReadings(pumpReadings.map(r => r.id === editingId ? { ...r, ...form as PumpReading } : r));
+      setPumpReadings(prev => prev.map(r => r.id === editingId ? { ...r, ...form as PumpReading } : r));
     } else {
       const newReading: PumpReading = {
         id: Math.random().toString(36).substr(2, 9),
         ...form as Omit<PumpReading, 'id'>
       };
-      setPumpReadings([...pumpReadings, newReading]);
+      setPumpReadings(prev => [...prev, newReading]);
     }
     resetForm();
   };

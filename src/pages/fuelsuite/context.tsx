@@ -46,6 +46,7 @@ export interface Expense {
 
 export interface Invoice {
   id: string;
+  date?: string;
   station: Station;
   customerName: string;
   totalAmount: number;

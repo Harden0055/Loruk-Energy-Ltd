@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { useFuel, LPGTransaction , STATIONS } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td, MetricCard } from '../components';
-import { Plus, CheckSquare, ShoppingCart, RefreshCcw, Pencil, Trash2, X } from 'lucide-react';
+import { Plus, CheckSquare, ShoppingCart, RefreshCcw, Pencil, Trash2, X, Flame } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, CartesianGrid } from 'recharts';
 
 export default function LPGView() {
   const { lpgTransactions, setLpgTransactions, inventoryItems, activeStation } = useFuel();
   const [activeTab, setActiveTab] = useState<'sales' | 'purchases' | 'opening'>('sales');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showLpgProfit, setShowLpgProfit] = useState(false);
 
   const [form, setForm] = useState<Partial<LPGTransaction>>({
     date: new Date().toISOString().split('T')[0],
@@ -39,6 +41,23 @@ export default function LPGView() {
   const totalOpening = statsData.filter(t => t.type === 'opening').reduce((acc, t) => acc + t.quantity, 0);
   const currentInv = totalOpening + totalBought - totalSold;
 
+  const totalSalesAmount = statsData.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.amount, 0);
+  const totalPurchasesAmount = statsData.filter(t => t.type === 'purchase').reduce((acc, t) => acc + t.amount, 0);
+
+  const chartData = React.useMemo(() => {
+    const dates = Array.from(new Set(statsData.map(t => t.date))).sort();
+    return dates.map(date => {
+      const daySales = statsData.filter(t => t.date === date && t.type === 'sale').reduce((sum, t) => sum + t.amount, 0);
+      const dayPurchases = statsData.filter(t => t.date === date && t.type === 'purchase').reduce((sum, t) => sum + t.amount, 0);
+      return {
+        date,
+        Sales: daySales,
+        Purchases: dayPurchases,
+        Profit: daySales - dayPurchases
+      };
+    });
+  }, [statsData]);
+
   const resetForm = () => {
     setForm({
       date: new Date().toISOString().split('T')[0],
@@ -59,14 +78,14 @@ export default function LPGView() {
 
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this record?')) {
-      setLpgTransactions(lpgTransactions.filter(t => t.id !== id));
+      setLpgTransactions(prev => prev.filter(t => t.id !== id));
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingId) {
-      setLpgTransactions(lpgTransactions.map(t => t.id === editingId ? { ...t, ...form as LPGTransaction } : t));
+      setLpgTransactions(prev => prev.map(t => t.id === editingId ? { ...t, ...form as LPGTransaction } : t));
     } else {
       const newTx: LPGTransaction = {
         id: Math.random().toString(36).substr(2, 9),
@@ -74,10 +93,108 @@ export default function LPGView() {
         type: activeTab === 'sales' ? 'sale' : activeTab === 'purchases' ? 'purchase' : 'opening',
         ...form as Omit<LPGTransaction, 'id' | 'type' | 'station'>
       };
-      setLpgTransactions([...lpgTransactions, newTx]);
+      setLpgTransactions(prev => [...prev, newTx]);
     }
     resetForm();
   };
+
+  if (showLpgProfit) {
+    return (
+      <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-3">
+            <Flame className="text-orange-400 w-8 h-8" />
+            <h2 className="text-2xl font-bold text-slate-100">LPG Profit Profile</h2>
+          </div>
+          <button 
+            onClick={() => setShowLpgProfit(false)}
+            className="flex items-center gap-2 px-4 py-2 bg-[#2d325a] hover:bg-[#3d4270] text-white rounded-lg transition-colors font-medium text-sm"
+          >
+            <X className="w-4 h-4" />
+            Back to Dashboard
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="flex flex-col justify-center bg-cyan-500/10 border border-cyan-500/20 p-6 rounded-xl shadow-sm">
+            <span className="text-sm text-slate-400 font-medium">Total LPG Sales</span>
+            <span className="text-3xl font-bold text-cyan-400 mt-2">Ksh {totalSalesAmount.toLocaleString()}</span>
+          </div>
+          <div className="flex flex-col justify-center bg-orange-500/10 border border-orange-500/20 p-6 rounded-xl shadow-sm">
+            <span className="text-sm text-slate-400 font-medium">Total LPG Purchases (COGS)</span>
+            <span className="text-3xl font-bold text-orange-400 mt-2">- Ksh {totalPurchasesAmount.toLocaleString()}</span>
+          </div>
+          <div className="flex flex-col justify-center bg-emerald-500/10 border border-emerald-500/20 p-6 rounded-xl shadow-sm">
+            <span className="text-sm text-slate-400 font-medium">Net Profit (LPG)</span>
+            <span className={`text-3xl font-bold mt-2 ${totalSalesAmount - totalPurchasesAmount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              Ksh {(totalSalesAmount - totalPurchasesAmount).toLocaleString()}
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+          {/* Chart */}
+          <div className="bg-[#1a1d36] p-6 rounded-xl border border-[#2d325a] shadow-md">
+            <h4 className="text-sm font-bold text-slate-300 mb-6 uppercase tracking-wider">Trend Analysis</h4>
+            <div className="h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2d325a" vertical={false} />
+                  <XAxis dataKey="date" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `Ksh ${val/1000}k`} />
+                  <RechartsTooltip 
+                    contentStyle={{ backgroundColor: '#1a1d36', borderColor: '#2d325a', color: '#f8fafc', borderRadius: '8px' }}
+                    itemStyle={{ color: '#f8fafc' }}
+                    formatter={(value: number) => [`Ksh ${value.toLocaleString()}`, '']}
+                  />
+                  <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                  <Bar dataKey="Sales" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Purchases" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Profit" fill="#10b981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="bg-[#1a1d36] rounded-xl border border-[#2d325a] overflow-hidden flex flex-col shadow-md">
+            <h4 className="text-sm font-bold text-slate-300 p-6 border-b border-[#2d325a] uppercase tracking-wider">Recent Transactions</h4>
+            <div className="overflow-auto flex-1 h-[400px]">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead className="bg-[#1e223d] sticky top-0 z-10">
+                  <tr>
+                    <th className="p-4 text-slate-400 font-medium">Date</th>
+                    <th className="p-4 text-slate-400 font-medium">Type</th>
+                    <th className="p-4 text-slate-400 font-medium">Item</th>
+                    <th className="p-4 text-slate-400 font-medium text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {statsData.filter(t => t.type !== 'opening').sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(t => (
+                    <tr key={t.id} className="border-b border-[#2d325a]/50 hover:bg-[#2d325a]/50 transition-colors">
+                      <td className="p-4 text-slate-300">{t.date}</td>
+                      <td className="p-4">
+                        <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${t.type === 'sale' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-orange-500/20 text-orange-400'}`}>
+                          {t.type}
+                        </span>
+                      </td>
+                      <td className="p-4 text-slate-300">{t.item}</td>
+                      <td className="p-4 text-right font-medium">Ksh {t.amount.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                  {statsData.filter(t => t.type !== 'opening').length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="p-8 text-center text-slate-500">No recent sales or purchases found.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
@@ -92,6 +209,12 @@ export default function LPGView() {
         <MetricCard title="Total Bought" value={`${totalBought} Cylinders`} icon={ShoppingCart} colorClass="bg-[#2d325a] text-slate-300" />
         <MetricCard title="Total Sold" value={`${totalSold} Cylinders`} icon={CheckSquare} colorClass="bg-cyan-500/10 text-cyan-400" />
         <MetricCard title="Current Inventory" value={`${currentInv} Cylinders`} icon={RefreshCcw} colorClass="bg-emerald-500/10 text-emerald-400" />
+      </div>
+
+      <div className="flex justify-end pt-2 pb-2">
+        <button onClick={() => setShowLpgProfit(true)} className="text-cyan-400 hover:text-cyan-300 underline underline-offset-4 text-sm font-medium transition-colors">
+          View LPG Profit Profile
+        </button>
       </div>
 
       <div className="flex gap-4 border-b border-[#2d325a]">

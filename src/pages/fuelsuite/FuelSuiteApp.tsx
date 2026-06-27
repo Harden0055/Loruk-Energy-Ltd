@@ -10,12 +10,16 @@ import InvoicesView from './views/InvoicesView';
 import CashPositionView from './views/CashPositionView';
 import ReportsView from './views/ReportsView';
 import ProductsView from './views/ProductsView';
+import DailyDataEntryView from './views/DailyDataEntryView';
 
-export type ViewType = 'Dashboard' | 'Pump Readings' | 'LPG' | 'Inventory' | 'Expenses' | 'Invoices' | 'Cash Position' | 'Reports' | 'Products';
+import DailyReportView from './views/DailyReportView';
+
+export type ViewType = 'Dashboard' | 'Daily Data Entry' | 'Pump Readings' | 'LPG' | 'Inventory' | 'Expenses' | 'Invoices' | 'Cash Position' | 'Reports' | 'Daily Report' | 'Products';
 
 const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen }: { currentView: ViewType, setCurrentView: (v: ViewType) => void, onBackToMain: () => void, isOpen: boolean, setIsOpen: (o: boolean) => void }) => {
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard },
+    { name: 'Daily Data Entry', icon: FileText },
     { name: 'Pump Readings', icon: Fuel },
     { name: 'LPG', icon: Flame },
     { name: 'Inventory', icon: Box },
@@ -24,6 +28,7 @@ const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen 
     { name: 'Invoices', icon: FileText },
     { name: 'Cash Position', icon: Wallet },
     { name: 'Reports', icon: BarChart3 },
+    { name: 'Daily Report', icon: FileText },
   ];
 
   return (
@@ -108,6 +113,7 @@ const MainContent = ({ currentView, onOpenSidebar }: { currentView: ViewType, on
       </header>
       <div className="flex-1 overflow-auto">
         {currentView === 'Dashboard' && <DashboardView />}
+        {currentView === 'Daily Data Entry' && <DailyDataEntryView />}
         {currentView === 'Pump Readings' && <PumpReadingsView />}
         {currentView === 'LPG' && <LPGView />}
         {currentView === 'Inventory' && <InventoryView />}
@@ -116,6 +122,7 @@ const MainContent = ({ currentView, onOpenSidebar }: { currentView: ViewType, on
         {currentView === 'Invoices' && <InvoicesView />}
         {currentView === 'Cash Position' && <CashPositionView />}
         {currentView === 'Reports' && <ReportsView />}
+        {currentView === 'Daily Report' && <DailyReportView />}
       </div>
     </div>
   );

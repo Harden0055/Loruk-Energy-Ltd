@@ -53,14 +53,14 @@ export default function InventoryView() {
 
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this record?')) {
-      setInventoryItems(inventoryItems.filter(i => i.id !== id));
+      setInventoryItems(prev => prev.filter(i => i.id !== id));
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingId) {
-      setInventoryItems(inventoryItems.map(i => i.id === editingId ? { ...i, ...form as InventoryItem } : i));
+      setInventoryItems(prev => prev.map(i => i.id === editingId ? { ...i, ...form as InventoryItem } : i));
     } else {
       const newItem: InventoryItem = {
         id: Math.random().toString(36).substr(2, 9),
@@ -68,7 +68,7 @@ export default function InventoryView() {
         type: activeTab as any,
         ...form as Omit<InventoryItem, 'id' | 'type' | 'station'>
       };
-      setInventoryItems([...inventoryItems, newItem]);
+      setInventoryItems(prev => [...prev, newItem]);
     }
     resetForm();
   };

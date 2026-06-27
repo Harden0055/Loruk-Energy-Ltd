@@ -36,21 +36,21 @@ export default function InvoicesView() {
 
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this invoice?')) {
-      setInvoices(invoices.filter(i => i.id !== id));
+      setInvoices(prev => prev.filter(i => i.id !== id));
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingId) {
-      setInvoices(invoices.map(inv => inv.id === editingId ? { ...inv, ...form as Invoice } : inv));
+      setInvoices(prev => prev.map(inv => inv.id === editingId ? { ...inv, ...form as Invoice } : inv));
     } else {
       const newInv: Invoice = {
         id: Math.random().toString(36).substr(2, 9),
         station: form.station || (activeStation === 'Combined Total' ? STATIONS[0] : activeStation),
         ...form as Omit<Invoice, 'id' | 'station'>
       };
-      setInvoices([...invoices, newInv]);
+      setInvoices(prev => [...prev, newInv]);
     }
     resetForm();
   };

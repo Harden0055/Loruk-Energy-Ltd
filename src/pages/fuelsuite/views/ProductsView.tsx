@@ -28,20 +28,48 @@ export default function ProductsView() {
 
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this product?')) {
-      setProducts(products.filter(p => p.id !== id));
+      setProducts(prev => prev.filter(p => p.id !== id));
+    }
+  };
+
+  const removeDuplicates = () => {
+    const seenNames = new Set<string>();
+    const duplicates = products.filter(p => {
+      const name = p.name.trim().toLowerCase();
+      if (seenNames.has(name)) return true;
+      seenNames.add(name);
+      return false;
+    });
+
+    if (duplicates.length === 0) {
+      alert("No duplicates found.");
+      return;
+    }
+
+    if (confirm(`Found ${duplicates.length} duplicate(s). Remove them?`)) {
+      setProducts(prev => prev.filter(p => !duplicates.find(d => d.id === p.id)));
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const newName = (form.name || '').trim();
+    
+    // Check for duplicates
+    const isDuplicate = products.some(p => p.name.trim().toLowerCase() === newName.toLowerCase() && p.id !== editingId);
+    if (isDuplicate) {
+      alert(`A product with the name "${newName}" already exists.`);
+      return;
+    }
+
     if (editingId) {
-      setProducts(products.map(p => p.id === editingId ? { ...p, ...form as Product } : p));
+      setProducts(prev => prev.map(p => p.id === editingId ? { ...p, ...form as Product } : p));
     } else {
       const newProd: Product = {
         id: Math.random().toString(36).substr(2, 9),
         ...form as Omit<Product, 'id'>
       };
-      setProducts([...products, newProd]);
+      setProducts(prev => [...prev, newProd]);
     }
     resetForm();
   };
@@ -53,9 +81,14 @@ export default function ProductsView() {
           <h1 className="text-2xl font-bold text-slate-100">Products Configuration</h1>
           <p className="text-slate-400 mt-1">Manage fuel and oil products across all stations.</p>
         </div>
-        <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
-          {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Product</>}
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={removeDuplicates} variant="secondary" className="flex items-center gap-2">
+            Remove Duplicates
+          </Button>
+          <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
+            {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Product</>}
+          </Button>
+        </div>
       </div>
 
       {isFormOpen && (

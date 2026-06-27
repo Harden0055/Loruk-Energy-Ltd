@@ -41,20 +41,20 @@ export default function CashPositionView() {
 
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this position?')) {
-      setCashPositions(cashPositions.filter(p => p.id !== id));
+      setCashPositions(prev => prev.filter(p => p.id !== id));
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingId) {
-      setCashPositions(cashPositions.map(pos => pos.id === editingId ? { ...pos, ...form as CashPosition } : pos));
+      setCashPositions(prev => prev.map(pos => pos.id === editingId ? { ...pos, ...form as CashPosition } : pos));
     } else {
       const newPos: CashPosition = {
         id: Math.random().toString(36).substr(2, 9),
         ...form as Omit<CashPosition, 'id'>
       };
-      setCashPositions([...cashPositions, newPos]);
+      setCashPositions(prev => [...prev, newPos]);
     }
     resetForm();
   };
