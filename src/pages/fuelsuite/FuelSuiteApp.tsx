@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FuelProvider, useFuel, Station, STATIONS } from './context';
-import { LayoutDashboard, Fuel, Flame, Box, ReceiptText, FileText, Wallet, BarChart3, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Fuel, Flame, Box, ReceiptText, FileText, Wallet, BarChart3, Menu, X, User } from 'lucide-react';
 import DashboardView from './views/DashboardView';
 import PumpReadingsView from './views/PumpReadingsView';
 import LPGView from './views/LPGView';
@@ -13,6 +13,7 @@ import ProductsView from './views/ProductsView';
 import DailyDataEntryView from './views/DailyDataEntryView';
 
 import DailyReportView from './views/DailyReportView';
+import MiniDashboardProfile from './views/MiniDashboardProfile';
 
 export type ViewType = 'Dashboard' | 'Daily Data Entry' | 'Pump Readings' | 'LPG' | 'Inventory' | 'Expenses' | 'Invoices' | 'Cash Position' | 'Reports' | 'Daily Report' | 'Products';
 
@@ -81,7 +82,7 @@ const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen 
   );
 };
 
-const MainContent = ({ currentView, onOpenSidebar }: { currentView: ViewType, onOpenSidebar: () => void }) => {
+const MainContent = ({ currentView, onOpenSidebar, isProfileOpen, setIsProfileOpen }: { currentView: ViewType, onOpenSidebar: () => void, isProfileOpen: boolean, setIsProfileOpen: (b: boolean) => void }) => {
   const { activeStation, setActiveStation } = useFuel();
   
   return (
@@ -95,6 +96,13 @@ const MainContent = ({ currentView, onOpenSidebar }: { currentView: ViewType, on
          </div>
          
          <div className="flex items-center gap-3">
+           <button 
+             onClick={() => setIsProfileOpen(true)}
+             className="hidden sm:flex items-center justify-center w-9 h-9 rounded-full bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 transition-colors border border-cyan-500/30 shadow-sm"
+             title="Profile & Summary Dashboard"
+           >
+             <User className="w-5 h-5" />
+           </button>
            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider hidden sm:block">Current Station</label>
            <div className="relative">
              <select 
@@ -124,6 +132,7 @@ const MainContent = ({ currentView, onOpenSidebar }: { currentView: ViewType, on
         {currentView === 'Reports' && <ReportsView />}
         {currentView === 'Daily Report' && <DailyReportView />}
       </div>
+      {isProfileOpen && <MiniDashboardProfile onClose={() => setIsProfileOpen(false)} />}
     </div>
   );
 };
@@ -131,13 +140,12 @@ const MainContent = ({ currentView, onOpenSidebar }: { currentView: ViewType, on
 export default function FuelSuiteApp({ onBackToMain }: { onBackToMain: () => void }) {
   const [currentView, setCurrentView] = useState<ViewType>('Dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   return (
-    <FuelProvider>
-      <div className="flex h-screen bg-[#0f1123] font-sans selection:bg-cyan-500/30 overflow-hidden relative">
-        <Sidebar currentView={currentView} setCurrentView={setCurrentView} onBackToMain={onBackToMain} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-        <MainContent currentView={currentView} onOpenSidebar={() => setIsSidebarOpen(true)} />
-      </div>
-    </FuelProvider>
+    <div className="flex h-screen bg-[#0f1123] font-sans selection:bg-cyan-500/30 overflow-hidden relative">
+      <Sidebar currentView={currentView} setCurrentView={setCurrentView} onBackToMain={onBackToMain} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      <MainContent currentView={currentView} onOpenSidebar={() => setIsSidebarOpen(true)} isProfileOpen={isProfileOpen} setIsProfileOpen={setIsProfileOpen} />
+    </div>
   );
 }

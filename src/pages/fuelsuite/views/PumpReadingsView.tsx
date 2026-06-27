@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
-import { useFuel, PumpReading , STATIONS } from '../context';
+import React, { useState, useMemo } from 'react';
+import { useFuel, PumpReading , STATIONS, Station } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td } from '../components';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
 
 export default function PumpReadingsView() {
-  const { activeStation, pumpReadings, setPumpReadings, products } = useFuel();
+  const { activeStation, setActiveStation, pumpReadings, setPumpReadings, products } = useFuel();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  
+  const [filterDate, setFilterDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [filterStation, setFilterStation] = useState<Station>(activeStation);
 
   const [form, setForm] = useState<Partial<PumpReading>>({
     date: new Date().toISOString().split('T')[0],
@@ -18,7 +21,12 @@ export default function PumpReadingsView() {
     manualCash: 0,
   });
 
-  const filteredReadings = pumpReadings.filter(r => activeStation === 'Combined Total' || r.station === activeStation);
+  const filteredReadings = useMemo(() => {
+    return pumpReadings.filter(r => 
+      (filterStation === 'Combined Total' || r.station === filterStation) &&
+      (!filterDate || r.date === filterDate)
+    );
+  }, [pumpReadings, filterStation, filterDate]);
 
   const resetForm = () => {
     setForm({
@@ -70,6 +78,21 @@ export default function PumpReadingsView() {
         <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
           {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Reading</>}
         </Button>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-4 bg-[#1a1d36]/50 p-4 rounded-lg border border-[#2d325a]">
+        <div className="flex gap-4 w-full md:w-auto">
+          <div className="flex-1">
+            <label className="block text-xs text-slate-400 mb-1">Date</label>
+            <Input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="h-9" />
+          </div>
+          <div className="flex-1">
+            <label className="block text-xs text-slate-400 mb-1">Station</label>
+            <Select value={filterStation} onChange={e => setFilterStation(e.target.value as Station)} className="h-9">
+              {['Combined Total', ...STATIONS].map(s => <option key={s} value={s}>{s}</option>)}
+            </Select>
+          </div>
+        </div>
       </div>
 
       {isFormOpen && (

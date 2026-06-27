@@ -19,8 +19,10 @@ import Stations from './pages/Stations';
 import Products from './pages/Products';
 import AIAssistant from './pages/AIAssistant';
 import FuelSuiteApp from './pages/fuelsuite/FuelSuiteApp';
+import { FuelProvider } from './pages/fuelsuite/context';
+import MiniDashboardProfile from './pages/fuelsuite/views/MiniDashboardProfile';
 import FireLEIcon from './components/FireLEIcon';
-import { Fuel, LogIn, RefreshCcw, Printer, Menu, AlertTriangle } from 'lucide-react';
+import { Fuel, LogIn, RefreshCcw, Printer, Menu, AlertTriangle, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { useProducts, addProduct } from './lib/operationsDb';
 
@@ -37,6 +39,7 @@ function AuthenticatedApp() {
   // Add state for print warning
   const [showPrintWarning, setShowPrintWarning] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const { data: products, loading: productsLoading } = useProducts();
 
@@ -182,6 +185,13 @@ function AuthenticatedApp() {
           )}
 
           <div className="flex items-center gap-3 shrink-0 print-hide">
+            <button 
+              onClick={() => setIsProfileOpen(true)}
+              className="hidden sm:flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/20 transition-colors border border-cyan-500/20 shadow-sm"
+              title="Profile & Summary Dashboard"
+            >
+              <User className="w-4 h-4" />
+            </button>
             {lastSync && (
               <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-900 px-3 py-1.5 rounded-full shrink-0">
                 <RefreshCcw className="w-3 h-3" />
@@ -272,6 +282,7 @@ function AuthenticatedApp() {
           </ErrorBoundary>
         </main>
       </div>
+      {isProfileOpen && <MiniDashboardProfile onClose={() => setIsProfileOpen(false)} />}
     </div>
   );
 }
@@ -282,7 +293,9 @@ function DefaultExport() {
     <SyncProvider>
       <ThemeProvider>
         <AuthProvider>
-          <Main />
+          <FuelProvider>
+            <Main />
+          </FuelProvider>
         </AuthProvider>
       </ThemeProvider>
     </SyncProvider>

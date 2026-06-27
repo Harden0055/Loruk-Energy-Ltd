@@ -191,7 +191,7 @@ export default function InventoryView() {
                 </tr>
               </thead>
               <tbody>
-                {STANDARD_PRODUCTS.map(product => (
+                {Object.keys(inventorySummary).sort().map(product => (
                   <tr key={product} className="hover:bg-[#0f1123] transition-colors">
                     <Td><span className="font-semibold text-slate-200">{product}</span></Td>
                     <Td className="text-right">{inventorySummary[product].opening.toLocaleString()}</Td>

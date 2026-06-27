@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useFuel, LPGTransaction , STATIONS } from '../context';
+import React, { useState, useMemo } from 'react';
+import { useFuel, LPGTransaction , STATIONS, Station } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td, MetricCard } from '../components';
 import { Plus, CheckSquare, ShoppingCart, RefreshCcw, Pencil, Trash2, X, Flame } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, CartesianGrid } from 'recharts';
@@ -10,6 +10,9 @@ export default function LPGView() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showLpgProfit, setShowLpgProfit] = useState(false);
+
+  const [filterDate, setFilterDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [filterStation, setFilterStation] = useState<Station>(activeStation);
 
   const [form, setForm] = useState<Partial<LPGTransaction>>({
     date: new Date().toISOString().split('T')[0],
@@ -30,19 +33,43 @@ export default function LPGView() {
 
   const allLpgData = [...lpgTransactions, ...lpgInventoryItems];
 
-  const filteredData = allLpgData.filter(t => 
-    t.type === (activeTab === 'sales' ? 'sale' : activeTab === 'purchases' ? 'purchase' : 'opening') &&
-    (activeStation === 'Combined Total' || t.station === activeStation)
-  );
+  const filteredData = useMemo(() => {
+    return allLpgData.filter(t => 
+      t.type === (activeTab === 'sales' ? 'sale' : activeTab === 'purchases' ? 'purchase' : 'opening') &&
+      (filterStation === 'Combined Total' || t.station === filterStation) &&
+      (!filterDate || t.date === filterDate)
+    );
+  }, [allLpgData, activeTab, filterStation, filterDate]);
 
-  const statsData = allLpgData.filter(t => activeStation === 'Combined Total' || t.station === activeStation);
-  const totalBought = statsData.filter(t => t.type === 'purchase').reduce((acc, t) => acc + t.quantity, 0);
-  const totalSold = statsData.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.quantity, 0);
-  const totalOpening = statsData.filter(t => t.type === 'opening').reduce((acc, t) => acc + t.quantity, 0);
-  const currentInv = totalOpening + totalBought - totalSold;
+  const metrics = useMemo(() => {
+    const statsData = allLpgData.filter(t => 
+      (filterStation === 'Combined Total' || t.station === filterStation) &&
+      (!filterDate || t.date === filterDate)
+    );
+    const totalBought = statsData.filter(t => t.type === 'purchase').reduce((acc, t) => acc + t.quantity, 0);
+    const totalSold = statsData.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.quantity, 0);
+    const totalOpening = statsData.filter(t => t.type === 'opening').reduce((acc, t) => acc + t.quantity, 0);
+    const currentInv = totalOpening + totalBought - totalSold;
+    const totalSalesAmount = statsData.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.amount, 0);
+    const totalPurchasesAmount = statsData.filter(t => t.type === 'purchase').reduce((acc, t) => acc + t.amount, 0);
 
-  const totalSalesAmount = statsData.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.amount, 0);
-  const totalPurchasesAmount = statsData.filter(t => t.type === 'purchase').reduce((acc, t) => acc + t.amount, 0);
+    return {
+      totalBought,
+      totalSold,
+      currentInv,
+      totalSalesAmount,
+      totalPurchasesAmount,
+      stats: [
+        { label: 'Purchased', value: totalBought },
+        { label: 'Sold', value: totalSold },
+        { label: 'Net', value: totalBought - totalSold },
+      ]
+    };
+  }, [allLpgData, filterStation, filterDate]);
+
+  const { totalBought, totalSold, currentInv, totalSalesAmount, totalPurchasesAmount } = metrics;
+
+  const statsData = allLpgData;
 
   const chartData = React.useMemo(() => {
     const dates = Array.from(new Set(statsData.map(t => t.date))).sort();
@@ -202,6 +229,21 @@ export default function LPGView() {
         <div>
           <h1 className="text-2xl font-bold text-slate-100">LPG Sales & Inventory</h1>
           <p className="text-slate-400 mt-1">Manage LPG gas cylinders tracking.</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-4 bg-[#1a1d36]/50 p-4 rounded-lg border border-[#2d325a]">
+        <div className="flex gap-4 w-full md:w-auto">
+          <div className="flex-1">
+            <label className="block text-xs text-slate-400 mb-1">Date</label>
+            <Input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="h-9" />
+          </div>
+          <div className="flex-1">
+            <label className="block text-xs text-slate-400 mb-1">Station</label>
+            <Select value={filterStation} onChange={e => setFilterStation(e.target.value as Station)} className="h-9">
+              {['Combined Total', ...STATIONS].map(s => <option key={s} value={s}>{s}</option>)}
+            </Select>
+          </div>
         </div>
       </div>
 
