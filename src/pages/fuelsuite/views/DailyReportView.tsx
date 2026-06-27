@@ -74,7 +74,11 @@ export default function DailyReportView() {
   const totalFuelSales = Object.values(groupedReadings).reduce((sum, g) => sum + g.totalSales, 0);
   const totalSales = totalFuelSales + totalGases;
 
-  const totalDebts = unpaidDebts.reduce((sum, i) => sum + (i.totalAmount - i.paidAmount), 0);
+  const todayInvoices = invoices.filter(i => i.date === selectedDate && (activeStation === 'Combined Total' ? true : i.station === activeStation));
+  const totalInvoicesAmount = todayInvoices.reduce((sum, i) => sum + i.totalAmount, 0);
+  const paidInvoicesAmount = todayInvoices.reduce((sum, i) => sum + i.paidAmount, 0);
+  const totalDebts = totalInvoicesAmount - paidInvoicesAmount;
+
   const dailyCashPos = cashPositions.find(c => c.date === selectedDate);
   const mPesaExpenses = dailyExpenses.filter(e => e.category.toLowerCase().includes('m-pesa') || e.category.toLowerCase().includes('mpesa') || e.category.toLowerCase().includes('m.pesa'));
   const actualExpenses = dailyExpenses.filter(e => !(e.category.toLowerCase().includes('m-pesa') || e.category.toLowerCase().includes('mpesa') || e.category.toLowerCase().includes('m.pesa')));
@@ -84,7 +88,10 @@ export default function DailyReportView() {
 
   const expectedCashOnHand = totalSales - totalGasesPurchases - (totalDebts + totalExpensesAmount + totalMPesaAmount);
   const cashAtHand = dailyCashPos?.cashOnHand ?? expectedCashOnHand;
-  const cashDifference = cashAtHand - expectedCashOnHand;
+  
+  // As requested: (cash at hand + m-pesa + total expenses + total invoices + total LPG purchase - paid invoices) - total sales
+  const sumAccounted = cashAtHand + totalMPesaAmount + totalExpensesAmount + totalInvoicesAmount + totalGasesPurchases - paidInvoicesAmount;
+  const cashDifference = sumAccounted - totalSales;
 
   // Added fuel / Inventory balances could be fetched from InventoryItems
   const dailyFuelAdded = inventoryItems.filter(i => 
