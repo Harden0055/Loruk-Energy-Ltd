@@ -244,7 +244,7 @@ export default function DailyDataEntryView() {
         <Card className="bg-[#1a1d36] border-[#2d325a]">
           <CardHeader className="flex flex-row justify-between items-center">
             <CardTitle className="text-lg text-cyan-400">LPG Sold</CardTitle>
-            <Button size="sm" variant="secondary" onClick={() => setLpgSales([...lpgSales, { item: '6kg Cylinder', quantity: 0, amount: 0 }])}>
+            <Button className="py-1.5 text-sm" variant="secondary" onClick={() => setLpgSales([...lpgSales, { item: '6kg Cylinder', quantity: 0, amount: 0 }])}>
               <Plus className="w-4 h-4" /> Add Row
             </Button>
           </CardHeader>
@@ -272,7 +272,7 @@ export default function DailyDataEntryView() {
                     setLpgSales(newSales);
                   }} />
                 </div>
-                <Button size="icon" variant="ghost" className="text-red-400 hover:text-red-300 hover:bg-red-900/20" onClick={() => {
+                <Button variant="danger" className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20" onClick={() => {
                   setLpgSales(lpgSales.filter((_, i) => i !== idx));
                 }}>
                   <Trash2 className="w-4 h-4" />
@@ -286,7 +286,7 @@ export default function DailyDataEntryView() {
         <Card className="bg-[#1a1d36] border-[#2d325a]">
           <CardHeader className="flex flex-row justify-between items-center">
             <CardTitle className="text-lg text-cyan-400">LPG Bought (COGS)</CardTitle>
-            <Button size="sm" variant="secondary" onClick={() => setLpgPurchases([...lpgPurchases, { item: '6kg Cylinder', quantity: 0, amount: 0 }])}>
+            <Button className="py-1.5 text-sm" variant="secondary" onClick={() => setLpgPurchases([...lpgPurchases, { item: '6kg Cylinder', quantity: 0, amount: 0 }])}>
               <Plus className="w-4 h-4" /> Add Row
             </Button>
           </CardHeader>
@@ -314,7 +314,7 @@ export default function DailyDataEntryView() {
                     setLpgPurchases(newPurchases);
                   }} />
                 </div>
-                <Button size="icon" variant="ghost" className="text-red-400 hover:text-red-300 hover:bg-red-900/20" onClick={() => {
+                <Button variant="danger" className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20" onClick={() => {
                   setLpgPurchases(lpgPurchases.filter((_, i) => i !== idx));
                 }}>
                   <Trash2 className="w-4 h-4" />
@@ -330,7 +330,7 @@ export default function DailyDataEntryView() {
         <Card className="bg-[#1a1d36] border-[#2d325a]">
           <CardHeader className="flex flex-row justify-between items-center">
             <CardTitle className="text-lg text-cyan-400">Expenses</CardTitle>
-            <Button size="sm" variant="secondary" onClick={() => setExpenseRows([...expenseRows, { category: '', amount: 0 }])}>
+            <Button className="py-1.5 text-sm" variant="secondary" onClick={() => setExpenseRows([...expenseRows, { category: '', amount: 0 }])}>
               <Plus className="w-4 h-4" /> Add Row
             </Button>
           </CardHeader>
@@ -351,7 +351,7 @@ export default function DailyDataEntryView() {
                     setExpenseRows(newRows);
                   }} />
                 </div>
-                <Button size="icon" variant="ghost" className="text-red-400 hover:text-red-300 hover:bg-red-900/20" onClick={() => {
+                <Button variant="danger" className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20" onClick={() => {
                   setExpenseRows(expenseRows.filter((_, i) => i !== idx));
                 }}>
                   <Trash2 className="w-4 h-4" />
@@ -365,7 +365,7 @@ export default function DailyDataEntryView() {
         <Card className="bg-[#1a1d36] border-[#2d325a]">
           <CardHeader className="flex flex-row justify-between items-center">
             <CardTitle className="text-lg text-cyan-400">Invoices & Debts</CardTitle>
-            <Button size="sm" variant="secondary" onClick={() => setInvoiceRows([...invoiceRows, { customerName: '', totalAmount: 0, paidAmount: 0 }])}>
+            <Button className="py-1.5 text-sm" variant="secondary" onClick={() => setInvoiceRows([...invoiceRows, { customerName: '', totalAmount: 0, paidAmount: 0 }])}>
               <Plus className="w-4 h-4" /> Add Row
             </Button>
           </CardHeader>
@@ -393,7 +393,7 @@ export default function DailyDataEntryView() {
                     setInvoiceRows(newRows);
                   }} />
                 </div>
-                <Button size="icon" variant="ghost" className="text-red-400 hover:text-red-300 hover:bg-red-900/20" onClick={() => {
+                <Button variant="danger" className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20" onClick={() => {
                   setInvoiceRows(invoiceRows.filter((_, i) => i !== idx));
                 }}>
                   <Trash2 className="w-4 h-4" />

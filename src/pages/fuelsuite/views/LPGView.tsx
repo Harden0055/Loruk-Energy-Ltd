@@ -11,7 +11,7 @@ export default function LPGView() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showLpgProfit, setShowLpgProfit] = useState(false);
 
-  const [filterDate, setFilterDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [filterDate, setFilterDate] = useState<string>('');
   const [filterStation, setFilterStation] = useState<Station>(activeStation);
 
   const [form, setForm] = useState<Partial<LPGTransaction>>({
@@ -23,15 +23,15 @@ export default function LPGView() {
   });
 
   const lpgInventoryItems = inventoryItems
-    .filter(i => i.type === 'opening' && (i.item === '6kg LPG' || i.item === '13kg LPG' || i.item === '6kg Cylinder' || i.item === '13kg Cylinder'))
+    .filter(i => (i.item === '6kg LPG' || i.item === '13kg LPG' || i.item === '6kg Cylinder' || i.item === '13kg Cylinder'))
     .map(i => ({
       ...i,
-      type: 'opening' as const,
+      type: (i.type === 'in' ? 'purchase' : i.type === 'out' ? 'sale' : 'opening') as "purchase" | "sale" | "opening",
       item: i.item.replace('LPG', 'Cylinder').trim(), // Normalize naming
       isFromInventory: true
     }));
 
-  const allLpgData = [...lpgTransactions, ...lpgInventoryItems];
+  const allLpgData = [...lpgTransactions, ...lpgInventoryItems].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const filteredData = useMemo(() => {
     return allLpgData.filter(t => 
@@ -349,7 +349,7 @@ export default function LPGView() {
                 <Td>
                   {!(t as any).isFromInventory ? (
                     <div className="flex gap-3">
-                      <button onClick={() => handleEdit(t)} className="text-slate-400 hover:text-cyan-400 transition-colors">
+                      <button onClick={() => handleEdit(t as LPGTransaction)} className="text-slate-400 hover:text-cyan-400 transition-colors">
                         <Pencil className="w-4 h-4" />
                       </button>
                       <button onClick={() => handleDelete(t.id)} className="text-slate-400 hover:text-red-400 transition-colors">

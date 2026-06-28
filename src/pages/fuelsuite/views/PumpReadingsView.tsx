@@ -8,7 +8,7 @@ export default function PumpReadingsView() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   
-  const [filterDate, setFilterDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [filterDate, setFilterDate] = useState<string>('');
   const [filterStation, setFilterStation] = useState<Station>(activeStation);
 
   const [form, setForm] = useState<Partial<PumpReading>>({
@@ -68,6 +68,13 @@ export default function PumpReadingsView() {
     resetForm();
   };
 
+  const metrics = useMemo(() => {
+    const totalVolume = filteredReadings.reduce((sum, r) => sum + (r.stopReading - r.startReading), 0);
+    const expectedSales = filteredReadings.reduce((sum, r) => sum + (r.stopReading - r.startReading) * r.ratePerLitre, 0);
+    const collectedCash = filteredReadings.reduce((sum, r) => sum + r.manualCash, 0);
+    return { totalVolume, expectedSales, collectedCash };
+  }, [filteredReadings]);
+
   return (
     <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
       <div className="flex justify-between items-center">
@@ -91,6 +98,36 @@ export default function PumpReadingsView() {
             <Select value={filterStation} onChange={e => setFilterStation(e.target.value as Station)} className="h-9">
               {['Combined Total', ...STATIONS].map(s => <option key={s} value={s}>{s}</option>)}
             </Select>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="flex items-center gap-4 bg-[#1a1d36] p-4 rounded-xl border border-[#2d325a] shadow-sm">
+          <div className="p-3 bg-[#2d325a] text-slate-300 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-slate-400">Total Volume</p>
+            <h3 className="text-xl font-bold text-slate-100">{metrics.totalVolume.toFixed(2)} L</h3>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 bg-[#1a1d36] p-4 rounded-xl border border-[#2d325a] shadow-sm">
+          <div className="p-3 bg-cyan-500/10 text-cyan-400 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-slate-400">Expected Sales</p>
+            <h3 className="text-xl font-bold text-cyan-400">KES {metrics.expectedSales.toLocaleString()}</h3>
+          </div>
+        </div>
+        <div className="flex items-center gap-4 bg-[#1a1d36] p-4 rounded-xl border border-[#2d325a] shadow-sm">
+          <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-slate-400">Collected Cash</p>
+            <h3 className="text-xl font-bold text-emerald-400">KES {metrics.collectedCash.toLocaleString()}</h3>
           </div>
         </div>
       </div>

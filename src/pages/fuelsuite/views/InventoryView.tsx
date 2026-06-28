@@ -28,10 +28,58 @@ export default function InventoryView() {
     amount: 0,
   });
 
-  const filteredData = inventoryItems.filter(i => 
-    i.type === activeTab && 
-    (activeStation === 'Combined Total' || i.station === activeStation)
-  );
+  const filteredData = useMemo(() => {
+    let combined: any[] = [];
+    
+    // Base Inventory Items
+    combined = [...inventoryItems.filter(i => 
+      i.type === activeTab && 
+      (activeStation === 'Combined Total' || i.station === activeStation)
+    ).map(i => ({ ...i, source: 'inventory' }))];
+
+    // Add Pump Readings to 'out'
+    if (activeTab === 'out') {
+      pumpReadings.forEach(p => {
+        if (activeStation === 'Combined Total' || p.station === activeStation) {
+          const volume = p.stopReading - p.startReading;
+          if (volume > 0) {
+            combined.push({
+              id: p.id,
+              date: p.date,
+              station: p.station,
+              item: p.product,
+              quantity: volume,
+              amount: volume * p.ratePerLitre,
+              source: 'pump'
+            });
+          }
+        }
+      });
+    }
+
+    // Add LPG Transactions
+    lpgTransactions.forEach(l => {
+      if (activeStation === 'Combined Total' || l.station === activeStation) {
+        if (
+          (activeTab === 'out' && l.type === 'sale') ||
+          (activeTab === 'in' && l.type === 'purchase') ||
+          (activeTab === 'opening' && l.type === 'opening')
+        ) {
+          combined.push({
+            id: l.id,
+            date: l.date,
+            station: l.station,
+            item: l.item,
+            quantity: l.quantity,
+            amount: l.amount || 0,
+            source: 'lpg'
+          });
+        }
+      }
+    });
+
+    return combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [inventoryItems, pumpReadings, lpgTransactions, activeTab, activeStation]);
 
   const resetForm = () => {
     setForm({
@@ -293,14 +341,18 @@ export default function InventoryView() {
                       <Td>{t.quantity}</Td>
                       <Td>{t.amount.toLocaleString()}</Td>
                       <Td>
-                        <div className="flex gap-3">
-                          <button onClick={() => handleEdit(t)} className="text-slate-400 hover:text-cyan-400 transition-colors">
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => handleDelete(t.id)} className="text-slate-400 hover:text-red-400 transition-colors">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
+                        {t.source === 'inventory' ? (
+                          <div className="flex gap-3">
+                            <button onClick={() => handleEdit(t)} className="text-slate-400 hover:text-cyan-400 transition-colors">
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button onClick={() => handleDelete(t.id)} className="text-slate-400 hover:text-red-400 transition-colors">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-500 italic">via {t.source === 'pump' ? 'Pump Readings' : 'LPG'}</span>
+                        )}
                       </Td>
                     </tr>
                   ))}
