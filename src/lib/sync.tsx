@@ -227,41 +227,41 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       {showNotification && (
         <div className="fixed bottom-5 right-5 z-50 animate-fade-in-up">
           {showNotification === 'offline' && (
-            <div className="flex items-center gap-4 bg-slate-900/95 dark:bg-blue-950/95 text-slate-100 px-5 py-4 rounded-xl border border-amber-500/30 shadow-xl max-w-sm backdrop-blur-md">
+            <div className="flex items-center gap-4 bg-slate-900/95 dark:glass-panel text-slate-100 px-5 py-4 rounded-xl border border-amber-500/30 shadow-xl max-w-sm backdrop-blur-md">
               <div className="p-2.5 bg-amber-500/10 text-amber-500 rounded-lg">
                 <CloudOff className="w-5 h-5 animate-pulse" />
               </div>
               <div className="flex-1">
                 <p className="font-semibold text-xs text-amber-400 uppercase tracking-widest leading-none mb-1">Offline Mode</p>
-                <p className="text-sm font-medium text-slate-300 leading-tight">Changes saved locally; will sync when network is back.</p>
+                <p className="text-sm font-medium text-theme-text-muted leading-tight">Changes saved locally; will sync when network is back.</p>
               </div>
             </div>
           )}
 
           {showNotification === 'syncing' && (
-            <div className="flex items-center gap-4 bg-slate-900/95 dark:bg-blue-950/95 text-slate-100 px-5 py-4 rounded-xl border border-blue-500/30 shadow-xl max-w-sm backdrop-blur-md">
+            <div className="flex items-center gap-4 bg-slate-900/95 dark:glass-panel text-slate-100 px-5 py-4 rounded-xl border border-theme-border shadow-xl max-w-sm backdrop-blur-md">
               <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-lg animate-spin animate-infinite">
                 <RefreshCw className="w-5 h-5 animate-spin" />
               </div>
               <div className="flex-1">
                 <p className="font-semibold text-xs text-blue-400 uppercase tracking-widest leading-none mb-1">Syncing Cloud</p>
-                <p className="text-sm font-medium text-slate-300 leading-tight">Synchronizing {syncQueue.length} pending updates...</p>
+                <p className="text-sm font-medium text-theme-text-muted leading-tight">Synchronizing {syncQueue.length} pending updates...</p>
               </div>
             </div>
           )}
 
           {showNotification === 'synced' && (
-            <div className="flex items-center gap-4 bg-slate-900/95 dark:bg-blue-950/95 text-slate-100 px-5 py-4 rounded-xl border border-emerald-500/30 shadow-xl max-w-sm backdrop-blur-md">
+            <div className="flex items-center gap-4 bg-slate-900/95 dark:glass-panel text-slate-100 px-5 py-4 rounded-xl border border-emerald-500/30 shadow-xl max-w-sm backdrop-blur-md">
               <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-lg">
                 <CheckCircle className="w-5 h-5" />
               </div>
               <div className="flex-1">
                 <p className="font-semibold text-xs text-emerald-400 uppercase tracking-widest leading-none mb-1">Network Restored</p>
-                <p className="text-sm font-medium text-slate-300 leading-tight">All database updates synchronized successfully!</p>
+                <p className="text-sm font-medium text-theme-text-muted leading-tight">All database updates synchronized successfully!</p>
               </div>
               <button 
                 onClick={() => setShowNotification(null)}
-                className="text-slate-400 hover:text-slate-200 text-xs ml-2 border border-slate-700 hover:border-slate-500 px-2 py-0.5 rounded cursor-pointer transition-all"
+                className="text-theme-text-muted hover:text-theme-text text-xs ml-2 border border-slate-700 hover:border-slate-500 px-2 py-0.5 rounded cursor-pointer transition-all"
               >
                 Dismiss
               </button>

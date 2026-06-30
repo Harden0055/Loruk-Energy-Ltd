@@ -164,9 +164,9 @@ export default function Settings() {
       id="settings-page-container"
     >
       {/* Intro Header */}
-      <div className="bg-white dark:bg-blue-900/20 border border-gray-200 dark:border-blue-900 rounded-xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="glass-panel border border-theme-border rounded-xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-blue-100 flex items-center gap-2">
+          <h2 className="text-xl font-bold text-theme-text flex items-center gap-2">
             <Shield className="w-5 h-5 text-cyan-500 dark:text-blue-400" />
             Security & Account Preferences
           </h2>
@@ -174,7 +174,7 @@ export default function Settings() {
             Manage your credentials, update your secure credentials, and toggle system interfaces.
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-gray-50 dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-gray-100 dark:border-blue-900/40">
+        <div className="flex items-center gap-2 bg-gray-50 dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-theme-border">
           <span className="text-xs text-gray-400">Secure connection via Firestore & Firebase Auth</span>
         </div>
       </div>
@@ -182,36 +182,36 @@ export default function Settings() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left Column: Settings Navigation Details */}
         <div className="space-y-6">
-          <div className="bg-white dark:bg-blue-900/10 border border-gray-100 dark:border-blue-900/30 rounded-xl p-5 space-y-4">
-            <h3 className="font-semibold text-gray-900 dark:text-blue-100 text-sm uppercase tracking-wider">Account Information</h3>
+          <div className="glass-panel border border-theme-border rounded-xl p-5 space-y-4">
+            <h3 className="font-semibold text-theme-text text-sm uppercase tracking-wider">Account Information</h3>
             <div className="space-y-3">
               <div>
                 <span className="text-xs text-gray-400 dark:text-gray-500 block">Registered Email</span>
-                <span className="text-sm font-medium text-gray-800 dark:text-blue-200 break-all">{user?.email}</span>
+                <span className="text-sm font-medium text-theme-text-muted break-all">{user?.email}</span>
               </div>
               <div>
                 <span className="text-xs text-gray-400 dark:text-gray-500 block">Account UID</span>
-                <span className="text-xs font-mono text-gray-600 dark:text-blue-300 select-all">{user?.uid}</span>
+                <span className="text-xs font-mono text-theme-text-muted-muted select-all">{user?.uid}</span>
               </div>
               <div>
                 <span className="text-xs text-gray-400 dark:text-gray-500 block">Authentication Method</span>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold mt-1 bg-blue-50 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold mt-1 bg-blue-50 text-blue-800 dark:glass-panel dark:text-theme-text-muted">
                   {isEmailUser ? 'Email & Password' : 'Google Auth Account'}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-blue-900/10 border border-gray-100 dark:border-blue-900/30 rounded-xl p-5 space-y-4">
-            <h3 className="font-semibold text-gray-900 dark:text-blue-100 text-sm uppercase tracking-wider">Interface Preferences</h3>
+          <div className="glass-panel border border-theme-border rounded-xl p-5 space-y-4">
+            <h3 className="font-semibold text-theme-text text-sm uppercase tracking-wider">Interface Preferences</h3>
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-sm font-medium text-gray-800 dark:text-blue-200 block">Theme mode</span>
+                <span className="text-sm font-medium text-theme-text-muted block">Theme mode</span>
                 <span className="text-xs text-gray-400">Switch current visual appearance</span>
               </div>
               <button
                 onClick={toggleTheme}
-                className="p-2.5 rounded-lg border border-gray-200 dark:border-blue-800 bg-gray-50 dark:bg-blue-950 hover:bg-gray-100 dark:hover:bg-blue-900/40 text-gray-700 dark:text-blue-100 transition-colors flex items-center justify-center"
+                className="p-2.5 rounded-lg border border-theme-border glass-panel hover:bg-white/10 dark:hover:bg-blue-900/40 text-theme-text transition-colors flex items-center justify-center"
                 aria-label="Toggle Theme"
               >
                 {theme === 'dark' ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-indigo-700" />}
@@ -223,8 +223,8 @@ export default function Settings() {
         {/* Right Column: Profile & Secure Password Forms */}
         <div className="col-span-1 md:col-span-2 space-y-8">
           {/* Section 1: Name Profile Update */}
-          <section className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 rounded-xl shadow-sm p-6" id="profile-settings-section">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-blue-100 flex items-center gap-2 border-b border-gray-100 dark:border-blue-900/40 pb-3 mb-4">
+          <section className="glass-panel border border-theme-border rounded-xl shadow-sm p-6" id="profile-settings-section">
+            <h3 className="text-lg font-bold text-theme-text flex items-center gap-2 border-b border-theme-border pb-3 mb-4">
               <UserCheck className="w-5 h-5 text-gray-500 dark:text-gray-400" />
               General Profile Settings
             </h3>
@@ -244,7 +244,7 @@ export default function Settings() {
 
             <form onSubmit={handleUpdateProfile} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-blue-300 mb-1.5" htmlFor="display-name-input">
+                <label className="block text-sm font-semibold text-theme-text-muted mb-1.5" htmlFor="display-name-input">
                   Your Full Name / Alias
                 </label>
                 <input
@@ -252,7 +252,7 @@ export default function Settings() {
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-gray-50 dark:bg-blue-950/40 border border-gray-200 dark:border-blue-800/70 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                  className="w-full px-4 py-2.5 glass-panel border border-theme-border rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
                   placeholder="Enter full name"
                 />
               </div>
@@ -261,7 +261,7 @@ export default function Settings() {
                 <button
                   type="submit"
                   disabled={profileLoading}
-                  className="px-5 py-2 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-900 rounded-lg font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                  className="px-5 py-2 bg-gradient-primary hover:opacity-90 disabled:opacity-50 text-white glow-purple border-0 rounded-lg font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
                   {profileLoading ? 'Saving...' : 'Save Changes'}
@@ -271,8 +271,8 @@ export default function Settings() {
           </section>
 
           {/* Section 2: Secure Password Update (or Google notice) */}
-          <section className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 rounded-xl shadow-sm p-6" id="password-settings-section">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-blue-100 flex items-center gap-2 border-b border-gray-100 dark:border-blue-900/40 pb-3 mb-4">
+          <section className="glass-panel border border-theme-border rounded-xl shadow-sm p-6" id="password-settings-section">
+            <h3 className="text-lg font-bold text-theme-text flex items-center gap-2 border-b border-theme-border pb-3 mb-4">
               <Key className="w-5 h-5 text-gray-500 dark:text-gray-400" />
               Secure Password Update
             </h3>
@@ -299,7 +299,7 @@ export default function Settings() {
                 <form onSubmit={handleUpdatePassword} className="space-y-4">
                   {/* Current Password */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-blue-300 mb-1.5" htmlFor="current-password-input">
+                    <label className="block text-sm font-semibold text-theme-text-muted mb-1.5" htmlFor="current-password-input">
                       Current Password
                     </label>
                     <div className="relative">
@@ -308,7 +308,7 @@ export default function Settings() {
                         type={showCurrent ? 'text' : 'password'}
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
-                        className="w-full pl-4 pr-11 py-2.5 bg-gray-50 dark:bg-blue-950/40 border border-gray-200 dark:border-blue-800/70 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                        className="w-full pl-4 pr-11 py-2.5 glass-panel border border-theme-border rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
                         placeholder="Enter current password"
                         required
                         autoComplete="current-password"
@@ -325,7 +325,7 @@ export default function Settings() {
 
                   {/* New Password */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-blue-300 mb-1.5" htmlFor="new-password-input">
+                    <label className="block text-sm font-semibold text-theme-text-muted mb-1.5" htmlFor="new-password-input">
                       New Password (Minimum 6 characters)
                     </label>
                     <div className="relative">
@@ -334,7 +334,7 @@ export default function Settings() {
                         type={showNew ? 'text' : 'password'}
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full pl-4 pr-11 py-2.5 bg-gray-50 dark:bg-blue-950/40 border border-gray-200 dark:border-blue-800/70 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                        className="w-full pl-4 pr-11 py-2.5 glass-panel border border-theme-border rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
                         placeholder="Create strong password"
                         required
                         autoComplete="new-password"
@@ -351,7 +351,7 @@ export default function Settings() {
 
                   {/* Confirm New Password */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-blue-300 mb-1.5" htmlFor="confirm-password-input">
+                    <label className="block text-sm font-semibold text-theme-text-muted mb-1.5" htmlFor="confirm-password-input">
                       Confirm New Password
                     </label>
                     <div className="relative">
@@ -360,7 +360,7 @@ export default function Settings() {
                         type={showConfirm ? 'text' : 'password'}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full pl-4 pr-11 py-2.5 bg-gray-50 dark:bg-blue-950/40 border border-gray-200 dark:border-blue-800/70 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                        className="w-full pl-4 pr-11 py-2.5 glass-panel border border-theme-border rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
                         placeholder="Re-enter new password"
                         required
                         autoComplete="new-password"
@@ -379,7 +379,7 @@ export default function Settings() {
                     <button
                       type="submit"
                       disabled={passwordLoading}
-                      className="px-5 py-2 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-900 rounded-lg font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                      className="px-5 py-2 bg-gradient-primary hover:opacity-90 disabled:opacity-50 text-white glow-purple border-0 rounded-lg font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                     >
                       <Lock className="w-4 h-4" />
                       {passwordLoading ? 'Updating...' : 'Update Password securely'}
@@ -388,13 +388,13 @@ export default function Settings() {
                 </form>
               </>
             ) : (
-              <div className="p-5 bg-gray-50 dark:bg-blue-900/10 border border-gray-200 dark:border-blue-900/40 rounded-xl space-y-3">
+              <div className="p-5 glass-panel border border-theme-border rounded-xl space-y-3">
                 <div className="flex gap-3">
-                  <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg text-cyan-500 dark:text-blue-400 shrink-0">
+                  <div className="p-2 bg-blue-50 dark:glass-panel rounded-lg text-cyan-500 dark:text-blue-400 shrink-0">
                     <Shield className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-blue-100 text-sm">Managed by Third Party</h4>
+                    <h4 className="font-semibold text-theme-text text-sm">Managed by Third Party</h4>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                       You signed in through your Google Workspace account. Your credentials and security protocols are securely managed directly by Google.
                     </p>
@@ -408,8 +408,8 @@ export default function Settings() {
           </section>
 
           {/* Section 3: Demo/Seed Data Management */}
-          <section className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 rounded-xl shadow-sm p-6" id="demo-data-settings-section">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-blue-100 flex items-center gap-2 border-b border-gray-155 dark:border-blue-900/40 pb-3 mb-4">
+          <section className="glass-panel border border-theme-border rounded-xl shadow-sm p-6" id="demo-data-settings-section">
+            <h3 className="text-lg font-bold text-theme-text flex items-center gap-2 border-b border-gray-155 border-theme-border pb-3 mb-4">
               <AlertTriangle className="w-5 h-5 text-amber-500 animate-pulse" />
               Demo Data Management
             </h3>
@@ -438,14 +438,14 @@ export default function Settings() {
                   <CheckCircle className="w-5 h-5" />
                 </span>
                 <div>
-                  <h4 className="text-sm font-bold text-gray-901 dark:text-blue-100">Clean Database Workspace</h4>
+                  <h4 className="text-sm font-bold text-gray-901 dark:text-theme-text">Clean Database Workspace</h4>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">All pre-populated mock demonstration records have been purged. The database is live and holds only your custom inputs.</p>
                   
                   <div className="mt-4 pt-4 border-t border-emerald-200 dark:border-emerald-800/30">
                     <button
                       type="button"
                       onClick={() => setShowRestoreConfirm(true)}
-                      className="px-4 py-2 font-semibold text-xs tracking-wide uppercase bg-cyan-500 hover:bg-cyan-400 text-slate-900 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      className="px-4 py-2 font-semibold text-xs tracking-wide uppercase bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                     >
                       Emergency Restore 
                     </button>
@@ -456,8 +456,8 @@ export default function Settings() {
           </section>
 
           {/* Section: Fuel Deliveries & Payments Ledger Reset */}
-          <section className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 rounded-xl shadow-sm p-6" id="ledger-reset-settings-section">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-blue-100 flex items-center gap-2 border-b border-gray-155 dark:border-blue-900/40 pb-3 mb-4">
+          <section className="glass-panel border border-theme-border rounded-xl shadow-sm p-6" id="ledger-reset-settings-section">
+            <h3 className="text-lg font-bold text-theme-text flex items-center gap-2 border-b border-gray-155 border-theme-border pb-3 mb-4">
               <AlertTriangle className="w-5 h-5 text-red-500" />
               Wipe Deliveries & Payments Ledger
             </h3>
@@ -489,8 +489,8 @@ export default function Settings() {
           </section>
 
           {/* Section 4: Data Management */}
-          <section className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 rounded-xl shadow-sm p-6" id="data-management-settings-section">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-blue-100 flex items-center gap-2 border-b border-gray-155 dark:border-blue-900/40 pb-3 mb-4">
+          <section className="glass-panel border border-theme-border rounded-xl shadow-sm p-6" id="data-management-settings-section">
+            <h3 className="text-lg font-bold text-theme-text flex items-center gap-2 border-b border-gray-155 border-theme-border pb-3 mb-4">
               <Download className="w-5 h-5 text-blue-500" />
               Data Management
             </h3>
@@ -501,7 +501,7 @@ export default function Settings() {
               onClick={async () => {
                 await exportDataToJson();
               }}
-              className="px-4 py-2 font-semibold text-xs tracking-wide uppercase bg-cyan-500 hover:bg-cyan-400 text-slate-900 rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2 font-semibold text-xs tracking-wide uppercase bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
             >
               <Download className="w-4 h-4" />
               Backup Data (JSON)
@@ -515,7 +515,7 @@ export default function Settings() {
 
       {showClearConfirm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
-          <div className="bg-white dark:bg-blue-950 w-full max-w-sm rounded-xl shadow-2xl p-6 border border-amber-200 dark:border-amber-900/40">
+          <div className="glass-panel w-full max-w-sm rounded-xl shadow-2xl p-6 border border-amber-200 dark:border-amber-900/40">
             <h3 className="text-lg font-bold text-gray-900 dark:text-blue-50 mb-2">Confirm Action</h3>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
               Are you sure you want to remove all seeded demonstration records? This will safely wipe the mock customers, deliveries, payments, and other mock data.
@@ -524,7 +524,7 @@ export default function Settings() {
               <button 
                 disabled={isWiping}
                 onClick={() => setShowClearConfirm(false)}
-                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 rounded-lg cursor-pointer"
+                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-white/10 dark:glass-panel dark:hover:bg-blue-900/50 rounded-lg cursor-pointer"
               >
                 Cancel
               </button>
@@ -542,7 +542,7 @@ export default function Settings() {
 
       {showRestoreConfirm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
-          <div className="bg-white dark:bg-blue-950 w-full max-w-sm rounded-xl shadow-2xl p-6 border border-blue-200 dark:border-blue-900/40">
+          <div className="glass-panel w-full max-w-sm rounded-xl shadow-2xl p-6 border border-theme-border">
             <h3 className="text-lg font-bold text-gray-900 dark:text-blue-50 mb-2">Restore Custom Data</h3>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
               If your custom profile data specifically mapped under IDs CUST-001, CUST-002, or CUST-004 were inadvertently purged, this will add those custom profiles back so that you can repopulate your financial totals.
@@ -551,7 +551,7 @@ export default function Settings() {
               <button 
                 disabled={isRestoring}
                 onClick={() => setShowRestoreConfirm(false)}
-                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 rounded-lg cursor-pointer"
+                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-white/10 dark:glass-panel dark:hover:bg-blue-900/50 rounded-lg cursor-pointer"
               >
                 Cancel
               </button>
@@ -569,7 +569,7 @@ export default function Settings() {
 
       {showClearLedgerConfirm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
-          <div className="bg-white dark:bg-blue-950 w-full max-w-sm rounded-xl shadow-2xl p-6 border border-red-200 dark:border-red-900/45">
+          <div className="glass-panel w-full max-w-sm rounded-xl shadow-2xl p-6 border border-red-200 dark:border-red-900/45">
             <h3 className="text-lg font-bold text-gray-900 dark:text-blue-50 mb-2">Confirm Account Wipe</h3>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
               Are you absolutely sure you want to delete all deliveries and customer payments? This action is irreversible and resets current outstanding balances.
@@ -578,7 +578,7 @@ export default function Settings() {
               <button 
                 disabled={isClearingLedger}
                 onClick={() => setShowClearLedgerConfirm(false)}
-                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 rounded-lg cursor-pointer"
+                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-white/10 dark:glass-panel dark:hover:bg-blue-900/50 rounded-lg cursor-pointer"
               >
                 Cancel
               </button>

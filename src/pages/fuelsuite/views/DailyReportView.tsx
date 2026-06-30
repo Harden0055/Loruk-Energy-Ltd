@@ -127,7 +127,7 @@ export default function DailyReportView() {
           </div>
           <button 
             onClick={() => setShowLpgProfit(false)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#2d325a] hover:bg-[#3d4270] text-white rounded-lg transition-colors font-medium text-sm print:hidden"
+            className="flex items-center gap-2 px-4 py-2 bg-[#122840] hover:bg-[#3d4270] text-white rounded-lg transition-colors font-medium text-sm print:hidden"
           >
             <X className="w-4 h-4" />
             Back to Report
@@ -135,16 +135,16 @@ export default function DailyReportView() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="flex flex-col justify-center bg-cyan-500/10 border border-cyan-500/20 p-6 rounded-xl shadow-sm">
-            <span className="text-sm text-slate-400 font-medium">Total LPG Sales</span>
+          <div className="flex flex-col justify-center bg-cyan-500/10 border border-theme-border p-6 rounded-xl shadow-sm">
+            <span className="text-sm text-theme-text-muted font-medium">Total LPG Sales</span>
             <span className="text-3xl font-bold text-cyan-400 mt-2">Ksh {allLpgSalesAmount.toLocaleString()}</span>
           </div>
           <div className="flex flex-col justify-center bg-orange-500/10 border border-orange-500/20 p-6 rounded-xl shadow-sm">
-            <span className="text-sm text-slate-400 font-medium">Total LPG Purchases (COGS)</span>
+            <span className="text-sm text-theme-text-muted font-medium">Total LPG Purchases (COGS)</span>
             <span className="text-3xl font-bold text-orange-400 mt-2">- Ksh {allLpgPurchasesAmount.toLocaleString()}</span>
           </div>
           <div className="flex flex-col justify-center bg-emerald-500/10 border border-emerald-500/20 p-6 rounded-xl shadow-sm">
-            <span className="text-sm text-slate-400 font-medium">Net Profit (LPG)</span>
+            <span className="text-sm text-theme-text-muted font-medium">Net Profit (LPG)</span>
             <span className={`text-3xl font-bold mt-2 ${allLpgSalesAmount - allLpgPurchasesAmount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
               Ksh {(allLpgSalesAmount - allLpgPurchasesAmount).toLocaleString()}
             </span>
@@ -153,16 +153,16 @@ export default function DailyReportView() {
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           {/* Chart */}
-          <div className="bg-[#1a1d36] p-6 rounded-xl border border-[#2d325a] shadow-md">
-            <h4 className="text-sm font-bold text-slate-300 mb-6 uppercase tracking-wider">Trend Analysis</h4>
+          <div className="glass-panel p-6 rounded-xl border border-theme-border shadow-md">
+            <h4 className="text-sm font-bold text-theme-text-muted mb-6 uppercase tracking-wider">Trend Analysis</h4>
             <div className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={lpgChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2d325a" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#122840" vertical={false} />
                   <XAxis dataKey="date" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
                   <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `Ksh ${val/1000}k`} />
                   <RechartsTooltip 
-                    contentStyle={{ backgroundColor: '#1a1d36', borderColor: '#2d325a', color: '#f8fafc', borderRadius: '8px' }}
+                    contentStyle={{ backgroundColor: '#0b1928', borderColor: '#122840', color: '#f8fafc', borderRadius: '8px' }}
                     itemStyle={{ color: '#f8fafc' }}
                     formatter={(value: number) => [`Ksh ${value.toLocaleString()}`, '']}
                   />
@@ -176,33 +176,33 @@ export default function DailyReportView() {
           </div>
 
           {/* Table */}
-          <div className="bg-[#1a1d36] rounded-xl border border-[#2d325a] overflow-hidden flex flex-col shadow-md">
-            <h4 className="text-sm font-bold text-slate-300 p-6 border-b border-[#2d325a] uppercase tracking-wider">Recent Transactions</h4>
+          <div className="glass-panel rounded-xl border border-theme-border overflow-hidden flex flex-col shadow-md">
+            <h4 className="text-sm font-bold text-theme-text-muted p-6 border-b border-theme-border uppercase tracking-wider">Recent Transactions</h4>
             <div className="overflow-auto flex-1 h-[400px]">
-              <table className="w-full text-left border-collapse text-sm">
+              <table className="modern-table">
                 <thead className="bg-[#1e223d] sticky top-0 z-10">
-                  <tr>
-                    <th className="p-4 text-slate-400 font-medium">Date</th>
-                    <th className="p-4 text-slate-400 font-medium">Type</th>
-                    <th className="p-4 text-slate-400 font-medium">Item</th>
-                    <th className="p-4 text-slate-400 font-medium text-right">Amount</th>
+                  <tr className="modern-tr">
+                    <th className="modern-th">Date</th>
+                    <th className="modern-th">Type</th>
+                    <th className="modern-th">Item</th>
+                    <th className="modern-th">Amount</th>
                   </tr>
                 </thead>
                 <tbody>
                   {lpgStatsData.filter(t => t.type !== 'opening').sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(t => (
-                    <tr key={t.id} className="border-b border-[#2d325a]/50 hover:bg-[#2d325a]/50 transition-colors">
-                      <td className="p-4 text-slate-300">{t.date}</td>
-                      <td className="p-4">
+                    <tr key={t.id} className="border-b border-theme-border/50 hover:bg-[#122840]/50 transition-colors">
+                      <td className="modern-td">{t.date}</td>
+                      <td className="modern-td">
                         <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${t.type === 'sale' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-orange-500/20 text-orange-400'}`}>
                           {t.type}
                         </span>
                       </td>
-                      <td className="p-4 text-slate-300">{t.item}</td>
-                      <td className="p-4 text-right font-medium">Ksh {t.amount.toLocaleString()}</td>
+                      <td className="modern-td">{t.item}</td>
+                      <td className="modern-td">Ksh {t.amount.toLocaleString()}</td>
                     </tr>
                   ))}
                   {lpgStatsData.filter(t => t.type !== 'opening').length === 0 && (
-                    <tr>
+                    <tr className="modern-tr">
                       <td colSpan={4} className="p-8 text-center text-slate-500">No recent sales or purchases found.</td>
                     </tr>
                   )}
@@ -220,10 +220,10 @@ export default function DailyReportView() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">Daily Station Report</h1>
-          <p className="text-slate-400 mt-1">Detailed end-of-day summary</p>
+          <p className="text-theme-text-muted mt-1">Detailed end-of-day summary</p>
         </div>
         <div className="flex items-center gap-3">
-          <label className="text-sm font-medium text-slate-400">Date:</label>
+          <label className="text-sm font-medium text-theme-text-muted">Date:</label>
           <Input 
             type="date" 
             value={selectedDate}
@@ -232,7 +232,7 @@ export default function DailyReportView() {
           />
           <button
             onClick={() => window.print()}
-            className="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-colors text-sm font-medium print:hidden"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 rounded-lg transition-colors text-sm font-medium print:hidden"
           >
             <Printer className="w-4 h-4" />
             Print PDF
@@ -240,24 +240,24 @@ export default function DailyReportView() {
         </div>
       </div>
 
-      <Card className="max-w-3xl mx-auto bg-[#1a1d36] border-[#2d325a] shadow-xl">
-        <CardHeader className="border-b border-[#2d325a] pb-6 flex flex-row items-center justify-between">
+      <Card className="max-w-3xl mx-auto glass-panel border-theme-border shadow-xl">
+        <CardHeader className="border-b border-theme-border pb-6 flex flex-row items-center justify-between">
           <div>
             <CardTitle className="text-xl text-cyan-400 uppercase tracking-wider">{activeStation}</CardTitle>
-            <p className="text-sm text-slate-400 mt-1">Daily Summary Report</p>
+            <p className="text-sm text-theme-text-muted mt-1">Daily Summary Report</p>
           </div>
           <div className="text-right">
-            <div className="text-lg font-bold text-slate-200">{format(new Date(selectedDate), 'EEEE')}</div>
-            <div className="text-sm text-slate-400">{format(new Date(selectedDate), 'dd/MM/yyyy')}</div>
+            <div className="text-lg font-bold text-theme-text">{format(new Date(selectedDate), 'EEEE')}</div>
+            <div className="text-sm text-theme-text-muted">{format(new Date(selectedDate), 'dd/MM/yyyy')}</div>
           </div>
         </CardHeader>
         
-        <CardContent className="p-6 space-y-8 text-slate-300 font-mono text-sm">
+        <CardContent className="p-6 space-y-8 text-theme-text-muted font-mono text-sm">
           
           {/* FUEL SALES SECTION */}
           {Object.entries(groupedReadings).map(([product, data]) => (
-            <div key={product} className="space-y-2 border-b border-[#2d325a]/50 pb-6">
-              <h3 className="text-lg font-bold text-slate-200 uppercase tracking-widest mb-4">{product}</h3>
+            <div key={product} className="space-y-2 border-b border-theme-border/50 pb-6">
+              <h3 className="text-lg font-bold text-theme-text uppercase tracking-widest mb-4">{product}</h3>
               <div className="flex justify-between items-center mb-1">
                 <span>Sales Start (Litres)</span>
                 <span>{data.startReading.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
@@ -266,7 +266,7 @@ export default function DailyReportView() {
                 <span>Sales Stop (Litres)</span>
                 <span>{data.stopReading.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
               </div>
-              <div className="flex justify-between items-center pt-2 border-t border-[#2d325a]/50 text-cyan-400 font-bold">
+              <div className="flex justify-between items-center pt-2 border-t border-theme-border/50 text-cyan-400 font-bold">
                 <span>Total Litres: {data.totalLitres.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
                 <span>Ksh {data.totalSales.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
               </div>
@@ -274,20 +274,20 @@ export default function DailyReportView() {
           ))}
 
           {Object.keys(groupedReadings).length === 0 && (
-            <div className="text-center text-slate-500 py-4 italic border-b border-[#2d325a]/50">
+            <div className="text-center text-slate-500 py-4 italic border-b border-theme-border/50">
               No fuel pump readings recorded for this date.
             </div>
           )}
 
           {/* GASES & ADDED FUEL */}
-          <div className="space-y-4 border-b border-[#2d325a]/50 pb-6">
+          <div className="space-y-4 border-b border-theme-border/50 pb-6">
             <div className="flex justify-between items-center">
               <span className="text-lg">Gases (LPG Sales)</span>
               <span className="font-bold">Ksh {totalGases.toLocaleString()}</span>
             </div>
             
             {dailyFuelAdded.length > 0 && (
-              <div className="pt-2 text-slate-400">
+              <div className="pt-2 text-theme-text-muted">
                 <span className="block mb-1">Added Fuel:</span>
                 {dailyFuelAdded.map(item => (
                   <div key={item.id} className="pl-4">
@@ -299,13 +299,13 @@ export default function DailyReportView() {
           </div>
 
           {/* TOTAL SALES */}
-          <div className="flex justify-between items-center text-xl font-bold text-emerald-400 border-b border-[#2d325a] pb-6">
+          <div className="flex justify-between items-center text-xl font-bold text-emerald-400 border-b border-theme-border pb-6">
             <span>TOTAL SALES</span>
             <span>Ksh {totalSales.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
           </div>
 
           {totalGasesPurchases > 0 && (
-            <div className="flex justify-between items-center text-lg text-orange-300 border-b border-[#2d325a] py-4">
+            <div className="flex justify-between items-center text-lg text-orange-300 border-b border-theme-border py-4">
               <span>Cost of Goods Sold (LPG Purchases)</span>
               <span>- Ksh {totalGasesPurchases.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
             </div>
@@ -313,7 +313,7 @@ export default function DailyReportView() {
 
           {/* LPG PROFIT LINK */}
           {(totalGases > 0 || totalGasesPurchases > 0) && (
-            <div className="flex justify-end pt-2 border-b border-[#2d325a] pb-6">
+            <div className="flex justify-end pt-2 border-b border-theme-border pb-6">
               <button 
                 onClick={() => setShowLpgProfit(true)}
                 className="text-cyan-400 hover:text-cyan-300 underline underline-offset-4 text-sm font-medium transition-colors"
@@ -324,9 +324,9 @@ export default function DailyReportView() {
           )}
 
           {/* DEPTS & EXPENSES GRID */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-b border-[#2d325a] pb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-b border-theme-border pb-6">
             <div>
-              <h4 className="text-lg font-bold text-slate-200 border-b border-[#2d325a] pb-2 mb-3">Depts (Debts)</h4>
+              <h4 className="text-lg font-bold text-theme-text border-b border-theme-border pb-2 mb-3">Depts (Debts)</h4>
               {unpaidDebts.length > 0 ? (
                 <div className="space-y-2">
                   {unpaidDebts.map(debt => (
@@ -335,7 +335,7 @@ export default function DailyReportView() {
                       <span>{(debt.totalAmount - debt.paidAmount).toLocaleString()}</span>
                     </div>
                   ))}
-                  <div className="flex justify-between pt-2 border-t border-[#2d325a] font-bold text-orange-400 mt-2">
+                  <div className="flex justify-between pt-2 border-t border-theme-border font-bold text-orange-400 mt-2">
                     <span>Total Depts</span>
                     <span>= {totalDebts.toLocaleString()}</span>
                   </div>
@@ -346,7 +346,7 @@ export default function DailyReportView() {
             </div>
             
             <div>
-              <h4 className="text-lg font-bold text-slate-200 border-b border-[#2d325a] pb-2 mb-3">Expenses</h4>
+              <h4 className="text-lg font-bold text-theme-text border-b border-theme-border pb-2 mb-3">Expenses</h4>
               {actualExpenses.length > 0 ? (
                 <div className="space-y-2">
                   {actualExpenses.map(exp => (
@@ -355,7 +355,7 @@ export default function DailyReportView() {
                       <span>{exp.amount.toLocaleString()}</span>
                     </div>
                   ))}
-                  <div className="flex justify-between pt-2 border-t border-[#2d325a] font-bold text-red-400 mt-2">
+                  <div className="flex justify-between pt-2 border-t border-theme-border font-bold text-red-400 mt-2">
                     <span>Total Expenses</span>
                     <span>= {totalExpensesAmount.toLocaleString()}</span>
                   </div>
@@ -373,7 +373,7 @@ export default function DailyReportView() {
               <span className="text-emerald-400">{totalMPesaAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
             </div>
             
-            <div className="flex justify-between items-center text-xl font-bold bg-[#2d325a]/30 p-4 rounded-lg">
+            <div className="flex justify-between items-center text-xl font-bold bg-[#122840]/30 p-4 rounded-lg">
               <span className="text-slate-100">Cash at hand</span>
               <span className="text-cyan-400">{cashAtHand.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
             </div>
@@ -389,7 +389,7 @@ export default function DailyReportView() {
               <span className={
                 cashDifference > 0 ? 'text-emerald-400' : 
                 cashDifference < 0 ? 'text-red-400' : 
-                'text-slate-300'
+                'text-theme-text-muted'
               }>
                 {cashDifference !== 0 ? (cashDifference > 0 ? '+' : '') + cashDifference.toLocaleString(undefined, {minimumFractionDigits: 2}) : '0.00'}
               </span>
@@ -398,8 +398,8 @@ export default function DailyReportView() {
 
           {/* VISUAL CASH SPLIT */}
           {(totalMPesaAmount > 0 || cashAtHand > 0) && (
-            <div className="pt-6 border-t border-[#2d325a]">
-              <h4 className="text-lg font-bold text-slate-200 mb-4 text-center">Cash Position Split</h4>
+            <div className="pt-6 border-t border-theme-border">
+              <h4 className="text-lg font-bold text-theme-text mb-4 text-center">Cash Position Split</h4>
               <div className="h-64 flex flex-col items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -419,7 +419,7 @@ export default function DailyReportView() {
                       <Cell fill={COLORS[1]} />
                     </Pie>
                     <Tooltip 
-                      contentStyle={{ backgroundColor: '#1a1d36', borderColor: '#2d325a', color: '#f1f5f9' }}
+                      contentStyle={{ backgroundColor: '#0b1928', borderColor: '#122840', color: '#f1f5f9' }}
                       itemStyle={{ color: '#f1f5f9' }}
                       formatter={(value: number) => `KES ${value.toLocaleString()}`}
                     />
@@ -427,8 +427,8 @@ export default function DailyReportView() {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="text-center mt-2">
-                  <p className="text-sm text-slate-400">Total Funds</p>
-                  <p className="text-xl font-bold text-slate-200">KES {(totalMPesaAmount + Math.max(0, cashAtHand)).toLocaleString()}</p>
+                  <p className="text-sm text-theme-text-muted">Total Funds</p>
+                  <p className="text-xl font-bold text-theme-text">KES {(totalMPesaAmount + Math.max(0, cashAtHand)).toLocaleString()}</p>
                 </div>
               </div>
             </div>

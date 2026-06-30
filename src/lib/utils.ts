@@ -21,11 +21,11 @@ export function formatLitres(litres: number) {
 
 export function getStationColor(station: string) {
   switch (station) {
-    case 'Loruk - Junction': return 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400';
-    case 'Loruk - Ndalu': return 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400';
+    case 'Loruk - Junction': return 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-800 dark:text-cyan-400';
+    case 'Loruk - Ndalu': return 'bg-blue-100 dark:glass-panel text-blue-800 dark:text-blue-400';
     case 'Gel - Bungoma': return 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400';
     case 'Gel - Kapenguria': return 'bg-sky-100 dark:bg-sky-900/30 text-sky-800 dark:text-sky-400';
     case 'Kengas': return 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400';
-    default: return 'bg-gray-100 dark:bg-blue-900/30 text-gray-800 dark:text-blue-400';
+    default: return 'glass-panel text-gray-800 dark:text-blue-400';
   }
 }

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, Input, Button, Table, Th, Td 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
 
-const COLORS = ['#06b6d4', '#f59e0b'];
+const COLORS = ['#00D4FF', '#3B82F6'];
 
 export default function CashPositionView() {
   const { cashPositions, setCashPositions } = useFuel();
@@ -64,7 +64,7 @@ export default function CashPositionView() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">Cash Position</h1>
-          <p className="text-slate-400 mt-1">Track daily bank, M-Pesa, and cash totals.</p>
+          <p className="text-theme-text-muted mt-1">Track daily bank, M-Pesa, and cash totals.</p>
         </div>
         <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
           {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Position</>}
@@ -94,15 +94,15 @@ export default function CashPositionView() {
                     ))}
                   </Pie>
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#1a1d36', borderColor: '#2d325a', color: '#f1f5f9' }}
+                    contentStyle={{ backgroundColor: '#0b1928', borderColor: '#122840', color: '#f1f5f9' }}
                     itemStyle={{ color: '#f1f5f9' }}
                   />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
               <div className="text-center mt-2">
-                <p className="text-sm text-slate-400">Total Funds</p>
-                <p className="text-xl font-bold text-slate-200">KES {(latest.mPesa + latest.cashOnHand).toLocaleString()}</p>
+                <p className="text-sm text-theme-text-muted">Total Funds</p>
+                <p className="text-xl font-bold text-theme-text">KES {(latest.mPesa + latest.cashOnHand).toLocaleString()}</p>
               </div>
             </CardContent>
           </Card>
@@ -117,15 +117,15 @@ export default function CashPositionView() {
               <CardContent>
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Date</label>
+                    <label className="block text-xs text-theme-text-muted mb-1">Date</label>
                     <Input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} required />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">M-Pesa (KES)</label>
+                    <label className="block text-xs text-theme-text-muted mb-1">M-Pesa (KES)</label>
                     <Input type="number" step="0.01" value={form.mPesa} onChange={e => setForm({...form, mPesa: parseFloat(e.target.value)})} required />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Cash on Hand (KES)</label>
+                    <label className="block text-xs text-theme-text-muted mb-1">Cash on Hand (KES)</label>
                     <Input type="number" step="0.01" value={form.cashOnHand} onChange={e => setForm({...form, cashOnHand: parseFloat(e.target.value)})} required />
                   </div>
                   <div className="col-span-1 md:col-span-3 flex justify-end mt-2">
@@ -139,7 +139,7 @@ export default function CashPositionView() {
           <Card>
             <Table>
               <thead>
-                <tr>
+                <tr className="modern-tr">
                   <Th>Date</Th>
                   <Th>M-Pesa</Th>
                   <Th>Cash</Th>
@@ -147,19 +147,19 @@ export default function CashPositionView() {
                   <Th>Actions</Th>
                 </tr>
               </thead>
-              <tbody>
+               <tbody>
                 {cashPositions.map(t => (
-                  <tr key={t.id} className="hover:bg-[#0f1123] transition-colors">
+                  <tr key={t.id} className="hover:theme-bg-gradient transition-colors">
                     <Td>{t.date}</Td>
-                    <Td className="text-cyan-400">{t.mPesa.toLocaleString()}</Td>
-                    <Td className="text-amber-400">{t.cashOnHand.toLocaleString()}</Td>
-                    <Td className="font-bold text-slate-200">{(t.mPesa + t.cashOnHand).toLocaleString()}</Td>
+                    <Td className="text-[#00D4FF] font-semibold font-mono">KES {t.mPesa.toLocaleString()}</Td>
+                    <Td className="text-[#3B82F6] font-semibold font-mono">KES {t.cashOnHand.toLocaleString()}</Td>
+                    <Td className="text-[#00D4FF] font-bold font-mono">KES {(t.mPesa + t.cashOnHand).toLocaleString()}</Td>
                     <Td>
                       <div className="flex gap-3">
-                        <button onClick={() => handleEdit(t)} className="text-slate-400 hover:text-cyan-400 transition-colors">
+                        <button onClick={() => handleEdit(t)} className="text-theme-text-muted hover:text-[#00D4FF] transition-colors cursor-pointer">
                           <Pencil className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleDelete(t.id)} className="text-slate-400 hover:text-red-400 transition-colors">
+                        <button onClick={() => handleDelete(t.id)} className="text-theme-text-muted hover:text-red-400 transition-colors cursor-pointer">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -167,7 +167,7 @@ export default function CashPositionView() {
                   </tr>
                 ))}
                 {cashPositions.length === 0 && (
-                  <tr>
+                  <tr className="modern-tr">
                     <Td colSpan={5} className="text-center py-8 text-slate-500">No positions recorded.</Td>
                   </tr>
                 )}

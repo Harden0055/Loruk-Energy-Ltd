@@ -61,13 +61,13 @@ export default function Payments({ onViewCustomer }: { onViewCustomer?: (id: str
             placeholder="Search payments..." 
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-transparent border border-blue-300 dark:border-blue-700 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-gray-900 dark:text-blue-100 placeholder:text-gray-400"
+            className="w-full pl-9 pr-4 py-2 bg-transparent border border-theme-border dark:border-theme-border rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-theme-text placeholder:text-gray-400"
           />
         </div>
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <button 
             onClick={() => setShowAIModal(true)}
-            className="w-full sm:w-auto bg-blue-50 hover:bg-blue-100 text-cyan-500 dark:bg-blue-900/40 dark:hover:bg-blue-800/60 dark:text-blue-300 dark:border-blue-700/50 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors border border-blue-200"
+            className="w-full sm:w-auto bg-blue-50 hover:bg-blue-100 text-cyan-500 dark:glass-panel dark:hover:bg-blue-800/60 dark:text-theme-text-muted dark:border-theme-border px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors border border-theme-border"
           >
             <Bot className="w-4 h-4" />
             AI Auto-Fill
@@ -77,7 +77,7 @@ export default function Payments({ onViewCustomer }: { onViewCustomer?: (id: str
               setInitialForm(null);
               setIsAdding(true);
             }}
-            className="w-full sm:w-auto bg-blue-100/75 hover:bg-blue-100 dark:bg-blue-900/40 dark:hover:bg-blue-800/60 text-cyan-400 dark:text-blue-300 border border-blue-200 dark:border-blue-700/50 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full sm:w-auto bg-blue-100/75 hover:bg-blue-100 dark:glass-panel dark:hover:bg-blue-800/60 text-cyan-400 dark:text-theme-text-muted border border-theme-border dark:border-theme-border px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Record Payment
@@ -102,28 +102,28 @@ export default function Payments({ onViewCustomer }: { onViewCustomer?: (id: str
         />
       )}
 
-      <div className="bg-white dark:bg-blue-950 rounded border border-gray-200 dark:border-blue-900 overflow-hidden shadow-sm transition-colors">
+      <div className="glass-panel rounded border border-theme-border overflow-hidden shadow-sm transition-colors">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-blue-50 dark:bg-blue-900 border-b border-gray-200 dark:border-blue-900 transition-colors">
-              <tr>
-                <th className="px-4 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider text-left">Date</th>
-                <th className="px-4 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider text-left">Customer</th>
-                <th className="px-4 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider text-right">Amount</th>
-                <th className="px-4 py-3 font-semibold text-blue-900 dark:text-blue-100/90 text-xs uppercase tracking-wider text-right w-24">Actions</th>
+          <table className="modern-table">
+            <thead className="bg-blue-50 dark:glass-panel border-b border-theme-border transition-colors">
+              <tr className="modern-tr">
+                <th className="modern-th">Date</th>
+                <th className="modern-th">Customer</th>
+                <th className="modern-th">Amount</th>
+                <th className="modern-th">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-blue-900">
               {loading ? (
-                <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500 text-base">Loading payments...</td></tr>
+                <tr className="modern-tr"><td colSpan={4} className="px-4 py-8 text-center text-gray-500 text-base">Loading payments...</td></tr>
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500 text-base">No payments found.</td></tr>
+                <tr className="modern-tr"><td colSpan={4} className="px-4 py-8 text-center text-gray-500 text-base">No payments found.</td></tr>
               ) : filtered.map(p => (
-                <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-blue-900/50 transition-colors">
-                  <td className="px-4 py-3 text-base text-gray-600 dark:text-gray-400">{format(p.date, 'MMM d, yyyy HH:mm')}</td>
-                  <td className="px-4 py-3 text-base font-medium text-gray-800 dark:text-blue-200"><button className="hover:underline text-cyan-500 dark:text-blue-400 cursor-pointer" onClick={() => onViewCustomer?.(p.customerId)}>{customers.find(c => c.id === p.customerId)?.name || 'Unknown'}</button></td>
-                  <td className="px-4 py-3 text-base font-mono font-medium text-emerald-600 dark:text-emerald-400 text-right">{formatCurrency(p.amount)}</td>
-                  <td className="px-4 py-3 text-right space-x-1 whitespace-nowrap">
+                <tr key={p.id} className="hover:bg-white/5 dark:hover:bg-blue-900/50 transition-colors">
+                  <td className="modern-td">{format(p.date, 'MMM d, yyyy HH:mm')}</td>
+                  <td className="modern-td"><button className="hover:underline text-cyan-500 dark:text-blue-400 cursor-pointer" onClick={() => onViewCustomer?.(p.customerId)}>{customers.find(c => c.id === p.customerId)?.name || 'Unknown'}</button></td>
+                  <td className="modern-td">{formatCurrency(p.amount)}</td>
+                  <td className="modern-td">
                     <button 
                       onClick={() => {
                         setInitialForm({
@@ -247,47 +247,47 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
 
   return (
     <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-blue-200 dark:border-blue-800 w-full max-w-sm overflow-hidden transition-colors">
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-theme-border w-full max-w-sm overflow-hidden transition-colors">
         <form onSubmit={handleSubmit}>
-          <div className="px-6 py-5 border-b border-blue-200 dark:border-blue-800 bg-blue-100/50 dark:bg-blue-950/50 flex justify-between items-center">
+          <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:glass-panel flex justify-between items-center">
             <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">{isEditing ? 'Edit Payment' : 'Record Payment'}</h3>
             <button type="button" onClick={onClose} className="text-blue-400 hover:text-cyan-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"><X className="w-5 h-5"/></button>
           </div>
           <div className="p-6 space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Customer</label>
+              <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Customer</label>
               <select 
                 required
                 value={form.customerId}
                 onChange={e => setForm({...form, customerId: e.target.value})}
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm font-semibold cursor-pointer"
+                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm font-semibold cursor-pointer"
               >
                 <option value="" disabled>Select a customer...</option>
                 {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Payment Date</label>
+              <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Payment Date</label>
               <input 
                 type="date"
                 required
                 value={form.date}
                 onChange={e => setForm({...form, date: e.target.value})}
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
+                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1.5">Amount (KES)</label>
+              <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Amount (KES)</label>
               <input 
                 type="number" step="0.01" required
                 value={form.amount} onChange={e => setForm({...form, amount: e.target.value})}
-                className="w-full px-3.5 py-2.5 bg-white dark:bg-blue-950 border border-blue-300 dark:border-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
+                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
               />
             </div>
           </div>
-          <div className="px-6 py-4 bg-blue-100/50 dark:bg-blue-950/50 border-t border-blue-200 dark:border-blue-800 flex justify-end gap-3">
-             <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-cyan-400 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-100 transition-colors">Cancel</button>
-             <button type="submit" disabled={loading} className="px-5 py-2 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-900 rounded-lg text-base font-semibold transition-colors">Save Payment</button>
+          <div className="px-6 py-4 bg-blue-100/50 dark:glass-panel border-t border-theme-border flex justify-end gap-3">
+             <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-cyan-400 hover:text-blue-900 dark:text-theme-text-muted dark:hover:text-blue-100 transition-colors">Cancel</button>
+             <button type="submit" disabled={loading} className="px-5 py-2 bg-gradient-primary hover:opacity-90 disabled:opacity-50 text-white glow-purple border-0 rounded-lg text-base font-semibold transition-colors">Save Payment</button>
           </div>
         </form>
       </div>
@@ -314,7 +314,7 @@ function DeletePaymentConfirmModal({
 }: DeletePaymentProps) {
   return (
     <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-      <div className="bg-white dark:bg-blue-950 rounded-xl shadow-2xl border border-gray-200 dark:border-blue-900 w-full max-w-md overflow-hidden transform transition-all duration-300 scale-100">
+      <div className="glass-panel rounded-xl shadow-2xl border border-theme-border w-full max-w-md overflow-hidden transform transition-all duration-300 scale-100">
         <div className="p-6">
           <div className="flex items-center gap-3.5 text-red-600 dark:text-red-400 mb-4 bg-red-50 dark:bg-red-950/30 p-4 rounded-xl border border-red-100 dark:border-red-900/50">
             <AlertTriangle className="w-8 h-8 shrink-0" />
@@ -328,12 +328,12 @@ function DeletePaymentConfirmModal({
             <p className="text-base text-gray-700 dark:text-gray-300 font-normal leading-relaxed">
               Are you sure you want to permanently delete this payment? This will add the payment amount back to the customer's outstanding balance and remove the transaction from all ledger entries.
             </p>
-            <div className="bg-gray-50 dark:bg-blue-950/40 p-4 rounded-lg space-y-2 border border-gray-100 dark:border-blue-900 text-sm font-medium">
-              <div className="flex justify-between items-center py-1 border-b border-gray-100/30 dark:border-blue-900/50">
+            <div className="glass-panel p-4 rounded-lg space-y-2 border border-theme-border text-sm font-medium">
+              <div className="flex justify-between items-center py-1 border-b border-theme-border">
                 <span className="text-gray-500 dark:text-gray-400">Customer:</span> 
                 <span className="text-gray-950 dark:text-blue-50 font-bold">{customerName}</span>
               </div>
-              <div className="flex justify-between items-center py-1 border-b border-gray-100/30 dark:border-blue-900/50">
+              <div className="flex justify-between items-center py-1 border-b border-theme-border">
                 <span className="text-gray-500 dark:text-gray-400">Date:</span> 
                 <span className="text-gray-950 dark:text-blue-50 font-semibold">{format(payment.date, 'MMM d, yyyy HH:mm')}</span>
               </div>
@@ -352,12 +352,12 @@ function DeletePaymentConfirmModal({
           </div>
         </div>
 
-        <div className="px-6 py-4 bg-gray-50 dark:bg-blue-950/20 border-t border-gray-100 dark:border-blue-900 flex justify-end gap-3">
+        <div className="px-6 py-4 glass-panel border-t border-theme-border flex justify-end gap-3">
           <button 
             type="button" 
             onClick={onClose}
             disabled={isDeleting}
-            className="px-4 py-2 border border-gray-200 dark:border-blue-900 rounded-lg text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-blue-950 hover:bg-gray-50 dark:hover:bg-blue-900 transition-colors"
+            className="px-4 py-2 border border-theme-border rounded-lg text-sm font-semibold text-gray-700 dark:text-gray-300 glass-panel hover:bg-white/5 dark:hover:bg-blue-900 transition-colors"
           >
             Cancel
           </button>

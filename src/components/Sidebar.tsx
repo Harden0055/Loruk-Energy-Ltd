@@ -15,8 +15,7 @@ export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'fuelsuite', label: 'FuelSuite Pro', icon: Settings }, // Using Settings or another icon
-    { id: 'operations', label: 'Daily Operations', icon: ClipboardList },
+    { id: 'fuelsuite', label: 'FuelSuite Pro', icon: Settings },
     { id: 'deliveries', label: 'Fuel Deliveries', icon: Truck },
     { id: 'payments', label: 'Payments', icon: DollarSign },
     { id: 'customers', label: 'Customers', icon: Users },
@@ -29,17 +28,16 @@ export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
-
   return (
-    <aside className="w-64 border-r border-gray-200 dark:border-blue-900 flex flex-col bg-white dark:bg-blue-950 transition-colors">
-      <div className="px-5 py-6 flex items-center gap-3">
-        <div className="w-9 h-9 bg-slate-50 dark:bg-blue-900/40 border border-gray-200/60 dark:border-blue-800 rounded-lg flex items-center justify-center shadow-xs">
-          <FireLEIcon className="w-6.5 h-6.5" />
+    <aside className="w-64 border-r border-theme-border flex flex-col bg-[#0E0E11] transition-all duration-300 relative">
+      <div className="px-5 py-6 flex items-center gap-3 border-b border-theme-border/30 mb-2">
+        <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-[0_0_25px_rgba(139,61,255,0.35)] transition-all duration-300 hover:scale-105">
+          <FireLEIcon className="w-7 h-7 text-white" />
         </div>
-        <span className="font-bold text-2xl tracking-tight dark:text-white transition-colors">Loruk Energy Ltd</span>
+        <span className="font-bold text-xl tracking-tight text-gradient transition-colors">Loruk Energy Ltd</span>
       </div>
       
-      <nav className="flex-1 px-4 py-2 space-y-1">
+      <nav className="flex-1 px-4 py-2 space-y-2 overflow-y-auto hide-scrollbar">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentPage === item.id;
@@ -48,47 +46,40 @@ export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
               key={item.id}
               onClick={() => onNavigate(item.id)}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-base transition-colors",
+                "w-full flex items-center gap-3 px-4 py-2.5 text-base sidebar-item",
                 isActive 
-                  ? "bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400 font-medium" 
+                  ? "sidebar-item-active font-medium" 
                   : item.id === 'fuelsuite'
-                    ? "text-cyan-600 dark:text-cyan-400 bg-cyan-50 dark:bg-cyan-900/10 hover:bg-cyan-100 dark:hover:bg-cyan-900/30"
-                    : "text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-blue-900/50 dark:hover:text-gray-100"
+                    ? "text-[#00D4FF] bg-[#00D4FF]/5 hover:bg-[#00D4FF]/10 glow-cyan-text"
+                    : "text-theme-text-muted hover:bg-white/5 hover:text-theme-text"
               )}
             >
-              <Icon className={cn("w-5 h-5", isActive ? "text-cyan-600 dark:text-cyan-400" : item.id === 'fuelsuite' ? "text-cyan-600 dark:text-cyan-400" : "text-gray-500 dark:text-gray-400")} />
+              <Icon className={cn("w-5 h-5 transition-all duration-300", isActive ? "glow-cyan-text" : item.id === 'fuelsuite' ? "glow-cyan-text" : "")} />
               {item.label}
               {item.id === 'fuelsuite' && (
-                <span className="ml-auto bg-cyan-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">NEW</span>
+                <span className="ml-auto bg-gradient-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">NEW</span>
               )}
             </button>
           )
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-100 dark:border-blue-900/50">
-        <div className="flex items-center gap-3 px-2 py-2 mb-3">
-          <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-blue-900 flex items-center justify-center font-medium text-sm text-gray-700 dark:text-gray-300">
+      <div className="p-4 border-t border-theme-border mt-auto">
+        <div className="flex items-center gap-3 px-3 py-3 mb-3 bg-[#121216]/60 border border-theme-border/50 rounded-xl shadow-[0_0_15px_rgba(139,61,255,0.05)]">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#8B3DFF] to-[#3B82F6] flex items-center justify-center font-bold text-sm text-white shadow-[0_0_15px_rgba(139,61,255,0.3)]">
             {user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-base font-medium truncate text-gray-900 dark:text-blue-100">{user?.displayName || 'Admin User'}</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{user?.email || 'admin@fuelflow.io'}</p>
+            <p className="text-sm font-semibold truncate text-white">{user?.displayName || 'Admin User'}</p>
+            <p className="text-xs text-[#A1A1AA] truncate">{user?.email || 'admin@fuelflow.io'}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={toggleTheme}
-            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-blue-900/50 transition-colors"
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            {theme === 'dark' ? 'Light' : 'Theme'}
-          </button>
-          <button
             onClick={logout}
-            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-red-600 dark:text-gray-300 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-300 border border-red-500/20 hover:border-red-500/40 hover:shadow-[0_0_15px_rgba(239,68,68,0.15)] cursor-pointer"
           >
-            <LogOut className="w-4 h-4" />
+            <LogOut className="w-3.5 h-3.5 text-red-400" />
             Logout
           </button>
         </div>

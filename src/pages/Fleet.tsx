@@ -208,20 +208,20 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
     <div className="space-y-6 font-sans">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-blue-100">Fleet Fueling</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-theme-text">Fleet Fueling</h2>
           <p className="text-gray-500">Track fuel consumption logs</p>
         </div>
         <div className="flex gap-3">
           {onNavigate && (
             <button 
               onClick={() => onNavigate('truckDashboard')}
-              className="px-5 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 text-cyan-400 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-lg text-base font-semibold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-900/5 cursor-pointer"
+              className="px-5 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:glass-panel dark:hover:bg-blue-900/60 text-cyan-400 dark:text-theme-text-muted border border-theme-border rounded-lg text-base font-semibold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-900/5 cursor-pointer"
             >
                <Truck className="w-5 h-5" />
                Truck Dashboard
             </button>
           )}
-          <button onClick={generatePDF} className="bg-blue-50 hover:bg-blue-100 text-cyan-500 dark:bg-blue-900/40 dark:hover:bg-blue-800/60 dark:text-blue-300 dark:border-blue-700/50 px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 transition-colors cursor-pointer border border-blue-200 dark:border-blue-800"><Download className="w-5 h-5" /> Export</button>
+          <button onClick={generatePDF} className="bg-blue-50 hover:bg-blue-100 text-cyan-500 dark:glass-panel dark:hover:bg-blue-800/60 dark:text-theme-text-muted dark:border-theme-border px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 transition-colors cursor-pointer border border-theme-border"><Download className="w-5 h-5" /> Export</button>
           <button 
             onClick={() => {
               if (editingExpenseId) {
@@ -236,25 +236,25 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                 setIsAdding(!isAdding);
               }
             }} 
-            className="px-5 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:bg-blue-900/40 dark:hover:bg-blue-900/60 text-cyan-400 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 rounded-lg text-base font-semibold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-900/5 cursor-pointer w-full sm:w-auto"
+            className="px-5 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:glass-panel dark:hover:bg-blue-900/60 text-cyan-400 dark:text-theme-text-muted border border-theme-border rounded-lg text-base font-semibold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-900/5 cursor-pointer w-full sm:w-auto"
           >
             <Plus className="w-5 h-5" /> Add Expense
           </button>
         </div>
       </div>
       {isAdding && (
-        <div id="add-expense-form-container" className="bg-white/95 dark:bg-blue-950/80 p-6 border border-gray-200 dark:border-blue-900 rounded-xl shadow-sm">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-blue-100 mb-4">{editingExpenseId ? 'Edit' : 'Add'} Expense</h3>
+        <div id="add-expense-form-container" className="glass-panel p-6 border border-theme-border rounded-xl shadow-sm">
+          <h3 className="text-lg font-bold text-theme-text mb-4">{editingExpenseId ? 'Edit' : 'Add'} Expense</h3>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
-            <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border rounded-lg" />
-            <select value={carReg} onChange={(e) => setCarReg(e.target.value)} className="w-full px-3 py-2 bg-blue-50/50 dark:bg-blue-900/40 border rounded-lg">{CAR_REGISTRATIONS.map(r => <option key={r} value={r}>{r}</option>)}</select>
-            <select value={station} onChange={(e) => setStation(e.target.value as Station)} className="w-full px-3 py-2 bg-blue-50/50 dark:bg-blue-900/40 border rounded-lg">{STATIONS.map(s => <option key={s} value={s}>{s}</option>)}</select>
-            <input type="number" required min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border rounded-lg" placeholder="Amount (KES)" />
-            <input type="number" min="0" step="0.1" value={distance} onChange={(e) => setDistance(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border rounded-lg" placeholder="Distance (km)" />
+            <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-3 py-2 glass-panel border rounded-lg" />
+            <select value={carReg} onChange={(e) => setCarReg(e.target.value)} className="w-full px-3 py-2 bg-blue-50/50 dark:glass-panel border rounded-lg">{CAR_REGISTRATIONS.map(r => <option key={r} value={r}>{r}</option>)}</select>
+            <select value={station} onChange={(e) => setStation(e.target.value as Station)} className="w-full px-3 py-2 bg-blue-50/50 dark:glass-panel border rounded-lg">{STATIONS.map(s => <option key={s} value={s}>{s}</option>)}</select>
+            <input type="number" required min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-3 py-2 glass-panel border rounded-lg" placeholder="Amount (KES)" />
+            <input type="number" min="0" step="0.1" value={distance} onChange={(e) => setDistance(e.target.value)} className="w-full px-3 py-2 glass-panel border rounded-lg" placeholder="Distance (km)" />
             <div className="flex gap-2 w-full">
               <button 
                 type="submit" 
-                className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-900 px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer"
+                className="flex-1 bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer"
               >
                 {editingExpenseId ? 'Update' : 'Save'}
               </button>
@@ -267,7 +267,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                   setDistance(''); 
                   setDate(format(new Date(), 'yyyy-MM-dd'));
                 }}
-                className="px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-blue-800 rounded-lg font-medium transition-colors cursor-pointer"
+                className="px-3 py-2 bg-gray-100 hover:bg-white/10 dark:glass-panel dark:hover:bg-blue-900/50 text-gray-700 dark:text-gray-300 border border-theme-border rounded-lg font-medium transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -289,7 +289,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
           const textColors = [
             'text-cyan-500 dark:text-blue-400',
             'text-emerald-600 dark:text-emerald-400',
-            'text-purple-600 dark:text-purple-400',
+            'text-cyan-600 dark:text-cyan-400',
             'text-orange-600 dark:text-orange-400',
             'text-yellow-600 dark:text-yellow-400',
           ];
@@ -299,7 +299,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
             return (
               <div 
                 key={reg} 
-                className="p-5 border rounded-xl shadow-sm relative bg-blue-50/50 dark:bg-blue-900/10 border-blue-300 dark:border-blue-800"
+                className="p-5 border rounded-xl shadow-sm relative bg-blue-50/50 dark:glass-panel border-theme-border"
               >
                 <div className="flex items-center justify-between mb-2 text-gray-500 dark:text-gray-400">
                   <p className="text-xs font-bold uppercase tracking-widest">{reg}</p>
@@ -321,45 +321,45 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
 
 
       {/* Mini Dashboard */}
-      <div className="bg-white dark:bg-blue-950 p-6 border border-gray-200 dark:border-blue-900 rounded-xl shadow-sm mb-6 flex flex-col md:flex-row gap-6">
+      <div className="glass-panel p-6 border border-theme-border rounded-xl shadow-sm mb-6 flex flex-col md:flex-row gap-6">
         {/* Left Column: Filters & Summary */}
         <div className="flex-1 flex flex-col gap-6">
           {/* Filters */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Car</label>
-                <select value={selectedCar} onChange={e => setSelectedCar(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select value={selectedCar} onChange={e => setSelectedCar(e.target.value)} className="w-full px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="all">All Cars</option>
                   {CAR_REGISTRATIONS.map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Station</label>
-                <select value={selectedStation} onChange={e => setSelectedStation(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <select value={selectedStation} onChange={e => setSelectedStation(e.target.value)} className="w-full px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="all">All Stations</option>
                   {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">From Date</label>
-                <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">To Date</label>
-                <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
           </div>
           {/* Consumption Summary */}
-          <div className="w-full bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg flex flex-col justify-center border border-blue-100 dark:border-blue-800">
+          <div className="w-full bg-blue-50 dark:glass-panel p-4 rounded-lg flex flex-col justify-center border border-theme-border">
              <p className="text-sm font-medium text-cyan-500 dark:text-blue-400 mb-1">Filtered Consumption</p>
-             <h3 className="text-2xl font-bold text-blue-900 dark:text-blue-100">
+             <h3 className="text-2xl font-bold text-blue-900 dark:text-theme-text">
                {formatCurrency(filteredExpenses.reduce((acc, e) => acc + e.amount, 0))}
              </h3>
              <p className="text-xs text-blue-500 mt-1">{filteredExpenses.length} logs</p>
           </div>
         </div>
         
-        <div className="flex-1 min-w-[300px] bg-white dark:bg-blue-950 p-4 rounded-lg border border-gray-200 dark:border-blue-900 flex flex-col transition-colors">
+        <div className="flex-1 min-w-[300px] glass-panel p-4 rounded-lg border border-theme-border flex flex-col transition-colors">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
              <Truck className="w-4 h-4" /> Fleet Fueling Comparison
           </h3>
@@ -385,23 +385,23 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
         </div>
       </div>
 
-      <div className="bg-white dark:bg-blue-950 rounded border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)] overflow-x-auto overflow-y-hidden">
-        <table className="w-full text-left">
+      <div className="glass-panel rounded border border-theme-border shadow-[0_0_15px_rgba(59,130,246,0.3)] overflow-x-auto overflow-y-hidden">
+        <table className="modern-table">
           <thead>
-            <tr className="bg-blue-50 dark:bg-blue-900">
-              <th className="px-4 py-3 text-sm">Date</th>
-              <th className="px-4 py-3 text-sm">Car</th>
-              <th className="px-4 py-3 text-sm">Station</th>
-              <th className="px-4 py-3 text-sm text-right">Amount</th>
-              <th className="px-4 py-3 text-sm text-right">Actions</th>
+            <tr className="modern-tr">
+              <th className="modern-th">Date</th>
+              <th className="modern-th">Car</th>
+              <th className="modern-th">Station</th>
+              <th className="modern-th">Amount</th>
+              <th className="modern-th">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-blue-900">
             {filteredExpenses.map(e => (
-              <tr key={e.id} className="hover:bg-gray-50 dark:hover:bg-blue-900/50 transition-colors duration-300">
-                <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{format(e.date, 'MMM d, yyyy')}</td>
+              <tr key={e.id} className="hover:bg-white/5 dark:hover:bg-blue-900/50 transition-colors duration-300">
+                <td className="modern-td">{format(e.date, 'MMM d, yyyy')}</td>
                 <td className="px-4 py-3 font-semibold text-cyan-500 dark:text-blue-400 cursor-pointer hover:underline" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
-                <td className="px-4 py-3">
+                <td className="modern-td">
                   {e.station && (
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                       e.station === 'Gel - Bungoma' ? 'bg-pink-100 dark:bg-pink-900/50 text-pink-800 dark:text-pink-200' 
@@ -413,8 +413,8 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                     </span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-right font-mono font-bold text-cyan-500 dark:text-blue-400">{formatCurrency(e.amount)}</td>
-                <td className="px-4 py-3 text-right">
+                <td className="modern-td">{formatCurrency(e.amount)}</td>
+                <td className="modern-td">
                   <div className="flex items-center justify-end gap-1.5">
                     <button 
                       onClick={() => { 
@@ -463,7 +463,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
 
       {deleteDialog.isOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100] transition-opacity">
-          <div className="bg-white dark:bg-blue-950 w-full max-w-sm rounded-xl shadow-2xl p-6 border border-gray-150 dark:border-blue-900/40 transform transition-all">
+          <div className="glass-panel w-full max-w-sm rounded-xl shadow-2xl p-6 border border-gray-150 border-theme-border transform transition-all">
             <h3 className="text-lg font-bold text-gray-900 dark:text-blue-50 mb-2">Confirm Action</h3>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
               Are you sure you want to permanently delete this fleet fueling log?
@@ -472,7 +472,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
               <button 
                 disabled={isDeleting}
                 onClick={() => setDeleteDialog({ isOpen: false, id: null })}
-                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-gray-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 rounded-lg transition-colors cursor-pointer"
+                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-white/10 dark:glass-panel dark:hover:bg-blue-900/50 rounded-lg transition-colors cursor-pointer"
               >
                 Cancel
               </button>

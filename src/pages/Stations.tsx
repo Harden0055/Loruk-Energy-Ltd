@@ -142,8 +142,8 @@ export default function Stations() {
     <div className="space-y-6" id="stations-page-container">
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4" id="stations-overview-cards">
-        <div className="bg-white dark:bg-blue-900/10 p-5 rounded-xl border border-gray-150 dark:border-blue-900/30 shadow-xs flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-cyan-500">
+        <div className="glass-panel p-5 rounded-xl border border-gray-150 border-theme-border shadow-xs flex items-center gap-4">
+          <div className="w-12 h-12 bg-blue-50 dark:glass-panel rounded-lg flex items-center justify-center text-cyan-500">
             <Building2 className="w-6 h-6" />
           </div>
           <div>
@@ -152,7 +152,7 @@ export default function Stations() {
           </div>
         </div>
         
-        <div className="bg-white dark:bg-blue-900/10 p-5 rounded-xl border border-gray-150 dark:border-blue-900/30 shadow-xs flex items-center gap-4">
+        <div className="glass-panel p-5 rounded-xl border border-gray-150 border-theme-border shadow-xs flex items-center gap-4">
           <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center text-emerald-600">
             <CheckCircle2 className="w-6 h-6" />
           </div>
@@ -162,7 +162,7 @@ export default function Stations() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-blue-900/10 p-5 rounded-xl border border-gray-150 dark:border-blue-900/30 shadow-xs flex items-center gap-4">
+        <div className="glass-panel p-5 rounded-xl border border-gray-150 border-theme-border shadow-xs flex items-center gap-4">
           <div className="w-12 h-12 bg-amber-50 dark:bg-amber-900/30 rounded-lg flex items-center justify-center text-amber-600">
             <ShieldAlert className="w-6 h-6" />
           </div>
@@ -174,7 +174,7 @@ export default function Stations() {
       </div>
 
       {/* Control Tools */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-between items-stretch sm:items-center bg-white dark:bg-blue-950 p-4 rounded-xl border border-gray-150 dark:border-blue-900" id="stations-controls">
+      <div className="flex flex-col sm:flex-row gap-3 justify-between items-stretch sm:items-center glass-panel p-4 rounded-xl border border-gray-150 border-theme-border" id="stations-controls">
         <div className="flex flex-1 flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-2.5 h-4.5 w-4.5 text-gray-400" />
@@ -183,14 +183,14 @@ export default function Stations() {
               placeholder="Search station name, code, or location..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-gray-50 dark:bg-blue-900/50 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full pl-9 pr-4 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50"
             />
           </div>
           
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="px-3 py-2 bg-gray-50 dark:bg-blue-900/50 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 min-w-[140px]"
+            className="px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 min-w-[140px]"
           >
             <option value="all">All Statuses</option>
             <option value="active">Active Only</option>
@@ -200,7 +200,7 @@ export default function Stations() {
 
         <button
           onClick={handleAddClick}
-          className="flex items-center justify-center gap-2 bg-cyan-500 hover:bg-cyan-400 text-slate-900 px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-xs cursor-pointer"
+          className="flex items-center justify-center gap-2 bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-xs cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Add Station
@@ -208,10 +208,10 @@ export default function Stations() {
       </div>
 
       {/* Stations Table */}
-      <div className="bg-white dark:bg-blue-950 border border-gray-150 dark:border-blue-900 rounded-xl overflow-hidden shadow-xs" id="stations-table-container">
+      <div className="glass-panel border border-gray-150 border-theme-border rounded-xl overflow-hidden shadow-xs" id="stations-table-container">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24 text-gray-400 gap-3">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-theme-border"></div>
             <p className="text-sm font-medium">Loading stations...</p>
           </div>
         ) : filteredStations.length === 0 ? (
@@ -226,57 +226,57 @@ export default function Stations() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="modern-table">
               <thead>
-                <tr className="bg-gray-50/50 dark:bg-blue-900/10 border-b border-gray-150 dark:border-blue-900 text-gray-500 dark:text-gray-400 text-2xs font-extrabold uppercase tracking-wider">
-                  <th className="px-6 py-4">Station Name & Code</th>
-                  <th className="px-6 py-4">Location</th>
-                  <th className="px-6 py-4">Trading As (T/A)</th>
-                  <th className="px-6 py-4">P.O. Box Address</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                <tr className="modern-tr">
+                  <th className="modern-th">Station Name & Code</th>
+                  <th className="modern-th">Location</th>
+                  <th className="modern-th">Trading As (T/A)</th>
+                  <th className="modern-th">P.O. Box Address</th>
+                  <th className="modern-th">Status</th>
+                  <th className="modern-th">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-blue-900/30 text-sm font-medium">
                 {filteredStations.map((station) => (
-                  <tr key={station.id} className="hover:bg-gray-50/50 dark:hover:bg-blue-900/5 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="font-bold text-gray-900 dark:text-blue-100 text-base">{station.name}</div>
+                  <tr key={station.id} className="hover:bg-white/5/50 dark:hover:bg-blue-900/5 transition-colors">
+                    <td className="modern-td">
+                      <div className="font-bold text-theme-text text-base">{station.name}</div>
                       <div className="font-mono text-2xs text-gray-400 mt-0.5 uppercase tracking-wider">{station.code}</div>
                     </td>
-                    <td className="px-6 py-4 text-gray-600 dark:text-blue-200">
-                      <span className="inline-flex items-center gap-1.5 bg-gray-100 dark:bg-blue-900/30 px-2 py-1 rounded-md text-xs text-gray-700 dark:text-blue-300">
+                    <td className="modern-td">
+                      <span className="inline-flex items-center gap-1.5 glass-panel px-2 py-1 rounded-md text-xs text-theme-text-muted">
                         <MapPin className="w-3.5 h-3.5" />
                         {station.location || 'N/A'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-gray-900 dark:text-blue-100 font-semibold italic">
+                    <td className="modern-td">
                       {station.tradingAs || 'N/A'}
                     </td>
-                    <td className="px-6 py-4 text-gray-600 dark:text-blue-200 font-mono text-xs">
+                    <td className="modern-td">
                       {station.poBox || 'N/A'}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="modern-td">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-2xs font-bold ${
                         station.status === 'active' 
                           ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 border border-emerald-200/55' 
-                          : 'bg-gray-50 dark:bg-gray-900 text-gray-500 border border-gray-200/55'
+                          : 'bg-gray-50 dark:bg-gray-900 text-gray-500 border border-theme-border/55'
                       }`}>
                         {station.status === 'active' ? 'ACTIVE' : 'INACTIVE'}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="modern-td">
                       <div className="flex justify-end gap-2">
                         <button
                           onClick={() => handleEditClick(station)}
-                          className="p-1.5 text-gray-600 dark:text-gray-300 hover:text-cyan-500 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-blue-900/40 rounded-lg transition-colors cursor-pointer"
+                          className="p-1.5 text-gray-600 dark:text-gray-300 hover:text-cyan-500 dark:hover:text-blue-400 hover:bg-white/10 dark:hover:bg-blue-900/40 rounded-lg transition-colors cursor-pointer"
                           title="Edit Station"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setDeletingStation(station)}
-                          className="p-1.5 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-gray-100 dark:hover:bg-blue-900/40 rounded-lg transition-colors cursor-pointer"
+                          className="p-1.5 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-white/10 dark:hover:bg-blue-900/40 rounded-lg transition-colors cursor-pointer"
                           title="Delete Station"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -294,14 +294,14 @@ export default function Stations() {
       {/* Form Dialog Modal */}
       {isFormOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-xs" id="station-form-modal">
-          <div className="bg-white dark:bg-blue-950 rounded-xl overflow-hidden border border-gray-200 dark:border-blue-900 shadow-2xl w-full max-w-md animate-in fade-in zoom-in duration-200">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-150 dark:border-blue-950 bg-gray-50/50 dark:bg-blue-900/10">
+          <div className="glass-panel rounded-xl overflow-hidden border border-theme-border shadow-2xl w-full max-w-md animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-150 dark:border-blue-950 bg-gray-50/50 dark:glass-panel">
               <h3 className="font-bold text-lg text-gray-900 dark:text-white">
                 {editingStation ? 'Edit Station Details' : 'Add New Station'}
               </h3>
               <button 
                 onClick={() => setIsFormOpen(false)}
-                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-blue-900/60 rounded-lg transition-colors cursor-pointer"
+                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-white/10 dark:hover:bg-blue-900/60 rounded-lg transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -323,7 +323,7 @@ export default function Stations() {
                   placeholder="e.g. Gel - Bungoma"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -336,7 +336,7 @@ export default function Stations() {
                     placeholder="e.g. ST-003"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
@@ -347,7 +347,7 @@ export default function Stations() {
                     placeholder="e.g. Bungoma"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
               </div>
@@ -359,7 +359,7 @@ export default function Stations() {
                   placeholder="e.g. T/A Fleet Operations"
                   value={tradingAs}
                   onChange={(e) => setTradingAs(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <p className="text-4xs text-gray-400 dark:text-gray-500 mt-1">This label will dynamically print as the T/A section of PDF reports.</p>
               </div>
@@ -371,7 +371,7 @@ export default function Stations() {
                   placeholder="e.g. P.O BOX 342"
                   value={poBox}
                   onChange={(e) => setPoBox(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
@@ -380,25 +380,25 @@ export default function Stations() {
                 <select
                   value={status}
                   onChange={(e) => setStatus(e.target.value as any)}
-                  className="w-full px-3 py-2 bg-gray-50 dark:bg-blue-900 border border-gray-200 dark:border-blue-800 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-blue-900/50">
+              <div className="flex justify-end gap-3 pt-4 border-t border-theme-border">
                 <button
                   type="button"
                   onClick={() => setIsFormOpen(false)}
-                  className="px-4 py-2 border border-gray-200 dark:border-blue-800 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-blue-900/50 transition-colors cursor-pointer"
+                  className="px-4 py-2 border border-theme-border text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-lg hover:bg-white/5 dark:hover:bg-blue-900/50 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-900 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center min-w-[80px] disabled:opacity-50 cursor-pointer"
+                  className="px-4 py-2 bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center min-w-[80px] disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? 'Saving...' : 'Save'}
                 </button>
@@ -411,7 +411,7 @@ export default function Stations() {
       {/* Delete Confirmation Modal */}
       {deletingStation && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-xs" id="delete-station-confirm">
-          <div className="bg-white dark:bg-blue-950 rounded-xl overflow-hidden border border-gray-200 dark:border-blue-900 shadow-2xl w-full max-w-sm animate-in fade-in zoom-in duration-200">
+          <div className="glass-panel rounded-xl overflow-hidden border border-theme-border shadow-2xl w-full max-w-sm animate-in fade-in zoom-in duration-200">
             <div className="p-6 text-center space-y-4">
               <div className="w-12 h-12 bg-red-100 dark:bg-red-950/50 rounded-full flex items-center justify-center text-red-600 mx-auto">
                 <Trash2 className="w-6 h-6" />
@@ -427,7 +427,7 @@ export default function Stations() {
                 <button
                   onClick={() => setDeletingStation(null)}
                   disabled={isDeleting}
-                  className="flex-1 py-2 border border-gray-200 dark:border-blue-800 text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-lg hover:bg-gray-50 dark:hover:bg-blue-900/50 transition-colors cursor-pointer"
+                  className="flex-1 py-2 border border-theme-border text-gray-700 dark:text-gray-300 text-sm font-semibold rounded-lg hover:bg-white/5 dark:hover:bg-blue-900/50 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>

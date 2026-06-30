@@ -135,7 +135,7 @@ export default function LPGView() {
           </div>
           <button 
             onClick={() => setShowLpgProfit(false)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#2d325a] hover:bg-[#3d4270] text-white rounded-lg transition-colors font-medium text-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-[#122840] hover:bg-[#3d4270] text-white rounded-lg transition-colors font-medium text-sm"
           >
             <X className="w-4 h-4" />
             Back to Dashboard
@@ -143,16 +143,16 @@ export default function LPGView() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="flex flex-col justify-center bg-cyan-500/10 border border-cyan-500/20 p-6 rounded-xl shadow-sm">
-            <span className="text-sm text-slate-400 font-medium">Total LPG Sales</span>
+          <div className="flex flex-col justify-center bg-cyan-500/10 border border-theme-border p-6 rounded-xl shadow-sm">
+            <span className="text-sm text-theme-text-muted font-medium">Total LPG Sales</span>
             <span className="text-3xl font-bold text-cyan-400 mt-2">Ksh {totalSalesAmount.toLocaleString()}</span>
           </div>
           <div className="flex flex-col justify-center bg-orange-500/10 border border-orange-500/20 p-6 rounded-xl shadow-sm">
-            <span className="text-sm text-slate-400 font-medium">Total LPG Purchases (COGS)</span>
+            <span className="text-sm text-theme-text-muted font-medium">Total LPG Purchases (COGS)</span>
             <span className="text-3xl font-bold text-orange-400 mt-2">- Ksh {totalPurchasesAmount.toLocaleString()}</span>
           </div>
           <div className="flex flex-col justify-center bg-emerald-500/10 border border-emerald-500/20 p-6 rounded-xl shadow-sm">
-            <span className="text-sm text-slate-400 font-medium">Net Profit (LPG)</span>
+            <span className="text-sm text-theme-text-muted font-medium">Net Profit (LPG)</span>
             <span className={`text-3xl font-bold mt-2 ${totalSalesAmount - totalPurchasesAmount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
               Ksh {(totalSalesAmount - totalPurchasesAmount).toLocaleString()}
             </span>
@@ -161,16 +161,16 @@ export default function LPGView() {
 
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
           {/* Chart */}
-          <div className="bg-[#1a1d36] p-6 rounded-xl border border-[#2d325a] shadow-md">
-            <h4 className="text-sm font-bold text-slate-300 mb-6 uppercase tracking-wider">Trend Analysis</h4>
+          <div className="glass-panel p-6 rounded-xl border border-theme-border shadow-md">
+            <h4 className="text-sm font-bold text-theme-text-muted mb-6 uppercase tracking-wider">Trend Analysis</h4>
             <div className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2d325a" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#122840" vertical={false} />
                   <XAxis dataKey="date" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
                   <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(val) => `Ksh ${val/1000}k`} />
                   <RechartsTooltip 
-                    contentStyle={{ backgroundColor: '#1a1d36', borderColor: '#2d325a', color: '#f8fafc', borderRadius: '8px' }}
+                    contentStyle={{ backgroundColor: '#0b1928', borderColor: '#122840', color: '#f8fafc', borderRadius: '8px' }}
                     itemStyle={{ color: '#f8fafc' }}
                     formatter={(value: number) => [`Ksh ${value.toLocaleString()}`, '']}
                   />
@@ -184,33 +184,33 @@ export default function LPGView() {
           </div>
 
           {/* Table */}
-          <div className="bg-[#1a1d36] rounded-xl border border-[#2d325a] overflow-hidden flex flex-col shadow-md">
-            <h4 className="text-sm font-bold text-slate-300 p-6 border-b border-[#2d325a] uppercase tracking-wider">Recent Transactions</h4>
+          <div className="glass-panel rounded-xl border border-theme-border overflow-hidden flex flex-col shadow-md">
+            <h4 className="text-sm font-bold text-theme-text-muted p-6 border-b border-theme-border uppercase tracking-wider">Recent Transactions</h4>
             <div className="overflow-auto flex-1 h-[400px]">
-              <table className="w-full text-left border-collapse text-sm">
+              <table className="modern-table">
                 <thead className="bg-[#1e223d] sticky top-0 z-10">
-                  <tr>
-                    <th className="p-4 text-slate-400 font-medium">Date</th>
-                    <th className="p-4 text-slate-400 font-medium">Type</th>
-                    <th className="p-4 text-slate-400 font-medium">Item</th>
-                    <th className="p-4 text-slate-400 font-medium text-right">Amount</th>
+                  <tr className="modern-tr">
+                    <th className="modern-th">Date</th>
+                    <th className="modern-th">Type</th>
+                    <th className="modern-th">Item</th>
+                    <th className="modern-th">Amount</th>
                   </tr>
                 </thead>
                 <tbody>
                   {statsData.filter(t => t.type !== 'opening').sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(t => (
-                    <tr key={t.id} className="border-b border-[#2d325a]/50 hover:bg-[#2d325a]/50 transition-colors">
-                      <td className="p-4 text-slate-300">{t.date}</td>
-                      <td className="p-4">
+                    <tr key={t.id} className="border-b border-theme-border/50 hover:bg-[#122840]/50 transition-colors">
+                      <td className="modern-td">{t.date}</td>
+                      <td className="modern-td">
                         <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${t.type === 'sale' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-orange-500/20 text-orange-400'}`}>
                           {t.type}
                         </span>
                       </td>
-                      <td className="p-4 text-slate-300">{t.item}</td>
-                      <td className="p-4 text-right font-medium text-cyan-400">Ksh {t.amount.toLocaleString()}</td>
+                      <td className="modern-td">{t.item}</td>
+                      <td className="modern-td">Ksh {t.amount.toLocaleString()}</td>
                     </tr>
                   ))}
                   {statsData.filter(t => t.type !== 'opening').length === 0 && (
-                    <tr>
+                    <tr className="modern-tr">
                       <td colSpan={4} className="p-8 text-center text-slate-500">No recent sales or purchases found.</td>
                     </tr>
                   )}
@@ -228,18 +228,18 @@ export default function LPGView() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">LPG Sales & Inventory</h1>
-          <p className="text-slate-400 mt-1">Manage LPG gas cylinders tracking.</p>
+          <p className="text-theme-text-muted mt-1">Manage LPG gas cylinders tracking.</p>
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-4 bg-[#1a1d36]/50 p-4 rounded-lg border border-[#2d325a]">
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-4 glass-panel p-4 rounded-lg border border-theme-border">
         <div className="flex gap-4 w-full md:w-auto">
           <div className="flex-1">
-            <label className="block text-xs text-slate-400 mb-1">Date</label>
+            <label className="block text-xs text-theme-text-muted mb-1">Date</label>
             <Input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="h-9" />
           </div>
           <div className="flex-1">
-            <label className="block text-xs text-slate-400 mb-1">Station</label>
+            <label className="block text-xs text-theme-text-muted mb-1">Station</label>
             <Select value={filterStation} onChange={e => setFilterStation(e.target.value as Station)} className="h-9">
               {['Combined Total', ...STATIONS].map(s => <option key={s} value={s}>{s}</option>)}
             </Select>
@@ -248,7 +248,7 @@ export default function LPGView() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <MetricCard title="Total Bought" value={`${totalBought} Cylinders`} icon={ShoppingCart} colorClass="bg-[#2d325a] text-slate-300" />
+        <MetricCard title="Total Bought" value={`${totalBought} Cylinders`} icon={ShoppingCart} colorClass="bg-[#122840] text-theme-text-muted" />
         <MetricCard title="Total Sold" value={`${totalSold} Cylinders`} icon={CheckSquare} colorClass="bg-cyan-500/10 text-cyan-400" />
         <MetricCard title="Current Inventory" value={`${currentInv} Cylinders`} icon={RefreshCcw} colorClass="bg-emerald-500/10 text-emerald-400" />
       </div>
@@ -259,21 +259,21 @@ export default function LPGView() {
         </button>
       </div>
 
-      <div className="flex gap-4 border-b border-[#2d325a]">
+      <div className="flex gap-4 border-b border-theme-border">
         <button 
-          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'sales' ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-slate-400'}`}
+          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'sales' ? 'text-cyan-400 border-b-2 border-theme-border' : 'text-theme-text-muted'}`}
           onClick={() => { setActiveTab('sales'); resetForm(); }}
         >
           LPG Sales
         </button>
         <button 
-          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'purchases' ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-slate-400'}`}
+          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'purchases' ? 'text-cyan-400 border-b-2 border-theme-border' : 'text-theme-text-muted'}`}
           onClick={() => { setActiveTab('purchases'); resetForm(); }}
         >
           LPG Purchases
         </button>
         <button 
-          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'opening' ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-slate-400'}`}
+          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'opening' ? 'text-cyan-400 border-b-2 border-theme-border' : 'text-theme-text-muted'}`}
           onClick={() => { setActiveTab('opening'); resetForm(); }}
         >
           Opening Stock
@@ -294,28 +294,28 @@ export default function LPGView() {
           <CardContent>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-6 gap-4">
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Date</label>
+                <label className="block text-xs text-theme-text-muted mb-1">Date</label>
                 <Input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} required />
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Station</label>
+                <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                 <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
                   {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
                 </Select>
               </div>
               <div className="col-span-1 md:col-span-1 lg:col-span-2">
-                <label className="block text-xs text-slate-400 mb-1">Item Size</label>
+                <label className="block text-xs text-theme-text-muted mb-1">Item Size</label>
                 <Select value={form.item} onChange={e => setForm({...form, item: e.target.value})}>
                   <option value="6kg Cylinder">6kg Cylinder</option>
                   <option value="13kg Cylinder">13kg Cylinder</option>
                 </Select>
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Qty</label>
+                <label className="block text-xs text-theme-text-muted mb-1">Qty</label>
                 <Input type="number" value={form.quantity} onChange={e => setForm({...form, quantity: parseInt(e.target.value)})} required />
               </div>
               <div className="col-span-1">
-                <label className="block text-xs text-slate-400 mb-1">Total Amount (KES)</label>
+                <label className="block text-xs text-theme-text-muted mb-1">Total Amount (KES)</label>
                 <Input type="number" step="0.01" value={form.amount} onChange={e => setForm({...form, amount: parseFloat(e.target.value)})} required />
               </div>
               <div className="col-span-1 md:col-span-5 flex justify-end mt-2">
@@ -329,7 +329,7 @@ export default function LPGView() {
       <Card>
         <Table>
           <thead>
-            <tr>
+            <tr className="modern-tr">
               <Th>Date</Th>
               <Th>Station</Th>
               <Th>Item Details</Th>
@@ -340,19 +340,19 @@ export default function LPGView() {
           </thead>
           <tbody>
             {filteredData.map(t => (
-              <tr key={t.id} className="hover:bg-[#0f1123] transition-colors">
+              <tr key={t.id} className="hover:theme-bg-gradient transition-colors">
                 <Td>{t.date}</Td>
-                <Td><span className="text-xs text-slate-400 uppercase tracking-tight font-medium">{t.station}</span></Td>
-                <Td><span className="font-semibold text-slate-200">{t.item}</span></Td>
-                <Td>{t.quantity}</Td>
-                <Td>{t.amount.toLocaleString()}</Td>
+                <Td><span className="text-xs text-theme-text-muted uppercase tracking-tight font-medium">{t.station}</span></Td>
+                <Td><span className="font-semibold text-theme-text">{t.item}</span></Td>
+                <Td className="font-semibold font-mono">{t.quantity}</Td>
+                <Td className="text-[#00D4FF] font-semibold font-mono">KES {t.amount.toLocaleString()}</Td>
                 <Td>
                   {!(t as any).isFromInventory ? (
                     <div className="flex gap-3">
-                      <button onClick={() => handleEdit(t as LPGTransaction)} className="text-slate-400 hover:text-cyan-400 transition-colors">
+                      <button onClick={() => handleEdit(t as LPGTransaction)} className="text-theme-text-muted hover:text-[#00D4FF] transition-colors cursor-pointer">
                         <Pencil className="w-4 h-4" />
                       </button>
-                      <button onClick={() => handleDelete(t.id)} className="text-slate-400 hover:text-red-400 transition-colors">
+                      <button onClick={() => handleDelete(t.id)} className="text-theme-text-muted hover:text-red-400 transition-colors cursor-pointer">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -363,7 +363,7 @@ export default function LPGView() {
               </tr>
             ))}
             {filteredData.length === 0 && (
-              <tr>
+              <tr className="modern-tr">
                 <Td colSpan={5} className="text-center py-8 text-slate-500">No {activeTab} records found.</Td>
               </tr>
             )}

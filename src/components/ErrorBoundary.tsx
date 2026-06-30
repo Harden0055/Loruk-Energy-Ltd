@@ -56,18 +56,18 @@ export class ErrorBoundary extends React.Component<Props, State> {
           <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-full mb-4">
             <AlertTriangle className="w-10 h-10 text-red-500" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-blue-100 mb-2">{title}</h2>
+          <h2 className="text-xl font-bold text-theme-text mb-2">{title}</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto mb-6">
             {description}
           </p>
-          <div className="bg-gray-50 dark:bg-blue-900/20 p-3 rounded-lg border border-gray-200 dark:border-blue-900/50 mb-6 max-w-lg w-full overflow-hidden text-left">
+          <div className="glass-panel p-3 rounded-lg border border-theme-border mb-6 max-w-lg w-full overflow-hidden text-left">
             <p className="text-xs font-mono text-red-500 whitespace-pre-wrap break-words">
               {errorMessage}
             </p>
           </div>
           <button
             onClick={this.handleRetry}
-            className="flex items-center gap-2 px-6 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-900 rounded-lg font-semibold transition-colors"
+            className="flex items-center gap-2 px-6 py-2.5 bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 rounded-lg font-semibold transition-colors"
           >
             <RefreshCw className="w-4 h-4" />
             <span>Retry</span>

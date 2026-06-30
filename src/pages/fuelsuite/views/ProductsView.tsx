@@ -79,7 +79,7 @@ export default function ProductsView() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">Products Configuration</h1>
-          <p className="text-slate-400 mt-1">Manage fuel and oil products across all stations.</p>
+          <p className="text-theme-text-muted mt-1">Manage fuel and oil products across all stations.</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={removeDuplicates} variant="secondary" className="flex items-center gap-2">
@@ -99,7 +99,7 @@ export default function ProductsView() {
           <CardContent>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="col-span-1 md:col-span-2">
-                <label className="block text-xs text-slate-400 mb-1">Product Name</label>
+                <label className="block text-xs text-theme-text-muted mb-1">Product Name</label>
                 <Input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="e.g. Super Premium" required />
               </div>
               <div className="col-span-1 md:col-span-2 flex justify-end mt-2">
@@ -117,23 +117,23 @@ export default function ProductsView() {
         <div className="overflow-x-auto">
           <Table>
             <thead>
-              <tr>
+              <tr className="modern-tr">
                 <Th>Product Name</Th>
                 <Th>Actions</Th>
               </tr>
             </thead>
             <tbody>
               {products.map(p => (
-                <tr key={p.id} className="hover:bg-[#0f1123] transition-colors">
+                <tr key={p.id} className="hover:theme-bg-gradient transition-colors">
                   <Td>
-                    <span className="font-semibold text-slate-200">{p.name}</span>
+                    <span className="font-semibold text-theme-text">{p.name}</span>
                   </Td>
                   <Td>
                     <div className="flex gap-3">
-                      <button onClick={() => handleEdit(p)} className="text-slate-400 hover:text-cyan-400 transition-colors">
+                      <button onClick={() => handleEdit(p)} className="text-theme-text-muted hover:text-cyan-400 transition-colors">
                         <Pencil className="w-4 h-4" />
                       </button>
-                      <button onClick={() => handleDelete(p.id)} className="text-slate-400 hover:text-red-400 transition-colors">
+                      <button onClick={() => handleDelete(p.id)} className="text-theme-text-muted hover:text-red-400 transition-colors">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -141,7 +141,7 @@ export default function ProductsView() {
                 </tr>
               ))}
               {products.length === 0 && (
-                <tr>
+                <tr className="modern-tr">
                   <Td colSpan={2} className="text-center py-8 text-slate-500">No products configured.</Td>
                 </tr>
               )}

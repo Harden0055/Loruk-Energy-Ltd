@@ -11,6 +11,7 @@ export default function InvoicesView() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filterDate, setFilterDate] = useState<string>('');
+  const [filterStation, setFilterStation] = useState<string>(activeStation);
   const [form, setForm] = useState<Partial<Invoice>>({
     date: new Date().toISOString().split('T')[0],
     station: activeStation === 'Combined Total' ? STATIONS[0] : activeStation,
@@ -22,11 +23,25 @@ export default function InvoicesView() {
   // Customer state
   const [isCustomerFormOpen, setIsCustomerFormOpen] = useState(false);
   const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null);
-  const [customerForm, setCustomerForm] = useState<Partial<Customer>>({ code: '', name: '', creditLimit: 0, openingBalance: 0 });
+  const [customerForm, setCustomerForm] = useState<Partial<Customer>>({ 
+    code: '', 
+    name: '', 
+    creditLimit: 0, 
+    openingBalance: 0,
+    station: activeStation === 'Combined Total' ? STATIONS[0] : activeStation
+  });
+
+  // Keep filterStation in sync with global activeStation if it changes (optional but good pattern)
+  React.useEffect(() => {
+    setFilterStation(activeStation);
+  }, [activeStation]);
 
   const filteredData = invoices
-    .filter(i => activeStation === 'Combined Total' || i.station === activeStation)
+    .filter(i => filterStation === 'Combined Total' || i.station === filterStation)
     .filter(i => !filterDate || i.date === filterDate);
+    
+  const filteredCustomers = customers
+    .filter(c => filterStation === 'Combined Total' || c.station === filterStation);
 
   const resetForm = () => {
     setForm({
@@ -41,7 +56,13 @@ export default function InvoicesView() {
   };
 
   const resetCustomerForm = () => {
-    setCustomerForm({ code: '', name: '', creditLimit: 0, openingBalance: 0 });
+    setCustomerForm({ 
+      code: '', 
+      name: '', 
+      creditLimit: 0, 
+      openingBalance: 0,
+      station: activeStation === 'Combined Total' ? STATIONS[0] : activeStation 
+    });
     setEditingCustomerId(null);
     setIsCustomerFormOpen(false);
   };
@@ -92,6 +113,7 @@ export default function InvoicesView() {
     } else {
       const newCustomer: Customer = {
         id: Math.random().toString(36).substr(2, 9),
+        station: customerForm.station || (activeStation === 'Combined Total' ? STATIONS[0] : activeStation),
         code: customerForm.code || '',
         name: customerForm.name || '',
         creditLimit: customerForm.creditLimit || 0,
@@ -107,7 +129,7 @@ export default function InvoicesView() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">Customer Invoices</h1>
-          <p className="text-slate-400 mt-1">Track and manage daily customer invoices and balances.</p>
+          <p className="text-theme-text-muted mt-1">Track and manage daily customer invoices and balances.</p>
         </div>
         
         {activeTab === 'invoices' ? (
@@ -121,29 +143,41 @@ export default function InvoicesView() {
         )}
       </div>
 
-      <div className="flex gap-4 border-b border-[#2d325a]">
+      <div className="flex gap-4 border-b border-theme-border mb-6">
         <button 
           onClick={() => setActiveTab('invoices')}
-          className={`flex items-center gap-2 pb-3 px-2 border-b-2 font-medium transition-colors ${activeTab === 'invoices' ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+          className={`flex items-center gap-2 pb-3 px-2 border-b-2 font-medium transition-colors ${activeTab === 'invoices' ? 'border-theme-border text-cyan-400' : 'border-transparent text-theme-text-muted hover:text-theme-text'}`}
         >
           <FileText className="w-4 h-4" /> Invoices
         </button>
         <button 
           onClick={() => setActiveTab('customers')}
-          className={`flex items-center gap-2 pb-3 px-2 border-b-2 font-medium transition-colors ${activeTab === 'customers' ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+          className={`flex items-center gap-2 pb-3 px-2 border-b-2 font-medium transition-colors ${activeTab === 'customers' ? 'border-theme-border text-cyan-400' : 'border-transparent text-theme-text-muted hover:text-theme-text'}`}
         >
           <Users className="w-4 h-4" /> Customers
         </button>
       </div>
 
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-6 glass-panel p-4 rounded-lg border border-theme-border">
+        <div className="flex gap-4 w-full md:w-auto">
+          {activeTab === 'invoices' && (
+            <div className="flex-1 min-w-[150px]">
+              <label className="block text-xs text-theme-text-muted mb-1">Date</label>
+              <Input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="h-9" />
+            </div>
+          )}
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-xs text-theme-text-muted mb-1">Filter by Station</label>
+            <Select value={filterStation} onChange={e => setFilterStation(e.target.value)} className="h-9">
+              <option value="Combined Total">Combined Total (All)</option>
+              {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+            </Select>
+          </div>
+        </div>
+      </div>
+
       {activeTab === 'invoices' && (
         <div className="space-y-6 animate-in fade-in duration-300">
-          <div className="flex justify-end">
-            <div className="w-48">
-              <label className="block text-xs text-slate-400 mb-1">Filter by Date</label>
-              <Input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} />
-            </div>
-          </div>
           {isFormOpen && (
             <Card>
               <CardHeader>
@@ -152,28 +186,28 @@ export default function InvoicesView() {
               <CardContent>
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-6 gap-4">
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Date</label>
+                    <label className="block text-xs text-theme-text-muted mb-1">Date</label>
                     <Input type="date" value={form.date || ''} onChange={e => setForm({...form, date: e.target.value})} required />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Station</label>
+                    <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                     <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
                       {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
                     </Select>
                   </div>
                   <div className="col-span-2">
-                    <label className="block text-xs text-slate-400 mb-1">Customer</label>
+                    <label className="block text-xs text-theme-text-muted mb-1">Customer</label>
                     <Select value={form.customerName} onChange={e => setForm({...form, customerName: e.target.value})} required>
                       <option value="">Select a customer...</option>
-                      {customers.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                      {customers.filter(c => c.station === form.station).map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                     </Select>
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Total (KES)</label>
+                    <label className="block text-xs text-theme-text-muted mb-1">Total (KES)</label>
                     <Input type="number" step="0.01" value={form.totalAmount} onChange={e => setForm({...form, totalAmount: parseFloat(e.target.value)})} required />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Paid (KES)</label>
+                    <label className="block text-xs text-theme-text-muted mb-1">Paid (KES)</label>
                     <Input type="number" step="0.01" value={form.paidAmount} onChange={e => setForm({...form, paidAmount: parseFloat(e.target.value)})} required />
                   </div>
                   <div className="col-span-1 md:col-span-6 flex justify-end mt-2">
@@ -187,7 +221,7 @@ export default function InvoicesView() {
           <Card>
             <Table>
               <thead>
-                <tr>
+                <tr className="modern-tr">
                   <Th>Date</Th>
                   <Th>Station</Th>
                   <Th>Customer</Th>
@@ -212,20 +246,20 @@ export default function InvoicesView() {
                   }
 
                   return (
-                    <tr key={t.id} className="hover:bg-[#0f1123] transition-colors">
-                      <Td><span className="text-sm text-slate-300">{t.date || '-'}</span></Td>
-                      <Td><span className="text-xs text-slate-400 uppercase tracking-tight font-medium">{t.station}</span></Td>
-                      <Td><span className="font-semibold text-slate-200">{t.customerName}</span></Td>
-                      <Td>{t.totalAmount.toLocaleString()}</Td>
-                      <Td>{t.paidAmount.toLocaleString()}</Td>
-                      <Td>{balance.toLocaleString()}</Td>
+                    <tr key={t.id} className="hover:theme-bg-gradient transition-colors">
+                      <Td><span className="text-sm text-theme-text-muted">{t.date || '-'}</span></Td>
+                      <Td><span className="text-xs text-theme-text-muted uppercase tracking-tight font-medium">{t.station}</span></Td>
+                      <Td><span className="font-semibold text-theme-text">{t.customerName}</span></Td>
+                      <Td className="text-[#3B82F6] font-semibold font-mono">KES {t.totalAmount.toLocaleString()}</Td>
+                      <Td className="text-[#00D4FF] font-semibold font-mono">KES {t.paidAmount.toLocaleString()}</Td>
+                      <Td className={`${balance > 0 ? 'text-[#00D4FF]' : 'text-emerald-400'} font-semibold font-mono`}>KES {balance.toLocaleString()}</Td>
                       <Td><span className={`px-2 py-1 rounded text-xs font-bold ${statusClass}`}>{statusText}</span></Td>
                       <Td>
                         <div className="flex gap-3">
-                          <button onClick={() => handleEdit(t)} className="text-slate-400 hover:text-cyan-400 transition-colors">
+                          <button onClick={() => handleEdit(t)} className="text-theme-text-muted hover:text-[#00D4FF] transition-colors cursor-pointer">
                             <Pencil className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleDelete(t.id)} className="text-slate-400 hover:text-red-400 transition-colors">
+                          <button onClick={() => handleDelete(t.id)} className="text-theme-text-muted hover:text-red-400 transition-colors cursor-pointer">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -234,7 +268,7 @@ export default function InvoicesView() {
                   );
                 })}
                 {filteredData.length === 0 && (
-                  <tr>
+                  <tr className="modern-tr">
                     <Td colSpan={8} className="text-center py-8 text-slate-500">No invoices recorded.</Td>
                   </tr>
                 )}
@@ -252,24 +286,30 @@ export default function InvoicesView() {
                 <CardTitle>{editingCustomerId ? 'Edit Customer' : 'New Customer'}</CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleCustomerSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <form onSubmit={handleCustomerSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-4">
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Customer Code</label>
+                    <label className="block text-xs text-theme-text-muted mb-1">Station</label>
+                    <Select value={customerForm.station} onChange={e => setCustomerForm({...customerForm, station: e.target.value as any})}>
+                      {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-theme-text-muted mb-1">Customer Code</label>
                     <Input type="text" value={customerForm.code} onChange={e => setCustomerForm({...customerForm, code: e.target.value})} required placeholder="e.g. CUST-001" />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Customer Name</label>
+                    <label className="block text-xs text-theme-text-muted mb-1">Customer Name</label>
                     <Input type="text" value={customerForm.name} onChange={e => setCustomerForm({...customerForm, name: e.target.value})} required />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Credit Limit (KES)</label>
+                    <label className="block text-xs text-theme-text-muted mb-1">Credit Limit (KES)</label>
                     <Input type="number" step="0.01" value={customerForm.creditLimit} onChange={e => setCustomerForm({...customerForm, creditLimit: parseFloat(e.target.value)})} required />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Opening Balance (KES)</label>
+                    <label className="block text-xs text-theme-text-muted mb-1">Opening Balance (KES)</label>
                     <Input type="number" step="0.01" value={customerForm.openingBalance} onChange={e => setCustomerForm({...customerForm, openingBalance: parseFloat(e.target.value)})} required />
                   </div>
-                  <div className="col-span-1 md:col-span-4 flex justify-end mt-2">
+                  <div className="col-span-1 md:col-span-5 flex justify-end mt-2">
                     <Button type="submit">{editingCustomerId ? 'Update' : 'Save'}</Button>
                   </div>
                 </form>
@@ -280,7 +320,8 @@ export default function InvoicesView() {
           <Card>
             <Table>
               <thead>
-                <tr>
+                <tr className="modern-tr">
+                  <Th>Station</Th>
                   <Th>Code</Th>
                   <Th>Customer Name</Th>
                   <Th>Credit Limit (KES)</Th>
@@ -292,8 +333,8 @@ export default function InvoicesView() {
                 </tr>
               </thead>
               <tbody>
-                {customers.map(c => {
-                  const customerInvoices = invoices.filter(i => i.customerName === c.name);
+                {filteredCustomers.map(c => {
+                  const customerInvoices = invoices.filter(i => i.customerName === c.name && i.station === c.station);
                   const totalAmount = customerInvoices.reduce((sum, i) => sum + (i.totalAmount || 0), 0);
                   const totalPaid = customerInvoices.reduce((sum, i) => sum + (i.paidAmount || 0), 0);
                   const openingBalance = c.openingBalance || 0;
@@ -302,9 +343,10 @@ export default function InvoicesView() {
                   const isOverLimit = balance > creditLimit;
 
                   return (
-                    <tr key={c.id} className="hover:bg-[#0f1123] transition-colors">
-                      <Td><span className="text-xs text-slate-400 font-mono">{c.code}</span></Td>
-                      <Td><span className="font-semibold text-slate-200">{c.name}</span></Td>
+                    <tr key={c.id} className="hover:theme-bg-gradient transition-colors">
+                      <Td><span className="text-xs text-theme-text-muted uppercase tracking-tight font-medium">{c.station}</span></Td>
+                      <Td><span className="text-xs text-theme-text-muted font-mono">{c.code}</span></Td>
+                      <Td><span className="font-semibold text-theme-text">{c.name}</span></Td>
                       <Td>{creditLimit.toLocaleString(undefined, {minimumFractionDigits: 2})}</Td>
                       <Td>{openingBalance.toLocaleString(undefined, {minimumFractionDigits: 2})}</Td>
                       <Td>{totalAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</Td>
@@ -319,10 +361,10 @@ export default function InvoicesView() {
                       </Td>
                       <Td>
                         <div className="flex gap-3">
-                          <button onClick={() => handleEditCustomer(c)} className="text-slate-400 hover:text-cyan-400 transition-colors">
+                          <button onClick={() => handleEditCustomer(c)} className="text-theme-text-muted hover:text-cyan-400 transition-colors">
                             <Pencil className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleDeleteCustomer(c.id)} className="text-slate-400 hover:text-red-400 transition-colors">
+                          <button onClick={() => handleDeleteCustomer(c.id)} className="text-theme-text-muted hover:text-red-400 transition-colors">
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
@@ -330,9 +372,9 @@ export default function InvoicesView() {
                     </tr>
                   );
                 })}
-                {customers.length === 0 && (
-                  <tr>
-                    <Td colSpan={8} className="text-center py-8 text-slate-500">No customers found.</Td>
+                {filteredCustomers.length === 0 && (
+                  <tr className="modern-tr">
+                    <Td colSpan={9} className="text-center py-8 text-slate-500">No customers found.</Td>
                   </tr>
                 )}
               </tbody>

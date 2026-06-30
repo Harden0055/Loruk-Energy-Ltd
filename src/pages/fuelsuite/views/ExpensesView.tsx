@@ -60,9 +60,13 @@ export default function ExpensesView() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">Expenses</h1>
-          <p className="text-slate-400 mt-1">Log station operational expenses.</p>
+          <p className="text-theme-text-muted mt-1">Log station operational expenses.</p>
         </div>
-        <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
+        <Button 
+          onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} 
+          variant={isFormOpen ? 'secondary' : 'purple'}
+          className="flex items-center gap-2"
+        >
           {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Expense</>}
         </Button>
       </div>
@@ -75,25 +79,25 @@ export default function ExpensesView() {
           <CardContent>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Date</label>
+                <label className="block text-xs text-theme-text-muted mb-1">Date</label>
                 <Input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} required />
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Station</label>
+                <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                 <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
                   {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
                 </Select>
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Category</label>
+                <label className="block text-xs text-theme-text-muted mb-1">Category</label>
                 <Input type="text" value={form.category} onChange={e => setForm({...form, category: e.target.value})} placeholder="e.g. Electricity" required />
               </div>
               <div>
-                <label className="block text-xs text-slate-400 mb-1">Amount (KES)</label>
+                <label className="block text-xs text-theme-text-muted mb-1">Amount (KES)</label>
                 <Input type="number" step="0.01" value={form.amount} onChange={e => setForm({...form, amount: parseFloat(e.target.value)})} required />
               </div>
               <div className="col-span-1 md:col-span-4 flex justify-end mt-2">
-                <Button type="submit">{editingId ? 'Update Expense' : 'Save Expense'}</Button>
+                <Button type="submit" variant="purple">{editingId ? 'Update Expense' : 'Save Expense'}</Button>
               </div>
             </form>
           </CardContent>
@@ -103,7 +107,7 @@ export default function ExpensesView() {
       <Card>
         <Table>
           <thead>
-            <tr>
+            <tr className="modern-tr">
               <Th>Date</Th>
               <Th>Station</Th>
               <Th>Category</Th>
@@ -113,17 +117,17 @@ export default function ExpensesView() {
           </thead>
           <tbody>
             {filteredData.map(t => (
-              <tr key={t.id} className="hover:bg-[#0f1123] transition-colors">
+              <tr key={t.id} className="hover:theme-bg-gradient transition-colors">
                 <Td>{t.date}</Td>
-                <Td><span className="text-xs text-slate-400 uppercase tracking-tight font-medium">{t.station}</span></Td>
-                <Td><span className="font-semibold text-slate-200">{t.category}</span></Td>
-                <Td className="text-red-400">{t.amount.toLocaleString()}</Td>
+                <Td><span className="text-xs text-theme-text-muted uppercase tracking-tight font-medium">{t.station}</span></Td>
+                <Td><span className="font-semibold text-theme-text">{t.category}</span></Td>
+                <Td className="text-[#B15DFF] font-semibold font-mono">KES {t.amount.toLocaleString()}</Td>
                 <Td>
                   <div className="flex gap-3">
-                    <button onClick={() => handleEdit(t)} className="text-slate-400 hover:text-cyan-400 transition-colors">
+                    <button onClick={() => handleEdit(t)} className="text-theme-text-muted hover:text-[#B15DFF] transition-colors cursor-pointer">
                       <Pencil className="w-4 h-4" />
                     </button>
-                    <button onClick={() => handleDelete(t.id)} className="text-slate-400 hover:text-red-400 transition-colors">
+                    <button onClick={() => handleDelete(t.id)} className="text-theme-text-muted hover:text-red-400 transition-colors cursor-pointer">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -131,7 +135,7 @@ export default function ExpensesView() {
               </tr>
             ))}
             {expenses.length === 0 && (
-              <tr>
+              <tr className="modern-tr">
                 <Td colSpan={4} className="text-center py-8 text-slate-500">No expenses recorded.</Td>
               </tr>
             )}

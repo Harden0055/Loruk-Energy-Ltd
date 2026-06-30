@@ -89,41 +89,41 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
           {onBack && (
             <button 
               onClick={onBack}
-              className="px-3 py-1.5 bg-white dark:bg-blue-950/80 hover:bg-gray-50 dark:hover:bg-blue-900 border border-gray-200 dark:border-blue-900 text-gray-700 dark:text-blue-200 text-sm font-semibold rounded-lg flex items-center gap-2 transition-colors cursor-pointer shadow-sm"
+              className="px-3 py-1.5 glass-panel hover:bg-white/5 dark:hover:bg-blue-900 border border-theme-border text-theme-text-muted text-sm font-semibold rounded-lg flex items-center gap-2 transition-colors cursor-pointer shadow-sm"
               title="Go Back"
             >
               &larr; Back
             </button>
           )}
-          <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-blue-100">Truck Fleet Performance Dashboard</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-theme-text">Truck Fleet Performance Dashboard</h2>
         </div>
-        <button className="bg-cyan-500 hover:bg-cyan-400 text-slate-900 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 cursor-pointer transition-colors shadow-sm">
+        <button className="bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 cursor-pointer transition-colors shadow-sm">
            <Download className="w-4 h-4" /> Export Report
         </button>
       </div>
       
       {/* Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900/60 p-5 rounded-xl">
+        <div className="glass-panel border border-theme-border p-5 rounded-xl">
            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Total Spent</p>
            <h3 className="text-2xl font-black font-mono text-cyan-500 dark:text-blue-400 mt-2">{formatCurrency(totalExpense)}</h3>
         </div>
-        <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900/60 p-5 rounded-xl">
+        <div className="glass-panel border border-theme-border p-5 rounded-xl">
            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Total Distance</p>
            <h3 className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-2">{totalDistance.toLocaleString()} <span className="text-xs font-sans font-bold">km</span></h3>
         </div>
-        <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900/60 p-5 rounded-xl">
+        <div className="glass-panel border border-theme-border p-5 rounded-xl">
            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Avg Fuel Cost</p>
-           <h3 className="text-2xl font-black font-mono text-purple-600 dark:text-purple-400 mt-2">{avgCostPerKm > 0 ? `${formatCurrency(avgCostPerKm)}/km` : 'N/A'}</h3>
+           <h3 className="text-2xl font-black font-mono text-cyan-600 dark:text-cyan-400 mt-2">{avgCostPerKm > 0 ? `${formatCurrency(avgCostPerKm)}/km` : 'N/A'}</h3>
         </div>
-        <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900/60 p-5 rounded-xl">
+        <div className="glass-panel border border-theme-border p-5 rounded-xl">
            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Active Fleet</p>
            <h3 className="text-2xl font-black font-mono text-amber-600 dark:text-amber-400 mt-2">{activeTrucksCount} <span className="text-xs font-sans font-bold">Trucks</span></h3>
         </div>
       </div>
 
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-blue-950 border p-5 rounded-xl">
+        <div className="glass-panel border p-5 rounded-xl">
             <h3 className="font-bold text-lg mb-4">Fuel Spend by Vehicle</h3>
             <div className="h-64">
                 <ResponsiveContainer>
@@ -140,7 +140,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
                 </ResponsiveContainer>
             </div>
         </div>
-        <div className="bg-white dark:bg-blue-950 border p-5 rounded-xl">
+        <div className="glass-panel border p-5 rounded-xl">
             <h3 className="font-bold text-lg mb-4">Expenditure Trend</h3>
             <div className="h-64">
                 <ResponsiveContainer>
@@ -153,7 +153,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
                 </ResponsiveContainer>
             </div>
         </div>
-        <div className="bg-white dark:bg-blue-950 border p-5 rounded-xl lg:col-span-2">
+        <div className="glass-panel border p-5 rounded-xl lg:col-span-2">
             <h3 className="font-bold text-lg mb-4">Fuel Efficiency Trend (Km/KES)</h3>
             <div className="h-64">
                 <ResponsiveContainer>
@@ -169,17 +169,17 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
         </div>
        </div>
 
-       <div className="bg-white dark:bg-blue-950 rounded border overflow-hidden mt-6">
+       <div className="glass-panel rounded border overflow-hidden mt-6">
         <h3 className="font-bold text-lg p-4 border-b">Historic Fueling</h3>
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="modern-table">
             <thead>
-              <tr className="bg-gray-100 dark:bg-blue-900/50">
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Car Reg</th>
-                <th className="px-4 py-3">Station</th>
-                <th className="px-4 py-3 text-right">Amount</th>
-                <th className="px-4 py-3 text-right">Distance</th>
+              <tr className="modern-tr">
+                <th className="modern-th">Date</th>
+                <th className="modern-th">Car Reg</th>
+                <th className="modern-th">Station</th>
+                <th className="modern-th">Amount</th>
+                <th className="modern-th">Distance</th>
               </tr>
             </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-blue-900">
@@ -190,18 +190,18 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
                                 : '';
               
               return (
-                <tr key={e.id} className="hover:bg-gray-50 dark:hover:bg-blue-800/10">
-                  <td className="px-4 py-3">{format(e.date, 'MMM d, yyyy')}</td>
+                <tr key={e.id} className="hover:bg-white/5 dark:hover:bg-blue-800/10">
+                  <td className="modern-td">{format(e.date, 'MMM d, yyyy')}</td>
                   <td className="px-4 py-3 font-semibold text-cyan-500 dark:text-blue-400 cursor-pointer hover:underline" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
-                  <td className="px-4 py-3">
+                  <td className="modern-td">
                     {e.station && (
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${badgeClass}`}>
                         {e.station}
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right font-mono font-bold text-cyan-500 dark:text-blue-400">{formatCurrency(e.amount)}</td>
-                  <td className="px-4 py-3 text-right">{e.distance ? `${e.distance.toLocaleString()} km` : '-'}</td>
+                  <td className="modern-td">{formatCurrency(e.amount)}</td>
+                  <td className="modern-td">{e.distance ? `${e.distance.toLocaleString()} km` : '-'}</td>
                 </tr>
               );
             })}

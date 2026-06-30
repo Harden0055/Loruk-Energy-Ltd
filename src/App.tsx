@@ -5,7 +5,6 @@ import { SyncProvider, useSync } from './lib/sync';
 import Sidebar from './components/Sidebar';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import Dashboard from './pages/Dashboard';
-import Operations from './pages/Operations';
 import Deliveries from './pages/Deliveries';
 import Payments from './pages/Payments';
 import Ledger from './pages/Ledger';
@@ -97,11 +96,11 @@ function AuthenticatedApp() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-blue-950 text-gray-900 dark:text-blue-100 font-sans overflow-hidden transition-colors relative">
+    <div className="flex h-screen theme-bg-gradient text-theme-text font-sans overflow-hidden transition-colors relative">
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-blue-950/20 backdrop-blur-sm z-40 lg:hidden print-hide"
+          className="fixed inset-0 glass-panel backdrop-blur-sm z-40 lg:hidden print-hide"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
@@ -109,18 +108,18 @@ function AuthenticatedApp() {
       {/* Print Warning Modal */}
       {showPrintWarning && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 print-hide">
-          <div className="bg-white dark:bg-blue-900 p-6 rounded-xl shadow-2xl max-w-md w-full border border-blue-100 dark:border-blue-800">
-            <h3 className="text-xl font-bold mb-3 flex items-center gap-2 text-blue-900 dark:text-blue-100">
+          <div className="glass-panel p-6 rounded-xl shadow-2xl max-w-md w-full border border-theme-border">
+            <h3 className="text-xl font-bold mb-3 flex items-center gap-2 text-blue-900 dark:text-theme-text">
               <Printer className="w-5 h-5" />
               Printing Restricted
             </h3>
-            <p className="text-gray-600 dark:text-blue-200 mb-6">
+            <p className="text-theme-text-muted-muted mb-6">
               Printing is restricted in this preview environment. To print or save as PDF, please open the application in a <strong>new tab</strong> using the arrow icon at the top right of your preview window.
             </p>
             <div className="flex justify-end gap-3">
               <button 
                 onClick={() => setShowPrintWarning(false)}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-blue-950 dark:hover:bg-blue-800 text-gray-800 dark:text-blue-100 font-medium rounded-lg transition-colors"
+                className="px-4 py-2 bg-gray-100 hover:bg-white/10 dark:glass-panel dark:hover:bg-blue-800 text-theme-text font-medium rounded-lg transition-colors"
               >
                 Close
               </button>
@@ -129,7 +128,7 @@ function AuthenticatedApp() {
                   window.open(window.location.href, '_blank');
                   setShowPrintWarning(false);
                 }}
-                className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-medium rounded-lg transition-colors"
+                className="px-4 py-2 bg-gradient-primary text-white font-medium hover:opacity-90 glow-purple border-0 rounded-lg transition-colors"
               >
                 Open in New Tab
               </button>
@@ -145,16 +144,16 @@ function AuthenticatedApp() {
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden w-full">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center px-4 md:px-8 py-4 md:py-6 bg-white dark:bg-blue-950 border-b border-gray-200 dark:border-blue-900 transition-colors gap-4">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center px-4 md:px-8 py-4 md:py-6 bg-transparent border-b border-theme-border/30 transition-all gap-4">
           <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
             <div className="flex items-center gap-3">
               <button 
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="lg:hidden p-2 -ml-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-blue-100 hover:bg-gray-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors cursor-pointer"
+                className="lg:hidden p-2 -ml-2 text-[#A1A1AA] hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
               >
                 <Menu className="w-6 h-6" />
               </button>
-              <h1 className="text-2xl md:text-3xl font-bold capitalize dark:text-blue-100 tracking-tight">
+              <h1 className="text-2xl md:text-3xl font-bold capitalize text-white tracking-tight text-gradient">
                 {currentPage === 'customerDashboard' ? 'Customer Profile' : currentPage === 'truckDashboard' && selectedTruckReg ? `Dashboard: ${selectedTruckReg}` : currentPage.replace(/([A-Z])/g, ' $1').trim()}
               </h1>
             </div>
@@ -162,22 +161,22 @@ function AuthenticatedApp() {
           
           {/* Station Selection Filter */}
           {currentPage === 'operations' && (
-            <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-slate-900 p-1 rounded-lg border border-gray-200 dark:border-blue-900/50">
+            <div className="flex items-center gap-1.5 bg-[#121216]/80 p-1 rounded-xl border border-theme-border/50">
               <button 
                 onClick={() => setSelectedStation('Combined')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${selectedStation === 'Combined' ? 'bg-cyan-500 text-slate-900 shadow-xs' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'}`}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Combined' ? 'bg-gradient-primary text-white shadow-[0_0_15px_rgba(139,61,255,0.3)]' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
               >
                 Combined Total
               </button>
               <button 
                 onClick={() => setSelectedStation('Ndalu')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${selectedStation === 'Ndalu' ? 'bg-cyan-500 text-slate-900 shadow-xs' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'}`}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Ndalu' ? 'bg-gradient-primary text-white shadow-[0_0_15px_rgba(139,61,255,0.3)]' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
               >
                 Ndalu Station
               </button>
               <button 
                 onClick={() => setSelectedStation('Junction')}
-                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all cursor-pointer ${selectedStation === 'Junction' ? 'bg-cyan-500 text-slate-900 shadow-xs' : 'text-gray-500 hover:text-gray-900 dark:text-gray-400'}`}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Junction' ? 'bg-gradient-primary text-white shadow-[0_0_15px_rgba(139,61,255,0.3)]' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
               >
                 Junction Station
               </button>
@@ -187,14 +186,14 @@ function AuthenticatedApp() {
           <div className="flex items-center gap-3 shrink-0 print-hide">
             <button 
               onClick={() => setIsProfileOpen(true)}
-              className="hidden sm:flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/20 transition-colors border border-cyan-500/20 shadow-sm"
+              className="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl bg-[#8B3DFF]/10 text-[#B15DFF] hover:bg-[#8B3DFF]/20 transition-all duration-300 border border-[#8B3DFF]/30 shadow-[0_0_15px_rgba(139,61,255,0.15)] cursor-pointer"
               title="Profile & Summary Dashboard"
             >
-              <User className="w-4 h-4" />
+              <User className="w-4 h-4 text-[#B15DFF]" />
             </button>
             {lastSync && (
-              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-900 px-3 py-1.5 rounded-full shrink-0">
-                <RefreshCcw className="w-3 h-3" />
+              <div className="flex items-center gap-2 text-xs text-[#A1A1AA] bg-[#121216]/80 border border-theme-border/50 px-3 py-1.5 rounded-full shrink-0">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#22C55E]" />
                 Last Sync: {format(lastSync, 'HH:mm:ss')}
               </div>
             )}
@@ -206,10 +205,10 @@ function AuthenticatedApp() {
                   window.print();
                 }
               }}
-              className="flex items-center gap-2 text-sm font-semibold text-gray-700 bg-gray-100/80 hover:bg-gray-200 dark:text-gray-300 dark:bg-slate-900/80 dark:hover:bg-slate-800 px-3 py-1.5 rounded-md transition-colors cursor-pointer"
+              className="flex items-center gap-2 text-sm font-semibold text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl border border-theme-border transition-all duration-300 cursor-pointer shadow-md hover:scale-102"
               title="Print Page"
             >
-              <Printer className="w-4 h-4" />
+              <Printer className="w-4 h-4 text-[#A1A1AA]" />
               <span className="hidden sm:inline">Print</span>
             </button>
           </div>
@@ -225,12 +224,6 @@ function AuthenticatedApp() {
                 onNavigateToTruck={(reg) => {
                   navigateTo('truckDashboard', { truckReg: reg });
                 }}
-              />
-            )}
-            {currentPage === 'operations' && (
-              <Operations 
-                selectedStation={selectedStation}
-                setSelectedStation={setSelectedStation}
               />
             )}
             {currentPage === 'deliveries' && (
@@ -347,18 +340,18 @@ function Main() {
     };
 
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-blue-950 text-gray-900 dark:text-blue-100 font-sans font-medium transition-colors">
-        <div className="w-full max-w-sm p-8 bg-white dark:bg-blue-950 rounded-xl border border-gray-200 dark:border-blue-900 flex flex-col items-center transition-colors">
-          <div className="w-16 h-16 bg-slate-50 dark:bg-blue-900/40 border border-gray-200 dark:border-blue-800 rounded-xl flex items-center justify-center mb-6 shadow-sm">
+      <div className="h-screen flex flex-col items-center justify-center theme-bg-gradient text-theme-text font-sans font-medium transition-colors">
+        <div className="w-full max-w-sm p-8 glass-panel rounded-xl border border-theme-border flex flex-col items-center transition-colors">
+          <div className="w-16 h-16 bg-slate-50 dark:glass-panel border border-theme-border rounded-xl flex items-center justify-center mb-6 shadow-sm">
             <FireLEIcon className="w-12 h-12" />
           </div>
-          <h2 className="text-4xl font-bold tracking-tight mb-2 text-center text-gray-900 dark:text-blue-100">Loruk Energy Ltd Pro</h2>
+          <h2 className="text-4xl font-bold tracking-tight mb-2 text-center text-theme-text">Loruk Energy Ltd Pro</h2>
           <p className="text-gray-400 text-center mb-6 text-lg">
             {isForgotPassword ? 'Reset your password' : 'Sign in to manage fuel distribution'}
           </p>
 
           {isLogin && !isForgotPassword && (
-            <div className="text-xs text-cyan-500 dark:text-blue-400 text-center mb-6 bg-blue-500/5 p-3 rounded-lg border border-blue-100 dark:border-blue-900/40 leading-relaxed">
+            <div className="text-xs text-cyan-500 dark:text-blue-400 text-center mb-6 bg-blue-500/5 p-3 rounded-lg border border-theme-border leading-relaxed">
               💡 <strong>First Time?</strong> If you have not created an email/password account yet, click <strong>Sign up</strong> at the bottom to register your email <strong>enockloriso@gmail.com</strong>.
             </div>
           )}
@@ -376,7 +369,7 @@ function Main() {
                   </p>
                   <div className="space-y-1.5 bg-red-100/50 dark:bg-red-950/40 p-2.5 rounded border border-red-200/50 dark:border-red-900/30">
                     <p className="font-semibold text-xs text-gray-700 dark:text-red-300">Authorized Domain to add:</p>
-                    <code className="block text-[10px] bg-white dark:bg-blue-955 p-1.5 rounded border border-red-200/50 dark:border-red-900/40 font-mono select-all text-gray-800 dark:text-blue-100 break-all font-semibold">
+                    <code className="block text-[10px] bg-white dark:theme-bg-gradient p-1.5 rounded border border-red-200/50 dark:border-red-900/40 font-mono select-all text-theme-text break-all font-semibold">
                       {window.location.hostname}
                     </code>
                   </div>
@@ -398,7 +391,7 @@ function Main() {
                   <p className="text-xs leading-relaxed text-gray-700 dark:text-red-300">
                     Invalid email or password credentials.
                   </p>
-                  <div className="bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-900/50 p-2.5 rounded-md mt-2 text-[11px] text-blue-800 dark:text-blue-200 leading-normal">
+                  <div className="bg-blue-50 dark:glass-panel border border-theme-border p-2.5 rounded-md mt-2 text-[11px] text-blue-800 dark:text-theme-text-muted leading-normal">
                     💡 <strong>Don't have an email login yet?</strong> If this is your first time using email sign-in, you must register your email address first. 
                     <button 
                       type="button"
@@ -422,7 +415,7 @@ function Main() {
                   <p className="text-xs leading-relaxed text-gray-700 dark:text-red-300">
                     This authentication method is not allowed by your Firebase project's configuration.
                   </p>
-                  <div className="bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-900/50 p-2.5 rounded-md mt-2 text-[11px] text-blue-800 dark:text-blue-200 leading-normal">
+                  <div className="bg-blue-50 dark:glass-panel border border-theme-border p-2.5 rounded-md mt-2 text-[11px] text-blue-800 dark:text-theme-text-muted leading-normal">
                     💡 <strong>Did you just enable it?</strong> If you are testing this on Netlify, make sure you have deployed the latest version of the app so Netlify uses the correct Firebase Configuration. Currently, Netlify might be using an older configuration where these sign-in methods were not enabled.
                   </div>
                 </div>
@@ -436,12 +429,12 @@ function Main() {
           <form onSubmit={handleEmailAuth} className="w-full mb-6">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-blue-300 mb-1">Email</label>
+                <label className="block text-sm font-semibold text-theme-text-muted mb-1">Email</label>
                 <input 
                   type="email" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2 bg-gray-50 dark:bg-blue-900/40 border border-gray-300 dark:border-blue-800 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all dark:text-white"
+                  className="w-full px-4 py-2 glass-input rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all dark:text-white"
                   placeholder="Enter your email"
                   required
                 />
@@ -450,7 +443,7 @@ function Main() {
               {!isForgotPassword && (
                 <div>
                   <div className="flex justify-between items-center mb-1">
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-blue-300">Password</label>
+                    <label className="block text-sm font-semibold text-theme-text-muted">Password</label>
                     {isLogin && (
                       <button 
                         type="button" 
@@ -465,7 +458,7 @@ function Main() {
                     type="password" 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-blue-900/40 border border-gray-300 dark:border-blue-800 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all dark:text-white"
+                    className="w-full px-4 py-2 glass-input rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all dark:text-white"
                     placeholder="Enter your password"
                     required
                   />
@@ -474,12 +467,12 @@ function Main() {
 
               {!isLogin && !isForgotPassword && (
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-blue-300 mb-1">Confirm Password</label>
+                  <label className="block text-sm font-semibold text-theme-text-muted mb-1">Confirm Password</label>
                   <input 
                     type="password" 
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-50 dark:bg-blue-900/40 border border-gray-300 dark:border-blue-800 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all dark:text-white"
+                    className="w-full px-4 py-2 glass-input rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all dark:text-white"
                     placeholder="Confirm your password"
                     required
                   />
@@ -489,7 +482,7 @@ function Main() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 px-4 bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-slate-900 rounded-lg font-semibold transition-all shadow-md shadow-blue-900/20"
+                className="w-full py-2.5 px-4 bg-gradient-primary hover:opacity-90 disabled:opacity-50 text-white glow-purple border-0 rounded-lg font-semibold transition-all shadow-md shadow-blue-900/20"
               >
                 {loading ? 'Processing...' : (isForgotPassword ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Sign Up'))}
               </button>
@@ -497,9 +490,9 @@ function Main() {
           </form>
           
           <div className="w-full flex items-center justify-between mb-6">
-            <hr className="w-full border-gray-200 dark:border-blue-800" />
+            <hr className="w-full border-theme-border" />
             <span className="p-2 text-sm text-gray-400">OR</span>
-            <hr className="w-full border-gray-200 dark:border-blue-800" />
+            <hr className="w-full border-theme-border" />
           </div>
 
           <button
@@ -518,7 +511,7 @@ function Main() {
                 setError(msg);
               }
             }}
-            className="w-full py-2.5 px-4 bg-white dark:bg-blue-900 border border-gray-300 dark:border-blue-700 hover:bg-gray-50 dark:hover:bg-blue-800 text-gray-700 dark:text-blue-50 rounded-lg flex items-center justify-center gap-2 font-semibold transition-all shadow-sm"
+            className="w-full py-2.5 px-4 glass-input hover:bg-white/5 dark:hover:bg-cyan-900/30 text-gray-700 dark:text-cyan-400 glow-cyan-text rounded-lg flex items-center justify-center gap-2 font-semibold transition-all shadow-sm"
           >
             <LogIn className="w-5 h-5" />
             Continue with Google

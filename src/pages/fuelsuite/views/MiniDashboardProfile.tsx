@@ -7,7 +7,7 @@ interface MiniDashboardProfileProps {
   onClose: () => void;
 }
 
-const COLORS = ['#06b6d4', '#f59e0b', '#10b981', '#8b5cf6'];
+const COLORS = ['#3B82F6', '#00D4FF', '#60A5FA', '#38BDF8', '#22C55E'];
 
 export default function MiniDashboardProfile({ onClose }: MiniDashboardProfileProps) {
   const { pumpReadings, lpgTransactions, expenses, invoices } = useFuel();
@@ -64,77 +64,94 @@ export default function MiniDashboardProfile({ onClose }: MiniDashboardProfilePr
   const overallNetProfit = overallTotalRevenue - overallTotalExpenses;
 
   return (
-    <div className="fixed inset-0 bg-[#00000080] backdrop-blur-sm z-50 flex justify-end">
-      <div className="w-full max-w-2xl bg-[#1a1d36] h-full shadow-2xl flex flex-col border-l border-[#2d325a] animate-in slide-in-from-right duration-300">
-        <div className="p-6 border-b border-[#2d325a] flex items-center justify-between bg-[#1e223d]">
+    <div className="fixed inset-0 bg-[#00000095] backdrop-blur-md z-50 flex justify-end">
+      <div className="w-full max-w-2xl bg-[#0E0E11] h-full shadow-[0_0_50px_rgba(59,130,246,0.15)] flex flex-col border-l border-white/5 animate-in slide-in-from-right duration-300">
+        
+        {/* SVG Definitions for Premium Gradients inside sidebar too */}
+        <svg className="absolute w-0 h-0" width="0" height="0">
+          <defs>
+            <linearGradient id="profilePurpleBlue" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#3B82F6" />
+              <stop offset="100%" stopColor="#00D4FF" />
+            </linearGradient>
+          </defs>
+        </svg>
+
+        <div className="p-6 border-b border-white/5 flex items-center justify-between bg-[#09090B]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/40">
-              <User className="w-5 h-5 text-cyan-400" />
+            <div className="w-10 h-10 rounded-xl bg-[#3B82F6]/10 flex items-center justify-center border border-[#3B82F6]/35 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
+              <User className="w-5 h-5 text-[#00D4FF]" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-100">Profile & Summary Overview</h2>
-              <p className="text-xs text-slate-400">Detailed station and product performance</p>
+              <h2 className="text-lg font-bold text-white tracking-tight">Profile & Summary Overview</h2>
+              <p className="text-[10px] text-[#A1A1AA] uppercase tracking-wider font-mono">Detailed station and product performance</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-slate-400 hover:bg-[#2d325a] hover:text-white rounded-lg transition-colors">
+          <button onClick={onClose} className="p-2 text-[#A1A1AA] hover:bg-white/5 hover:text-white rounded-xl transition-all cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 space-y-8 hide-scrollbar">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 hide-scrollbar">
           {/* Quick Stats */}
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-[#2d325a]/30 p-4 rounded-xl border border-[#2d325a]">
-              <div className="flex items-center gap-2 mb-2 text-slate-400">
-                <DollarSign className="w-4 h-4" />
-                <span className="text-xs font-semibold uppercase tracking-wider">Total Revenue</span>
+            <div className="glass-panel p-4 rounded-xl flex flex-col justify-between h-28 hover:shadow-[0_0_15px_rgba(59,130,246,0.1)] transition-all">
+              <div className="flex items-center gap-1.5 text-[10px] text-[#A1A1AA] font-bold uppercase tracking-wider">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] shadow-[0_0_6px_#3B82F6]" />
+                Revenue
               </div>
-              <div className="text-xl font-bold text-cyan-400">Ksh {overallTotalRevenue.toLocaleString()}</div>
+              <div className="text-base xl:text-lg font-bold text-white tracking-tight">Ksh {overallTotalRevenue.toLocaleString()}</div>
             </div>
-            <div className="bg-[#2d325a]/30 p-4 rounded-xl border border-[#2d325a]">
-              <div className="flex items-center gap-2 mb-2 text-slate-400">
-                <BarChart2 className="w-4 h-4" />
-                <span className="text-xs font-semibold uppercase tracking-wider">Total Expenses</span>
+            <div className="glass-panel p-4 rounded-xl flex flex-col justify-between h-28 hover:shadow-[0_0_15px_rgba(245,158,11,0.1)] transition-all">
+              <div className="flex items-center gap-1.5 text-[10px] text-[#A1A1AA] font-bold uppercase tracking-wider">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_6px_#F59E0B]" />
+                Expenses
               </div>
-              <div className="text-xl font-bold text-orange-400">Ksh {overallTotalExpenses.toLocaleString()}</div>
+              <div className="text-base xl:text-lg font-bold text-white tracking-tight">Ksh {overallTotalExpenses.toLocaleString()}</div>
             </div>
-            <div className="bg-[#2d325a]/30 p-4 rounded-xl border border-[#2d325a]">
-              <div className="flex items-center gap-2 mb-2 text-slate-400">
-                <TrendingUp className="w-4 h-4" />
-                <span className="text-xs font-semibold uppercase tracking-wider">Net Position</span>
+            <div className="glass-panel p-4 rounded-xl flex flex-col justify-between h-28 hover:shadow-[0_0_15px_rgba(34,197,94,0.1)] transition-all">
+              <div className="flex items-center gap-1.5 text-[10px] text-[#A1A1AA] font-bold uppercase tracking-wider">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_#22C55E]" />
+                Net Position
               </div>
-              <div className={`text-xl font-bold ${overallNetProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              <div className={`text-base xl:text-lg font-bold tracking-tight ${overallNetProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                 Ksh {overallNetProfit.toLocaleString()}
               </div>
             </div>
           </div>
 
           {/* Station Performance Chart */}
-          <div className="bg-[#2d325a]/20 p-5 rounded-xl border border-[#2d325a]">
-            <h3 className="text-sm font-bold text-slate-200 mb-4 uppercase tracking-wider">Station Revenue vs Expenses</h3>
-            <div className="h-64">
+          <div className="glass-panel p-5 rounded-[20px]">
+            <h3 className="text-xs font-bold text-[#A1A1AA] uppercase tracking-wider mb-4 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] shadow-[0_0_6px_#3B82F6]" />
+              Station Revenue vs Expenses
+            </h3>
+            <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stationData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#2d325a" vertical={false} />
-                  <XAxis dataKey="name" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={v => `Ksh ${v/1000}k`} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.03)" vertical={false} />
+                  <XAxis dataKey="name" stroke="#71717A" fontSize={10} fontWeight={600} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#71717A" fontSize={10} fontWeight={600} tickLine={false} axisLine={false} tickFormatter={v => `Ksh ${v/1000}k`} />
                   <RechartsTooltip 
-                    contentStyle={{ backgroundColor: '#1a1d36', borderColor: '#2d325a', color: '#f8fafc', borderRadius: '8px' }}
-                    itemStyle={{ color: '#f8fafc' }}
+                    contentStyle={{ backgroundColor: '#121216', borderColor: 'rgba(255,255,255,0.08)', color: '#FFFFFF', borderRadius: '12px' }}
+                    itemStyle={{ color: '#FFFFFF' }}
                     formatter={(value: number) => [`Ksh ${value.toLocaleString()}`, '']}
                   />
                   <Legend />
-                  <Bar dataKey="totalRevenue" name="Revenue" fill="#06b6d4" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="expenses" name="Expenses" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="totalRevenue" name="Revenue" fill="url(#profilePurpleBlue)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="expenses" name="Expenses" fill="#EF4444" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Product Performance Chart */}
-          <div className="bg-[#2d325a]/20 p-5 rounded-xl border border-[#2d325a]">
-            <h3 className="text-sm font-bold text-slate-200 mb-4 uppercase tracking-wider">Revenue by Product</h3>
-            <div className="h-64 flex items-center justify-center">
+          <div className="glass-panel p-5 rounded-[20px]">
+            <h3 className="text-xs font-bold text-[#A1A1AA] uppercase tracking-wider mb-4 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] shadow-[0_0_6px_#3B82F6]" />
+              Revenue by Product
+            </h3>
+            <div className="h-56 flex items-center justify-center">
               {productData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
@@ -146,48 +163,49 @@ export default function MiniDashboardProfile({ onClose }: MiniDashboardProfilePr
                       outerRadius={80}
                       paddingAngle={5}
                       dataKey="revenue"
+                      stroke="none"
                     >
                       {productData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
                     <RechartsTooltip 
-                      contentStyle={{ backgroundColor: '#1a1d36', borderColor: '#2d325a', color: '#f8fafc', borderRadius: '8px' }}
+                      contentStyle={{ backgroundColor: '#121216', borderColor: 'rgba(255,255,255,0.08)', color: '#FFFFFF', borderRadius: '12px' }}
                       formatter={(value: number) => [`Ksh ${value.toLocaleString()}`, 'Revenue']}
                     />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-slate-500">No product data available</div>
+                <div className="text-[#71717A] font-semibold text-xs">No product data available</div>
               )}
             </div>
           </div>
 
           {/* Detailed Station Table */}
-          <div className="bg-[#2d325a]/20 rounded-xl border border-[#2d325a] overflow-hidden">
-            <div className="p-4 border-b border-[#2d325a] bg-[#1e223d]">
-              <h3 className="text-sm font-bold text-slate-200 uppercase tracking-wider">Station Breakdown</h3>
+          <div className="glass-panel rounded-[20px] overflow-hidden">
+            <div className="px-5 py-4 border-b border-white/5 bg-[#09090B]">
+              <h3 className="text-xs font-bold text-[#A1A1AA] uppercase tracking-wider">Station Breakdown</h3>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-[#1a1d36]">
-                  <tr>
-                    <th className="p-3 text-slate-400 font-medium">Station</th>
-                    <th className="p-3 text-slate-400 font-medium text-right">Fuel Rev.</th>
-                    <th className="p-3 text-slate-400 font-medium text-right">LPG Rev.</th>
-                    <th className="p-3 text-slate-400 font-medium text-right">Expenses</th>
-                    <th className="p-3 text-slate-400 font-medium text-right">Net Pos.</th>
+              <table className="modern-table">
+                <thead>
+                  <tr className="border-b border-white/5">
+                    <th className="modern-th text-left">Station</th>
+                    <th className="modern-th text-right">Fuel Rev.</th>
+                    <th className="modern-th text-right">LPG Rev.</th>
+                    <th className="modern-th text-right">Expenses</th>
+                    <th className="modern-th text-right">Net Pos.</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#2d325a]">
+                <tbody className="divide-y divide-white/5">
                   {stationData.map(st => (
-                    <tr key={st.name} className="hover:bg-[#2d325a]/50 transition-colors">
-                      <td className="p-3 text-slate-200 font-medium">{st.name}</td>
-                      <td className="p-3 text-right text-slate-300">Ksh {st.fuelRevenue.toLocaleString()}</td>
-                      <td className="p-3 text-right text-slate-300">Ksh {st.lpgRevenue.toLocaleString()}</td>
-                      <td className="p-3 text-right text-orange-400">Ksh {st.expenses.toLocaleString()}</td>
-                      <td className={`p-3 text-right font-bold ${st.net >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    <tr key={st.name} className="hover:bg-white/20 transition-colors">
+                      <td className="modern-td font-semibold text-white">{st.name}</td>
+                      <td className="modern-td text-right font-mono text-zinc-300">Ksh {st.fuelRevenue.toLocaleString()}</td>
+                      <td className="modern-td text-right font-mono text-zinc-300">Ksh {st.lpgRevenue.toLocaleString()}</td>
+                      <td className="modern-td text-right font-mono text-[#EF4444]">Ksh {st.expenses.toLocaleString()}</td>
+                      <td className={`modern-td text-right font-bold font-mono ${st.net >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                         Ksh {st.net.toLocaleString()}
                       </td>
                     </tr>

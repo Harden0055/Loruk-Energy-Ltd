@@ -90,7 +90,7 @@ export default function Products() {
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-blue-100 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-theme-text flex items-center gap-2">
             <Box className="w-6 h-6 text-cyan-500 dark:text-blue-400" />
             Products Configuration
           </h1>
@@ -98,7 +98,7 @@ export default function Products() {
         </div>
         <button 
           onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} 
-          className="flex items-center gap-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-900 rounded-lg font-semibold transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 rounded-lg font-semibold transition-colors"
         >
           {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Product</>}
         </button>
@@ -120,26 +120,26 @@ export default function Products() {
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
         >
-        <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 rounded-xl shadow-sm p-6 mb-6">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-blue-100 border-b border-gray-100 dark:border-blue-900/40 pb-3 mb-4">
+        <div className="glass-panel border border-theme-border rounded-xl shadow-sm p-6 mb-6">
+          <h2 className="text-lg font-bold text-theme-text border-b border-theme-border pb-3 mb-4">
             {editingId ? 'Edit Product' : 'New Product'}
           </h2>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="col-span-1 md:col-span-2">
-              <label className="block text-sm font-semibold text-gray-700 dark:text-blue-300 mb-1.5">Product Name</label>
+              <label className="block text-sm font-semibold text-theme-text-muted mb-1.5">Product Name</label>
               <input 
                 type="text" 
                 value={form.name} 
                 onChange={e => setForm({...form, name: e.target.value})} 
                 placeholder="e.g. Super Premium" 
                 required 
-                className="w-full px-4 py-2.5 bg-gray-50 dark:bg-blue-900/40 border border-gray-200 dark:border-blue-800/70 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                className="w-full px-4 py-2.5 glass-panel border border-theme-border rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
               />
             </div>
             <div className="col-span-1 md:col-span-2 flex justify-end mt-2">
               <button 
                 type="submit"
-                className="px-5 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-900 rounded-lg font-semibold transition-colors"
+                className="px-5 py-2 bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 rounded-lg font-semibold transition-colors"
                >
                 {editingId ? 'Update Product' : 'Save Product'}
                </button>
@@ -150,21 +150,21 @@ export default function Products() {
       )}
       </AnimatePresence>
 
-      <div className="bg-white dark:bg-blue-950 border border-gray-200 dark:border-blue-900 rounded-xl shadow-sm overflow-hidden">
+      <div className="glass-panel border border-theme-border rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-blue-900/20 uppercase tracking-wider">
-              <tr>
-                <th className="px-6 py-4 font-semibold">Product Name</th>
-                <th className="px-6 py-4 font-semibold text-right">Actions</th>
+          <table className="modern-table">
+            <thead className="text-xs text-gray-500 dark:text-gray-400 glass-panel uppercase tracking-wider">
+              <tr className="modern-tr">
+                <th className="modern-th">Product Name</th>
+                <th className="modern-th">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-blue-900/50">
               {products.map(p => (
-                <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-blue-900/10 transition-colors">
-                  <td className="px-6 py-4 font-semibold text-gray-900 dark:text-blue-100">{p.name}</td>
-                  <td className="px-6 py-4 flex justify-end gap-3">
-                    <button onClick={() => handleEdit(p)} className="p-1.5 bg-blue-50 dark:bg-blue-900/40 text-cyan-500 dark:text-blue-400 rounded-md hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors">
+                <tr key={p.id} className="hover:bg-white/5 dark:hover:bg-blue-900/10 transition-colors">
+                  <td className="modern-td">{p.name}</td>
+                  <td className="modern-td">
+                    <button onClick={() => handleEdit(p)} className="p-1.5 bg-blue-50 dark:glass-panel text-cyan-500 dark:text-blue-400 rounded-md hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors">
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button onClick={() => handleDelete(p.id)} className="p-1.5 bg-red-50 dark:bg-red-900/40 text-red-600 dark:text-red-400 rounded-md hover:bg-red-100 dark:hover:bg-red-800 transition-colors">
@@ -174,7 +174,7 @@ export default function Products() {
                 </tr>
               ))}
               {products.length === 0 && (
-                <tr>
+                <tr className="modern-tr">
                   <td colSpan={2} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">No products configured. Add one above.</td>
                 </tr>
               )}

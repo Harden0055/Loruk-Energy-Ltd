@@ -193,35 +193,35 @@ export default function InventoryView() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">Inventory Management</h1>
-          <p className="text-slate-400 mt-1">Track opening stock, purchases, and sales for all products.</p>
+          <p className="text-theme-text-muted mt-1">Track opening stock, purchases, and sales for all products.</p>
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-slate-400 whitespace-nowrap">As of Date:</label>
+          <label className="text-sm font-medium text-theme-text-muted whitespace-nowrap">As of Date:</label>
           <Input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="h-9 w-40" />
         </div>
       </div>
 
-      <div className="flex gap-4 border-b border-[#2d325a]">
+      <div className="flex gap-4 border-b border-theme-border">
         <button 
-          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'overview' ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-slate-400'}`}
+          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'overview' ? 'text-cyan-400 border-b-2 border-theme-border' : 'text-theme-text-muted'}`}
           onClick={() => { setActiveTab('overview'); resetForm(); }}
         >
           Overview
         </button>
         <button 
-          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'opening' ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-slate-400'}`}
+          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'opening' ? 'text-cyan-400 border-b-2 border-theme-border' : 'text-theme-text-muted'}`}
           onClick={() => { setActiveTab('opening'); resetForm(); }}
         >
           Opening Stock
         </button>
         <button 
-          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'in' ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-slate-400'}`}
+          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'in' ? 'text-cyan-400 border-b-2 border-theme-border' : 'text-theme-text-muted'}`}
           onClick={() => { setActiveTab('in'); resetForm(); }}
         >
           Purchase (In)
         </button>
         <button 
-          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'out' ? 'text-cyan-400 border-b-2 border-cyan-400' : 'text-slate-400'}`}
+          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'out' ? 'text-cyan-400 border-b-2 border-theme-border' : 'text-theme-text-muted'}`}
           onClick={() => { setActiveTab('out'); resetForm(); }}
         >
           Sale (Out)
@@ -236,7 +236,7 @@ export default function InventoryView() {
           <div className="overflow-x-auto">
             <Table>
               <thead>
-                <tr>
+                <tr className="modern-tr">
                   <Th>Product</Th>
                   <Th className="text-right">Opening Stock</Th>
                   <Th className="text-right">Total In</Th>
@@ -246,8 +246,8 @@ export default function InventoryView() {
               </thead>
               <tbody>
                 {Object.keys(inventorySummary).sort().map(product => (
-                  <tr key={product} className="hover:bg-[#0f1123] transition-colors">
-                    <Td><span className="font-semibold text-slate-200">{product}</span></Td>
+                  <tr key={product} className="hover:theme-bg-gradient transition-colors">
+                    <Td><span className="font-semibold text-theme-text">{product}</span></Td>
                     <Td className="text-right">{inventorySummary[product].opening.toLocaleString()}</Td>
                     <Td className="text-right text-green-400">+{inventorySummary[product].in.toLocaleString()}</Td>
                     <Td className="text-right text-red-400">-{inventorySummary[product].out.toLocaleString()}</Td>
@@ -267,7 +267,7 @@ export default function InventoryView() {
           </div>
 
           {activeTab === 'in' && (
-            <div className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-4 flex items-start gap-3 mb-4">
+            <div className="bg-blue-900/20 border border-theme-border rounded-lg p-4 flex items-start gap-3 mb-4">
               <AlertCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-blue-200">
                 Purchasing filled LPG will automatically decrease your empty cylinders stock.
@@ -276,7 +276,7 @@ export default function InventoryView() {
           )}
 
           {activeTab === 'out' && (
-            <div className="bg-blue-900/20 border border-blue-800/50 rounded-lg p-4 flex items-start gap-3 mb-4">
+            <div className="bg-blue-900/20 border border-theme-border rounded-lg p-4 flex items-start gap-3 mb-4">
               <AlertCircle className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
               <p className="text-sm text-blue-200">
                 Selling filled LPG via LPG Transactions automatically increases your empty cylinders stock. Manually logging LPG sales here works similarly.
@@ -292,17 +292,17 @@ export default function InventoryView() {
               <CardContent>
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-6 gap-4">
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Date</label>
+                    <label className="block text-xs text-theme-text-muted mb-1">Date</label>
                     <Input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} required />
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Station</label>
+                    <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                     <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
                       {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
                     </Select>
                   </div>
                   <div className="col-span-1 md:col-span-1 lg:col-span-2">
-                    <label className="block text-xs text-slate-400 mb-1">Product</label>
+                    <label className="block text-xs text-theme-text-muted mb-1">Product</label>
                     <Select value={form.item} onChange={e => setForm({...form, item: e.target.value})} required>
                       {STANDARD_PRODUCTS.map(p => (
                         <option key={p} value={p}>{p}</option>
@@ -310,11 +310,11 @@ export default function InventoryView() {
                     </Select>
                   </div>
                   <div>
-                    <label className="block text-xs text-slate-400 mb-1">Qty</label>
+                    <label className="block text-xs text-theme-text-muted mb-1">Qty</label>
                     <Input type="number" value={form.quantity} onChange={e => setForm({...form, quantity: parseFloat(e.target.value)})} required />
                   </div>
                   <div className="col-span-1">
-                    <label className="block text-xs text-slate-400 mb-1">Total Amount (KES)</label>
+                    <label className="block text-xs text-theme-text-muted mb-1">Total Amount (KES)</label>
                     <Input type="number" step="0.01" value={form.amount} onChange={e => setForm({...form, amount: parseFloat(e.target.value)})} required />
                   </div>
                   <div className="col-span-1 md:col-span-5 flex justify-end mt-2">
@@ -329,7 +329,7 @@ export default function InventoryView() {
             <div className="overflow-x-auto">
               <Table>
                 <thead>
-                  <tr>
+                  <tr className="modern-tr">
                     <Th>Date</Th>
                     <Th>Station</Th>
                     <Th>Product</Th>
@@ -340,19 +340,19 @@ export default function InventoryView() {
                 </thead>
                 <tbody>
                   {filteredData.map(t => (
-                    <tr key={t.id} className="hover:bg-[#0f1123] transition-colors">
+                    <tr key={t.id} className="hover:theme-bg-gradient transition-colors">
                       <Td>{t.date}</Td>
-                      <Td><span className="text-xs text-slate-400 uppercase tracking-tight font-medium">{t.station}</span></Td>
-                      <Td><span className="font-semibold text-slate-200">{t.item}</span></Td>
+                      <Td><span className="text-xs text-theme-text-muted uppercase tracking-tight font-medium">{t.station}</span></Td>
+                      <Td><span className="font-semibold text-theme-text">{t.item}</span></Td>
                       <Td>{t.quantity}</Td>
                       <Td>{t.amount.toLocaleString()}</Td>
                       <Td>
                         {t.source === 'inventory' ? (
                           <div className="flex gap-3">
-                            <button onClick={() => handleEdit(t)} className="text-slate-400 hover:text-cyan-400 transition-colors">
+                            <button onClick={() => handleEdit(t)} className="text-theme-text-muted hover:text-cyan-400 transition-colors">
                               <Pencil className="w-4 h-4" />
                             </button>
-                            <button onClick={() => handleDelete(t.id)} className="text-slate-400 hover:text-red-400 transition-colors">
+                            <button onClick={() => handleDelete(t.id)} className="text-theme-text-muted hover:text-red-400 transition-colors">
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
@@ -363,7 +363,7 @@ export default function InventoryView() {
                     </tr>
                   ))}
                   {filteredData.length === 0 && (
-                    <tr>
+                    <tr className="modern-tr">
                       <Td colSpan={6} className="text-center py-8 text-slate-500">No records found.</Td>
                     </tr>
                   )}

@@ -86,19 +86,19 @@ export default function AIAssistant() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] bg-white dark:bg-blue-950 rounded-xl shadow-sm border border-gray-200 dark:border-blue-900 overflow-hidden relative">
+    <div className="flex flex-col h-[calc(100vh-8rem)] glass-panel rounded-xl shadow-sm border border-theme-border overflow-hidden relative">
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             {msg.role === 'assistant' && (
-              <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-full bg-blue-100 dark:glass-panel flex items-center justify-center shrink-0">
                 <Bot className="w-5 h-5 text-cyan-500 dark:text-blue-400" />
               </div>
             )}
             <div className={`max-w-[75%] rounded-2xl px-5 py-3 ${
               msg.role === 'user' 
-                ? 'bg-cyan-500 text-slate-900 rounded-br-none' 
-                : 'bg-gray-100 dark:bg-blue-900/40 text-gray-800 dark:text-gray-200 rounded-bl-none'
+                ? 'bg-gradient-primary text-white glow-purple border-0 rounded-br-none' 
+                : 'glass-panel text-gray-800 dark:text-gray-200 rounded-bl-none'
             }`}>
               {msg.role === 'user' ? (
                 <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.text}</p>
@@ -110,17 +110,17 @@ export default function AIAssistant() {
             </div>
             {msg.role === 'user' && (
               <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-blue-800 flex items-center justify-center shrink-0">
-                <User className="w-5 h-5 text-gray-600 dark:text-blue-300" />
+                <User className="w-5 h-5 text-theme-text-muted-muted" />
               </div>
             )}
           </div>
         ))}
         {isLoading && (
           <div className="flex gap-4 justify-start animate-fade-in">
-            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-full bg-blue-100 dark:glass-panel flex items-center justify-center shrink-0">
               <Bot className="w-5 h-5 text-cyan-500 dark:text-blue-400" />
             </div>
-            <div className="max-w-[75%] rounded-2xl px-5 py-3 bg-gray-100 dark:bg-blue-900/40 text-gray-800 dark:text-gray-200 rounded-bl-none flex items-center gap-2">
+            <div className="max-w-[75%] rounded-2xl px-5 py-3 glass-panel text-gray-800 dark:text-gray-200 rounded-bl-none flex items-center gap-2">
               <Loader2 className="w-4 h-4 animate-spin text-cyan-500 dark:text-blue-400" />
               <span className="text-sm">Thinking...</span>
             </div>
@@ -129,14 +129,14 @@ export default function AIAssistant() {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="p-4 border-t border-gray-200 dark:border-blue-900 bg-gray-50 dark:bg-slate-900/50">
+      <div className="p-4 border-t border-theme-border bg-gray-50 dark:bg-slate-900/50">
         <form onSubmit={handleSubmit} className="flex gap-3">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask AI anything..."
-            className="flex-1 px-4 py-2.5 bg-white dark:bg-blue-950 border border-gray-300 dark:border-blue-800 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all dark:text-white"
+            className="flex-1 px-4 py-2.5 glass-input rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all dark:text-white"
             disabled={isLoading}
           />
           <button

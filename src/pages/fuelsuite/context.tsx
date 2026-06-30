@@ -67,6 +67,7 @@ export interface Product {
 
 export interface Customer {
   id: string;
+  station: Station;
   code: string;
   name: string;
   creditLimit: number;

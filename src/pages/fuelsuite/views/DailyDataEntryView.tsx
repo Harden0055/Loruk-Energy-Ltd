@@ -228,22 +228,22 @@ export default function DailyDataEntryView() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">Daily Data Entry</h1>
-          <p className="text-slate-400 mt-1">Input all daily station data in one place.</p>
+          <p className="text-theme-text-muted mt-1">Input all daily station data in one place.</p>
         </div>
         <Button onClick={handleSaveAll} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700">
           <Save className="w-4 h-4" /> Save All Data
         </Button>
       </div>
 
-      <Card className="bg-[#1a1d36] border-[#2d325a]">
+      <Card className="glass-panel border-theme-border">
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="text-sm font-medium text-slate-400 block mb-1">Date</label>
+              <label className="text-sm font-medium text-theme-text-muted block mb-1">Date</label>
               <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
             </div>
             <div>
-              <label className="text-sm font-medium text-slate-400 block mb-1">Station</label>
+              <label className="text-sm font-medium text-theme-text-muted block mb-1">Station</label>
               <Select value={station} onChange={(e) => setStation(e.target.value as Station)}>
                 {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
               </Select>
@@ -253,19 +253,19 @@ export default function DailyDataEntryView() {
       </Card>
 
       {/* PUMP READINGS */}
-      <Card className="bg-[#1a1d36] border-[#2d325a]">
+      <Card className="glass-panel border-theme-border">
         <CardHeader>
           <CardTitle className="text-lg text-cyan-400">Pump Readings</CardTitle>
         </CardHeader>
         <CardContent className="p-6 pt-0 space-y-4">
           {pumps.map((pump, idx) => (
-            <div key={idx} className="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end border-b border-[#2d325a]/50 pb-4">
+            <div key={idx} className="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end border-b border-theme-border/50 pb-4">
               <div>
-                <label className="text-xs font-medium text-slate-400 block mb-1">Product</label>
-                <Input value={pump.product || ''} disabled className="bg-[#0f1123]" />
+                <label className="text-xs font-medium text-theme-text-muted block mb-1">Product</label>
+                <Input value={pump.product || ''} disabled className="theme-bg-gradient" />
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-400 block mb-1">Start Reading</label>
+                <label className="text-xs font-medium text-theme-text-muted block mb-1">Start Reading</label>
                 <Input type="number" step="0.01" value={pump.startReading || ''} onChange={(e) => {
                   const newPumps = [...pumps];
                   newPumps[idx].startReading = parseFloat(e.target.value);
@@ -273,7 +273,7 @@ export default function DailyDataEntryView() {
                 }} />
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-400 block mb-1">Stop Reading</label>
+                <label className="text-xs font-medium text-theme-text-muted block mb-1">Stop Reading</label>
                 <Input type="number" step="0.01" value={pump.stopReading || ''} onChange={(e) => {
                   const newPumps = [...pumps];
                   newPumps[idx].stopReading = parseFloat(e.target.value);
@@ -281,7 +281,7 @@ export default function DailyDataEntryView() {
                 }} />
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-400 block mb-1">Rate (Ksh/L)</label>
+                <label className="text-xs font-medium text-theme-text-muted block mb-1">Rate (Ksh/L)</label>
                 <Input type="number" step="0.01" value={pump.ratePerLitre || ''} onChange={(e) => {
                   const val = parseFloat(e.target.value);
                   const newPumps = [...pumps];
@@ -293,7 +293,7 @@ export default function DailyDataEntryView() {
                 }} />
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-400 block mb-1">Manual Cash (Optional)</label>
+                <label className="text-xs font-medium text-theme-text-muted block mb-1">Manual Cash (Optional)</label>
                 <Input type="number" step="0.01" value={pump.manualCash || ''} onChange={(e) => {
                   const newPumps = [...pumps];
                   newPumps[idx].manualCash = parseFloat(e.target.value);
@@ -307,7 +307,7 @@ export default function DailyDataEntryView() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* LPG SALES */}
-        <Card className="bg-[#1a1d36] border-[#2d325a]">
+        <Card className="glass-panel border-theme-border">
           <CardHeader className="flex flex-row justify-between items-center">
             <CardTitle className="text-lg text-cyan-400">LPG Sold</CardTitle>
             <Button className="py-1.5 text-sm" variant="secondary" onClick={() => setLpgSales([...lpgSales, { item: '6kg Cylinder', quantity: 0, amount: 0 }])}>
@@ -349,7 +349,7 @@ export default function DailyDataEntryView() {
         </Card>
 
         {/* LPG PURCHASES */}
-        <Card className="bg-[#1a1d36] border-[#2d325a]">
+        <Card className="glass-panel border-theme-border">
           <CardHeader className="flex flex-row justify-between items-center">
             <CardTitle className="text-lg text-cyan-400">LPG Bought (COGS)</CardTitle>
             <Button className="py-1.5 text-sm" variant="secondary" onClick={() => setLpgPurchases([...lpgPurchases, { item: '6kg Cylinder', quantity: 0, amount: 0 }])}>
@@ -393,7 +393,7 @@ export default function DailyDataEntryView() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* EQUIPMENT SALES */}
-        <Card className="bg-[#1a1d36] border-[#2d325a]">
+        <Card className="glass-panel border-theme-border">
           <CardHeader className="flex flex-row justify-between items-center">
             <CardTitle className="text-lg text-cyan-400">Burner & Grill Sold</CardTitle>
             <Button className="py-1.5 text-sm" variant="secondary" onClick={() => setEquipmentSales([...equipmentSales, { item: 'Burner', quantity: 0, amount: 0 }])}>
@@ -438,7 +438,7 @@ export default function DailyDataEntryView() {
         </Card>
 
         {/* EQUIPMENT PURCHASES */}
-        <Card className="bg-[#1a1d36] border-[#2d325a]">
+        <Card className="glass-panel border-theme-border">
           <CardHeader className="flex flex-row justify-between items-center">
             <CardTitle className="text-lg text-cyan-400">Burner & Grill Bought (COGS)</CardTitle>
             <Button className="py-1.5 text-sm" variant="secondary" onClick={() => setEquipmentPurchases([...equipmentPurchases, { item: 'Burner', quantity: 0, amount: 0 }])}>
@@ -485,7 +485,7 @@ export default function DailyDataEntryView() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* EXPENSES */}
-        <Card className="bg-[#1a1d36] border-[#2d325a]">
+        <Card className="glass-panel border-theme-border">
           <CardHeader className="flex flex-row justify-between items-center">
             <CardTitle className="text-lg text-cyan-400">Expenses</CardTitle>
             <Button className="py-1.5 text-sm" variant="secondary" onClick={() => setExpenseRows([...expenseRows, { category: '', amount: 0 }])}>
@@ -520,7 +520,7 @@ export default function DailyDataEntryView() {
         </Card>
 
         {/* INVOICES */}
-        <Card className="bg-[#1a1d36] border-[#2d325a]">
+        <Card className="glass-panel border-theme-border">
           <CardHeader className="flex flex-row justify-between items-center">
             <CardTitle className="text-lg text-cyan-400">Invoices & Debts</CardTitle>
             <Button className="py-1.5 text-sm" variant="secondary" onClick={() => setInvoiceRows([...invoiceRows, { customerName: '', totalAmount: 0, paidAmount: 0 }])}>
@@ -537,7 +537,7 @@ export default function DailyDataEntryView() {
                     setInvoiceRows(newRows);
                   }}>
                     <option value="">Select Customer...</option>
-                    {customers.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                    {customers.filter(c => activeStation === 'Combined Total' || c.station === activeStation).map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                   </Select>
                 </div>
                 <div className="w-24">
@@ -566,53 +566,53 @@ export default function DailyDataEntryView() {
       </div>
 
       {/* CASH POSITION */}
-      <Card className="bg-[#1a1d36] border-[#2d325a]">
+      <Card className="glass-panel border-theme-border">
         <CardHeader>
           <CardTitle className="text-lg text-cyan-400">End of Day Cash Position</CardTitle>
         </CardHeader>
         <CardContent className="p-6 pt-0 space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-6 border-b border-[#2d325a]">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-6 border-b border-theme-border">
             <div>
-              <p className="text-sm text-slate-400">Total Sales</p>
+              <p className="text-sm text-theme-text-muted">Total Sales</p>
               <p className="text-xl font-bold text-slate-100">Ksh {totalSales.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
             </div>
             <div>
-              <p className="text-sm text-slate-400">Total Expenses</p>
+              <p className="text-sm text-theme-text-muted">Total Expenses</p>
               <p className="text-xl font-bold text-red-400">Ksh {expensesAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
             </div>
             <div>
-              <p className="text-sm text-slate-400">Total Invoices</p>
+              <p className="text-sm text-theme-text-muted">Total Invoices</p>
               <p className="text-xl font-bold text-red-400">Ksh {invoicesTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
             </div>
             <div>
-              <p className="text-sm text-slate-400">Paid Invoices</p>
+              <p className="text-sm text-theme-text-muted">Paid Invoices</p>
               <p className="text-xl font-bold text-emerald-400">Ksh {paidInvoicesAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
             </div>
             <div className="col-span-2 md:col-span-4 mt-2">
-              <p className="text-sm text-slate-400">All Money Received</p>
+              <p className="text-sm text-theme-text-muted">All Money Received</p>
               <p className="text-2xl font-bold text-emerald-400">Ksh {expectedTotalCash.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="text-sm font-medium text-slate-400 block mb-1">Amount Available in M-Pesa</label>
+              <label className="text-sm font-medium text-theme-text-muted block mb-1">Amount Available in M-Pesa</label>
               <Input type="number" placeholder="Ksh" value={mPesa || ''} onChange={(e) => setMPesa(parseFloat(e.target.value))} />
             </div>
             <div>
-              <label className="text-sm font-medium text-slate-400 block mb-1">Auto-Calculated Remaining (Expected Cash)</label>
-              <Input type="text" disabled value={`Ksh ${expectedCashOnHand.toLocaleString(undefined, {minimumFractionDigits: 2})}`} className="bg-[#0f1123] text-emerald-400 font-bold" />
+              <label className="text-sm font-medium text-theme-text-muted block mb-1">Auto-Calculated Remaining (Expected Cash)</label>
+              <Input type="text" disabled value={`Ksh ${expectedCashOnHand.toLocaleString(undefined, {minimumFractionDigits: 2})}`} className="theme-bg-gradient text-emerald-400 font-bold" />
             </div>
             <div>
-              <label className="text-sm font-medium text-slate-400 block mb-1">Cash at Hand (Manual Input)</label>
+              <label className="text-sm font-medium text-theme-text-muted block mb-1">Cash at Hand (Manual Input)</label>
               <Input type="number" placeholder="Ksh" value={manualCashOnHand || ''} onChange={(e) => setManualCashOnHand(parseFloat(e.target.value))} />
             </div>
             <div>
-              <label className="text-sm font-medium text-slate-400 block mb-1">Variance</label>
+              <label className="text-sm font-medium text-theme-text-muted block mb-1">Variance</label>
               <div className={`p-2 rounded-md font-bold text-lg border ${
                 variance > 0 ? 'bg-emerald-900/20 text-emerald-400 border-emerald-900/50' : 
                 variance < 0 ? 'bg-red-900/20 text-red-400 border-red-900/50' : 
-                'bg-slate-800 text-slate-300 border-slate-700'
+                'bg-slate-800 text-theme-text-muted border-slate-700'
               }`}>
                 Ksh {Math.abs(variance).toLocaleString(undefined, {minimumFractionDigits: 2})} 
                 {variance > 0 && <span className="text-sm ml-2 font-normal">(Excess)</span>}

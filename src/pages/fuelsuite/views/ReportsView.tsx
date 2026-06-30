@@ -101,12 +101,12 @@ export default function ReportsView() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">Financial Reports</h1>
-          <p className="text-slate-400 mt-1">Profit & Loss Statement for {activeStation}</p>
+          <p className="text-theme-text-muted mt-1">Profit & Loss Statement for {activeStation}</p>
         </div>
         <button
           onClick={handleDownloadPDF}
           disabled={isGenerating}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-bold transition-all shadow-lg active:scale-95 disabled:opacity-50"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 rounded-lg font-bold transition-all shadow-lg active:scale-95 disabled:opacity-50"
         >
           <FileDown className="w-5 h-5" />
           {isGenerating ? 'Generating...' : 'Export P&L PDF'}
@@ -114,69 +114,69 @@ export default function ReportsView() {
       </div>
 
       <Card className="max-w-4xl mx-auto">
-        <CardHeader className="bg-[#2d325a]/30">
+        <CardHeader className="bg-[#122840]/30">
           <CardTitle className="text-center text-xl tracking-wider">LORUK ENERGY P&L STATEMENT</CardTitle>
-          <p className="text-center text-xs text-slate-400 mt-2">Station: {activeStation} | Period: ALL TIME</p>
+          <p className="text-center text-xs text-theme-text-muted mt-2">Station: {activeStation} | Period: ALL TIME</p>
         </CardHeader>
         <CardContent className="p-0">
-          <table className="w-full text-left text-sm text-slate-200">
+          <table className="modern-table">
             <tbody>
               {/* REVENUE */}
-              <tr className="bg-[#0f1123]">
+              <tr className="modern-tr">
                 <td className="px-6 py-4 font-bold text-cyan-400" colSpan={2}>REVENUE</td>
               </tr>
-              <tr className="border-b border-[#2d325a]">
-                <td className="px-6 py-3 pl-10 text-slate-400">Fuel Sales</td>
-                <td className="px-6 py-3 text-right">{fuelRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+              <tr className="modern-tr">
+                <td className="modern-td">Fuel Sales</td>
+                <td className="modern-td">{fuelRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
               </tr>
-              <tr className="border-b border-[#2d325a]">
-                <td className="px-6 py-3 pl-10 text-slate-400">LPG Sales</td>
-                <td className="px-6 py-3 text-right">{lpgRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+              <tr className="modern-tr">
+                <td className="modern-td">LPG Sales</td>
+                <td className="modern-td">{lpgRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
               </tr>
-              <tr className="bg-[#1a1d36] font-semibold border-b-2 border-cyan-500/30">
-                <td className="px-6 py-4">Total Revenue</td>
-                <td className="px-6 py-4 text-right text-cyan-400">{totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+              <tr className="modern-tr">
+                <td className="modern-td">Total Revenue</td>
+                <td className="modern-td">{totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
               </tr>
 
               {/* COGS */}
-              <tr className="bg-[#0f1123]">
+              <tr className="modern-tr">
                 <td className="px-6 py-4 font-bold text-orange-400" colSpan={2}>COST OF GOODS SOLD (Est.)</td>
               </tr>
-              <tr className="border-b border-[#2d325a]">
-                <td className="px-6 py-3 pl-10 text-slate-400">Fuel COGS</td>
-                <td className="px-6 py-3 text-right">({fuelCOGS.toLocaleString(undefined, { minimumFractionDigits: 2 })})</td>
+              <tr className="modern-tr">
+                <td className="modern-td">Fuel COGS</td>
+                <td className="modern-td">({fuelCOGS.toLocaleString(undefined, { minimumFractionDigits: 2 })})</td>
               </tr>
-              <tr className="border-b border-[#2d325a]">
-                <td className="px-6 py-3 pl-10 text-slate-400">LPG Purchases</td>
-                <td className="px-6 py-3 text-right">({lpgCOGS.toLocaleString(undefined, { minimumFractionDigits: 2 })})</td>
+              <tr className="modern-tr">
+                <td className="modern-td">LPG Purchases</td>
+                <td className="modern-td">({lpgCOGS.toLocaleString(undefined, { minimumFractionDigits: 2 })})</td>
               </tr>
-              <tr className="bg-[#1a1d36] font-semibold border-b-2 border-orange-500/30">
-                <td className="px-6 py-4">Total COGS</td>
-                <td className="px-6 py-4 text-right text-orange-400">({totalCOGS.toLocaleString(undefined, { minimumFractionDigits: 2 })})</td>
+              <tr className="modern-tr">
+                <td className="modern-td">Total COGS</td>
+                <td className="modern-td">({totalCOGS.toLocaleString(undefined, { minimumFractionDigits: 2 })})</td>
               </tr>
 
               {/* GROSS PROFIT */}
-              <tr className="bg-[#2d325a]/20 font-bold border-b border-[#2d325a]">
-                <td className="px-6 py-4 text-slate-300">GROSS PROFIT</td>
-                <td className="px-6 py-4 text-right">{grossProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+              <tr className="modern-tr">
+                <td className="modern-td">GROSS PROFIT</td>
+                <td className="modern-td">{grossProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
               </tr>
 
               {/* EXPENSES */}
-              <tr className="bg-[#0f1123]">
+              <tr className="modern-tr">
                 <td className="px-6 py-4 font-bold text-red-400" colSpan={2}>OPERATING EXPENSES</td>
               </tr>
-              <tr className="border-b border-[#2d325a]">
-                <td className="px-6 py-3 pl-10 text-slate-400">General Expenses</td>
-                <td className="px-6 py-3 text-right">({operatingExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })})</td>
+              <tr className="modern-tr">
+                <td className="modern-td">General Expenses</td>
+                <td className="modern-td">({operatingExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })})</td>
               </tr>
-              <tr className="bg-[#1a1d36] font-semibold border-b-2 border-red-500/30">
-                <td className="px-6 py-4">Total Expenses</td>
-                <td className="px-6 py-4 text-right text-red-400">({operatingExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })})</td>
+              <tr className="modern-tr">
+                <td className="modern-td">Total Expenses</td>
+                <td className="modern-td">({operatingExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })})</td>
               </tr>
 
               {/* NET PROFIT */}
-              <tr className={`bg-[#2d325a]/50 font-bold text-lg`}>
-                <td className="px-6 py-6 text-slate-200">NET PROFIT</td>
+              <tr className={`bg-[#122840]/50 font-bold text-lg`}>
+                <td className="modern-td">NET PROFIT</td>
                 <td className={`px-6 py-6 text-right ${netProfit >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>
                   {netProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </td>

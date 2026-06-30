@@ -211,34 +211,34 @@ export default function Reports() {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <div className="bg-white dark:bg-blue-950 rounded-xl shadow-xl border border-gray-200 dark:border-blue-900 p-8 transition-all duration-300">
-        <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-200 dark:border-blue-900">
-          <div className="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-xl text-cyan-500 dark:text-blue-400">
+      <div className="glass-panel rounded-xl shadow-xl border border-theme-border p-8 transition-all duration-300">
+        <div className="flex items-center gap-4 mb-6 pb-6 border-b border-theme-border">
+          <div className="bg-blue-100 dark:glass-panel p-3 rounded-xl text-cyan-500 dark:text-blue-400">
             <FileText className="w-8 h-8" />
           </div>
           <div>
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-blue-100">Report Generator</h2>
-            <p className="text-gray-500 dark:text-blue-200/70 text-lg">Generate comprehensive PDF statements for customers.</p>
+            <h2 className="text-3xl font-bold tracking-tight text-theme-text">Report Generator</h2>
+            <p className="text-theme-text-muted/70 text-lg">Generate comprehensive PDF statements for customers.</p>
           </div>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-lg font-semibold text-gray-700 dark:text-blue-200 mb-2">Select Customer</label>
+            <label className="block text-lg font-semibold text-theme-text-muted mb-2">Select Customer</label>
             <select
               value={selectedCustomerId}
               onChange={e => setSelectedCustomerId(e.target.value)}
               disabled={loading}
-              className="w-full max-w-md px-4 py-2.5 bg-blue-50/50 dark:bg-blue-900/40 border border-blue-300 dark:border-blue-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-100 font-semibold disabled:opacity-50 text-lg cursor-pointer"
+              className="w-full max-w-md px-4 py-2.5 bg-blue-50/50 dark:glass-panel border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-theme-text font-semibold disabled:opacity-50 text-lg cursor-pointer"
             >
-              <option value="" disabled className="dark:bg-blue-950">Choose a customer to generate report</option>
+              <option value="" disabled className="dark:glass-panel">Choose a customer to generate report</option>
               {customers.map(c => (
-                <option key={c.id} value={c.id} className="dark:bg-blue-950">{c.name} - {formatCurrency(c.balance)} Bal</option>
+                <option key={c.id} value={c.id} className="dark:glass-panel">{c.name} - {formatCurrency(c.balance)} Bal</option>
               ))}
             </select>
           </div>
 
-          <div className="pt-4 border-t border-gray-200 dark:border-blue-900 flex gap-4">
+          <div className="pt-4 border-t border-theme-border flex gap-4">
             <button
               onClick={handleGenerateAndDownload}
               disabled={!selectedCustomerId || loading || isGenerating}
@@ -250,7 +250,7 @@ export default function Reports() {
             <button
               onClick={generateDailySummary}
               disabled={loading || isGenerating}
-              className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 text-cyan-500 border border-blue-200 dark:bg-blue-900/40 dark:hover:bg-blue-800/60 dark:text-blue-300 dark:border-blue-700/50 px-6 py-2.5 rounded-lg font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed text-lg"
+              className="flex items-center gap-2 bg-blue-50 hover:bg-blue-100 text-cyan-500 border border-theme-border dark:glass-panel dark:hover:bg-blue-800/60 dark:text-theme-text-muted dark:border-theme-border px-6 py-2.5 rounded-lg font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed text-lg"
             >
               <Download className="w-5 h-5" />
               {isGenerating ? 'Generating...' : 'Generate Daily Summary PDF'}

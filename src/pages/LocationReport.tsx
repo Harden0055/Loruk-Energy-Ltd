@@ -61,8 +61,8 @@ export default function LocationReport({ location }: LocationReportProps) {
 
   return (
     <div className="space-y-8">
-      <div className="p-8 bg-white border border-gray-200 rounded-xl shadow-sm">
-         <h3 className="font-semibold text-lg text-gray-800 dark:text-blue-200 mb-4">Paste Report</h3>
+      <div className="p-8 glass-panel rounded-xl shadow-sm">
+         <h3 className="font-semibold text-lg text-theme-text-muted mb-4">Paste Report</h3>
          <textarea 
            value={pastedReport} 
            onChange={(e) => { setPastedReport(e.target.value); parseReport(e.target.value); }} 
@@ -71,28 +71,28 @@ export default function LocationReport({ location }: LocationReportProps) {
          />
       </div>
       
-      <form onSubmit={handleSubmit} className="p-8 bg-white border border-gray-200 rounded-xl shadow-sm space-y-8">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-blue-100">{location} Daily Report</h2>
+      <form onSubmit={handleSubmit} className="p-8 glass-panel rounded-xl shadow-sm space-y-8">
+        <h2 className="text-2xl font-bold text-theme-text">{location} Daily Report</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-            <input type="date" value={data.date} onChange={e => setData({...data, date: e.target.value})} className="w-full px-4 py-2 bg-transparent border border-blue-300 dark:border-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input type="date" value={data.date} onChange={e => setData({...data, date: e.target.value})} className="w-full px-4 py-2 bg-transparent border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Shift</label>
-            <select value={data.shift} onChange={e => setData({...data, shift: e.target.value})} className="w-full px-4 py-2 bg-blue-50/50 dark:bg-blue-900/40 border border-blue-300 dark:border-blue-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-100 font-semibold cursor-pointer">
-              <option value="day" className="dark:bg-blue-950">Day Shift</option>
-              <option value="evening" className="dark:bg-blue-950">Evening Shift</option>
+            <select value={data.shift} onChange={e => setData({...data, shift: e.target.value})} className="w-full px-4 py-2 bg-blue-50/50 dark:glass-panel border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-theme-text font-semibold cursor-pointer">
+              <option value="day" className="dark:glass-panel">Day Shift</option>
+              <option value="evening" className="dark:glass-panel">Evening Shift</option>
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Bankable Amount</label>
-            <input type="number" value={data.bankable} onChange={e => setData({...data, bankable: e.target.value})} className="w-full px-4 py-2 bg-transparent border border-blue-300 dark:border-blue-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0.00" />
+            <input type="number" value={data.bankable} onChange={e => setData({...data, bankable: e.target.value})} className="w-full px-4 py-2 bg-transparent border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="0.00" />
           </div>
         </div>
         
-        <button type="submit" className="w-full px-6 py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-900 rounded-lg font-semibold transition-all">Submit Report</button>
+        <button type="submit" className="w-full px-6 py-3 bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 rounded-lg font-semibold transition-all">Submit Report</button>
       </form>
     </div>
   );
