@@ -1,24 +1,36 @@
 import React, { useState } from 'react';
-import { useFuel, Invoice , STATIONS } from '../context';
+import { useFuel, Invoice, Customer, STATIONS } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td } from '../components';
-import { Plus, Pencil, Trash2, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Users, FileText } from 'lucide-react';
 
 export default function InvoicesView() {
-  const { invoices, setInvoices, activeStation } = useFuel();
+  const { invoices, setInvoices, customers, setCustomers, activeStation } = useFuel();
+  const [activeTab, setActiveTab] = useState<'invoices' | 'customers'>('invoices');
+  
+  // Invoice state
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-
+  const [filterDate, setFilterDate] = useState<string>('');
   const [form, setForm] = useState<Partial<Invoice>>({
+    date: new Date().toISOString().split('T')[0],
     station: activeStation === 'Combined Total' ? STATIONS[0] : activeStation,
     customerName: '',
     totalAmount: 0,
     paidAmount: 0,
   });
 
-  const filteredData = invoices.filter(i => activeStation === 'Combined Total' || i.station === activeStation);
+  // Customer state
+  const [isCustomerFormOpen, setIsCustomerFormOpen] = useState(false);
+  const [editingCustomerId, setEditingCustomerId] = useState<string | null>(null);
+  const [customerForm, setCustomerForm] = useState<Partial<Customer>>({ code: '', name: '', creditLimit: 0, openingBalance: 0 });
+
+  const filteredData = invoices
+    .filter(i => activeStation === 'Combined Total' || i.station === activeStation)
+    .filter(i => !filterDate || i.date === filterDate);
 
   const resetForm = () => {
     setForm({
+      date: new Date().toISOString().split('T')[0],
       station: activeStation === 'Combined Total' ? STATIONS[0] : activeStation,
       customerName: '',
       totalAmount: 0,
@@ -28,15 +40,33 @@ export default function InvoicesView() {
     setIsFormOpen(false);
   };
 
+  const resetCustomerForm = () => {
+    setCustomerForm({ code: '', name: '', creditLimit: 0, openingBalance: 0 });
+    setEditingCustomerId(null);
+    setIsCustomerFormOpen(false);
+  };
+
   const handleEdit = (invoice: Invoice) => {
     setForm({ ...invoice });
     setEditingId(invoice.id);
     setIsFormOpen(true);
   };
 
+  const handleEditCustomer = (customer: Customer) => {
+    setCustomerForm({ ...customer });
+    setEditingCustomerId(customer.id);
+    setIsCustomerFormOpen(true);
+  };
+
   const handleDelete = (id: string) => {
     if (confirm('Are you sure you want to delete this invoice?')) {
       setInvoices(prev => prev.filter(i => i.id !== id));
+    }
+  };
+
+  const handleDeleteCustomer = (id: string) => {
+    if (confirm('Are you sure you want to delete this customer?')) {
+      setCustomers(prev => prev.filter(c => c.id !== id));
     }
   };
 
@@ -55,106 +85,261 @@ export default function InvoicesView() {
     resetForm();
   };
 
+  const handleCustomerSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingCustomerId) {
+      setCustomers(prev => prev.map(c => c.id === editingCustomerId ? { ...c, ...customerForm as Customer } : c));
+    } else {
+      const newCustomer: Customer = {
+        id: Math.random().toString(36).substr(2, 9),
+        code: customerForm.code || '',
+        name: customerForm.name || '',
+        creditLimit: customerForm.creditLimit || 0,
+        openingBalance: customerForm.openingBalance || 0,
+      };
+      setCustomers(prev => [...prev, newCustomer]);
+    }
+    resetCustomerForm();
+  };
+
   return (
     <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100">Fleet Invoices</h1>
-          <p className="text-slate-400 mt-1">Track and manage customer invoices.</p>
+          <h1 className="text-2xl font-bold text-slate-100">Customer Invoices</h1>
+          <p className="text-slate-400 mt-1">Track and manage daily customer invoices and balances.</p>
         </div>
-        <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
-          {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Invoice</>}
-        </Button>
+        
+        {activeTab === 'invoices' ? (
+          <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
+            {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Invoice</>}
+          </Button>
+        ) : (
+          <Button onClick={() => { if (isCustomerFormOpen) resetCustomerForm(); else setIsCustomerFormOpen(true); }} className="flex items-center gap-2">
+            {isCustomerFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Customer</>}
+          </Button>
+        )}
       </div>
 
-      {isFormOpen && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{editingId ? 'Edit Invoice' : 'New Invoice'}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Station</label>
-                <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                  {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
-                </Select>
-              </div>
-              <div className="col-span-2">
-                <label className="block text-xs text-slate-400 mb-1">Customer Name</label>
-                <Input type="text" value={form.customerName} onChange={e => setForm({...form, customerName: e.target.value})} required />
-              </div>
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Total Amount (KES)</label>
-                <Input type="number" step="0.01" value={form.totalAmount} onChange={e => setForm({...form, totalAmount: parseFloat(e.target.value)})} required />
-              </div>
-              <div>
-                <label className="block text-xs text-slate-400 mb-1">Paid Amount (KES)</label>
-                <Input type="number" step="0.01" value={form.paidAmount} onChange={e => setForm({...form, paidAmount: parseFloat(e.target.value)})} required />
-              </div>
-              <div className="col-span-1 md:col-span-4 flex justify-end mt-2">
-                <Button type="submit">{editingId ? 'Update Invoice' : 'Save Invoice'}</Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+      <div className="flex gap-4 border-b border-[#2d325a]">
+        <button 
+          onClick={() => setActiveTab('invoices')}
+          className={`flex items-center gap-2 pb-3 px-2 border-b-2 font-medium transition-colors ${activeTab === 'invoices' ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+        >
+          <FileText className="w-4 h-4" /> Invoices
+        </button>
+        <button 
+          onClick={() => setActiveTab('customers')}
+          className={`flex items-center gap-2 pb-3 px-2 border-b-2 font-medium transition-colors ${activeTab === 'customers' ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-slate-400 hover:text-slate-200'}`}
+        >
+          <Users className="w-4 h-4" /> Customers
+        </button>
+      </div>
+
+      {activeTab === 'invoices' && (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          <div className="flex justify-end">
+            <div className="w-48">
+              <label className="block text-xs text-slate-400 mb-1">Filter by Date</label>
+              <Input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} />
+            </div>
+          </div>
+          {isFormOpen && (
+            <Card>
+              <CardHeader>
+                <CardTitle>{editingId ? 'Edit Invoice' : 'New Invoice'}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Date</label>
+                    <Input type="date" value={form.date || ''} onChange={e => setForm({...form, date: e.target.value})} required />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Station</label>
+                    <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
+                      {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                    </Select>
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs text-slate-400 mb-1">Customer</label>
+                    <Select value={form.customerName} onChange={e => setForm({...form, customerName: e.target.value})} required>
+                      <option value="">Select a customer...</option>
+                      {customers.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Total (KES)</label>
+                    <Input type="number" step="0.01" value={form.totalAmount} onChange={e => setForm({...form, totalAmount: parseFloat(e.target.value)})} required />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Paid (KES)</label>
+                    <Input type="number" step="0.01" value={form.paidAmount} onChange={e => setForm({...form, paidAmount: parseFloat(e.target.value)})} required />
+                  </div>
+                  <div className="col-span-1 md:col-span-6 flex justify-end mt-2">
+                    <Button type="submit">{editingId ? 'Update Invoice' : 'Save Invoice'}</Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          )}
+
+          <Card>
+            <Table>
+              <thead>
+                <tr>
+                  <Th>Date</Th>
+                  <Th>Station</Th>
+                  <Th>Customer</Th>
+                  <Th>Total (KES)</Th>
+                  <Th>Paid (KES)</Th>
+                  <Th>Balance (KES)</Th>
+                  <Th>Status</Th>
+                  <Th>Actions</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredData.map(t => {
+                  const balance = t.totalAmount - t.paidAmount;
+                  let statusText = 'UNPAID';
+                  let statusClass = 'bg-red-500/10 text-red-500';
+                  if (balance <= 0) {
+                    statusText = 'PAID';
+                    statusClass = 'bg-emerald-500/10 text-emerald-500';
+                  } else if (t.paidAmount > 0) {
+                    statusText = 'PARTIAL';
+                    statusClass = 'bg-amber-500/10 text-amber-500';
+                  }
+
+                  return (
+                    <tr key={t.id} className="hover:bg-[#0f1123] transition-colors">
+                      <Td><span className="text-sm text-slate-300">{t.date || '-'}</span></Td>
+                      <Td><span className="text-xs text-slate-400 uppercase tracking-tight font-medium">{t.station}</span></Td>
+                      <Td><span className="font-semibold text-slate-200">{t.customerName}</span></Td>
+                      <Td>{t.totalAmount.toLocaleString()}</Td>
+                      <Td>{t.paidAmount.toLocaleString()}</Td>
+                      <Td>{balance.toLocaleString()}</Td>
+                      <Td><span className={`px-2 py-1 rounded text-xs font-bold ${statusClass}`}>{statusText}</span></Td>
+                      <Td>
+                        <div className="flex gap-3">
+                          <button onClick={() => handleEdit(t)} className="text-slate-400 hover:text-cyan-400 transition-colors">
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => handleDelete(t.id)} className="text-slate-400 hover:text-red-400 transition-colors">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </Td>
+                    </tr>
+                  );
+                })}
+                {filteredData.length === 0 && (
+                  <tr>
+                    <Td colSpan={8} className="text-center py-8 text-slate-500">No invoices recorded.</Td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
+          </Card>
+        </div>
       )}
 
-      <Card>
-        <Table>
-          <thead>
-            <tr>
-              <Th>Station</Th>
-              <Th>Customer</Th>
-              <Th>Total (KES)</Th>
-              <Th>Paid (KES)</Th>
-              <Th>Balance (KES)</Th>
-              <Th>Status</Th>
-              <Th>Actions</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.map(t => {
-              const balance = t.totalAmount - t.paidAmount;
-              let statusText = 'UNPAID';
-              let statusClass = 'bg-red-500/10 text-red-500';
-              if (balance <= 0) {
-                statusText = 'PAID';
-                statusClass = 'bg-emerald-500/10 text-emerald-500';
-              } else if (t.paidAmount > 0) {
-                statusText = 'PARTIAL';
-                statusClass = 'bg-amber-500/10 text-amber-500';
-              }
+      {activeTab === 'customers' && (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          {isCustomerFormOpen && (
+            <Card>
+              <CardHeader>
+                <CardTitle>{editingCustomerId ? 'Edit Customer' : 'New Customer'}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleCustomerSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Customer Code</label>
+                    <Input type="text" value={customerForm.code} onChange={e => setCustomerForm({...customerForm, code: e.target.value})} required placeholder="e.g. CUST-001" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Customer Name</label>
+                    <Input type="text" value={customerForm.name} onChange={e => setCustomerForm({...customerForm, name: e.target.value})} required />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Credit Limit (KES)</label>
+                    <Input type="number" step="0.01" value={customerForm.creditLimit} onChange={e => setCustomerForm({...customerForm, creditLimit: parseFloat(e.target.value)})} required />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">Opening Balance (KES)</label>
+                    <Input type="number" step="0.01" value={customerForm.openingBalance} onChange={e => setCustomerForm({...customerForm, openingBalance: parseFloat(e.target.value)})} required />
+                  </div>
+                  <div className="col-span-1 md:col-span-4 flex justify-end mt-2">
+                    <Button type="submit">{editingCustomerId ? 'Update' : 'Save'}</Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          )}
 
-              return (
-                <tr key={t.id} className="hover:bg-[#0f1123] transition-colors">
-                  <Td><span className="text-xs text-slate-400 uppercase tracking-tight font-medium">{t.station}</span></Td>
-                  <Td><span className="font-semibold text-slate-200">{t.customerName}</span></Td>
-                  <Td>{t.totalAmount.toLocaleString()}</Td>
-                  <Td>{t.paidAmount.toLocaleString()}</Td>
-                  <Td>{balance.toLocaleString()}</Td>
-                  <Td><span className={`px-2 py-1 rounded text-xs font-bold ${statusClass}`}>{statusText}</span></Td>
-                  <Td>
-                    <div className="flex gap-3">
-                      <button onClick={() => handleEdit(t)} className="text-slate-400 hover:text-cyan-400 transition-colors">
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleDelete(t.id)} className="text-slate-400 hover:text-red-400 transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </Td>
+          <Card>
+            <Table>
+              <thead>
+                <tr>
+                  <Th>Code</Th>
+                  <Th>Customer Name</Th>
+                  <Th>Credit Limit (KES)</Th>
+                  <Th>Opening Balance (KES)</Th>
+                  <Th>Total Invoiced (KES)</Th>
+                  <Th>Total Paid (KES)</Th>
+                  <Th>Net Balance (KES)</Th>
+                  <Th>Actions</Th>
                 </tr>
-              );
-            })}
-            {invoices.length === 0 && (
-              <tr>
-                <Td colSpan={6} className="text-center py-8 text-slate-500">No invoices recorded.</Td>
-              </tr>
-            )}
-          </tbody>
-        </Table>
-      </Card>
+              </thead>
+              <tbody>
+                {customers.map(c => {
+                  const customerInvoices = invoices.filter(i => i.customerName === c.name);
+                  const totalAmount = customerInvoices.reduce((sum, i) => sum + (i.totalAmount || 0), 0);
+                  const totalPaid = customerInvoices.reduce((sum, i) => sum + (i.paidAmount || 0), 0);
+                  const openingBalance = c.openingBalance || 0;
+                  const balance = openingBalance + totalAmount - totalPaid;
+                  const creditLimit = c.creditLimit || 0;
+                  const isOverLimit = balance > creditLimit;
+
+                  return (
+                    <tr key={c.id} className="hover:bg-[#0f1123] transition-colors">
+                      <Td><span className="text-xs text-slate-400 font-mono">{c.code}</span></Td>
+                      <Td><span className="font-semibold text-slate-200">{c.name}</span></Td>
+                      <Td>{creditLimit.toLocaleString(undefined, {minimumFractionDigits: 2})}</Td>
+                      <Td>{openingBalance.toLocaleString(undefined, {minimumFractionDigits: 2})}</Td>
+                      <Td>{totalAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</Td>
+                      <Td>{totalPaid.toLocaleString(undefined, {minimumFractionDigits: 2})}</Td>
+                      <Td>
+                        <div className="flex flex-col">
+                          <span className={balance > 0 ? (isOverLimit ? "text-rose-500 font-bold" : "text-amber-400 font-medium") : "text-emerald-400 font-medium"}>
+                            {balance.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                          </span>
+                          {isOverLimit && <span className="text-[10px] text-rose-500">Over Limit</span>}
+                        </div>
+                      </Td>
+                      <Td>
+                        <div className="flex gap-3">
+                          <button onClick={() => handleEditCustomer(c)} className="text-slate-400 hover:text-cyan-400 transition-colors">
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => handleDeleteCustomer(c.id)} className="text-slate-400 hover:text-red-400 transition-colors">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </Td>
+                    </tr>
+                  );
+                })}
+                {customers.length === 0 && (
+                  <tr>
+                    <Td colSpan={8} className="text-center py-8 text-slate-500">No customers found.</Td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

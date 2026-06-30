@@ -65,6 +65,14 @@ export interface Product {
   name: string;
 }
 
+export interface Customer {
+  id: string;
+  code: string;
+  name: string;
+  creditLimit: number;
+  openingBalance: number;
+}
+
 interface FuelContextType {
   activeStation: Station;
   setActiveStation: (station: Station) => void;
@@ -82,6 +90,8 @@ interface FuelContextType {
   setCashPositions: React.Dispatch<React.SetStateAction<CashPosition[]>>;
   products: Product[];
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
+  customers: Customer[];
+  setCustomers: React.Dispatch<React.SetStateAction<Customer[]>>;
 }
 
 const FuelContext = createContext<FuelContextType | undefined>(undefined);
@@ -145,6 +155,7 @@ export const FuelProvider = ({ children }: { children: ReactNode }) => {
   const [expenses, setExpenses] = useFirebaseCollection<Expense>('fuelsuite_expenses', []);
   const [invoices, setInvoices] = useFirebaseCollection<Invoice>('fuelsuite_invoices', []);
   const [cashPositions, setCashPositions] = useFirebaseCollection<CashPosition>('fuelsuite_cashPositions', []);
+  const [customers, setCustomers] = useFirebaseCollection<Customer>('fuelsuite_customers', []);
 
   return (
     <FuelContext.Provider value={{
@@ -156,6 +167,7 @@ export const FuelProvider = ({ children }: { children: ReactNode }) => {
       invoices, setInvoices,
       cashPositions, setCashPositions,
       products, setProducts,
+      customers, setCustomers,
     }}>
       {children}
     </FuelContext.Provider>

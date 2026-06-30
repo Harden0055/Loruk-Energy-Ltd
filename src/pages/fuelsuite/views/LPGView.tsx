@@ -206,7 +206,7 @@ export default function LPGView() {
                         </span>
                       </td>
                       <td className="p-4 text-slate-300">{t.item}</td>
-                      <td className="p-4 text-right font-medium">Ksh {t.amount.toLocaleString()}</td>
+                      <td className="p-4 text-right font-medium text-cyan-400">Ksh {t.amount.toLocaleString()}</td>
                     </tr>
                   ))}
                   {statsData.filter(t => t.type !== 'opening').length === 0 && (

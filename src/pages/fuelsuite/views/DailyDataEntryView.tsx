@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useFuel, STATIONS, PumpReading, LPGTransaction, Expense, Invoice, CashPosition, Product, Station } from '../context';
+import { useFuel, STATIONS, PumpReading, LPGTransaction, Expense, Invoice, CashPosition, Product, Station, InventoryItem } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button } from '../components';
 import { Plus, Trash2, Save } from 'lucide-react';
 
@@ -9,24 +9,27 @@ export default function DailyDataEntryView() {
     products, 
     pumpReadings, setPumpReadings,
     lpgTransactions, setLpgTransactions,
+    inventoryItems, setInventoryItems,
     expenses, setExpenses,
     invoices, setInvoices,
-    cashPositions, setCashPositions
+    cashPositions, setCashPositions,
+    customers
   } = useFuel();
 
   const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [station, setStation] = useState<Station>(activeStation === 'Combined Total' ? STATIONS[0] : activeStation);
 
   // Pump Readings State
-  const [pumps, setPumps] = useState<Partial<PumpReading>[]>(
-    products.filter(p => !p.name.toLowerCase().includes('oil')).map(p => ({
+  const [pumps, setPumps] = useState<Partial<PumpReading>[]>(() => {
+    const initialStation = activeStation === 'Combined Total' ? STATIONS[0] : activeStation;
+    return products.filter(p => !p.name.toLowerCase().includes('oil')).map(p => ({
       product: p.name,
       startReading: 0,
       stopReading: 0,
-      ratePerLitre: 0,
+      ratePerLitre: parseFloat(localStorage.getItem(`rate_${initialStation}_${p.name}`) || '0'),
       manualCash: 0
-    }))
-  );
+    }));
+  });
 
   React.useEffect(() => {
     const previousReadings = pumpReadings
@@ -35,11 +38,12 @@ export default function DailyDataEntryView() {
       
     setPumps(products.filter(p => !p.name.toLowerCase().includes('oil')).map(p => {
       const lastReading = previousReadings.find(pr => pr.product === p.name);
+      const storedRate = parseFloat(localStorage.getItem(`rate_${station}_${p.name}`) || '0');
       return {
         product: p.name,
         startReading: lastReading ? lastReading.stopReading : 0,
         stopReading: 0,
-        ratePerLitre: 0,
+        ratePerLitre: storedRate > 0 ? storedRate : (lastReading ? lastReading.ratePerLitre : 0),
         manualCash: 0
       };
     }));
@@ -56,6 +60,16 @@ export default function DailyDataEntryView() {
     { item: '6kg Cylinder', quantity: 0, amount: 0 }
   ]);
 
+  // Equipment (Burner & Grill) Sales
+  const [equipmentSales, setEquipmentSales] = useState<Partial<InventoryItem>[]>([
+    { item: 'Burner', quantity: 0, amount: 0 }
+  ]);
+
+  // Equipment (Burner & Grill) Purchases
+  const [equipmentPurchases, setEquipmentPurchases] = useState<Partial<InventoryItem>[]>([
+    { item: 'Burner', quantity: 0, amount: 0 }
+  ]);
+
   // Expenses
   const [expenseRows, setExpenseRows] = useState<Partial<Expense>[]>([
     { category: '', amount: 0 }
@@ -68,9 +82,23 @@ export default function DailyDataEntryView() {
 
   // Cash Position
   const [mPesa, setMPesa] = useState<number>(0);
-  const [cashOnHand, setCashOnHand] = useState<number>(0);
+  const [manualCashOnHand, setManualCashOnHand] = useState<number>(0);
 
   const generateId = () => Math.random().toString(36).substr(2, 9);
+
+  // Computations
+  const pumpSalesAmount = pumps.reduce((sum, p) => sum + ((p.stopReading || 0) - (p.startReading || 0)) * (p.ratePerLitre || 0), 0);
+  const lpgSalesAmount = lpgSales.reduce((sum, s) => sum + (s.amount || 0), 0);
+  const equipmentSalesAmount = equipmentSales.reduce((sum, s) => sum + (s.amount || 0), 0);
+  const totalSales = pumpSalesAmount + lpgSalesAmount + equipmentSalesAmount;
+
+  const expensesAmount = expenseRows.reduce((sum, e) => sum + (e.amount || 0), 0);
+  const invoicesTotal = invoiceRows.reduce((sum, i) => sum + (i.totalAmount || 0), 0);
+  const paidInvoicesAmount = invoiceRows.reduce((sum, i) => sum + (i.paidAmount || 0), 0);
+
+  const expectedTotalCash = totalSales - expensesAmount - invoicesTotal + paidInvoicesAmount;
+  const expectedCashOnHand = expectedTotalCash - (mPesa || 0);
+  const variance = (manualCashOnHand || 0) - expectedCashOnHand;
 
   const handleSaveAll = () => {
     // Save Pump Readings
@@ -114,6 +142,32 @@ export default function DailyDataEntryView() {
       setLpgTransactions(prev => [...prev, ...newLpgSales, ...newLpgPurchases]);
     }
 
+    // Save Equipment Sales
+    const newEquipmentSales: InventoryItem[] = equipmentSales.filter(s => s.quantity! > 0 || s.amount! > 0).map(s => ({
+      id: generateId(),
+      date,
+      station,
+      type: 'out',
+      item: s.item || 'Burner',
+      quantity: s.quantity || 0,
+      amount: s.amount || 0
+    }));
+
+    // Save Equipment Purchases
+    const newEquipmentPurchases: InventoryItem[] = equipmentPurchases.filter(p => p.quantity! > 0 || p.amount! > 0).map(p => ({
+      id: generateId(),
+      date,
+      station,
+      type: 'in',
+      item: p.item || 'Burner',
+      quantity: p.quantity || 0,
+      amount: p.amount || 0
+    }));
+
+    if (newEquipmentSales.length > 0 || newEquipmentPurchases.length > 0) {
+      setInventoryItems(prev => [...prev, ...newEquipmentSales, ...newEquipmentPurchases]);
+    }
+
     // Save Expenses
     const newExpenses: Expense[] = expenseRows.filter(e => e.category && e.amount! > 0).map(e => ({
       id: generateId(),
@@ -140,25 +194,33 @@ export default function DailyDataEntryView() {
     }
 
     // Save Cash Position
-    if (mPesa > 0 || cashOnHand > 0) {
+    if (mPesa > 0 || manualCashOnHand > 0) {
       const newCashPosition: CashPosition = {
         id: generateId(),
         date,
         mPesa,
-        cashOnHand
+        cashOnHand: manualCashOnHand
       };
       setCashPositions(prev => [...prev, newCashPosition]);
     }
 
     alert('Daily Data Saved Successfully!');
     // Reset Form
-    setPumps(products.filter(p => !p.name.toLowerCase().includes('oil')).map(p => ({ product: p.name, startReading: 0, stopReading: 0, ratePerLitre: 0, manualCash: 0 })));
+    setPumps(pumps.map(p => ({
+      product: p.product,
+      startReading: p.stopReading! > 0 ? p.stopReading : p.startReading,
+      stopReading: 0,
+      ratePerLitre: p.ratePerLitre,
+      manualCash: 0
+    })));
     setLpgSales([{ item: '6kg Cylinder', quantity: 0, amount: 0 }]);
     setLpgPurchases([{ item: '6kg Cylinder', quantity: 0, amount: 0 }]);
+    setEquipmentSales([{ item: 'Burner', quantity: 0, amount: 0 }]);
+    setEquipmentPurchases([{ item: 'Burner', quantity: 0, amount: 0 }]);
     setExpenseRows([{ category: '', amount: 0 }]);
     setInvoiceRows([{ customerName: '', totalAmount: 0, paidAmount: 0 }]);
     setMPesa(0);
-    setCashOnHand(0);
+    setManualCashOnHand(0);
   };
 
   return (
@@ -221,9 +283,13 @@ export default function DailyDataEntryView() {
               <div>
                 <label className="text-xs font-medium text-slate-400 block mb-1">Rate (Ksh/L)</label>
                 <Input type="number" step="0.01" value={pump.ratePerLitre || ''} onChange={(e) => {
+                  const val = parseFloat(e.target.value);
                   const newPumps = [...pumps];
-                  newPumps[idx].ratePerLitre = parseFloat(e.target.value);
+                  newPumps[idx].ratePerLitre = val;
                   setPumps(newPumps);
+                  if (!isNaN(val)) {
+                    localStorage.setItem(`rate_${station}_${pump.product}`, val.toString());
+                  }
                 }} />
               </div>
               <div>
@@ -326,6 +392,98 @@ export default function DailyDataEntryView() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* EQUIPMENT SALES */}
+        <Card className="bg-[#1a1d36] border-[#2d325a]">
+          <CardHeader className="flex flex-row justify-between items-center">
+            <CardTitle className="text-lg text-cyan-400">Burner & Grill Sold</CardTitle>
+            <Button className="py-1.5 text-sm" variant="secondary" onClick={() => setEquipmentSales([...equipmentSales, { item: 'Burner', quantity: 0, amount: 0 }])}>
+              <Plus className="w-4 h-4" /> Add Row
+            </Button>
+          </CardHeader>
+          <CardContent className="p-6 pt-0 space-y-4">
+            {equipmentSales.map((sale, idx) => (
+              <div key={idx} className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <Select value={sale.item || 'Burner'} onChange={(e) => {
+                    const newSales = [...equipmentSales];
+                    newSales[idx].item = e.target.value;
+                    setEquipmentSales(newSales);
+                  }}>
+                    <option value="Burner">Burner</option>
+                    <option value="Grill">Grill</option>
+                  </Select>
+                </div>
+                <div className="w-20">
+                  <Input type="number" placeholder="Qty" value={sale.quantity || ''} onChange={(e) => {
+                    const newSales = [...equipmentSales];
+                    newSales[idx].quantity = parseFloat(e.target.value);
+                    setEquipmentSales(newSales);
+                  }} />
+                </div>
+                <div className="w-28">
+                  <Input type="number" placeholder="Amount" value={sale.amount || ''} onChange={(e) => {
+                    const newSales = [...equipmentSales];
+                    newSales[idx].amount = parseFloat(e.target.value);
+                    setEquipmentSales(newSales);
+                  }} />
+                </div>
+                <Button variant="danger" className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20" onClick={() => {
+                  setEquipmentSales(equipmentSales.filter((_, i) => i !== idx));
+                }}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* EQUIPMENT PURCHASES */}
+        <Card className="bg-[#1a1d36] border-[#2d325a]">
+          <CardHeader className="flex flex-row justify-between items-center">
+            <CardTitle className="text-lg text-cyan-400">Burner & Grill Bought (COGS)</CardTitle>
+            <Button className="py-1.5 text-sm" variant="secondary" onClick={() => setEquipmentPurchases([...equipmentPurchases, { item: 'Burner', quantity: 0, amount: 0 }])}>
+              <Plus className="w-4 h-4" /> Add Row
+            </Button>
+          </CardHeader>
+          <CardContent className="p-6 pt-0 space-y-4">
+            {equipmentPurchases.map((purchase, idx) => (
+              <div key={idx} className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <Select value={purchase.item || 'Burner'} onChange={(e) => {
+                    const newPurchases = [...equipmentPurchases];
+                    newPurchases[idx].item = e.target.value;
+                    setEquipmentPurchases(newPurchases);
+                  }}>
+                    <option value="Burner">Burner</option>
+                    <option value="Grill">Grill</option>
+                  </Select>
+                </div>
+                <div className="w-20">
+                  <Input type="number" placeholder="Qty" value={purchase.quantity || ''} onChange={(e) => {
+                    const newPurchases = [...equipmentPurchases];
+                    newPurchases[idx].quantity = parseFloat(e.target.value);
+                    setEquipmentPurchases(newPurchases);
+                  }} />
+                </div>
+                <div className="w-28">
+                  <Input type="number" placeholder="Amount" value={purchase.amount || ''} onChange={(e) => {
+                    const newPurchases = [...equipmentPurchases];
+                    newPurchases[idx].amount = parseFloat(e.target.value);
+                    setEquipmentPurchases(newPurchases);
+                  }} />
+                </div>
+                <Button variant="danger" className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20" onClick={() => {
+                  setEquipmentPurchases(equipmentPurchases.filter((_, i) => i !== idx));
+                }}>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* EXPENSES */}
         <Card className="bg-[#1a1d36] border-[#2d325a]">
           <CardHeader className="flex flex-row justify-between items-center">
@@ -373,11 +531,14 @@ export default function DailyDataEntryView() {
             {invoiceRows.map((invoice, idx) => (
               <div key={idx} className="flex gap-2 items-end">
                 <div className="flex-1">
-                  <Input placeholder="Customer Name" value={invoice.customerName || ''} onChange={(e) => {
+                  <Select value={invoice.customerName || ''} onChange={(e) => {
                     const newRows = [...invoiceRows];
                     newRows[idx].customerName = e.target.value;
                     setInvoiceRows(newRows);
-                  }} />
+                  }}>
+                    <option value="">Select Customer...</option>
+                    {customers.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                  </Select>
                 </div>
                 <div className="w-24">
                   <Input type="number" placeholder="Total" value={invoice.totalAmount || ''} onChange={(e) => {
@@ -409,15 +570,55 @@ export default function DailyDataEntryView() {
         <CardHeader>
           <CardTitle className="text-lg text-cyan-400">End of Day Cash Position</CardTitle>
         </CardHeader>
-        <CardContent className="p-6 pt-0">
+        <CardContent className="p-6 pt-0 space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-6 border-b border-[#2d325a]">
+            <div>
+              <p className="text-sm text-slate-400">Total Sales</p>
+              <p className="text-xl font-bold text-slate-100">Ksh {totalSales.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-400">Total Expenses</p>
+              <p className="text-xl font-bold text-red-400">Ksh {expensesAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-400">Total Invoices</p>
+              <p className="text-xl font-bold text-red-400">Ksh {invoicesTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-400">Paid Invoices</p>
+              <p className="text-xl font-bold text-emerald-400">Ksh {paidInvoicesAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+            </div>
+            <div className="col-span-2 md:col-span-4 mt-2">
+              <p className="text-sm text-slate-400">All Money Received</p>
+              <p className="text-2xl font-bold text-emerald-400">Ksh {expectedTotalCash.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="text-sm font-medium text-slate-400 block mb-1">M-Pesa Balance</label>
+              <label className="text-sm font-medium text-slate-400 block mb-1">Amount Available in M-Pesa</label>
               <Input type="number" placeholder="Ksh" value={mPesa || ''} onChange={(e) => setMPesa(parseFloat(e.target.value))} />
             </div>
             <div>
-              <label className="text-sm font-medium text-slate-400 block mb-1">Cash at Hand</label>
-              <Input type="number" placeholder="Ksh" value={cashOnHand || ''} onChange={(e) => setCashOnHand(parseFloat(e.target.value))} />
+              <label className="text-sm font-medium text-slate-400 block mb-1">Auto-Calculated Remaining (Expected Cash)</label>
+              <Input type="text" disabled value={`Ksh ${expectedCashOnHand.toLocaleString(undefined, {minimumFractionDigits: 2})}`} className="bg-[#0f1123] text-emerald-400 font-bold" />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-slate-400 block mb-1">Cash at Hand (Manual Input)</label>
+              <Input type="number" placeholder="Ksh" value={manualCashOnHand || ''} onChange={(e) => setManualCashOnHand(parseFloat(e.target.value))} />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-slate-400 block mb-1">Variance</label>
+              <div className={`p-2 rounded-md font-bold text-lg border ${
+                variance > 0 ? 'bg-emerald-900/20 text-emerald-400 border-emerald-900/50' : 
+                variance < 0 ? 'bg-red-900/20 text-red-400 border-red-900/50' : 
+                'bg-slate-800 text-slate-300 border-slate-700'
+              }`}>
+                Ksh {Math.abs(variance).toLocaleString(undefined, {minimumFractionDigits: 2})} 
+                {variance > 0 && <span className="text-sm ml-2 font-normal">(Excess)</span>}
+                {variance < 0 && <span className="text-sm ml-2 font-normal">(Shortfall / Less)</span>}
+                {variance === 0 && <span className="text-sm ml-2 font-normal">(Balanced)</span>}
+              </div>
             </div>
           </div>
         </CardContent>

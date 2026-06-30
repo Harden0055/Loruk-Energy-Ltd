@@ -19,6 +19,7 @@ export default function InventoryView() {
   const [activeTab, setActiveTab] = useState<'overview' | 'in' | 'out' | 'opening'>('overview');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [filterDate, setFilterDate] = useState<string>('');
 
   const [form, setForm] = useState<Partial<InventoryItem>>({
     date: new Date().toISOString().split('T')[0],
@@ -34,13 +35,14 @@ export default function InventoryView() {
     // Base Inventory Items
     combined = [...inventoryItems.filter(i => 
       i.type === activeTab && 
-      (activeStation === 'Combined Total' || i.station === activeStation)
+      (activeStation === 'Combined Total' || i.station === activeStation) &&
+      (!filterDate || i.date <= filterDate)
     ).map(i => ({ ...i, source: 'inventory' }))];
 
     // Add Pump Readings to 'out'
     if (activeTab === 'out') {
       pumpReadings.forEach(p => {
-        if (activeStation === 'Combined Total' || p.station === activeStation) {
+        if ((activeStation === 'Combined Total' || p.station === activeStation) && (!filterDate || p.date <= filterDate)) {
           const volume = p.stopReading - p.startReading;
           if (volume > 0) {
             combined.push({
@@ -59,7 +61,7 @@ export default function InventoryView() {
 
     // Add LPG Transactions
     lpgTransactions.forEach(l => {
-      if (activeStation === 'Combined Total' || l.station === activeStation) {
+      if ((activeStation === 'Combined Total' || l.station === activeStation) && (!filterDate || l.date <= filterDate)) {
         if (
           (activeTab === 'out' && l.type === 'sale') ||
           (activeTab === 'in' && l.type === 'purchase') ||
@@ -79,7 +81,7 @@ export default function InventoryView() {
     });
 
     return combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [inventoryItems, pumpReadings, lpgTransactions, activeTab, activeStation]);
+  }, [inventoryItems, pumpReadings, lpgTransactions, activeTab, activeStation, filterDate]);
 
   const resetForm = () => {
     setForm({
@@ -129,9 +131,9 @@ export default function InventoryView() {
       summary[p] = { opening: 0, in: 0, out: 0, balance: 0 };
     });
 
-    const relevantInventory = inventoryItems.filter(i => activeStation === 'Combined Total' || i.station === activeStation);
-    const relevantPumps = pumpReadings.filter(p => activeStation === 'Combined Total' || p.station === activeStation);
-    const relevantLpg = lpgTransactions.filter(l => activeStation === 'Combined Total' || l.station === activeStation);
+    const relevantInventory = inventoryItems.filter(i => (activeStation === 'Combined Total' || i.station === activeStation) && (!filterDate || i.date <= filterDate));
+    const relevantPumps = pumpReadings.filter(p => (activeStation === 'Combined Total' || p.station === activeStation) && (!filterDate || p.date <= filterDate));
+    const relevantLpg = lpgTransactions.filter(l => (activeStation === 'Combined Total' || l.station === activeStation) && (!filterDate || l.date <= filterDate));
 
     // Process Inventory Items (Opening, In, Out)
     relevantInventory.forEach(item => {
@@ -184,14 +186,18 @@ export default function InventoryView() {
     });
 
     return summary;
-  }, [inventoryItems, pumpReadings, lpgTransactions, activeStation]);
+  }, [inventoryItems, pumpReadings, lpgTransactions, activeStation, filterDate]);
 
   return (
     <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">Inventory Management</h1>
           <p className="text-slate-400 mt-1">Track opening stock, purchases, and sales for all products.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-medium text-slate-400 whitespace-nowrap">As of Date:</label>
+          <Input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="h-9 w-40" />
         </div>
       </div>
 
