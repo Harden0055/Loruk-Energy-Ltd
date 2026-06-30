@@ -96,7 +96,7 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
   // --- Base Metrics ---
   const activeCustomers = customers.filter(c => c.status === 'active').length;
   const outstandingBalance = customers.reduce((acc, c) => acc + (c.balance || 0), 0);
-  const outstandingBalanceColor = outstandingBalance > 0 ? "text-red-600 dark:text-red-400" : outstandingBalance < 0 ? "text-emerald-600 dark:text-emerald-400" : "text-theme-text";
+  const outstandingBalanceColor = "text-pink-600 dark:text-pink-400";
   
   const totalFleetExpenses = expenses.reduce((acc, curr) => acc + curr.amount, 0);
   const activeTrucksCount = new Set(expenses.map(e => e.carRegistration)).size;
@@ -215,24 +215,6 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
         <MetricCard title="Active Trucks" value={activeTrucksCount.toString()} icon={Truck} color="text-cyan-600 dark:text-cyan-400 glow-cyan-text" />
       </div>
 
-      {/* SVG Definitions for Premium Gradients */}
-      <svg className="absolute w-0 h-0" width="0" height="0">
-        <defs>
-          <linearGradient id="purpleBlueGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#8B3DFF" />
-            <stop offset="100%" stopColor="#3B82F6" />
-          </linearGradient>
-          <linearGradient id="purpleGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="rgba(139, 61, 255, 0.4)" />
-            <stop offset="100%" stopColor="rgba(139, 61, 255, 0.0)" />
-          </linearGradient>
-          <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="rgba(59, 130, 246, 0.4)" />
-            <stop offset="100%" stopColor="rgba(59, 130, 246, 0.0)" />
-          </linearGradient>
-        </defs>
-      </svg>
-
       {/* Customer Debt Overview */}
       <div className="glass-panel p-6 rounded-[20px] flex flex-col transition-all duration-300">
         <div className="flex items-center justify-between mb-4">
@@ -248,11 +230,11 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
               <XAxis type="number" stroke="#71717A" tickLine={false} axisLine={false} hide />
               <YAxis dataKey="name" type="category" tick={<CustomerTick />} stroke="#71717A" tickLine={false} axisLine={false} width={80} />
               <Tooltip 
-                contentStyle={{ backgroundColor: 'rgba(18, 18, 22, 0.9)', color: '#FFFFFF', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', backdropFilter: 'blur(16px)' }} 
+                contentStyle={{ backgroundColor: 'rgba(10, 10, 14, 0.98)', color: '#FFFFFF', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '12px' }} 
                 cursor={{fill: 'rgba(139, 61, 255, 0.08)', opacity: 0.2}} 
                 formatter={(value: number) => [`${value >= 0 ? 'Debt: ' : 'Advance: '}${formatCurrency(Math.abs(value))}`, 'Balance']}
               />
-              <Bar dataKey="Debt" fill="url(#purpleBlueGrad)" radius={[0, 4, 4, 0]} barSize={10} />
+              <Bar dataKey="Debt" fill="#B15DFF" radius={0} barSize={10} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -276,8 +258,8 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.03)" vertical={false} />
                   <XAxis dataKey="date" stroke="#71717A" tickLine={false} axisLine={false} />
                   <YAxis stroke="#71717A" tickLine={false} axisLine={false} width={40} />
-                  <Tooltip contentStyle={{ backgroundColor: 'rgba(18, 18, 22, 0.9)', color: '#FFFFFF', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', backdropFilter: 'blur(16px)' }} />
-                  <Line type="monotone" dataKey="Amount" stroke="url(#purpleBlueGrad)" strokeWidth={3} dot={{ stroke: '#B15DFF', strokeWidth: 2, r: 4, fill: '#09090B' }} activeDot={{ r: 6, strokeWidth: 0, fill: '#B15DFF' }} />
+                  <Tooltip contentStyle={{ backgroundColor: 'rgba(10, 10, 14, 0.98)', color: '#FFFFFF', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '12px' }} />
+                  <Line type="monotone" dataKey="Amount" stroke="#B15DFF" strokeWidth={3} dot={{ stroke: '#B15DFF', strokeWidth: 2, r: 4, fill: '#09090B' }} activeDot={{ r: 6, strokeWidth: 0, fill: '#B15DFF' }} />
                 </LineChart>
               </ResponsiveContainer>
             )}
@@ -302,11 +284,11 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
                    <XAxis type="number" stroke="#71717A" tickLine={false} axisLine={false} hide />
                    <YAxis dataKey="carRegistration" type="category" tick={<TruckTick />} stroke="#71717A" tickLine={false} axisLine={false} width={80} />
                    <Tooltip 
-                     contentStyle={{ backgroundColor: 'rgba(18, 18, 22, 0.9)', color: '#FFFFFF', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '12px', backdropFilter: 'blur(16px)' }} 
+                     contentStyle={{ backgroundColor: 'rgba(10, 10, 14, 0.98)', color: '#FFFFFF', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '12px' }} 
                      cursor={{fill: 'rgba(59, 130, 246, 0.08)', opacity: 0.2}} 
                      formatter={(value: number) => [formatCurrency(value), 'Total Amount']}
                    />
-                   <Bar dataKey="totalAmount" fill="url(#purpleBlueGrad)" radius={[0, 4, 4, 0]} barSize={10} name="Total Amount" />
+                   <Bar dataKey="totalAmount" fill="#3B82F6" radius={0} barSize={10} name="Total Amount" />
                  </BarChart>
                </ResponsiveContainer>
              )}

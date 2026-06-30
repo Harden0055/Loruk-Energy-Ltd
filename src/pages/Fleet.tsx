@@ -377,7 +377,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                      cursor={{fill: '#1e40af', opacity: 0.2}} 
                      formatter={(value: number) => [formatCurrency(value), 'Total Amount']}
                    />
-                   <Bar dataKey="Amount" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={12} />
+                   <Bar dataKey="Amount" fill="#3b82f6" radius={0} barSize={12} />
                  </BarChart>
                </ResponsiveContainer>
              )}

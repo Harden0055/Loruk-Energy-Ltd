@@ -579,26 +579,20 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Outstanding Balance</p>
             <button
                onClick={verifyBalance}
-               className="text-xs text-cyan-500 font-bold hover:underline"
+               className="text-xs text-pink-500 font-bold hover:underline"
             >
               Verify
             </button>
-            <div className={`p-2 rounded-lg ${calculatedBalance < 0 ? 'bg-emerald-100/70 dark:bg-emerald-950/45' : 'bg-blue-50 dark:glass-panel'}`}>
-              <DollarSign className={`w-5 h-5 ${calculatedBalance < 0 ? 'text-emerald-600' : 'text-cyan-500'}`} />
+            <div className="p-2 rounded-lg bg-pink-50 dark:bg-pink-950/20 text-pink-500">
+              <DollarSign className="w-5 h-5 text-pink-500" />
             </div>
           </div>
           <div className="mt-4">
-            <h3 className={`text-2xl font-black font-mono tracking-tight leading-none ${
-              calculatedBalance > 0 
-                ? 'text-red-600 dark:text-red-400' 
-                : calculatedBalance < 0 
-                  ? 'text-emerald-600 dark:text-emerald-400' 
-                  : 'text-theme-text'
-            }`}>
+            <h3 className="text-2xl font-black font-mono tracking-tight leading-none text-pink-600 dark:text-pink-400">
               {formatCurrency(calculatedBalance)}
             </h3>
             {calculatedBalance < 0 ? (
-              <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-2 flex items-center gap-1.5 uppercase tracking-wide">
+              <p className="text-xs text-pink-600 dark:text-pink-400 font-bold mt-2 flex items-center gap-1.5 uppercase tracking-wide">
                 <CheckCircle className="w-3.5 h-3.5" /> Advance Balance Credit
               </p>
             ) : isCreditRisk ? (
@@ -644,16 +638,16 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         <div className="glass-panel border border-theme-border rounded-xl p-5 shadow-sm transition-colors">
           <div className="flex justify-between items-start">
             <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Deliveries</p>
-            <div className="p-2 bg-blue-50 dark:glass-panel rounded-lg text-cyan-500 border border-theme-border">
+            <div className="p-2 bg-purple-50 dark:bg-purple-950/20 rounded-lg text-purple-500 border border-theme-border">
               <Truck className="w-5 h-5 hover:scale-100 transition-transform" />
             </div>
           </div>
           <div className="mt-4">
-            <h3 className="text-2xl font-black font-mono text-cyan-500 dark:text-blue-400 tracking-tight leading-none">
+            <h3 className="text-2xl font-black font-mono text-purple-600 dark:text-purple-400 tracking-tight leading-none">
               {formatCurrency(totalSalesValue)}
             </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium">
-              Dispensed total <span className="font-mono font-bold text-cyan-500 dark:text-blue-400">{totalFuelLitres.toLocaleString()} Litres</span>.
+              Dispensed total <span className="font-mono font-bold text-purple-600 dark:text-purple-400">{totalFuelLitres.toLocaleString()} Litres</span>.
             </p>
           </div>
         </div>
@@ -742,18 +736,18 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <div>
                   <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">
                     <span>Average Delivery Size</span>
-                    <span className="font-mono">
+                    <span className="font-mono text-purple-600 dark:text-purple-400">
                       {customerDeliveries.length ? formatCurrency(totalSalesValue / customerDeliveries.length) : 'N/A'}
                     </span>
                   </div>
                   <div className="h-1.5 glass-panel rounded-full">
-                    <div className="h-full bg-amber-500 rounded-full" style={{ width: '65%' }} />
+                    <div className="h-full bg-purple-500 rounded-full" style={{ width: '65%' }} />
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">
                     <span>Average Payment Size</span>
-                    <span className="font-mono">
+                    <span className="font-mono text-emerald-600 dark:text-emerald-400">
                       {customerPayments.length ? formatCurrency(totalPaymentsValue / customerPayments.length) : 'N/A'}
                     </span>
                   </div>
@@ -794,13 +788,13 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             <div className="flex flex-wrap gap-1 glass-panel p-1 rounded-lg">
               {(['all', 'delivery', 'payment', 'adjustment'] as const).map(f => (
                 <button
-                  key={f}
-                  onClick={() => setFilterType(f)}
-                  className={`px-3 py-1 text-xs font-bold rounded-md uppercase transition-colors cursor-pointer ${
-                    filterType === f 
-                      ? 'bg-gradient-primary text-white glow-purple border-0 shadow-sm'
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-blue-200'
-                  }`}
+                   key={f}
+                   onClick={() => setFilterType(f)}
+                   className={`px-3 py-1 text-xs font-bold rounded-md uppercase transition-colors cursor-pointer ${
+                     filterType === f 
+                       ? 'bg-gradient-primary text-white glow-purple border-0 shadow-sm'
+                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-blue-200'
+                   }`}
                 >
                   {f === 'all' ? 'All Logs' : f}
                 </button>
@@ -875,7 +869,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       <div className="flex items-center gap-2.5">
                         <div className={`p-1.5 rounded-md ${
                           e.type === 'delivery' 
-                            ? 'bg-amber-50 dark:bg-amber-950/20 text-amber-600' 
+                            ? 'bg-purple-50 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400' 
                             : e.type === 'payment' 
                               ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600' 
                               : 'bg-blue-50 dark:glass-panel text-cyan-500'
@@ -894,7 +888,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     </td>
                     <td className={`border border-theme-border px-4 sm:px-6 py-4 text-right font-mono font-bold text-base whitespace-nowrap ${
                       e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit'))
-                        ? 'text-amber-600 dark:text-amber-400'
+                        ? 'text-purple-600 dark:text-purple-400'
                         : 'text-emerald-600 dark:text-emerald-400 font-medium'
                     }`}>
                       {e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit')) ? '+' : '-'}
@@ -902,9 +896,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     </td>
                     <td className={`border border-theme-border px-4 sm:px-6 py-4 text-right font-mono font-bold text-base whitespace-nowrap ${
                       e.balanceAfter > 0
-                        ? 'text-red-600 dark:text-red-400'
+                        ? 'text-pink-600 dark:text-pink-400'
                         : e.balanceAfter < 0
-                          ? 'text-emerald-600 dark:text-emerald-400'
+                          ? 'text-pink-600 dark:text-pink-400'
                           : 'text-gray-600 dark:text-gray-300'
                     }`}>
                       {formatCurrency(e.balanceAfter)}

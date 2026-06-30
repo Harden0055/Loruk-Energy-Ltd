@@ -252,14 +252,14 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
                     return (
                       <td className={`px-6 py-4 text-base font-mono font-bold text-right ${
                         dynamicBalance > 0 
-                          ? 'text-red-650 dark:text-red-400' 
+                          ? 'text-pink-600 dark:text-pink-400' 
                           : dynamicBalance < 0 
-                            ? 'text-emerald-600 dark:text-emerald-400 font-semibold' 
+                            ? 'text-pink-600 dark:text-pink-400 font-semibold' 
                             : 'text-gray-700 dark:text-gray-300'
                       }`}>
                         {formatCurrency(dynamicBalance)}
                         {dynamicBalance < 0 && (
-                          <span className="block text-[10px] uppercase tracking-wider font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5">Advance Balance</span>
+                          <span className="block text-[10px] uppercase tracking-wider font-extrabold text-pink-600 dark:text-pink-400 mt-0.5">Advance Balance</span>
                         )}
                       </td>
                     );
@@ -874,7 +874,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
 
           <div>
             <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Current Balance</label>
-            <div className="px-4 py-2 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base font-mono font-bold text-blue-900 dark:text-blue-50 shadow-sm">
+            <div className="px-4 py-2 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base font-mono font-bold text-pink-600 dark:text-pink-400 shadow-sm">
               {formatCurrency(customer.balance)}
             </div>
           </div>
