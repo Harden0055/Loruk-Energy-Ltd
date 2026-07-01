@@ -91,13 +91,13 @@ export default function AIAssistant() {
         {messages.map((msg) => (
           <div key={msg.id} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             {msg.role === 'assistant' && (
-              <div className="w-8 h-8 rounded-full bg-blue-100 dark:glass-panel flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-white/5 flex items-center justify-center shrink-0">
                 <Bot className="w-5 h-5 text-cyan-500 dark:text-blue-400" />
               </div>
             )}
             <div className={`max-w-[75%] rounded-2xl px-5 py-3 ${
               msg.role === 'user' 
-                ? 'bg-gradient-primary text-white glow-purple border-0 rounded-br-none' 
+                ? 'bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-br-none' 
                 : 'glass-panel text-gray-800 dark:text-gray-200 rounded-bl-none'
             }`}>
               {msg.role === 'user' ? (
@@ -117,7 +117,7 @@ export default function AIAssistant() {
         ))}
         {isLoading && (
           <div className="flex gap-4 justify-start animate-fade-in">
-            <div className="w-8 h-8 rounded-full bg-blue-100 dark:glass-panel flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-white/5 flex items-center justify-center shrink-0">
               <Bot className="w-5 h-5 text-cyan-500 dark:text-blue-400" />
             </div>
             <div className="max-w-[75%] rounded-2xl px-5 py-3 glass-panel text-gray-800 dark:text-gray-200 rounded-bl-none flex items-center gap-2">

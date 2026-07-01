@@ -515,7 +515,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         <div className="flex items-center gap-2">
           <button
             onClick={handleExportStatement}
-            className="px-4 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:glass-panel dark:hover:bg-blue-900/60 text-cyan-400 dark:text-theme-text-muted border border-theme-border rounded-lg text-base font-semibold flex items-center gap-2 transition-all shadow-sm cursor-pointer"
+            className="px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-base font-semibold flex items-center gap-2 transition-colors cursor-pointer"
             id="btn-customer-dash-export-pdf"
           >
             <Download className="w-5 h-5" />
@@ -528,12 +528,12 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       <div className="glass-panel border border-theme-border rounded-xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-colors">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <span className="font-mono text-sm uppercase tracking-widest bg-blue-100 text-blue-800 dark:glass-panel dark:text-theme-text-muted px-2.5 py-1 rounded-md font-bold border border-theme-border">
+            <span className="font-mono text-sm uppercase tracking-widest bg-blue-100 text-blue-800 dark:bg-white/5 dark:text-theme-text-muted px-2.5 py-1 rounded-md font-bold border border-theme-border">
               {customer.customerId}
             </span>
             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
               customer.status === 'active' 
-                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/45 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900' 
+                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/45 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900 shadow-[0_0_8px_rgba(16,185,129,0.6)]' 
                 : 'bg-red-100 text-red-800 dark:bg-red-950/45 dark:text-red-400 border border-red-200 dark:border-red-900'
             }`}>
               {customer.status === 'active' ? 'Active Account' : 'Credit Risk'}
@@ -546,24 +546,24 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         </div>
 
         {/* Action triggers */}
-        <div className="flex flex-wrap gap-2.5">
+        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto p-2 bg-gradient-to-r from-blue-900/20 to-cyan-900/10 border border-blue-800/30 rounded-xl shadow-inner">
           <button
             onClick={() => setActiveModal('delivery')}
-            className="px-4 py-2.5 bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 font-semibold text-sm rounded-lg shadow-md hover:shadow-blue-600/10 flex items-center gap-2 transition-all cursor-pointer"
+            className="w-full sm:w-auto px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Log Delivery
           </button>
           <button
             onClick={() => setActiveModal('payment')}
-            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm rounded-lg shadow-md hover:shadow-emerald-600/10 flex items-center gap-2 transition-all cursor-pointer"
+            className="w-full sm:w-auto px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Record Payment
           </button>
           <button
             onClick={() => setActiveModal('adjustment')}
-            className="px-4 py-2.5 bg-slate-100 dark:glass-panel hover:bg-slate-200 dark:hover:bg-blue-800 text-theme-text-muted font-semibold text-sm rounded-lg border border-theme-border flex items-center gap-2 transition-all cursor-pointer"
+            className="w-full sm:w-auto px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <ArrowUpDown className="w-4 h-4" />
             Adjust Balance
@@ -583,16 +583,16 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             >
               Verify
             </button>
-            <div className="p-2 rounded-lg bg-pink-50 dark:bg-pink-950/20 text-pink-500">
-              <DollarSign className="w-5 h-5 text-pink-500" />
+            <div className="p-2 rounded-lg glow-blue-wrapper">
+              <DollarSign className="w-5 h-5 glow-blue-icon" />
             </div>
           </div>
           <div className="mt-4">
-            <h3 className="text-2xl font-black font-mono tracking-tight leading-none text-pink-600 dark:text-pink-400">
+            <h3 className={`text-2xl font-black font-mono tracking-tight leading-none ${calculatedBalance < 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-pink-600 dark:text-pink-400'}`}>
               {formatCurrency(calculatedBalance)}
             </h3>
             {calculatedBalance < 0 ? (
-              <p className="text-xs text-pink-600 dark:text-pink-400 font-bold mt-2 flex items-center gap-1.5 uppercase tracking-wide">
+               <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-2 flex items-center gap-1.5 uppercase tracking-wide">
                 <CheckCircle className="w-3.5 h-3.5" /> Advance Balance Credit
               </p>
             ) : isCreditRisk ? (
@@ -611,8 +611,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         <div className="glass-panel border border-theme-border rounded-xl p-5 shadow-sm transition-colors">
           <div className="flex justify-between items-start">
             <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Credit Allocation</p>
-            <div className="p-2 bg-blue-50 dark:glass-panel rounded-lg text-cyan-500">
-              <FileText className="w-5 h-5" />
+            <div className="p-2 rounded-lg glow-blue-wrapper">
+              <FileText className="w-5 h-5 glow-blue-icon" />
             </div>
           </div>
           <div className="mt-4">
@@ -638,16 +638,16 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         <div className="glass-panel border border-theme-border rounded-xl p-5 shadow-sm transition-colors">
           <div className="flex justify-between items-start">
             <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Deliveries</p>
-            <div className="p-2 bg-purple-50 dark:bg-purple-950/20 rounded-lg text-purple-500 border border-theme-border">
-              <Truck className="w-5 h-5 hover:scale-100 transition-transform" />
+            <div className="p-2 rounded-lg glow-blue-wrapper">
+              <Truck className="w-5 h-5 glow-blue-icon" />
             </div>
           </div>
           <div className="mt-4">
-            <h3 className="text-2xl font-black font-mono text-purple-600 dark:text-purple-400 tracking-tight leading-none">
+            <h3 className="text-2xl font-black font-mono text-blue-600 dark:text-blue-400 tracking-tight leading-none">
               {formatCurrency(totalSalesValue)}
             </h3>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium">
-              Dispensed total <span className="font-mono font-bold text-purple-600 dark:text-purple-400">{totalFuelLitres.toLocaleString()} Litres</span>.
+              Dispensed total <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{totalFuelLitres.toLocaleString()} Litres</span>.
             </p>
           </div>
         </div>
@@ -656,8 +656,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         <div className="glass-panel border border-theme-border rounded-xl p-5 shadow-sm transition-colors">
           <div className="flex justify-between items-start">
             <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Received Payments</p>
-            <div className="p-2 bg-emerald-50 dark:bg-emerald-950/20 rounded-lg text-emerald-600">
-              <CheckCircle className="w-5 h-5" />
+            <div className="p-2 rounded-lg glow-blue-wrapper">
+              <CheckCircle className="w-5 h-5 glow-blue-icon" />
             </div>
           </div>
           <div className="mt-4">
@@ -680,19 +680,19 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               <h3 className="text-lg font-black text-gray-950 dark:text-blue-50 tracking-tight">Statement Ledger Trend Line</h3>
               <p className="text-xs text-gray-500 dark:text-gray-400">Time-series tracking of outstanding balance evolution</p>
             </div>
-            <div className="flex items-center gap-2 bg-blue-50 dark:glass-panel px-3 py-1.5 rounded-lg border border-theme-border">
+            <div className="flex items-center gap-2 bg-blue-50 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-theme-border">
               <TrendingUp className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
               <span className="text-xs font-bold text-blue-800 dark:text-cyan-300 uppercase">Balance Scale</span>
             </div>
           </div>
           
-          <div className="h-72 w-full">
+          <div className="h-72 w-full relative overflow-hidden">
             {chartData.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-sm text-gray-400 bg-gray-50/50 dark:glass-panel rounded-lg border border-dashed border-theme-border">
+              <div className="h-full flex items-center justify-center text-sm text-gray-400 bg-gray-50/50 dark:bg-white/5 rounded-lg border border-dashed border-theme-border">
                 Not enough transactions to map chart data
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="balanceGrad" x1="0" y1="0" x2="0" y2="1">
@@ -736,12 +736,12 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <div>
                   <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">
                     <span>Average Delivery Size</span>
-                    <span className="font-mono text-purple-600 dark:text-purple-400">
+                    <span className="font-mono text-blue-600 dark:text-blue-400">
                       {customerDeliveries.length ? formatCurrency(totalSalesValue / customerDeliveries.length) : 'N/A'}
                     </span>
                   </div>
                   <div className="h-1.5 glass-panel rounded-full">
-                    <div className="h-full bg-purple-500 rounded-full" style={{ width: '65%' }} />
+                    <div className="h-full bg-blue-500 rounded-full" style={{ width: '65%' }} />
                   </div>
                 </div>
                 <div>
@@ -777,7 +777,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
       {/* Filter Options & Transaction Log */}
       <div className="glass-panel border border-theme-border rounded-xl overflow-hidden shadow-sm transition-colors">
-        <div className="p-6 border-b border-theme-border bg-gray-50/50 dark:glass-panel">
+        <div className="p-6 border-b border-theme-border dark:bg-transparent">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
               <h3 className="text-lg font-black text-gray-950 dark:text-blue-50 tracking-tight">Audit Statement & Transaction Timeline</h3>
@@ -785,14 +785,14 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             </div>
 
             {/* Quick type filter */}
-            <div className="flex flex-wrap gap-1 glass-panel p-1 rounded-lg">
+            <div className="flex flex-wrap gap-1 bg-black/5 dark:bg-white/5 border border-theme-border p-1 rounded-lg">
               {(['all', 'delivery', 'payment', 'adjustment'] as const).map(f => (
                 <button
                    key={f}
                    onClick={() => setFilterType(f)}
                    className={`px-3 py-1 text-xs font-bold rounded-md uppercase transition-colors cursor-pointer ${
                      filterType === f 
-                       ? 'bg-gradient-primary text-white glow-purple border-0 shadow-sm'
+                       ? 'bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] shadow-sm'
                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-blue-200'
                    }`}
                 >
@@ -811,7 +811,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 placeholder="Search description, author..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-blue-50/50 dark:glass-panel border border-theme-border focus:border-theme-border dark:focus:border-theme-border rounded-lg text-sm text-gray-950 dark:text-blue-50 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-blue-400/75"
+                className="w-full pl-9 pr-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border focus:border-theme-border dark:focus:border-theme-border rounded-lg text-sm text-gray-950 dark:text-blue-50 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-blue-400/75"
               />
             </div>
             
@@ -820,7 +820,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 type="date"
                 value={startDate}
                 onChange={e => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 bg-blue-50/50 dark:glass-panel border border-theme-border focus:border-theme-border dark:focus:border-theme-border rounded-lg text-sm text-gray-950 dark:text-blue-50 focus:outline-none placeholder:text-blue-400/75"
+                className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border focus:border-theme-border dark:focus:border-theme-border rounded-lg text-sm text-gray-950 dark:text-blue-50 focus:outline-none placeholder:text-blue-400/75"
                 placeholder="Start Date"
                 title="Start Date"
               />
@@ -832,7 +832,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 type="date"
                 value={endDate}
                 onChange={e => setEndDate(e.target.value)}
-                className="w-full px-3 py-2 bg-blue-50/50 dark:glass-panel border border-theme-border focus:border-theme-border dark:focus:border-theme-border rounded-lg text-sm text-gray-950 dark:text-blue-50 focus:outline-none placeholder:text-blue-400/75"
+                className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border focus:border-theme-border dark:focus:border-theme-border rounded-lg text-sm text-gray-950 dark:text-blue-50 focus:outline-none placeholder:text-blue-400/75"
                 placeholder="End Date"
                 title="End Date"
               />
@@ -843,7 +843,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
         <div className="overflow-x-auto">
           <table className="modern-table">
-            <thead className="bg-blue-50 dark:glass-panel border-b border-theme-border transition-colors">
+            <thead className="dark:bg-transparent border-b border-theme-border transition-colors">
               <tr className="modern-tr">
                 <th className="modern-th">Date & Time</th>
                 <th className="modern-th">Activity</th>
@@ -868,15 +868,13 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     <td className="modern-td">
                       <div className="flex items-center gap-2.5">
                         <div className={`p-1.5 rounded-md ${
-                          e.type === 'delivery' 
-                            ? 'bg-purple-50 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400' 
-                            : e.type === 'payment' 
-                              ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600' 
-                              : 'bg-blue-50 dark:glass-panel text-cyan-500'
+                          e.type === 'payment' 
+                            ? "bg-emerald-500/10 border border-emerald-500/25 shadow-[0_0_15px_rgba(16,185,129,0.15)]" 
+                            : "glow-blue-wrapper"
                         }`}>
-                          {e.type === 'delivery' && <Truck className="w-4 h-4" />}
-                          {e.type === 'payment' && <DollarSign className="w-4 h-4" />}
-                          {e.type === 'adjustment' && <ArrowUpDown className="w-4 h-4" />}
+                          {e.type === 'delivery' && <Truck className="w-4 h-4 glow-blue-icon" />}
+                          {e.type === 'payment' && <DollarSign className="w-4 h-4 text-emerald-400 stroke-emerald-400 filter drop-shadow-[0_0_6px_rgba(16,185,129,0.8)]" />}
+                          {e.type === 'adjustment' && <ArrowUpDown className="w-4 h-4 glow-blue-icon" />}
                         </div>
                         <span className="text-base font-bold text-theme-text">
                           {e.title}
@@ -898,7 +896,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       e.balanceAfter > 0
                         ? 'text-pink-600 dark:text-pink-400'
                         : e.balanceAfter < 0
-                          ? 'text-pink-600 dark:text-pink-400'
+                          ? 'text-emerald-600 dark:text-emerald-400'
                           : 'text-gray-600 dark:text-gray-300'
                     }`}>
                       {formatCurrency(e.balanceAfter)}
@@ -916,7 +914,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-theme-border w-full max-w-sm overflow-hidden transform transition-all duration-300">
             <form onSubmit={handleAddDelivery}>
-              <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:glass-panel flex justify-between items-center">
+              <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:bg-white/5 flex justify-between items-center">
                 <div>
                   <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Log Fuel Delivery</h3>
                   <p className="text-xs text-cyan-400 dark:text-theme-text-muted font-medium pb-1">For {customer.name}</p>
@@ -973,7 +971,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   />
                 </div>
               </div>
-              <div className="px-6 py-4 bg-blue-100/50 dark:glass-panel border-t border-theme-border flex justify-end gap-3 rounded-b-xl">
+              <div className="px-6 py-4 bg-blue-100/50 dark:bg-white/5 border-t border-theme-border flex justify-end gap-3 rounded-b-xl">
                 <button
                   type="button"
                   onClick={() => setActiveModal(null)}
@@ -984,7 +982,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <button
                   type="submit"
                   disabled={modalLoading}
-                  className="px-5 py-2 bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 rounded-lg text-sm font-bold shadow-md shadow-blue-500/20 disabled:opacity-50 transition-colors"
+                  className="px-5 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg text-sm font-bold shadow-md shadow-blue-500/20 disabled:opacity-50 transition-colors"
                 >
                   Save Delivery
                 </button>
@@ -998,7 +996,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-theme-border w-full max-w-sm overflow-hidden transform transition-all duration-300">
             <form onSubmit={handleAddPayment}>
-              <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:glass-panel flex justify-between items-center">
+              <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:bg-white/5 flex justify-between items-center">
                 <div>
                   <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Record Payment</h3>
                   <p className="text-xs text-cyan-400 dark:text-theme-text-muted font-medium pb-1">For {customer.name}</p>
@@ -1029,7 +1027,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   />
                 </div>
               </div>
-              <div className="px-6 py-4 bg-blue-100/50 dark:glass-panel border-t border-theme-border flex justify-end gap-3 rounded-b-xl">
+              <div className="px-6 py-4 bg-blue-100/50 dark:bg-white/5 border-t border-theme-border flex justify-end gap-3 rounded-b-xl">
                 <button
                   type="button"
                   onClick={() => setActiveModal(null)}
@@ -1054,7 +1052,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-theme-border w-full max-w-sm overflow-hidden transform transition-all duration-300">
             <form onSubmit={handleAddAdjustment}>
-              <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:glass-panel flex justify-between items-center">
+              <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:bg-white/5 flex justify-between items-center">
                 <div>
                   <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Log Adjustment</h3>
                   <p className="text-xs text-cyan-400 dark:text-theme-text-muted font-medium pb-1">Manual Ledger Adjustment overriding standard log flows</p>
@@ -1123,7 +1121,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   />
                 </div>
               </div>
-              <div className="px-6 py-4 bg-blue-100/50 dark:glass-panel border-t border-theme-border flex justify-end gap-3 rounded-b-xl">
+              <div className="px-6 py-4 bg-blue-100/50 dark:bg-white/5 border-t border-theme-border flex justify-end gap-3 rounded-b-xl">
                 <button
                   type="button"
                   onClick={() => setActiveModal(null)}

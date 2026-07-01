@@ -98,7 +98,7 @@ export default function Products() {
         </div>
         <button 
           onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} 
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 rounded-lg font-semibold transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg font-semibold transition-colors"
         >
           {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Product</>}
         </button>
@@ -139,7 +139,7 @@ export default function Products() {
             <div className="col-span-1 md:col-span-2 flex justify-end mt-2">
               <button 
                 type="submit"
-                className="px-5 py-2 bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 rounded-lg font-semibold transition-colors"
+                className="px-5 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg font-semibold transition-colors"
                >
                 {editingId ? 'Update Product' : 'Save Product'}
                </button>
@@ -164,7 +164,7 @@ export default function Products() {
                 <tr key={p.id} className="hover:bg-white/5 dark:hover:bg-blue-900/10 transition-colors">
                   <td className="modern-td">{p.name}</td>
                   <td className="modern-td">
-                    <button onClick={() => handleEdit(p)} className="p-1.5 bg-blue-50 dark:glass-panel text-cyan-500 dark:text-blue-400 rounded-md hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors">
+                    <button onClick={() => handleEdit(p)} className="p-1.5 bg-blue-50 dark:bg-white/5 text-cyan-500 dark:text-blue-400 rounded-md hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors">
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button onClick={() => handleDelete(p.id)} className="p-1.5 bg-red-50 dark:bg-red-900/40 text-red-600 dark:text-red-400 rounded-md hover:bg-red-100 dark:hover:bg-red-800 transition-colors">

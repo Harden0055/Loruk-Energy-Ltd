@@ -146,13 +146,13 @@ export default function InvoicesView() {
       <div className="flex gap-4 border-b border-theme-border mb-6">
         <button 
           onClick={() => setActiveTab('invoices')}
-          className={`flex items-center gap-2 pb-3 px-2 border-b-2 font-medium transition-colors ${activeTab === 'invoices' ? 'border-theme-border text-cyan-400' : 'border-transparent text-theme-text-muted hover:text-theme-text'}`}
+          className={`flex items-center gap-2 pb-3 px-2 border-b-2 font-semibold transition-all duration-200 cursor-pointer ${activeTab === 'invoices' ? 'border-[#00D4FF] text-[#00D4FF] drop-shadow-[0_0_10px_rgba(0,212,255,0.25)]' : 'border-transparent text-theme-text-muted hover:text-white'}`}
         >
           <FileText className="w-4 h-4" /> Invoices
         </button>
         <button 
           onClick={() => setActiveTab('customers')}
-          className={`flex items-center gap-2 pb-3 px-2 border-b-2 font-medium transition-colors ${activeTab === 'customers' ? 'border-theme-border text-cyan-400' : 'border-transparent text-theme-text-muted hover:text-theme-text'}`}
+          className={`flex items-center gap-2 pb-3 px-2 border-b-2 font-semibold transition-all duration-200 cursor-pointer ${activeTab === 'customers' ? 'border-[#00D4FF] text-[#00D4FF] drop-shadow-[0_0_10px_rgba(0,212,255,0.25)]' : 'border-transparent text-theme-text-muted hover:text-white'}`}
         >
           <Users className="w-4 h-4" /> Customers
         </button>

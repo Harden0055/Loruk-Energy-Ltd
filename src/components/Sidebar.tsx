@@ -48,16 +48,18 @@ export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
               className={cn(
                 "w-full flex items-center gap-3 px-4 py-2.5 text-base sidebar-item",
                 isActive 
-                  ? "sidebar-item-active font-medium" 
+                  ? item.id === 'payments'
+                    ? "sidebar-item-active-green font-medium"
+                    : "sidebar-item-active font-medium"
                   : item.id === 'fuelsuite'
                     ? "text-[#00D4FF] bg-[#00D4FF]/5 hover:bg-[#00D4FF]/10 glow-cyan-text"
                     : "text-theme-text-muted hover:bg-white/5 hover:text-theme-text"
               )}
             >
-              <Icon className={cn("w-5 h-5 transition-all duration-300", isActive ? "glow-cyan-text" : item.id === 'fuelsuite' ? "glow-cyan-text" : "")} />
+              <Icon className={cn("w-5 h-5 transition-all duration-300", isActive ? item.id === 'payments' ? "text-emerald-400 stroke-emerald-400" : "glow-cyan-text" : item.id === 'fuelsuite' ? "glow-cyan-text" : "")} />
               {item.label}
               {item.id === 'fuelsuite' && (
-                <span className="ml-auto bg-gradient-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">NEW</span>
+                <span className="ml-auto bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm">NEW</span>
               )}
             </button>
           )

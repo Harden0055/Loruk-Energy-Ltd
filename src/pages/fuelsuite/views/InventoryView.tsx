@@ -203,25 +203,25 @@ export default function InventoryView() {
 
       <div className="flex gap-4 border-b border-theme-border">
         <button 
-          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'overview' ? 'text-cyan-400 border-b-2 border-theme-border' : 'text-theme-text-muted'}`}
+          className={`pb-3 px-4 font-semibold text-sm transition-all duration-200 cursor-pointer ${activeTab === 'overview' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF] drop-shadow-[0_0_10px_rgba(0,212,255,0.25)]' : 'text-theme-text-muted hover:text-white'}`}
           onClick={() => { setActiveTab('overview'); resetForm(); }}
         >
           Overview
         </button>
         <button 
-          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'opening' ? 'text-cyan-400 border-b-2 border-theme-border' : 'text-theme-text-muted'}`}
+          className={`pb-3 px-4 font-semibold text-sm transition-all duration-200 cursor-pointer ${activeTab === 'opening' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF] drop-shadow-[0_0_10px_rgba(0,212,255,0.25)]' : 'text-theme-text-muted hover:text-white'}`}
           onClick={() => { setActiveTab('opening'); resetForm(); }}
         >
           Opening Stock
         </button>
         <button 
-          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'in' ? 'text-cyan-400 border-b-2 border-theme-border' : 'text-theme-text-muted'}`}
+          className={`pb-3 px-4 font-semibold text-sm transition-all duration-200 cursor-pointer ${activeTab === 'in' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF] drop-shadow-[0_0_10px_rgba(0,212,255,0.25)]' : 'text-theme-text-muted hover:text-white'}`}
           onClick={() => { setActiveTab('in'); resetForm(); }}
         >
           Purchase (In)
         </button>
         <button 
-          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'out' ? 'text-cyan-400 border-b-2 border-theme-border' : 'text-theme-text-muted'}`}
+          className={`pb-3 px-4 font-semibold text-sm transition-all duration-200 cursor-pointer ${activeTab === 'out' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF] drop-shadow-[0_0_10px_rgba(0,212,255,0.25)]' : 'text-theme-text-muted hover:text-white'}`}
           onClick={() => { setActiveTab('out'); resetForm(); }}
         >
           Sale (Out)
@@ -249,9 +249,9 @@ export default function InventoryView() {
                   <tr key={product} className="hover:theme-bg-gradient transition-colors">
                     <Td><span className="font-semibold text-theme-text">{product}</span></Td>
                     <Td className="text-right">{inventorySummary[product].opening.toLocaleString()}</Td>
-                    <Td className="text-right text-green-400">+{inventorySummary[product].in.toLocaleString()}</Td>
-                    <Td className="text-right text-red-400">-{inventorySummary[product].out.toLocaleString()}</Td>
-                    <Td className="text-right font-bold text-slate-100">{inventorySummary[product].balance.toLocaleString()}</Td>
+                    <Td className="text-right text-emerald-400">+{inventorySummary[product].in.toLocaleString()}</Td>
+                    <Td className="text-right text-purple-400">-{inventorySummary[product].out.toLocaleString()}</Td>
+                    <Td className="text-right font-bold text-blue-400">{inventorySummary[product].balance.toLocaleString()}</Td>
                   </tr>
                 ))}
               </tbody>

@@ -232,7 +232,7 @@ export default function DashboardView() {
             <button 
               key={y}
               onClick={() => setFilterYear(y)}
-              className={`px-3.5 py-1.5 rounded-lg transition-all whitespace-nowrap cursor-pointer ${filterYear === y ? 'bg-gradient-primary text-white shadow-[0_0_15px_rgba(59,130,246,0.3)]' : 'bg-[#121216]/60 border border-theme-border/50 text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
+              className={`px-3.5 py-1.5 rounded-lg transition-all whitespace-nowrap cursor-pointer ${filterYear === y ? 'bg-blue-500/10 text-cyan-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]' : 'bg-[#121216]/60 border border-theme-border/50 text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
             >
               {y}
             </button>
@@ -255,7 +255,7 @@ export default function DashboardView() {
           
           <div className="flex items-center h-[200px] mt-8">
             <div className="w-1/2 h-full relative">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <PieChart>
                   <Pie
                     data={totalRevenuePieData}
@@ -310,7 +310,7 @@ export default function DashboardView() {
           </div>
           <div className="flex flex-col md:flex-row h-auto md:h-[240px]">
             <div className="w-full md:w-1/2 h-[200px] md:h-full">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="100%" barSize={8} data={radialData} startAngle={180} endAngle={-180}>
                   <RadialBar
                     background={{ fill: 'rgba(255, 255, 255, 0.03)' }}
@@ -362,7 +362,7 @@ export default function DashboardView() {
             Distribution by Location
           </h3>
           <div className="flex-1 min-h-[200px] relative">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <PieChart>
                 <Pie
                   data={distributionPieData}
@@ -408,7 +408,7 @@ export default function DashboardView() {
             </div>
           </div>
           <div className="flex-1 min-h-[200px]">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                 <PolarGrid stroke="rgba(255,255,255,0.04)" />
                 <PolarAngleAxis dataKey="subject" tick={{ fill: '#71717A', fontSize: 9, fontWeight: 600 }} />
@@ -429,7 +429,7 @@ export default function DashboardView() {
             <span className="text-base font-bold text-white tracking-tight">KES {totalRevenue.toLocaleString()}</span>
           </div>
           <div className="h-[200px]">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <ComposedChart data={foundationData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
@@ -499,7 +499,7 @@ export default function DashboardView() {
             </div>
           </div>
           <div className="h-[200px]">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <LineChart data={forecastData} margin={{ top: 20, right: 10, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255, 255, 255, 0.03)" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#71717A', fontSize: 10, fontWeight: 500 }} dy={10} />

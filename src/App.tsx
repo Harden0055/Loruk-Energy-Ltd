@@ -119,7 +119,7 @@ function AuthenticatedApp() {
             <div className="flex justify-end gap-3">
               <button 
                 onClick={() => setShowPrintWarning(false)}
-                className="px-4 py-2 bg-gray-100 hover:bg-white/10 dark:glass-panel dark:hover:bg-blue-800 text-theme-text font-medium rounded-lg transition-colors"
+                className="px-4 py-2 bg-gray-100 hover:bg-white/10 dark:bg-white/5 dark:hover:bg-blue-800 text-theme-text font-medium rounded-lg transition-colors"
               >
                 Close
               </button>
@@ -128,7 +128,7 @@ function AuthenticatedApp() {
                   window.open(window.location.href, '_blank');
                   setShowPrintWarning(false);
                 }}
-                className="px-4 py-2 bg-gradient-primary text-white font-medium hover:opacity-90 glow-purple border-0 rounded-lg transition-colors"
+                className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg transition-colors"
               >
                 Open in New Tab
               </button>
@@ -153,7 +153,13 @@ function AuthenticatedApp() {
               >
                 <Menu className="w-6 h-6" />
               </button>
-              <h1 className="text-2xl md:text-3xl font-bold capitalize text-white tracking-tight text-gradient">
+              <h1 className={`text-2xl md:text-3xl font-bold capitalize tracking-tight ${
+                currentPage === 'payments'
+                  ? 'bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent font-extrabold'
+                  : currentPage === 'customers' || currentPage === 'customerDashboard'
+                    ? 'bg-gradient-to-r from-sky-400 to-cyan-400 bg-clip-text text-transparent font-extrabold'
+                    : 'text-white text-gradient'
+              }`}>
                 {currentPage === 'customerDashboard' ? 'Customer Profile' : currentPage === 'truckDashboard' && selectedTruckReg ? `Dashboard: ${selectedTruckReg}` : currentPage.replace(/([A-Z])/g, ' $1').trim()}
               </h1>
             </div>
@@ -164,19 +170,19 @@ function AuthenticatedApp() {
             <div className="flex items-center gap-1.5 bg-[#121216]/80 p-1 rounded-xl border border-theme-border/50">
               <button 
                 onClick={() => setSelectedStation('Combined')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Combined' ? 'bg-gradient-primary text-white shadow-[0_0_15px_rgba(139,61,255,0.3)]' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Combined' ? 'bg-blue-500/10 text-cyan-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
               >
                 Combined Total
               </button>
               <button 
                 onClick={() => setSelectedStation('Ndalu')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Ndalu' ? 'bg-gradient-primary text-white shadow-[0_0_15px_rgba(139,61,255,0.3)]' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Ndalu' ? 'bg-blue-500/10 text-cyan-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
               >
                 Ndalu Station
               </button>
               <button 
                 onClick={() => setSelectedStation('Junction')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Junction' ? 'bg-gradient-primary text-white shadow-[0_0_15px_rgba(139,61,255,0.3)]' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Junction' ? 'bg-blue-500/10 text-cyan-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
               >
                 Junction Station
               </button>
@@ -342,7 +348,7 @@ function Main() {
     return (
       <div className="h-screen flex flex-col items-center justify-center theme-bg-gradient text-theme-text font-sans font-medium transition-colors">
         <div className="w-full max-w-sm p-8 glass-panel rounded-xl border border-theme-border flex flex-col items-center transition-colors">
-          <div className="w-16 h-16 bg-slate-50 dark:glass-panel border border-theme-border rounded-xl flex items-center justify-center mb-6 shadow-sm">
+          <div className="w-16 h-16 bg-slate-50 dark:bg-white/5 border border-theme-border rounded-xl flex items-center justify-center mb-6 shadow-sm">
             <FireLEIcon className="w-12 h-12" />
           </div>
           <h2 className="text-4xl font-bold tracking-tight mb-2 text-center text-theme-text">Loruk Energy Ltd Pro</h2>
@@ -391,7 +397,7 @@ function Main() {
                   <p className="text-xs leading-relaxed text-gray-700 dark:text-red-300">
                     Invalid email or password credentials.
                   </p>
-                  <div className="bg-blue-50 dark:glass-panel border border-theme-border p-2.5 rounded-md mt-2 text-[11px] text-blue-800 dark:text-theme-text-muted leading-normal">
+                  <div className="bg-blue-50 dark:bg-white/5 border border-theme-border p-2.5 rounded-md mt-2 text-[11px] text-blue-800 dark:text-theme-text-muted leading-normal">
                     💡 <strong>Don't have an email login yet?</strong> If this is your first time using email sign-in, you must register your email address first. 
                     <button 
                       type="button"
@@ -415,7 +421,7 @@ function Main() {
                   <p className="text-xs leading-relaxed text-gray-700 dark:text-red-300">
                     This authentication method is not allowed by your Firebase project's configuration.
                   </p>
-                  <div className="bg-blue-50 dark:glass-panel border border-theme-border p-2.5 rounded-md mt-2 text-[11px] text-blue-800 dark:text-theme-text-muted leading-normal">
+                  <div className="bg-blue-50 dark:bg-white/5 border border-theme-border p-2.5 rounded-md mt-2 text-[11px] text-blue-800 dark:text-theme-text-muted leading-normal">
                     💡 <strong>Did you just enable it?</strong> If you are testing this on Netlify, make sure you have deployed the latest version of the app so Netlify uses the correct Firebase Configuration. Currently, Netlify might be using an older configuration where these sign-in methods were not enabled.
                   </div>
                 </div>
@@ -482,7 +488,7 @@ function Main() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 px-4 bg-gradient-primary hover:opacity-90 disabled:opacity-50 text-white glow-purple border-0 rounded-lg font-semibold transition-all shadow-md shadow-blue-900/20"
+                className="w-full py-2.5 px-4 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg font-semibold transition-all shadow-md shadow-blue-900/20"
               >
                 {loading ? 'Processing...' : (isForgotPassword ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Sign Up'))}
               </button>

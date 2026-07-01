@@ -195,7 +195,7 @@ export default function Settings() {
               </div>
               <div>
                 <span className="text-xs text-gray-400 dark:text-gray-500 block">Authentication Method</span>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold mt-1 bg-blue-50 text-blue-800 dark:glass-panel dark:text-theme-text-muted">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold mt-1 bg-blue-50 text-blue-800 dark:bg-white/5 dark:text-theme-text-muted">
                   {isEmailUser ? 'Email & Password' : 'Google Auth Account'}
                 </span>
               </div>
@@ -261,7 +261,7 @@ export default function Settings() {
                 <button
                   type="submit"
                   disabled={profileLoading}
-                  className="px-5 py-2 bg-gradient-primary hover:opacity-90 disabled:opacity-50 text-white glow-purple border-0 rounded-lg font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                  className="px-5 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
                   {profileLoading ? 'Saving...' : 'Save Changes'}
@@ -379,7 +379,7 @@ export default function Settings() {
                     <button
                       type="submit"
                       disabled={passwordLoading}
-                      className="px-5 py-2 bg-gradient-primary hover:opacity-90 disabled:opacity-50 text-white glow-purple border-0 rounded-lg font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                      className="px-5 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                     >
                       <Lock className="w-4 h-4" />
                       {passwordLoading ? 'Updating...' : 'Update Password securely'}
@@ -390,7 +390,7 @@ export default function Settings() {
             ) : (
               <div className="p-5 glass-panel border border-theme-border rounded-xl space-y-3">
                 <div className="flex gap-3">
-                  <div className="p-2 bg-blue-50 dark:glass-panel rounded-lg text-cyan-500 dark:text-blue-400 shrink-0">
+                  <div className="p-2 bg-blue-50 dark:bg-white/5 rounded-lg text-cyan-500 dark:text-blue-400 shrink-0">
                     <Shield className="w-5 h-5" />
                   </div>
                   <div>
@@ -445,7 +445,7 @@ export default function Settings() {
                     <button
                       type="button"
                       onClick={() => setShowRestoreConfirm(true)}
-                      className="px-4 py-2 font-semibold text-xs tracking-wide uppercase bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      className="px-4 py-2 font-semibold text-xs tracking-wide uppercase bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                     >
                       Emergency Restore 
                     </button>
@@ -501,7 +501,7 @@ export default function Settings() {
               onClick={async () => {
                 await exportDataToJson();
               }}
-              className="px-4 py-2 font-semibold text-xs tracking-wide uppercase bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2 font-semibold text-xs tracking-wide uppercase bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
             >
               <Download className="w-4 h-4" />
               Backup Data (JSON)
@@ -524,7 +524,7 @@ export default function Settings() {
               <button 
                 disabled={isWiping}
                 onClick={() => setShowClearConfirm(false)}
-                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-white/10 dark:glass-panel dark:hover:bg-blue-900/50 rounded-lg cursor-pointer"
+                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-white/10 dark:bg-white/5 dark:hover:bg-blue-900/50 rounded-lg cursor-pointer"
               >
                 Cancel
               </button>
@@ -551,7 +551,7 @@ export default function Settings() {
               <button 
                 disabled={isRestoring}
                 onClick={() => setShowRestoreConfirm(false)}
-                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-white/10 dark:glass-panel dark:hover:bg-blue-900/50 rounded-lg cursor-pointer"
+                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-white/10 dark:bg-white/5 dark:hover:bg-blue-900/50 rounded-lg cursor-pointer"
               >
                 Cancel
               </button>
@@ -578,7 +578,7 @@ export default function Settings() {
               <button 
                 disabled={isClearingLedger}
                 onClick={() => setShowClearLedgerConfirm(false)}
-                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-white/10 dark:glass-panel dark:hover:bg-blue-900/50 rounded-lg cursor-pointer"
+                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-white/10 dark:bg-white/5 dark:hover:bg-blue-900/50 rounded-lg cursor-pointer"
               >
                 Cancel
               </button>

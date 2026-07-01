@@ -191,6 +191,60 @@ svg.lucide[class*="text-amber"],
     color: #FFFFFF !important;
   }
 
+  /* Glowing Cyan / Blue Utilities */
+  .glow-cyan {
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.35) !important;
+  }
+
+  .glow-cyan-text {
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.7) !important;
+  }
+
+  .glow-blue {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4) !important;
+  }
+
+  .glow-blue-text {
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.8) !important;
+  }
+
+  .glow-emerald {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.4) !important;
+  }
+
+  .glow-emerald-text {
+    text-shadow: 0 0 10px rgba(16, 185, 129, 0.8) !important;
+  }
+
+  .glow-sky-text {
+    text-shadow: 0 0 10px rgba(56, 189, 248, 0.8) !important;
+  }
+
+  /* Custom Glow Icon Helpers to override general lucide stroke/color style */
+  .glow-blue-icon {
+    color: #00D4FF !important;
+    stroke: #00D4FF !important;
+    filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.8)) !important;
+  }
+
+  .glow-blue-wrapper {
+    background: rgba(0, 212, 255, 0.08) !important;
+    border: 1px solid rgba(0, 212, 255, 0.25) !important;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.2) !important;
+  }
+
+  .icon-white {
+    color: #FFFFFF !important;
+    stroke: #FFFFFF !important;
+    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.3)) !important;
+  }
+
+  .wrapper-white {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.05) !important;
+  }
+
   .text-gradient {
     background: linear-gradient(135deg, #00D4FF 0%, #3B82F6 100%);
     -webkit-background-clip: text !important;
@@ -266,6 +320,32 @@ svg.lucide[class*="text-amber"],
     stroke: #B15DFF !important;
   }
 
+  .sidebar-item-active-green {
+    background: linear-gradient(90deg, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0.06) 100%) !important;
+    box-shadow: inset 0 0 15px rgba(16, 185, 129, 0.15), 0 0 20px rgba(16, 185, 129, 0.1) !important;
+    color: #FFFFFF !important;
+    font-weight: 600 !important;
+  }
+
+  .sidebar-item-active-green::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%;
+    width: 4px;
+    background: #10B981 !important;
+    border-radius: 0 4px 4px 0;
+    box-shadow: 0 0 12px #10B981 !important;
+  }
+
+  .sidebar-item-active-green svg.lucide,
+  .sidebar-item-active-green span {
+    color: #34D399 !important;
+    stroke: #34D399 !important;
+  }
+
   .modern-table-container {
     border-radius: 20px !important;
     overflow: hidden;
@@ -304,7 +384,6 @@ svg.lucide[class*="text-amber"],
 
   .modern-td {
     padding: 1rem 1.25rem !important;
-    color: #E4E4E7 !important;
   }
 
   .skeleton-glow {
@@ -381,4 +460,38 @@ svg.lucide[class*="text-amber"],
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
+}
+
+/* Make native date/time picker icons blue reliably via SVG */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="15" viewBox="0 0 24 24"><path fill="%230ea5e9" d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/></svg>');
+  cursor: pointer;
+  opacity: 0.8;
+  filter: none !important;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Ensure inputs and selects use dark color scheme in dark mode so arrows aren't black */
+.dark input, .dark select, .dark textarea {
+  color-scheme: dark;
+}
+
+/* Global color lighting effect for icons in interactive elements */
+button svg, a svg, .sidebar-item svg, svg.text-white {
+  filter: drop-shadow(0 0 6px currentColor);
+}
+button:hover svg, a:hover svg, .sidebar-item:hover svg, svg.text-white:hover {
+  filter: drop-shadow(0 0 10px currentColor);
+}
+
+/* Hyperlinks in general should have a nice blue hover */
+a:hover svg, button.hover\:underline:hover svg, .glow-blue-text:hover svg {
+  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6));
 }

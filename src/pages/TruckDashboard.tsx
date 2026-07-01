@@ -97,7 +97,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
           )}
           <h2 className="text-2xl font-bold tracking-tight text-theme-text">Truck Fleet Performance Dashboard</h2>
         </div>
-        <button className="bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 cursor-pointer transition-colors shadow-sm">
+        <button className="bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 cursor-pointer transition-colors shadow-sm">
            <Download className="w-4 h-4" /> Export Report
         </button>
       </div>
@@ -125,8 +125,8 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="glass-panel border p-5 rounded-xl">
             <h3 className="font-bold text-lg mb-4">Fuel Spend by Vehicle</h3>
-            <div className="h-64">
-                <ResponsiveContainer>
+            <div className="h-64 relative overflow-hidden">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                     <BarChart data={vehicleSpendData}>
                         <XAxis dataKey="name" />
                         <YAxis />
@@ -142,8 +142,8 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
         </div>
         <div className="glass-panel border p-5 rounded-xl">
             <h3 className="font-bold text-lg mb-4">Expenditure Trend</h3>
-            <div className="h-64">
-                <ResponsiveContainer>
+            <div className="h-64 relative overflow-hidden">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                     <AreaChart data={timelineChartData}>
                         <XAxis dataKey="dateStr" />
                         <YAxis />
@@ -155,8 +155,8 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
         </div>
         <div className="glass-panel border p-5 rounded-xl lg:col-span-2">
             <h3 className="font-bold text-lg mb-4">Fuel Efficiency Trend (Km/KES)</h3>
-            <div className="h-64">
-                <ResponsiveContainer>
+            <div className="h-64 relative overflow-hidden">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                     <LineChart data={efficiencyTrendData}>
                         <XAxis dataKey="date" />
                         <YAxis />
@@ -192,7 +192,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
               return (
                 <tr key={e.id} className="hover:bg-white/5 dark:hover:bg-blue-800/10">
                   <td className="modern-td">{format(e.date, 'MMM d, yyyy')}</td>
-                  <td className="px-4 py-3 font-semibold text-cyan-500 dark:text-blue-400 cursor-pointer hover:underline" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
+                  <td className="px-4 py-3 font-semibold text-cyan-500 dark:text-blue-400 cursor-pointer hover:underline glow-blue-text" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
                   <td className="modern-td">
                     {e.station && (
                       <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${badgeClass}`}>

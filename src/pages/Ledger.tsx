@@ -327,7 +327,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
         <button 
           onClick={generatePDF}
           disabled={filteredEntries.length === 0}
-          className="bg-blue-50 hover:bg-blue-100 text-cyan-500 dark:glass-panel dark:hover:bg-blue-800/60 dark:text-theme-text-muted dark:border-theme-border px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-theme-border"
+          className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Download className="w-4 h-4" />
           Export PDF
@@ -372,11 +372,11 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
           <select
             value={selectedCustomerId}
             onChange={(e) => setSelectedCustomerId(e.target.value)}
-            className="w-full px-3 py-2 bg-blue-50/50 dark:glass-panel border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-theme-text cursor-pointer"
+            className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-theme-text cursor-pointer"
           >
-            <option value="all" className="dark:glass-panel">All Customers</option>
+            <option value="all" className="dark:bg-white/5">All Customers</option>
             {customers.map(c => (
-              <option key={c.id} value={c.id} className="dark:glass-panel">{c.name}</option>
+              <option key={c.id} value={c.id} className="dark:bg-white/5">{c.name}</option>
             ))}
           </select>
         </div>
@@ -385,12 +385,12 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value as any)}
-            className="w-full px-3 py-2 bg-blue-50/50 dark:glass-panel border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-theme-text cursor-pointer"
+            className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-theme-text cursor-pointer"
           >
-            <option value="all" className="dark:glass-panel">All Transactions</option>
-            <option value="delivery" className="dark:glass-panel">Deliveries (Debit)</option>
-            <option value="payment" className="dark:glass-panel">Payments (Credit)</option>
-            <option value="manual" className="dark:glass-panel">Manual Adjustments</option>
+            <option value="all" className="dark:bg-white/5">All Transactions</option>
+            <option value="delivery" className="dark:bg-white/5">Deliveries (Debit)</option>
+            <option value="payment" className="dark:bg-white/5">Payments (Credit)</option>
+            <option value="manual" className="dark:bg-white/5">Manual Adjustments</option>
           </select>
         </div>
         <div>
@@ -399,7 +399,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
             type="date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
-            className="w-full px-3 py-2 bg-blue-50/50 dark:glass-panel border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-theme-text"
+            className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-theme-text"
           />
         </div>
         <div>
@@ -408,7 +408,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
             type="date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
-            className="w-full px-3 py-2 bg-blue-50/50 dark:glass-panel border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-theme-text"
+            className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-theme-text"
           />
         </div>
       </div>
@@ -543,7 +543,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
               ) : [...filteredEntries].reverse().map(e => (
                 <tr key={e.id} className="hover:bg-white/5 dark:hover:bg-blue-900/50 transition-colors duration-300">
                   <td className="modern-td">{format(e.date, 'MMM d, yyyy HH:mm')}</td>
-                  {selectedCustomerId === 'all' && <td className="modern-td"><button className="hover:underline text-cyan-500 dark:text-blue-400 cursor-pointer" onClick={() => onViewCustomer?.(e.customerId)}>{e.customerName}</button></td>}
+                  {selectedCustomerId === 'all' && <td className="modern-td"><button className="hover:underline text-sky-400 dark:text-sky-300 cursor-pointer glow-sky-text font-bold" onClick={() => onViewCustomer?.(e.customerId)}>{e.customerName}</button></td>}
                   <td className="modern-td">
                     <span className="flex items-center gap-2">
                        {e.type === 'delivery' || e.type === 'adjustment_debit' ? (

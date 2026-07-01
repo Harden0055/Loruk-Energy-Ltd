@@ -61,13 +61,13 @@ export default function Payments({ onViewCustomer }: { onViewCustomer?: (id: str
             placeholder="Search payments..." 
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-transparent border border-theme-border dark:border-theme-border rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow text-theme-text placeholder:text-gray-400"
+            className="w-full pl-9 pr-4 py-2 bg-transparent border border-theme-border dark:border-theme-border rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow text-theme-text placeholder:text-gray-400"
           />
         </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
+        <div className="flex items-center gap-3 w-full sm:w-auto p-2 bg-gradient-to-r from-emerald-900/20 to-teal-900/10 border border-emerald-800/30 rounded-xl shadow-inner">
           <button 
             onClick={() => setShowAIModal(true)}
-            className="w-full sm:w-auto bg-blue-50 hover:bg-blue-100 text-cyan-500 dark:glass-panel dark:hover:bg-blue-800/60 dark:text-theme-text-muted dark:border-theme-border px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors border border-theme-border"
+            className="w-full sm:w-auto bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)] px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors"
           >
             <Bot className="w-4 h-4" />
             AI Auto-Fill
@@ -77,7 +77,7 @@ export default function Payments({ onViewCustomer }: { onViewCustomer?: (id: str
               setInitialForm(null);
               setIsAdding(true);
             }}
-            className="w-full sm:w-auto bg-blue-100/75 hover:bg-blue-100 dark:glass-panel dark:hover:bg-blue-800/60 text-cyan-400 dark:text-theme-text-muted border border-theme-border dark:border-theme-border px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full sm:w-auto bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Record Payment
@@ -105,7 +105,7 @@ export default function Payments({ onViewCustomer }: { onViewCustomer?: (id: str
       <div className="glass-panel rounded border border-theme-border overflow-hidden shadow-sm transition-colors">
         <div className="overflow-x-auto">
           <table className="modern-table">
-            <thead className="bg-blue-50 dark:glass-panel border-b border-theme-border transition-colors">
+            <thead className="dark:bg-transparent border-b border-theme-border transition-colors">
               <tr className="modern-tr">
                 <th className="modern-th">Date</th>
                 <th className="modern-th">Customer</th>
@@ -121,8 +121,8 @@ export default function Payments({ onViewCustomer }: { onViewCustomer?: (id: str
               ) : filtered.map(p => (
                 <tr key={p.id} className="hover:bg-white/5 dark:hover:bg-blue-900/50 transition-colors">
                   <td className="modern-td">{format(p.date, 'MMM d, yyyy HH:mm')}</td>
-                  <td className="modern-td"><button className="hover:underline text-cyan-500 dark:text-blue-400 cursor-pointer" onClick={() => onViewCustomer?.(p.customerId)}>{customers.find(c => c.id === p.customerId)?.name || 'Unknown'}</button></td>
-                  <td className="modern-td">{formatCurrency(p.amount)}</td>
+                  <td className="modern-td"><button className="hover:underline text-sky-400 dark:text-sky-300 cursor-pointer glow-sky-text font-bold" onClick={() => onViewCustomer?.(p.customerId)}>{customers.find(c => c.id === p.customerId)?.name || 'Unknown'}</button></td>
+                  <td className="modern-td text-emerald-400 font-semibold font-mono text-base">{formatCurrency(p.amount)}</td>
                   <td className="modern-td">
                     <button 
                       onClick={() => {
@@ -134,7 +134,7 @@ export default function Payments({ onViewCustomer }: { onViewCustomer?: (id: str
                         });
                         setIsAdding(true);
                       }}
-                      className="p-2 text-gray-400 dark:text-blue-400 hover:text-cyan-500 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/25 transition-colors rounded-md inline-flex items-center justify-center cursor-pointer"
+                      className="p-2 text-gray-400 dark:text-emerald-400/80 hover:text-emerald-300 hover:bg-emerald-500/10 transition-colors rounded-md inline-flex items-center justify-center cursor-pointer"
                       title="Edit Payment"
                       id={`btn-edit-payment-${p.id}`}
                     >
@@ -247,47 +247,47 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
 
   return (
     <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-theme-border w-full max-w-sm overflow-hidden transition-colors">
+      <div className="bg-[#0E0E12] rounded-xl shadow-2xl border border-theme-border w-full max-w-sm overflow-hidden transition-colors">
         <form onSubmit={handleSubmit}>
-          <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:glass-panel flex justify-between items-center">
-            <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">{isEditing ? 'Edit Payment' : 'Record Payment'}</h3>
-            <button type="button" onClick={onClose} className="text-blue-400 hover:text-cyan-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"><X className="w-5 h-5"/></button>
+          <div className="px-6 py-5 border-b border-theme-border bg-emerald-500/5 dark:bg-emerald-500/5 flex justify-between items-center">
+            <h3 className="text-xl font-bold text-emerald-400">{isEditing ? 'Edit Payment' : 'Record Payment'}</h3>
+            <button type="button" onClick={onClose} className="text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
           </div>
           <div className="p-6 space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Customer</label>
+              <label className="block text-sm font-semibold text-emerald-400 mb-1.5">Customer</label>
               <select 
                 required
                 value={form.customerId}
                 onChange={e => setForm({...form, customerId: e.target.value})}
-                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm font-semibold cursor-pointer"
+                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-theme-text dark:text-blue-50 text-base shadow-sm font-semibold cursor-pointer"
               >
                 <option value="" disabled>Select a customer...</option>
                 {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Payment Date</label>
+              <label className="block text-sm font-semibold text-emerald-400 mb-1.5">Payment Date</label>
               <input 
                 type="date"
                 required
                 value={form.date}
                 onChange={e => setForm({...form, date: e.target.value})}
-                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
+                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-theme-text dark:text-blue-50 text-base shadow-sm"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Amount (KES)</label>
+              <label className="block text-sm font-semibold text-emerald-400 mb-1.5">Amount (KES)</label>
               <input 
                 type="number" step="0.01" required
                 value={form.amount} onChange={e => setForm({...form, amount: e.target.value})}
-                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
+                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-theme-text dark:text-blue-50 text-base shadow-sm"
               />
             </div>
           </div>
-          <div className="px-6 py-4 bg-blue-100/50 dark:glass-panel border-t border-theme-border flex justify-end gap-3">
-             <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-cyan-400 hover:text-blue-900 dark:text-theme-text-muted dark:hover:text-blue-100 transition-colors">Cancel</button>
-             <button type="submit" disabled={loading} className="px-5 py-2 bg-gradient-primary hover:opacity-90 disabled:opacity-50 text-white glow-purple border-0 rounded-lg text-base font-semibold transition-colors">Save Payment</button>
+          <div className="px-6 py-4 bg-emerald-500/5 dark:bg-emerald-500/5 border-t border-theme-border flex justify-end gap-3">
+             <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer">Cancel</button>
+             <button type="submit" disabled={loading} className="px-5 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)] rounded-lg text-base font-semibold transition-colors cursor-pointer">Save Payment</button>
           </div>
         </form>
       </div>

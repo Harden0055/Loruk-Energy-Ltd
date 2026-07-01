@@ -227,7 +227,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       {showNotification && (
         <div className="fixed bottom-5 right-5 z-50 animate-fade-in-up">
           {showNotification === 'offline' && (
-            <div className="flex items-center gap-4 bg-slate-900/95 dark:glass-panel text-slate-100 px-5 py-4 rounded-xl border border-amber-500/30 shadow-xl max-w-sm backdrop-blur-md">
+            <div className="flex items-center gap-4 bg-slate-900/95 dark:bg-white/5 text-slate-100 px-5 py-4 rounded-xl border border-amber-500/30 shadow-xl max-w-sm backdrop-blur-md">
               <div className="p-2.5 bg-amber-500/10 text-amber-500 rounded-lg">
                 <CloudOff className="w-5 h-5 animate-pulse" />
               </div>
@@ -239,7 +239,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
           )}
 
           {showNotification === 'syncing' && (
-            <div className="flex items-center gap-4 bg-slate-900/95 dark:glass-panel text-slate-100 px-5 py-4 rounded-xl border border-theme-border shadow-xl max-w-sm backdrop-blur-md">
+            <div className="flex items-center gap-4 bg-slate-900/95 dark:bg-white/5 text-slate-100 px-5 py-4 rounded-xl border border-theme-border shadow-xl max-w-sm backdrop-blur-md">
               <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-lg animate-spin animate-infinite">
                 <RefreshCw className="w-5 h-5 animate-spin" />
               </div>
@@ -251,7 +251,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
           )}
 
           {showNotification === 'synced' && (
-            <div className="flex items-center gap-4 bg-slate-900/95 dark:glass-panel text-slate-100 px-5 py-4 rounded-xl border border-emerald-500/30 shadow-xl max-w-sm backdrop-blur-md">
+            <div className="flex items-center gap-4 bg-slate-900/95 dark:bg-white/5 text-slate-100 px-5 py-4 rounded-xl border border-emerald-500/30 shadow-xl max-w-sm backdrop-blur-md">
               <div className="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-lg">
                 <CheckCircle className="w-5 h-5" />
               </div>

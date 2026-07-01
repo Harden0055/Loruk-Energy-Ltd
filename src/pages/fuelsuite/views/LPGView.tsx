@@ -163,8 +163,8 @@ export default function LPGView() {
           {/* Chart */}
           <div className="glass-panel p-6 rounded-xl border border-theme-border shadow-md">
             <h4 className="text-sm font-bold text-theme-text-muted mb-6 uppercase tracking-wider">Trend Analysis</h4>
-            <div className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-[400px] relative overflow-hidden">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#122840" vertical={false} />
                   <XAxis dataKey="date" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
@@ -261,19 +261,19 @@ export default function LPGView() {
 
       <div className="flex gap-4 border-b border-theme-border">
         <button 
-          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'sales' ? 'text-cyan-400 border-b-2 border-theme-border' : 'text-theme-text-muted'}`}
+          className={`pb-3 px-4 font-semibold text-sm transition-all duration-200 cursor-pointer ${activeTab === 'sales' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF] drop-shadow-[0_0_10px_rgba(0,212,255,0.25)]' : 'text-theme-text-muted hover:text-white'}`}
           onClick={() => { setActiveTab('sales'); resetForm(); }}
         >
           LPG Sales
         </button>
         <button 
-          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'purchases' ? 'text-cyan-400 border-b-2 border-theme-border' : 'text-theme-text-muted'}`}
+          className={`pb-3 px-4 font-semibold text-sm transition-all duration-200 cursor-pointer ${activeTab === 'purchases' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF] drop-shadow-[0_0_10px_rgba(0,212,255,0.25)]' : 'text-theme-text-muted hover:text-white'}`}
           onClick={() => { setActiveTab('purchases'); resetForm(); }}
         >
           LPG Purchases
         </button>
         <button 
-          className={`pb-3 px-4 font-medium text-sm transition-colors ${activeTab === 'opening' ? 'text-cyan-400 border-b-2 border-theme-border' : 'text-theme-text-muted'}`}
+          className={`pb-3 px-4 font-semibold text-sm transition-all duration-200 cursor-pointer ${activeTab === 'opening' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF] drop-shadow-[0_0_10px_rgba(0,212,255,0.25)]' : 'text-theme-text-muted hover:text-white'}`}
           onClick={() => { setActiveTab('opening'); resetForm(); }}
         >
           Opening Stock

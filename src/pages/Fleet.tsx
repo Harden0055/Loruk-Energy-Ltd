@@ -215,13 +215,13 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
           {onNavigate && (
             <button 
               onClick={() => onNavigate('truckDashboard')}
-              className="px-5 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:glass-panel dark:hover:bg-blue-900/60 text-cyan-400 dark:text-theme-text-muted border border-theme-border rounded-lg text-base font-semibold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-900/5 cursor-pointer"
+              className="px-5 py-2.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg text-base font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
                <Truck className="w-5 h-5" />
                Truck Dashboard
             </button>
           )}
-          <button onClick={generatePDF} className="bg-blue-50 hover:bg-blue-100 text-cyan-500 dark:glass-panel dark:hover:bg-blue-800/60 dark:text-theme-text-muted dark:border-theme-border px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 transition-colors cursor-pointer border border-theme-border"><Download className="w-5 h-5" /> Export</button>
+          <button onClick={generatePDF} className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 transition-colors cursor-pointer"><Download className="w-5 h-5" /> Export</button>
           <button 
             onClick={() => {
               if (editingExpenseId) {
@@ -236,7 +236,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                 setIsAdding(!isAdding);
               }
             }} 
-            className="px-5 py-2.5 bg-blue-100/75 hover:bg-blue-100 dark:glass-panel dark:hover:bg-blue-900/60 text-cyan-400 dark:text-theme-text-muted border border-theme-border rounded-lg text-base font-semibold flex items-center justify-center gap-2 transition-all shadow-sm shadow-blue-900/5 cursor-pointer w-full sm:w-auto"
+            className="px-5 py-2.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg text-base font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer w-full sm:w-auto"
           >
             <Plus className="w-5 h-5" /> Add Expense
           </button>
@@ -247,14 +247,14 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
           <h3 className="text-lg font-bold text-theme-text mb-4">{editingExpenseId ? 'Edit' : 'Add'} Expense</h3>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
             <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-3 py-2 glass-panel border rounded-lg" />
-            <select value={carReg} onChange={(e) => setCarReg(e.target.value)} className="w-full px-3 py-2 bg-blue-50/50 dark:glass-panel border rounded-lg">{CAR_REGISTRATIONS.map(r => <option key={r} value={r}>{r}</option>)}</select>
-            <select value={station} onChange={(e) => setStation(e.target.value as Station)} className="w-full px-3 py-2 bg-blue-50/50 dark:glass-panel border rounded-lg">{STATIONS.map(s => <option key={s} value={s}>{s}</option>)}</select>
+            <select value={carReg} onChange={(e) => setCarReg(e.target.value)} className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border rounded-lg">{CAR_REGISTRATIONS.map(r => <option key={r} value={r}>{r}</option>)}</select>
+            <select value={station} onChange={(e) => setStation(e.target.value as Station)} className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border rounded-lg">{STATIONS.map(s => <option key={s} value={s}>{s}</option>)}</select>
             <input type="number" required min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-3 py-2 glass-panel border rounded-lg" placeholder="Amount (KES)" />
             <input type="number" min="0" step="0.1" value={distance} onChange={(e) => setDistance(e.target.value)} className="w-full px-3 py-2 glass-panel border rounded-lg" placeholder="Distance (km)" />
             <div className="flex gap-2 w-full">
               <button 
                 type="submit" 
-                className="flex-1 bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer"
+                className="flex-1 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer"
               >
                 {editingExpenseId ? 'Update' : 'Save'}
               </button>
@@ -267,7 +267,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                   setDistance(''); 
                   setDate(format(new Date(), 'yyyy-MM-dd'));
                 }}
-                className="px-3 py-2 bg-gray-100 hover:bg-white/10 dark:glass-panel dark:hover:bg-blue-900/50 text-gray-700 dark:text-gray-300 border border-theme-border rounded-lg font-medium transition-colors cursor-pointer"
+                className="px-3 py-2 bg-gray-100 hover:bg-white/10 dark:bg-white/5 dark:hover:bg-blue-900/50 text-gray-700 dark:text-gray-300 border border-theme-border rounded-lg font-medium transition-colors cursor-pointer"
               >
                 Cancel
               </button>
@@ -299,7 +299,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
             return (
               <div 
                 key={reg} 
-                className="p-5 border rounded-xl shadow-sm relative bg-blue-50/50 dark:glass-panel border-theme-border"
+                className="p-5 border rounded-xl shadow-sm relative bg-blue-50/50 dark:bg-white/5 border-theme-border"
               >
                 <div className="flex items-center justify-between mb-2 text-gray-500 dark:text-gray-400">
                   <p className="text-xs font-bold uppercase tracking-widest">{reg}</p>
@@ -350,7 +350,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
               </div>
           </div>
           {/* Consumption Summary */}
-          <div className="w-full bg-blue-50 dark:glass-panel p-4 rounded-lg flex flex-col justify-center border border-theme-border">
+          <div className="w-full bg-blue-50 dark:bg-white/5 p-4 rounded-lg flex flex-col justify-center border border-theme-border">
              <p className="text-sm font-medium text-cyan-500 dark:text-blue-400 mb-1">Filtered Consumption</p>
              <h3 className="text-2xl font-bold text-blue-900 dark:text-theme-text">
                {formatCurrency(filteredExpenses.reduce((acc, e) => acc + e.amount, 0))}
@@ -363,11 +363,11 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
              <Truck className="w-4 h-4" /> Fleet Fueling Comparison
           </h3>
-          <div className="h-64 w-full text-xs">
+          <div className="h-64 w-full text-xs relative overflow-hidden">
              {fleetExpensesSummary.length === 0 ? (
                <div className="text-center text-sm text-gray-400 py-8">No fleet fueling logs yet.</div>
              ) : (
-               <ResponsiveContainer width="100%" height="100%">
+               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                  <BarChart data={fleetExpensesSummary} layout="vertical" margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.3} horizontal={false} />
                    <XAxis type="number" stroke="#9ca3af" tickLine={false} axisLine={false} hide />
@@ -400,7 +400,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
             {filteredExpenses.map(e => (
               <tr key={e.id} className="hover:bg-white/5 dark:hover:bg-blue-900/50 transition-colors duration-300">
                 <td className="modern-td">{format(e.date, 'MMM d, yyyy')}</td>
-                <td className="px-4 py-3 font-semibold text-cyan-500 dark:text-blue-400 cursor-pointer hover:underline" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
+                <td className="px-4 py-3 font-semibold text-cyan-500 dark:text-blue-400 cursor-pointer hover:underline glow-blue-text" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
                 <td className="modern-td">
                   {e.station && (
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
@@ -472,7 +472,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
               <button 
                 disabled={isDeleting}
                 onClick={() => setDeleteDialog({ isOpen: false, id: null })}
-                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-white/10 dark:glass-panel dark:hover:bg-blue-900/50 rounded-lg transition-colors cursor-pointer"
+                className="px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 hover:bg-white/10 dark:bg-white/5 dark:hover:bg-blue-900/50 rounded-lg transition-colors cursor-pointer"
               >
                 Cancel
               </button>

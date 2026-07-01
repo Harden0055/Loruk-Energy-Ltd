@@ -126,8 +126,8 @@ export default function MiniDashboardProfile({ onClose }: MiniDashboardProfilePr
               <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] shadow-[0_0_6px_#3B82F6]" />
               Station Revenue vs Expenses
             </h3>
-            <div className="h-56">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-56 relative overflow-hidden">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={stationData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.03)" vertical={false} />
                   <XAxis dataKey="name" stroke="#71717A" fontSize={10} fontWeight={600} tickLine={false} axisLine={false} />
@@ -151,9 +151,9 @@ export default function MiniDashboardProfile({ onClose }: MiniDashboardProfilePr
               <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] shadow-[0_0_6px_#3B82F6]" />
               Revenue by Product
             </h3>
-            <div className="h-56 flex items-center justify-center">
+            <div className="h-56 w-full relative overflow-hidden flex items-center justify-center">
               {productData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <PieChart>
                     <Pie
                       data={productData}

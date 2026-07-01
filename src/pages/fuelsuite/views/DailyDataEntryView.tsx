@@ -230,7 +230,7 @@ export default function DailyDataEntryView() {
           <h1 className="text-2xl font-bold text-slate-100">Daily Data Entry</h1>
           <p className="text-theme-text-muted mt-1">Input all daily station data in one place.</p>
         </div>
-        <Button onClick={handleSaveAll} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700">
+        <Button onClick={handleSaveAll} className="flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)]">
           <Save className="w-4 h-4" /> Save All Data
         </Button>
       </div>
@@ -625,7 +625,7 @@ export default function DailyDataEntryView() {
       </Card>
 
       <div className="flex justify-end mt-8">
-        <Button onClick={handleSaveAll} className="px-8 py-6 text-lg font-bold bg-emerald-600 hover:bg-emerald-700">
+        <Button onClick={handleSaveAll} className="px-8 py-6 text-lg font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)]">
           <Save className="w-5 h-5 mr-2" /> Submit Daily Entry
         </Button>
       </div>

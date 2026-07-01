@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSync } from '../lib/sync';
 import { format } from 'date-fns';
 
-const COLORS = ['#00D4FF', '#a855f7', '#7C3AED', '#3b82f6', '#00e676'];
+const COLORS = ['#00D4FF', '#3b82f6', '#0ea5e9', '#60a5fa', '#1e40af'];
 
 export default function Dashboard({ selectedStation, onNavigateToCustomer, onNavigateToTruck }: { selectedStation: 'Ndalu' | 'Junction' | 'Combined', onNavigateToCustomer?: (id: string) => void, onNavigateToTruck?: (reg: string) => void }) {
   const { updateLastSync } = useSync();
@@ -180,31 +180,7 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
         </div>
       )}
 
-      {/* FuelSuite Pro Banner */}
-      <div className="theme-bg-gradient border border-theme-border glow-cyan p-6 rounded-xl shadow-lg relative overflow-hidden group transition-all hover:border-theme-border">
-        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-          <Activity className="w-32 h-32 text-cyan-400 glow-cyan-text" />
-        </div>
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gradient flex items-center gap-2">
-               FuelSuite Pro <span className="bg-cyan-500/20 text-cyan-300 text-xs px-2 py-0.5 rounded uppercase tracking-widest border border-theme-border glow-cyan">New</span>
-            </h2>
-            <p className="text-theme-text-muted mt-1 max-w-xl">
-              Access the dedicated energy management dashboard for complete station analytics, pump readings, LPG tracking, and real-time P&L reporting.
-            </p>
-          </div>
-          <button
-            onClick={() => {
-              window.history.pushState(null, '', '/?page=fuelsuite');
-              window.dispatchEvent(new PopStateEvent('popstate', { state: { page: 'fuelsuite' } }));
-            }}
-            className="shrink-0 px-6 py-3 bg-gradient-primary hover:opacity-90 text-white font-bold rounded-lg shadow-lg glow-purple transition-all border-0 flex items-center gap-2"
-          >
-            Launch FuelSuite <TrendingUp className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
+
 
       {/* Summary Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -219,22 +195,22 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
       <div className="glass-panel p-6 rounded-[20px] flex flex-col transition-all duration-300">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-[#A1A1AA] uppercase tracking-wider flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#B15DFF] shadow-[0_0_8px_#B15DFF]" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00D4FF] shadow-[0_0_8px_#00D4FF]" />
             Top Customer Balances
           </h2>
         </div>
-        <div className="h-[220px] w-full text-xs">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[220px] w-full text-xs relative overflow-hidden">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <BarChart data={topDebtors} layout="vertical" margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.03)" horizontal={false} />
               <XAxis type="number" stroke="#71717A" tickLine={false} axisLine={false} hide />
               <YAxis dataKey="name" type="category" tick={<CustomerTick />} stroke="#71717A" tickLine={false} axisLine={false} width={80} />
               <Tooltip 
                 contentStyle={{ backgroundColor: 'rgba(10, 10, 14, 0.98)', color: '#FFFFFF', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '12px' }} 
-                cursor={{fill: 'rgba(139, 61, 255, 0.08)', opacity: 0.2}} 
+                cursor={{fill: 'rgba(0, 212, 255, 0.08)', opacity: 0.2}} 
                 formatter={(value: number) => [`${value >= 0 ? 'Debt: ' : 'Advance: '}${formatCurrency(Math.abs(value))}`, 'Balance']}
               />
-              <Bar dataKey="Debt" fill="#B15DFF" radius={0} barSize={10} />
+              <Bar dataKey="Debt" fill="#00D4FF" radius={0} barSize={10} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -245,21 +221,21 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
         <div className="glass-panel p-6 rounded-[20px] flex flex-col transition-all duration-300 lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-[#A1A1AA] uppercase tracking-wider flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#B15DFF] shadow-[0_0_8px_#B15DFF]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] shadow-[0_0_8px_#3B82F6]" />
               Fleet Fueling Trend
             </h2>
           </div>
-          <div className="h-[220px] w-full text-xs">
+          <div className="h-[220px] w-full text-xs relative overflow-hidden">
             {fleetTrend.length === 0 ? (
               <div className="text-center text-sm text-[#71717A] py-8">No fleet fueling logged yet.</div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <LineChart data={fleetTrend}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.03)" vertical={false} />
                   <XAxis dataKey="date" stroke="#71717A" tickLine={false} axisLine={false} />
                   <YAxis stroke="#71717A" tickLine={false} axisLine={false} width={40} />
                   <Tooltip contentStyle={{ backgroundColor: 'rgba(10, 10, 14, 0.98)', color: '#FFFFFF', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '12px' }} />
-                  <Line type="monotone" dataKey="Amount" stroke="#B15DFF" strokeWidth={3} dot={{ stroke: '#B15DFF', strokeWidth: 2, r: 4, fill: '#09090B' }} activeDot={{ r: 6, strokeWidth: 0, fill: '#B15DFF' }} />
+                  <Line type="monotone" dataKey="Amount" stroke="#3B82F6" strokeWidth={3} dot={{ stroke: '#3B82F6', strokeWidth: 2, r: 4, fill: '#09090B' }} activeDot={{ r: 6, strokeWidth: 0, fill: '#3B82F6' }} />
                 </LineChart>
               </ResponsiveContainer>
             )}
@@ -274,11 +250,11 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
               Fleet Fueling Comparison
             </h2>
           </div>
-          <div className="h-[220px] w-full text-xs">
+          <div className="h-[220px] w-full text-xs relative overflow-hidden">
              {fleetExpensesSummary.length === 0 ? (
                <div className="text-center text-sm text-[#71717A] py-8">No fleet fueling logged yet.</div>
              ) : (
-               <ResponsiveContainer width="100%" height="100%">
+               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                  <BarChart data={fleetExpensesSummary} layout="vertical" margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.03)" horizontal={false} />
                    <XAxis type="number" stroke="#71717A" tickLine={false} axisLine={false} hide />
@@ -323,7 +299,7 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
         <div className="glass-panel border border-theme-border p-5 rounded shadow-sm flex flex-col transition-colors lg:col-span-3">
           <div className="flex items-center justify-between mb-4 border-b border-theme-border pb-3">
             <h2 className="text-base font-semibold text-gray-950 dark:text-theme-text flex items-center gap-2">
-              <Activity className="w-5 h-5 text-red-500" />
+              <Activity className="w-5 h-5 text-blue-500 glow-blue-icon" />
               Fleet Fueling Activity Feed
             </h2>
             <span className="text-xs font-mono font-medium text-gray-400 dark:text-blue-500">
@@ -359,18 +335,18 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
                       >
                         <td className="modern-td">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 flex items-center justify-center" title="Fleet Expense">
-                              <CarFront className="w-4 h-4" />
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center glow-blue-wrapper" title="Fleet Expense">
+                              <CarFront className="w-4 h-4 glow-blue-icon" />
                             </div>
                             <div>
-                              <span className="text-xs font-bold uppercase px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-400">
+                              <span className="text-xs font-bold uppercase px-1.5 py-0.5 rounded bg-blue-100/10 text-blue-400 border border-blue-500/15">
                                 Fleet Expense
                               </span>
                             </div>
                           </div>
                         </td>
                         <td className="border border-theme-border py-3 px-4 cursor-pointer hover:bg-white/10 dark:hover:bg-blue-800" onClick={() => onNavigateToTruck?.(act.carRegistration)}>
-                          <div className="font-bold text-cyan-500 dark:text-blue-400 hover:underline">{act.carRegistration}</div>
+                          <div className="font-bold text-cyan-500 dark:text-blue-400 hover:underline glow-blue-text">{act.carRegistration}</div>
                         </td>
                         <td className="modern-td">
                           {act.station}
@@ -400,11 +376,11 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
 
 function MetricCard({ title, value, icon: Icon, color }: any) {
   return (
-    <div className="glass-panel p-5 rounded-[20px] transition-all duration-300 hover:translate-y-[-4px] hover:shadow-[0_0_50px_rgba(139,61,255,0.18)] hover:border-[#8B3DFF]/30 flex flex-col justify-between h-36">
+    <div className="glass-panel p-5 rounded-[20px] transition-all duration-300 hover:translate-y-[-4px] hover:shadow-[0_0_50px_rgba(0,212,255,0.18)] hover:border-[#00D4FF]/30 flex flex-col justify-between h-36">
       <div className="flex items-start justify-between">
         <p className="text-[10px] font-semibold tracking-wider text-[#A1A1AA] uppercase">{title}</p>
-        <div className="w-8 h-8 rounded-lg bg-[#8B3DFF]/10 flex items-center justify-center border border-[#8B3DFF]/25 shadow-[0_0_15px_rgba(139,61,255,0.25)] shrink-0">
-          <Icon className="w-4 h-4 text-[#B15DFF]" />
+        <div className="w-8 h-8 rounded-lg shrink-0 glow-blue-wrapper flex items-center justify-center">
+          <Icon className="w-4 h-4 glow-blue-icon" />
         </div>
       </div>
       <div>

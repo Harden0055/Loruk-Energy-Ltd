@@ -497,7 +497,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
             onClick={() => setShowFilters(!showFilters)}
             className={`px-4 py-2.5 rounded-lg border text-base font-medium flex items-center justify-center gap-2 transition-all cursor-pointer ${
               showFilters 
-                ? 'bg-blue-50 dark:glass-panel border-theme-border text-cyan-500 dark:text-blue-400 font-bold'
+                ? 'bg-blue-50 dark:bg-white/5 border-theme-border text-cyan-500 dark:text-blue-400 font-bold'
                 : 'glass-panel border-theme-border text-gray-700 dark:text-gray-300 hover:bg-white/5 dark:hover:bg-blue-900'
             }`}
           >
@@ -508,11 +508,11 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
             )}
           </button>
         </div>
-        <div className="flex items-center gap-3 w-full lg:w-auto">
+        <div className="flex items-center gap-3 w-full lg:w-auto p-2 bg-gradient-to-r from-blue-900/20 to-cyan-900/10 border border-blue-800/30 rounded-xl shadow-inner">
           {selectedIds.length > 0 && (
             <button
               onClick={() => setShowBulkDeleteModal(true)}
-              className="w-full sm:w-auto bg-red-100/80 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-950/60 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 px-4 py-2.5 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              className="w-full sm:w-auto bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               <Trash2 className="w-4 h-4" />
               Delete Selected ({selectedIds.length})
@@ -520,14 +520,14 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
           )}
           <button 
             onClick={exportDeliveries}
-            className="w-full sm:w-auto bg-gray-100/80 hover:glass-panel dark:hover:bg-blue-900/60 text-theme-text-muted border border-theme-border dark:border-theme-border px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full sm:w-auto bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <Download className="w-4 h-4" />
             Export CSV
           </button>
           <button 
             onClick={() => setShowAIModal(true)}
-            className="w-full sm:w-auto bg-blue-50 hover:bg-blue-100 text-cyan-500 dark:glass-panel dark:hover:bg-blue-800/60 dark:text-theme-text-muted dark:border-theme-border px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors border border-theme-border"
+            className="w-full sm:w-auto bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors"
           >
             <Bot className="w-4 h-4" />
             AI Auto-Fill
@@ -537,7 +537,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
               setInitialForm(null);
               setIsAdding(true);
             }}
-            className="w-full sm:w-auto bg-blue-100/75 hover:bg-blue-100 dark:glass-panel dark:hover:bg-blue-800/60 text-cyan-400 dark:text-theme-text-muted border border-theme-border dark:border-theme-border px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full sm:w-auto bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             New Delivery
@@ -578,11 +578,11 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
               <select
                 value={filterCustomerId}
                 onChange={e => setFilterCustomerId(e.target.value)}
-                className="w-full px-3 py-2 bg-blue-50/50 dark:glass-panel border border-theme-border text-sm text-theme-text rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border text-sm text-theme-text rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
-                <option value="All" className="dark:glass-panel">All Customers</option>
+                <option value="All" className="dark:bg-white/5">All Customers</option>
                 {customers.map(c => (
-                  <option key={c.id} value={c.id} className="dark:glass-panel">{c.name}</option>
+                  <option key={c.id} value={c.id} className="dark:bg-white/5">{c.name}</option>
                 ))}
               </select>
             </div>
@@ -593,11 +593,11 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
               <select
                 value={filterProductType}
                 onChange={e => setFilterProductType(e.target.value as any)}
-                className="w-full px-3 py-2 bg-blue-50/50 dark:glass-panel border border-theme-border text-sm text-theme-text rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border text-sm text-theme-text rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
-                <option value="All" className="dark:glass-panel">All Products</option>
-                <option value="Diesel" className="dark:glass-panel">Diesel</option>
-                <option value="Super" className="dark:glass-panel">Super</option>
+                <option value="All" className="dark:bg-white/5">All Products</option>
+                <option value="Diesel" className="dark:bg-white/5">Diesel</option>
+                <option value="Super" className="dark:bg-white/5">Super</option>
               </select>
             </div>
 
@@ -607,14 +607,14 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
               <select
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value)}
-                className="w-full px-3 py-2 bg-blue-50/50 dark:glass-panel border border-theme-border text-sm text-theme-text rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border text-sm text-theme-text rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
-                <option value="date-desc" className="dark:glass-panel">Newest First</option>
-                <option value="date-asc" className="dark:glass-panel">Oldest First</option>
-                <option value="litres-desc" className="dark:glass-panel">Volume (Highest First)</option>
-                <option value="litres-asc" className="dark:glass-panel">Volume (Lowest First)</option>
-                <option value="amount-desc" className="dark:glass-panel">Value (Highest First)</option>
-                <option value="amount-asc" className="dark:glass-panel">Value (Lowest First)</option>
+                <option value="date-desc" className="dark:bg-white/5">Newest First</option>
+                <option value="date-asc" className="dark:bg-white/5">Oldest First</option>
+                <option value="litres-desc" className="dark:bg-white/5">Volume (Highest First)</option>
+                <option value="litres-asc" className="dark:bg-white/5">Volume (Lowest First)</option>
+                <option value="amount-desc" className="dark:bg-white/5">Value (Highest First)</option>
+                <option value="amount-asc" className="dark:bg-white/5">Value (Lowest First)</option>
               </select>
             </div>
 
@@ -720,8 +720,8 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
             </div>
             <p className="text-2xs text-gray-400 dark:text-gray-500 truncate">Based on {filtered.length} filtered records</p>
           </div>
-          <div className="p-3 bg-blue-50 dark:glass-panel text-cyan-500 dark:text-blue-400 rounded-xl border border-theme-border shrink-0">
-            <Coins className="w-5 h-5" />
+          <div className="p-3 rounded-xl shrink-0 glow-blue-wrapper">
+            <Coins className="w-5 h-5 glow-blue-icon" />
           </div>
         </div>
 
@@ -734,8 +734,8 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
             </div>
             <p className="text-2xs text-gray-400 dark:text-gray-500 truncate">Dispatched across stations</p>
           </div>
-          <div className="p-3 bg-blue-50 dark:glass-panel text-cyan-500 dark:text-blue-400 rounded-xl border border-theme-border shrink-0">
-            <Fuel className="w-5 h-5" />
+          <div className="p-3 rounded-xl shrink-0 glow-blue-wrapper">
+            <Fuel className="w-5 h-5 glow-blue-icon" />
           </div>
         </div>
 
@@ -743,8 +743,8 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
         <div className="glass-panel border border-theme-border rounded-xl p-5 shadow-sm transition-colors space-y-2.5">
           <div className="flex justify-between items-start">
             <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Product Mix</span>
-            <div className="p-1.5 glass-panel text-gray-500 dark:text-blue-500 rounded-lg shrink-0">
-              <Flame className="w-4 h-4" />
+            <div className="p-1.5 rounded-lg shrink-0 glow-blue-wrapper">
+              <Flame className="w-4 h-4 glow-blue-icon" />
             </div>
           </div>
           <div className="space-y-1.5">
@@ -778,8 +778,8 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
             </div>
             <p className="text-2xs text-gray-400 dark:text-gray-500 truncate">Sourcing fuel currently</p>
           </div>
-          <div className="p-3 bg-blue-50 dark:glass-panel text-cyan-500 dark:text-blue-400 rounded-xl border border-theme-border shrink-0">
-            <Users className="w-5 h-5" />
+          <div className="p-3 rounded-xl shrink-0 glow-blue-wrapper">
+            <Users className="w-5 h-5 glow-blue-icon" />
           </div>
         </div>
       </div>
@@ -787,7 +787,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
       <div className="glass-panel rounded border border-theme-border overflow-hidden shadow-sm transition-colors">
         <div className="overflow-x-auto">
           <table className="modern-table">
-            <thead className="bg-blue-50 dark:glass-panel border-b border-theme-border transition-colors">
+            <thead className="dark:bg-transparent border-b border-theme-border transition-colors">
               <tr className="modern-tr">
                 <th className="modern-th">
                   <input
@@ -800,7 +800,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                         setSelectedIds([]);
                       }
                     }}
-                    className="w-4 h-4 text-cyan-500 border-theme-border rounded focus:ring-blue-500 dark:glass-panel border-theme-border cursor-pointer"
+                    className="w-4 h-4 text-cyan-500 border-theme-border rounded focus:ring-blue-500 dark:bg-white/5 border-theme-border cursor-pointer"
                   />
                 </th>
                 <th className="modern-th">Date</th>
@@ -816,25 +816,25 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                 Array.from({ length: 5 }).map((_, index) => (
                   <tr key={`skeleton-${index}`} className="skeleton-glow">
                     <td className="modern-td">
-                      <div className="h-4 w-4 bg-gray-200/80 dark:glass-panel rounded mx-auto"></div>
+                      <div className="h-4 w-4 bg-gray-200/80 dark:bg-white/5 rounded mx-auto"></div>
                     </td>
                     <td className="modern-td">
-                      <div className="h-4 bg-gray-200/80 dark:glass-panel rounded w-24"></div>
+                      <div className="h-4 bg-gray-200/80 dark:bg-white/5 rounded w-24"></div>
                     </td>
                     <td className="modern-td">
-                      <div className="h-4 bg-gray-200/80 dark:glass-panel rounded w-36"></div>
+                      <div className="h-4 bg-gray-200/80 dark:bg-white/5 rounded w-36"></div>
                     </td>
                     <td className="modern-td">
-                      <div className="h-6 bg-gray-200/80 dark:glass-panel rounded-md w-16"></div>
+                      <div className="h-6 bg-gray-200/80 dark:bg-white/5 rounded-md w-16"></div>
                     </td>
                     <td className="modern-td">
-                      <div className="h-4 bg-gray-200/80 dark:glass-panel rounded w-16 ml-auto"></div>
+                      <div className="h-4 bg-gray-200/80 dark:bg-white/5 rounded w-16 ml-auto"></div>
                     </td>
                     <td className="modern-td">
-                      <div className="h-4 bg-gray-200/80 dark:glass-panel rounded w-20 ml-auto"></div>
+                      <div className="h-4 bg-gray-200/80 dark:bg-white/5 rounded w-20 ml-auto"></div>
                     </td>
                     <td className="modern-td">
-                      <div className="h-8 w-8 bg-gray-200/80 dark:glass-panel rounded-md ml-auto"></div>
+                      <div className="h-8 w-8 bg-gray-200/80 dark:bg-white/5 rounded-md ml-auto"></div>
                     </td>
                   </tr>
                 ))
@@ -845,7 +845,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                 return (
                   <tr 
                     key={d.id} 
-                    className={`${isEditing ? 'bg-blue-50/45 dark:glass-panel' : 'hover:bg-white/5 dark:hover:bg-blue-900/50'} transition-colors animate-fade-in font-medium text-theme-text`}
+                    className={`${isEditing ? 'bg-blue-50/45 dark:bg-white/5' : 'hover:bg-white/5 dark:hover:bg-blue-900/50'} transition-colors animate-fade-in font-medium text-theme-text`}
                     style={{ animationDelay: `${idx * 30}ms`, animationFillMode: 'both' }}
                   >
                     <td className="modern-td">
@@ -859,7 +859,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                             setSelectedIds(prev => prev.filter(id => id !== d.id));
                           }
                         }}
-                        className="w-4 h-4 text-cyan-500 border-theme-border rounded focus:ring-blue-500 dark:glass-panel border-theme-border cursor-pointer"
+                        className="w-4 h-4 text-cyan-500 border-theme-border rounded focus:ring-blue-500 dark:bg-white/5 border-theme-border cursor-pointer"
                       />
                     </td>
                     <td className="modern-td">{format(d.date, 'MMM d, yyyy HH:mm')}</td>
@@ -869,10 +869,10 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                           <select
                             value={editForm.customerId}
                             onChange={e => setEditForm({ ...editForm, customerId: e.target.value })}
-                            className="w-full px-2 py-1 bg-blue-50/50 dark:glass-panel border border-theme-border rounded-lg text-sm text-theme-text focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                            className="w-full px-2 py-1 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg text-sm text-theme-text focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                           >
                             {customers.map(c => (
-                              <option key={c.id} value={c.id} className="dark:glass-panel">{c.name}</option>
+                              <option key={c.id} value={c.id} className="dark:bg-white/5">{c.name}</option>
                             ))}
                           </select>
                         </div>
@@ -880,7 +880,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                         <>
                           <button 
                             onClick={() => onViewCustomer?.(d.customerId)}
-                            className="hover:underline text-cyan-500 dark:text-blue-400 font-bold cursor-pointer text-left focus:outline-none"
+                            className="hover:underline text-sky-400 dark:text-sky-300 font-bold cursor-pointer text-left focus:outline-none glow-sky-text"
                           >
                             {customers.find(c => c.id === d.customerId)?.name || 'Unknown'}
                           </button>
@@ -892,10 +892,10 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                         <select
                           value={editForm.productType}
                           onChange={e => setEditForm({ ...editForm, productType: e.target.value as 'Diesel' | 'Super' })}
-                          className="px-2 py-1 bg-blue-50/50 dark:glass-panel border border-theme-border rounded-lg text-sm font-bold text-theme-text focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                          className="px-2 py-1 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg text-sm font-bold text-theme-text focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                         >
-                          <option value="Diesel" className="dark:glass-panel">Diesel</option>
-                          <option value="Super" className="dark:glass-panel">Super</option>
+                          <option value="Diesel" className="dark:bg-white/5">Diesel</option>
+                          <option value="Super" className="dark:bg-white/5">Super</option>
                         </select>
                       ) : (
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-sm font-bold uppercase tracking-wider ${d.productType === 'Diesel' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400' : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400'}`}>
@@ -1050,7 +1050,7 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
     <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-theme-border w-full max-w-md overflow-hidden transition-colors">
         <form onSubmit={handleSubmit}>
-          <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:glass-panel flex justify-between items-center">
+          <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:bg-white/5 flex justify-between items-center">
             <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Record Fuel Delivery</h3>
             <button type="button" onClick={onClose} className="text-blue-400 hover:text-cyan-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"><X className="w-5 h-5"/></button>
           </div>
@@ -1107,9 +1107,9 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
               </div>
             </div>
           </div>
-          <div className="px-6 py-4 bg-blue-100/50 dark:glass-panel border-t border-theme-border flex justify-end gap-3">
+          <div className="px-6 py-4 bg-blue-100/50 dark:bg-white/5 border-t border-theme-border flex justify-end gap-3">
              <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-cyan-400 hover:text-blue-900 dark:text-theme-text-muted dark:hover:text-blue-100 transition-colors">Cancel</button>
-             <button type="submit" disabled={loading} className="px-5 py-2 bg-gradient-primary hover:opacity-90 disabled:opacity-50 text-white glow-purple border-0 rounded-lg text-base font-semibold transition-colors">Record Delivery</button>
+             <button type="submit" disabled={loading} className="px-5 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg text-base font-semibold transition-colors">Record Delivery</button>
           </div>
         </form>
       </div>

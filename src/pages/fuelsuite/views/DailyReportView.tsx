@@ -155,8 +155,8 @@ export default function DailyReportView() {
           {/* Chart */}
           <div className="glass-panel p-6 rounded-xl border border-theme-border shadow-md">
             <h4 className="text-sm font-bold text-theme-text-muted mb-6 uppercase tracking-wider">Trend Analysis</h4>
-            <div className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="h-[400px] relative overflow-hidden">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                 <BarChart data={lpgChartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#122840" vertical={false} />
                   <XAxis dataKey="date" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
@@ -232,7 +232,7 @@ export default function DailyReportView() {
           />
           <button
             onClick={() => window.print()}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-primary hover:opacity-90 text-white glow-purple border-0 rounded-lg transition-colors text-sm font-medium print:hidden"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 rounded-lg transition-colors text-sm font-medium print:hidden"
           >
             <Printer className="w-4 h-4" />
             Print PDF
@@ -400,8 +400,8 @@ export default function DailyReportView() {
           {(totalMPesaAmount > 0 || cashAtHand > 0) && (
             <div className="pt-6 border-t border-theme-border">
               <h4 className="text-lg font-bold text-theme-text mb-4 text-center">Cash Position Split</h4>
-              <div className="h-64 flex flex-col items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
+              <div className="h-64 w-full relative overflow-hidden flex flex-col items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                   <PieChart>
                     <Pie
                       data={[
