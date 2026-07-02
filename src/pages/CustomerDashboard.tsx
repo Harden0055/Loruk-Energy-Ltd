@@ -939,11 +939,10 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     onChange={e => setDeliveryProduct(e.target.value as any)}
                     className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold cursor-pointer outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
                   >
-                    {!productDefs?.some(p => p.name === 'Diesel') && <option value="Diesel">Diesel</option>}
-                    {!productDefs?.some(p => p.name === 'Super') && <option value="Super">Super (Premium)</option>}
-                    {productDefs?.map(p => (
-                      <option key={p.id} value={p.name}>{p.name}</option>
-                    ))}
+                    <option value="Diesel">Diesel</option>
+                    <option value="Super (Premium)">Super (Premium)</option>
+                    <option value="Brake fluid">Brake fluid</option>
+                    <option value="Engine oil">Engine oil</option>
                   </select>
                 </div>
                 <div>

@@ -16,9 +16,13 @@ export default function Products() {
         try {
           const missingDiesel = !products.some(p => p.name.toLowerCase() === 'diesel');
           const missingSuper = !products.some(p => p.name.toLowerCase().includes('super'));
+          const missingBrake = !products.some(p => p.name.toLowerCase().includes('brake'));
+          const missingOil = !products.some(p => p.name.toLowerCase().includes('oil'));
           
           if (missingDiesel) await addProduct({ name: 'Diesel' });
           if (missingSuper) await addProduct({ name: 'Super (Premium)' });
+          if (missingBrake) await addProduct({ name: 'Brake fluid' });
+          if (missingOil) await addProduct({ name: 'Engine oil' });
         } catch (e) {
           console.error('Seed error:', e);
         }

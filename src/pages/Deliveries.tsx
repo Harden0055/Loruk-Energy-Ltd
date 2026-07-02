@@ -192,7 +192,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<{
     customerId: string;
-    productType: 'Diesel' | 'Super';
+    productType: string;
     litres: string;
     totalAmount: string;
   } | null>(null);
@@ -211,7 +211,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
     setEditingId(d.id);
     setEditForm({
       customerId: d.customerId,
-      productType: d.productType as 'Diesel' | 'Super',
+      productType: d.productType,
       litres: String(d.litres),
       totalAmount: String(d.totalAmount)
     });
@@ -358,7 +358,15 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
 
     // 2. Product Type Filter
     if (filterProductType !== 'All') {
-      result = result.filter(d => d.productType === filterProductType);
+      result = result.filter(d => {
+        const prod = (d.productType || '').toLowerCase();
+        const filter = filterProductType.toLowerCase();
+        if (filter.includes('super') && prod.includes('super')) return true;
+        if (filter.includes('diesel') && prod.includes('diesel')) return true;
+        if (filter.includes('brake') && prod.includes('brake')) return true;
+        if (filter.includes('oil') && prod.includes('oil')) return true;
+        return prod === filter;
+      });
     }
 
     // 3. Customer Filter
@@ -457,8 +465,10 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
 
   const stats = useMemo(() => {
     const totalVolume = filtered.reduce((sum, d) => sum + d.litres, 0);
-    const dieselVolume = filtered.filter(d => d.productType === 'Diesel').reduce((sum, d) => sum + d.litres, 0);
-    const superVolume = filtered.filter(d => d.productType === 'Super').reduce((sum, d) => sum + d.litres, 0);
+    const dieselVolume = filtered.filter(d => (d.productType || '').toLowerCase().includes('diesel')).reduce((sum, d) => sum + d.litres, 0);
+    const superVolume = filtered.filter(d => (d.productType || '').toLowerCase().includes('super')).reduce((sum, d) => sum + d.litres, 0);
+    const brakeFluidVolume = filtered.filter(d => (d.productType || '').toLowerCase().includes('brake')).reduce((sum, d) => sum + d.litres, 0);
+    const engineOilVolume = filtered.filter(d => (d.productType || '').toLowerCase().includes('oil')).reduce((sum, d) => sum + d.litres, 0);
     const totalValue = filtered.reduce((sum, d) => sum + d.totalAmount, 0);
     const customerCount = new Set(filtered.map(d => d.customerId)).size;
     
@@ -466,6 +476,8 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
       totalVolume,
       dieselVolume,
       superVolume,
+      brakeFluidVolume,
+      engineOilVolume,
       totalValue,
       customerCount
     };
@@ -597,7 +609,9 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
               >
                 <option value="All" className="dark:bg-white/5">All Products</option>
                 <option value="Diesel" className="dark:bg-white/5">Diesel</option>
-                <option value="Super" className="dark:bg-white/5">Super</option>
+                <option value="Super (Premium)" className="dark:bg-white/5">Super (Premium)</option>
+                <option value="Brake fluid" className="dark:bg-white/5">Brake fluid</option>
+                <option value="Engine oil" className="dark:bg-white/5">Engine oil</option>
               </select>
             </div>
 
@@ -748,23 +762,35 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
             </div>
           </div>
           <div className="space-y-1.5">
-            <div className="flex justify-between text-xs font-bold gap-2">
+            <div className="grid grid-cols-2 text-[10px] font-bold gap-x-2 gap-y-0.5">
               <span className="text-amber-500 dark:text-amber-400 truncate">DSL: {formatLitres(stats.dieselVolume)} L</span>
-              <span className="text-emerald-600 dark:text-emerald-400 truncate font-bold">SUP: {formatLitres(stats.superVolume)} L</span>
+              <span className="text-emerald-500 dark:text-emerald-400 truncate">SUP: {formatLitres(stats.superVolume)} L</span>
+              <span className="text-cyan-500 dark:text-cyan-400 truncate">BRK: {formatLitres(stats.brakeFluidVolume)} L</span>
+              <span className="text-purple-500 dark:text-purple-400 truncate">OIL: {formatLitres(stats.engineOilVolume)} L</span>
             </div>
             <div className="h-1.5 w-full glass-panel rounded-full overflow-hidden flex shrink-0">
               <div 
                 className="bg-amber-500 h-full transition-all duration-500" 
-                style={{ width: `${stats.totalVolume > 0 ? (stats.dieselVolume / stats.totalVolume) * 100 : 50}%` }}
+                style={{ width: `${stats.totalVolume > 0 ? (stats.dieselVolume / stats.totalVolume) * 100 : 25}%` }}
               />
               <div 
                 className="bg-emerald-500 h-full transition-all duration-500" 
-                style={{ width: `${stats.totalVolume > 0 ? (stats.superVolume / stats.totalVolume) * 100 : 50}%` }}
+                style={{ width: `${stats.totalVolume > 0 ? (stats.superVolume / stats.totalVolume) * 100 : 25}%` }}
+              />
+              <div 
+                className="bg-cyan-500 h-full transition-all duration-500" 
+                style={{ width: `${stats.totalVolume > 0 ? (stats.brakeFluidVolume / stats.totalVolume) * 100 : 25}%` }}
+              />
+              <div 
+                className="bg-purple-500 h-full transition-all duration-500" 
+                style={{ width: `${stats.totalVolume > 0 ? (stats.engineOilVolume / stats.totalVolume) * 100 : 25}%` }}
               />
             </div>
-            <div className="flex justify-between text-2xs font-semibold text-gray-400 dark:text-gray-500">
-              <span>Diesel: {stats.totalVolume > 0 ? Math.round((stats.dieselVolume / stats.totalVolume) * 100) : 0}%</span>
-              <span>Super: {stats.totalVolume > 0 ? Math.round((stats.superVolume / stats.totalVolume) * 100) : 0}%</span>
+            <div className="flex justify-between text-[10px] font-semibold text-gray-400 dark:text-gray-500">
+              <span>DSL: {stats.totalVolume > 0 ? Math.round((stats.dieselVolume / stats.totalVolume) * 100) : 0}%</span>
+              <span>SUP: {stats.totalVolume > 0 ? Math.round((stats.superVolume / stats.totalVolume) * 100) : 0}%</span>
+              <span>BRK: {stats.totalVolume > 0 ? Math.round((stats.brakeFluidVolume / stats.totalVolume) * 100) : 0}%</span>
+              <span>OIL: {stats.totalVolume > 0 ? Math.round((stats.engineOilVolume / stats.totalVolume) * 100) : 0}%</span>
             </div>
           </div>
         </div>
@@ -891,14 +917,24 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                       {isEditing && editForm ? (
                         <select
                           value={editForm.productType}
-                          onChange={e => setEditForm({ ...editForm, productType: e.target.value as 'Diesel' | 'Super' })}
+                          onChange={e => setEditForm({ ...editForm, productType: e.target.value })}
                           className="px-2 py-1 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg text-sm font-bold text-theme-text focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                         >
                           <option value="Diesel" className="dark:bg-white/5">Diesel</option>
-                          <option value="Super" className="dark:bg-white/5">Super</option>
+                          <option value="Super (Premium)" className="dark:bg-white/5">Super (Premium)</option>
+                          <option value="Brake fluid" className="dark:bg-white/5">Brake fluid</option>
+                          <option value="Engine oil" className="dark:bg-white/5">Engine oil</option>
                         </select>
                       ) : (
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-sm font-bold uppercase tracking-wider ${d.productType === 'Diesel' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400' : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400'}`}>
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-sm font-bold uppercase tracking-wider ${
+                          (d.productType || '').toLowerCase().includes('diesel') 
+                            ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400' 
+                            : (d.productType || '').toLowerCase().includes('brake')
+                            ? 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-800 dark:text-cyan-400'
+                            : (d.productType || '').toLowerCase().includes('oil')
+                            ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400'
+                            : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400'
+                        }`}>
                           {d.productType}
                         </span>
                       )}
@@ -1071,11 +1107,13 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
               <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Product Type</label>
               <select 
                 value={form.productType}
-                onChange={e => setForm({...form, productType: e.target.value as any})}
+                onChange={e => setForm({...form, productType: e.target.value})}
                 className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
               >
                 <option value="Diesel">Diesel</option>
-                <option value="Super">Super</option>
+                <option value="Super (Premium)">Super (Premium)</option>
+                <option value="Brake fluid">Brake fluid</option>
+                <option value="Engine oil">Engine oil</option>
               </select>
             </div>
             <div>
