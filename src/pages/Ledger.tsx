@@ -266,7 +266,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
       headRow.splice(1, 0, 'Customer');
     }
 
-    const rows = filteredEntries.map(e => {
+    const rows = [...filteredEntries].reverse().map(e => {
       const row = [
         format(e.date, 'MM/dd/yyyy'),
         e.note,
@@ -374,9 +374,9 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
             onChange={(e) => setSelectedCustomerId(e.target.value)}
             className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-theme-text cursor-pointer"
           >
-            <option value="all" className="dark:bg-white/5">All Customers</option>
+            <option value="all" className="dark:bg-slate-900">All Customers</option>
             {customers.map(c => (
-              <option key={c.id} value={c.id} className="dark:bg-white/5">{c.name}</option>
+              <option key={c.id} value={c.id} className="dark:bg-slate-900">{c.name}</option>
             ))}
           </select>
         </div>
@@ -387,10 +387,10 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
             onChange={(e) => setFilterType(e.target.value as any)}
             className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-theme-text cursor-pointer"
           >
-            <option value="all" className="dark:bg-white/5">All Transactions</option>
-            <option value="delivery" className="dark:bg-white/5">Deliveries (Debit)</option>
-            <option value="payment" className="dark:bg-white/5">Payments (Credit)</option>
-            <option value="manual" className="dark:bg-white/5">Manual Adjustments</option>
+            <option value="all" className="dark:bg-slate-900">All Transactions</option>
+            <option value="delivery" className="dark:bg-slate-900">Deliveries (Debit)</option>
+            <option value="payment" className="dark:bg-slate-900">Payments (Credit)</option>
+            <option value="manual" className="dark:bg-slate-900">Manual Adjustments</option>
           </select>
         </div>
         <div>

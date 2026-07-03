@@ -36,9 +36,9 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
   }, [allExpenses, truckReg]);
 
   const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
-  const totalDistance = expenses.reduce((sum, e) => sum + (e.distance || 0), 0);
+  const totalLitres = expenses.reduce((sum, e) => sum + (e.litres || 0), 0);
   const activeTrucksCount = new Set(expenses.map(e => e.carRegistration)).size;
-  const avgCostPerKm = totalDistance > 0 ? totalExpense / totalDistance : 0;
+  const avgCostPerLitre = totalLitres > 0 ? totalExpense / totalLitres : 0;
 
   const vehicleSpendData = useMemo(() => {
     return CAR_REGISTRATIONS.map(car => {
@@ -69,16 +69,16 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
   const efficiencyTrendData = useMemo(() => {
     const last30Days = Date.now() - 30 * 24 * 60 * 60 * 1000;
     const recent = expenses.filter(e => e.date >= last30Days);
-    const groups: Record<string, { totalDist: number, totalAmount: number }> = {};
+    const groups: Record<string, { totalLitres: number, totalAmount: number }> = {};
     recent.forEach(e => {
       const d = format(e.date, 'MMM dd');
-      if (!groups[d]) groups[d] = { totalDist: 0, totalAmount: 0 };
-      groups[d].totalDist += e.distance || 0;
+      if (!groups[d]) groups[d] = { totalLitres: 0, totalAmount: 0 };
+      groups[d].totalLitres += e.litres || 0;
       groups[d].totalAmount += e.amount;
     });
     return Object.entries(groups).map(([date, data]) => ({
       date,
-      efficiency: data.totalAmount > 0 ? data.totalDist / data.totalAmount : 0
+      efficiency: data.totalAmount > 0 ? data.totalLitres / data.totalAmount : 0
     })).sort((a, b) => a.date.localeCompare(b.date));
   }, [expenses]);
 
@@ -109,12 +109,12 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
            <h3 className="text-2xl font-black font-mono text-cyan-500 dark:text-blue-400 mt-2">{formatCurrency(totalExpense)}</h3>
         </div>
         <div className="glass-panel border border-theme-border p-5 rounded-xl">
-           <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Total Distance</p>
-           <h3 className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-2">{totalDistance.toLocaleString()} <span className="text-xs font-sans font-bold">km</span></h3>
+           <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Total Litres</p>
+           <h3 className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-2">{totalLitres.toLocaleString()} <span className="text-xs font-sans font-bold">L</span></h3>
         </div>
         <div className="glass-panel border border-theme-border p-5 rounded-xl">
            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Avg Fuel Cost</p>
-           <h3 className="text-2xl font-black font-mono text-cyan-600 dark:text-cyan-400 mt-2">{avgCostPerKm > 0 ? `${formatCurrency(avgCostPerKm)}/km` : 'N/A'}</h3>
+           <h3 className="text-2xl font-black font-mono text-cyan-600 dark:text-cyan-400 mt-2">{avgCostPerLitre > 0 ? `${formatCurrency(avgCostPerLitre)}/L` : 'N/A'}</h3>
         </div>
         <div className="glass-panel border border-theme-border p-5 rounded-xl">
            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Active Fleet</p>
@@ -154,7 +154,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
             </div>
         </div>
         <div className="glass-panel border p-5 rounded-xl lg:col-span-2">
-            <h3 className="font-bold text-lg mb-4">Fuel Efficiency Trend (Km/KES)</h3>
+            <h3 className="font-bold text-lg mb-4">Fuel Efficiency Trend (L/KES)</h3>
             <div className="h-64 relative overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                     <LineChart data={efficiencyTrendData}>
@@ -178,8 +178,8 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
                 <th className="modern-th">Date</th>
                 <th className="modern-th">Car Reg</th>
                 <th className="modern-th">Station</th>
+                <th className="modern-th">Litres</th>
                 <th className="modern-th">Amount</th>
-                <th className="modern-th">Distance</th>
               </tr>
             </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-blue-900">
@@ -200,8 +200,8 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
                       </span>
                     )}
                   </td>
+                  <td className="modern-td">{e.litres ? `${e.litres.toLocaleString()} L` : '-'}</td>
                   <td className="modern-td">{formatCurrency(e.amount)}</td>
-                  <td className="modern-td">{e.distance ? `${e.distance.toLocaleString()} km` : '-'}</td>
                 </tr>
               );
             })}

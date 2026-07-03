@@ -148,7 +148,7 @@ export default function CashPositionView() {
                 </tr>
               </thead>
                <tbody>
-                {cashPositions.map(t => (
+                {[...cashPositions].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(t => (
                   <tr key={t.id} className="hover:theme-bg-gradient transition-colors">
                     <Td>{t.date}</Td>
                     <Td className="text-[#00D4FF] font-semibold font-mono">KES {t.mPesa.toLocaleString()}</Td>

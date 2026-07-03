@@ -192,9 +192,9 @@ export default function Stations() {
             onChange={(e) => setStatusFilter(e.target.value as any)}
             className="px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 min-w-[140px]"
           >
-            <option value="all">All Statuses</option>
-            <option value="active">Active Only</option>
-            <option value="inactive">Inactive Only</option>
+            <option className="dark:bg-slate-900" value="all">All Statuses</option>
+            <option className="dark:bg-slate-900" value="active">Active Only</option>
+            <option className="dark:bg-slate-900" value="inactive">Inactive Only</option>
           </select>
         </div>
 
@@ -382,8 +382,8 @@ export default function Stations() {
                   onChange={(e) => setStatus(e.target.value as any)}
                   className="w-full px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
+                  <option className="dark:bg-slate-900" value="active">Active</option>
+                  <option className="dark:bg-slate-900" value="inactive">Inactive</option>
                 </select>
               </div>
 

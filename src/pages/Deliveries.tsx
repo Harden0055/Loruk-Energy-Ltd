@@ -592,9 +592,9 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                 onChange={e => setFilterCustomerId(e.target.value)}
                 className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border text-sm text-theme-text rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
-                <option value="All" className="dark:bg-white/5">All Customers</option>
+                <option value="All" className="dark:bg-slate-900">All Customers</option>
                 {customers.map(c => (
-                  <option key={c.id} value={c.id} className="dark:bg-white/5">{c.name}</option>
+                  <option key={c.id} value={c.id} className="dark:bg-slate-900">{c.name}</option>
                 ))}
               </select>
             </div>
@@ -607,11 +607,11 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                 onChange={e => setFilterProductType(e.target.value as any)}
                 className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border text-sm text-theme-text rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
-                <option value="All" className="dark:bg-white/5">All Products</option>
-                <option value="Diesel" className="dark:bg-white/5">Diesel</option>
-                <option value="Super (Premium)" className="dark:bg-white/5">Super (Premium)</option>
-                <option value="Brake fluid" className="dark:bg-white/5">Brake fluid</option>
-                <option value="Engine oil" className="dark:bg-white/5">Engine oil</option>
+                <option value="All" className="dark:bg-slate-900">All Products</option>
+                <option value="Diesel" className="dark:bg-slate-900">Diesel</option>
+                <option value="Super (Premium)" className="dark:bg-slate-900">Super (Premium)</option>
+                <option value="Brake fluid" className="dark:bg-slate-900">Brake fluid</option>
+                <option value="Engine oil" className="dark:bg-slate-900">Engine oil</option>
               </select>
             </div>
 
@@ -623,12 +623,12 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                 onChange={e => setSortBy(e.target.value)}
                 className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border text-sm text-theme-text rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
-                <option value="date-desc" className="dark:bg-white/5">Newest First</option>
-                <option value="date-asc" className="dark:bg-white/5">Oldest First</option>
-                <option value="litres-desc" className="dark:bg-white/5">Volume (Highest First)</option>
-                <option value="litres-asc" className="dark:bg-white/5">Volume (Lowest First)</option>
-                <option value="amount-desc" className="dark:bg-white/5">Value (Highest First)</option>
-                <option value="amount-asc" className="dark:bg-white/5">Value (Lowest First)</option>
+                <option value="date-desc" className="dark:bg-slate-900">Newest First</option>
+                <option value="date-asc" className="dark:bg-slate-900">Oldest First</option>
+                <option value="litres-desc" className="dark:bg-slate-900">Volume (Highest First)</option>
+                <option value="litres-asc" className="dark:bg-slate-900">Volume (Lowest First)</option>
+                <option value="amount-desc" className="dark:bg-slate-900">Value (Highest First)</option>
+                <option value="amount-asc" className="dark:bg-slate-900">Value (Lowest First)</option>
               </select>
             </div>
 
@@ -898,7 +898,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                             className="w-full px-2 py-1 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg text-sm text-theme-text focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                           >
                             {customers.map(c => (
-                              <option key={c.id} value={c.id} className="dark:bg-white/5">{c.name}</option>
+                              <option key={c.id} value={c.id} className="dark:bg-slate-900">{c.name}</option>
                             ))}
                           </select>
                         </div>
@@ -920,10 +920,10 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                           onChange={e => setEditForm({ ...editForm, productType: e.target.value })}
                           className="px-2 py-1 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg text-sm font-bold text-theme-text focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                         >
-                          <option value="Diesel" className="dark:bg-white/5">Diesel</option>
-                          <option value="Super (Premium)" className="dark:bg-white/5">Super (Premium)</option>
-                          <option value="Brake fluid" className="dark:bg-white/5">Brake fluid</option>
-                          <option value="Engine oil" className="dark:bg-white/5">Engine oil</option>
+                          <option value="Diesel" className="dark:bg-slate-900">Diesel</option>
+                          <option value="Super (Premium)" className="dark:bg-slate-900">Super (Premium)</option>
+                          <option value="Brake fluid" className="dark:bg-slate-900">Brake fluid</option>
+                          <option value="Engine oil" className="dark:bg-slate-900">Engine oil</option>
                         </select>
                       ) : (
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-sm font-bold uppercase tracking-wider ${
@@ -1099,8 +1099,8 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
                 onChange={e => setForm({...form, customerId: e.target.value})}
                 className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
               >
-                <option value="" disabled>Select a customer</option>
-                {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                <option value="" disabled className="dark:bg-slate-900">Select a customer</option>
+                {customers.map(c => <option key={c.id} value={c.id} className="dark:bg-slate-900">{c.name}</option>)}
               </select>
             </div>
             <div>
@@ -1110,10 +1110,10 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
                 onChange={e => setForm({...form, productType: e.target.value})}
                 className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
               >
-                <option value="Diesel">Diesel</option>
-                <option value="Super (Premium)">Super (Premium)</option>
-                <option value="Brake fluid">Brake fluid</option>
-                <option value="Engine oil">Engine oil</option>
+                <option value="Diesel" className="dark:bg-slate-900">Diesel</option>
+                <option value="Super (Premium)" className="dark:bg-slate-900">Super (Premium)</option>
+                <option value="Brake fluid" className="dark:bg-slate-900">Brake fluid</option>
+                <option value="Engine oil" className="dark:bg-slate-900">Engine oil</option>
               </select>
             </div>
             <div>

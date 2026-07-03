@@ -298,14 +298,14 @@ export default function InventoryView() {
                   <div>
                     <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                     <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                      {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                      {STATIONS.map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
                     </Select>
                   </div>
                   <div className="col-span-1 md:col-span-1 lg:col-span-2">
                     <label className="block text-xs text-theme-text-muted mb-1">Product</label>
                     <Select value={form.item} onChange={e => setForm({...form, item: e.target.value})} required>
                       {STANDARD_PRODUCTS.map(p => (
-                        <option key={p} value={p}>{p}</option>
+                        <option className="dark:bg-slate-900" key={p} value={p}>{p}</option>
                       ))}
                     </Select>
                   </div>

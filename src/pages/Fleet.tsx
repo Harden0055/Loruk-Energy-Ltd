@@ -24,7 +24,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
   const [carReg, setCarReg] = useState(CAR_REGISTRATIONS[0]);
   const [station, setStation] = useState<Station>(STATIONS[0]);
   const [amount, setAmount] = useState('');
-  const [distance, setDistance] = useState('');
+  const [litres, setLitres] = useState('');
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   
   const [deleteDialog, setDeleteDialog] = useState<{isOpen: boolean, id: string | null}>({ isOpen: false, id: null });
@@ -51,7 +51,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
     if (selectedStation !== 'all') result = result.filter(e => e.station === selectedStation);
     if (dateFrom) result = result.filter(e => e.date >= new Date(dateFrom).getTime());
     if (dateTo) result = result.filter(e => e.date <= new Date(dateTo).getTime() + 86399999);
-    return result;
+    return result.sort((a, b) => b.date - a.date);
   }, [expenses, selectedCar, selectedStation, dateFrom, dateTo]);
 
   const fleetExpensesSummary = useMemo(() => {
@@ -83,13 +83,13 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
       const data: any = {
         carRegistration: carReg, station, amount: Number(amount), date: new Date(date).getTime(), createdBy: user?.email || 'Unknown'
       };
-      if (distance) data.distance = Number(distance);
+      if (litres) data.litres = Number(litres);
       
       if (editingExpenseId) await updateFleetExpense(editingExpenseId, data);
       else await createFleetExpense(data);
       setIsAdding(false);
       setEditingExpenseId(null);
-      setAmount(''); setDistance(''); setDate(format(new Date(), 'yyyy-MM-dd'));
+      setAmount(''); setLitres(''); setDate(format(new Date(), 'yyyy-MM-dd'));
     } catch (e) {
       console.error(e);
       alert('Failed to save expense: ' + (e instanceof Error ? e.message : String(e)));
@@ -181,15 +181,15 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
       headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
       bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] },
       footStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
-      head: [['Date', 'Car Reg', 'Station', 'Amount', 'Distance']],
-      body: [...filteredExpenses].sort((a,b) => a.date - b.date).map(e => [
+      head: [['Date', 'Car Reg', 'Station', 'Litres', 'Amount']],
+      body: [...filteredExpenses].sort((a,b) => b.date - a.date).map(e => [
         format(e.date, 'MMM d, yyyy'), 
         e.carRegistration, 
         e.station || '-', 
-        `${e.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KES`, 
-        e.distance ? `${e.distance} km` : '-'
+        e.litres ? `${e.litres} L` : '-',
+        `${e.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KES`
       ]),
-      foot: [['', '', 'Total Amount', `${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KES`, '']],
+      foot: [['', '', 'Total Amount', '', `${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KES`]],
     });
 
     // Footer section
@@ -227,7 +227,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
               if (editingExpenseId) {
                 setEditingExpenseId(null);
                 setAmount(''); 
-                setDistance(''); 
+                setLitres(''); 
                 setDate(format(new Date(), 'yyyy-MM-dd'));
                 setCarReg(CAR_REGISTRATIONS[0]);
                 setStation(STATIONS[0]);
@@ -246,11 +246,11 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
         <div id="add-expense-form-container" className="glass-panel p-6 border border-theme-border rounded-xl shadow-sm">
           <h3 className="text-lg font-bold text-theme-text mb-4">{editingExpenseId ? 'Edit' : 'Add'} Expense</h3>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
-            <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-3 py-2 glass-panel border rounded-lg" />
-            <select value={carReg} onChange={(e) => setCarReg(e.target.value)} className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border rounded-lg">{CAR_REGISTRATIONS.map(r => <option key={r} value={r}>{r}</option>)}</select>
-            <select value={station} onChange={(e) => setStation(e.target.value as Station)} className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border rounded-lg">{STATIONS.map(s => <option key={s} value={s}>{s}</option>)}</select>
-            <input type="number" required min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-3 py-2 glass-panel border rounded-lg" placeholder="Amount (KES)" />
-            <input type="number" min="0" step="0.1" value={distance} onChange={(e) => setDistance(e.target.value)} className="w-full px-3 py-2 glass-panel border rounded-lg" placeholder="Distance (km)" />
+            <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" />
+            <select value={carReg} onChange={(e) => setCarReg(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">{CAR_REGISTRATIONS.map(r => <option key={r} value={r} className="dark:bg-slate-900">{r}</option>)}</select>
+            <select value={station} onChange={(e) => setStation(e.target.value as Station)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">{STATIONS.map(s => <option key={s} value={s} className="dark:bg-slate-900">{s}</option>)}</select>
+            <input type="number" min="0" step="0.1" value={litres} onChange={(e) => setLitres(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" placeholder="Litres (L)" />
+            <input type="number" required min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" placeholder="Amount (KES)" />
             <div className="flex gap-2 w-full">
               <button 
                 type="submit" 
@@ -264,7 +264,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                   setIsAdding(false);
                   setEditingExpenseId(null);
                   setAmount(''); 
-                  setDistance(''); 
+                  setLitres(''); 
                   setDate(format(new Date(), 'yyyy-MM-dd'));
                 }}
                 className="px-3 py-2 bg-gray-100 hover:bg-white/10 dark:bg-white/5 dark:hover:bg-blue-900/50 text-gray-700 dark:text-gray-300 border border-theme-border rounded-lg font-medium transition-colors cursor-pointer"
@@ -328,25 +328,25 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Car</label>
-                <select value={selectedCar} onChange={e => setSelectedCar(e.target.value)} className="w-full px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="all">All Cars</option>
-                  {CAR_REGISTRATIONS.map(r => <option key={r} value={r}>{r}</option>)}
+                <select value={selectedCar} onChange={e => setSelectedCar(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-sm text-blue-900 dark:text-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+                  <option value="all" className="dark:bg-slate-900">All Cars</option>
+                  {CAR_REGISTRATIONS.map(r => <option key={r} value={r} className="dark:bg-slate-900">{r}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Station</label>
-                <select value={selectedStation} onChange={e => setSelectedStation(e.target.value)} className="w-full px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="all">All Stations</option>
-                  {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                <select value={selectedStation} onChange={e => setSelectedStation(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-sm text-blue-900 dark:text-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+                  <option value="all" className="dark:bg-slate-900">All Stations</option>
+                  {STATIONS.map(s => <option key={s} value={s} className="dark:bg-slate-900">{s}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">From Date</label>
-                <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-sm text-blue-900 dark:text-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">To Date</label>
-                <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-sm text-blue-900 dark:text-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" />
               </div>
           </div>
           {/* Consumption Summary */}
@@ -392,6 +392,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
               <th className="modern-th">Date</th>
               <th className="modern-th">Car</th>
               <th className="modern-th">Station</th>
+              <th className="modern-th">Litres</th>
               <th className="modern-th">Amount</th>
               <th className="modern-th">Actions</th>
             </tr>
@@ -413,6 +414,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                     </span>
                   )}
                 </td>
+                <td className="modern-td">{e.litres ? `${e.litres.toLocaleString()} L` : '-'}</td>
                 <td className="modern-td">{formatCurrency(e.amount)}</td>
                 <td className="modern-td">
                   <div className="flex items-center justify-end gap-1.5">
@@ -426,7 +428,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                         } else {
                           setStation(STATIONS[0]);
                         }
-                        setDistance(e.distance != null ? e.distance.toString() : '');
+                        setLitres(e.litres != null ? e.litres.toString() : '');
                         
                         let dateObj = new Date();
                         if (e.date) {

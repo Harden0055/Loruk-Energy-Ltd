@@ -139,9 +139,9 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
             onChange={e => setStatusFilter(e.target.value as any)}
             className="w-full px-4 py-2.5 bg-sky-500/5 border border-theme-border rounded-lg text-base text-sky-300 dark:text-sky-300 font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors cursor-pointer"
           >
-            <option value="all" className="dark:bg-white/5">All Statuses</option>
-            <option value="active" className="dark:bg-white/5">Active</option>
-            <option value="credit_risk" className="dark:bg-white/5">Credit Risk</option>
+            <option value="all" className="dark:bg-slate-900">All Statuses</option>
+            <option value="active" className="dark:bg-slate-900">Active</option>
+            <option value="credit_risk" className="dark:bg-slate-900">Credit Risk</option>
           </select>
         </div>
         <button 
@@ -268,7 +268,7 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
                   <td className="modern-td">
                     <span className={`inline-flex items-center px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${
                       c.status === 'active' 
-                        ? 'rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/45 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900 shadow-[0_0_8px_rgba(16,185,129,0.6)]' 
+                        ? 'rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/45 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900 shadow-[inset_0_0_8px_rgba(16,185,129,0.6)]' 
                         : 'rounded-md bg-red-100 text-red-800 dark:bg-red-950/45 dark:text-red-400 border border-red-200 dark:border-red-900'
                     }`}>
                       {c.status.replace('_', ' ')}
@@ -699,8 +699,8 @@ function EditCustomerModal({ customer, customers, onClose }: EditProps) {
                 onChange={e => setForm({...form, status: e.target.value as 'active' | 'credit_risk'})}
                 className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-theme-text dark:text-sky-100 text-base font-semibold cursor-pointer shadow-sm"
               >
-                <option value="active">Active</option>
-                <option value="credit_risk">Credit Risk</option>
+                <option className="dark:bg-slate-900" value="active">Active</option>
+                <option className="dark:bg-slate-900" value="credit_risk">Credit Risk</option>
               </select>
             </div>
           </div>

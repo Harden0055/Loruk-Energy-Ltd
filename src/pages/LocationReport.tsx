@@ -82,8 +82,8 @@ export default function LocationReport({ location }: LocationReportProps) {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Shift</label>
             <select value={data.shift} onChange={e => setData({...data, shift: e.target.value})} className="w-full px-4 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-theme-text font-semibold cursor-pointer">
-              <option value="day" className="dark:bg-white/5">Day Shift</option>
-              <option value="evening" className="dark:bg-white/5">Evening Shift</option>
+              <option value="day" className="dark:bg-slate-900">Day Shift</option>
+              <option value="evening" className="dark:bg-slate-900">Evening Shift</option>
             </select>
           </div>
           <div>

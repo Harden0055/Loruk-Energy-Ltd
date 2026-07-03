@@ -38,7 +38,8 @@ export default function InvoicesView() {
 
   const filteredData = invoices
     .filter(i => filterStation === 'Combined Total' || i.station === filterStation)
-    .filter(i => !filterDate || i.date === filterDate);
+    .filter(i => !filterDate || i.date === filterDate)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
   const filteredCustomers = customers
     .filter(c => filterStation === 'Combined Total' || c.station === filterStation);
@@ -169,8 +170,8 @@ export default function InvoicesView() {
           <div className="flex-1 min-w-[200px]">
             <label className="block text-xs text-theme-text-muted mb-1">Filter by Station</label>
             <Select value={filterStation} onChange={e => setFilterStation(e.target.value)} className="h-9">
-              <option value="Combined Total">Combined Total (All)</option>
-              {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+              <option className="dark:bg-slate-900" value="Combined Total">Combined Total (All)</option>
+              {STATIONS.map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
             </Select>
           </div>
         </div>
@@ -192,14 +193,14 @@ export default function InvoicesView() {
                   <div>
                     <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                     <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                      {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                      {STATIONS.map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
                     </Select>
                   </div>
                   <div className="col-span-2">
                     <label className="block text-xs text-theme-text-muted mb-1">Customer</label>
                     <Select value={form.customerName} onChange={e => setForm({...form, customerName: e.target.value})} required>
-                      <option value="">Select a customer...</option>
-                      {customers.filter(c => c.station === form.station).map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                      <option className="dark:bg-slate-900" value="">Select a customer...</option>
+                      {customers.filter(c => c.station === form.station).map(c => <option className="dark:bg-slate-900" key={c.id} value={c.name}>{c.name}</option>)}
                     </Select>
                   </div>
                   <div>
@@ -290,7 +291,7 @@ export default function InvoicesView() {
                   <div>
                     <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                     <Select value={customerForm.station} onChange={e => setCustomerForm({...customerForm, station: e.target.value as any})}>
-                      {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                      {STATIONS.map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
                     </Select>
                   </div>
                   <div>

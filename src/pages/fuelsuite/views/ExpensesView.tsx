@@ -15,7 +15,7 @@ export default function ExpensesView() {
     amount: 0,
   });
 
-  const filteredData = expenses.filter(e => activeStation === 'Combined Total' || e.station === activeStation);
+  const filteredData = expenses.filter(e => activeStation === 'Combined Total' || e.station === activeStation).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const resetForm = () => {
     setForm({
@@ -85,7 +85,7 @@ export default function ExpensesView() {
               <div>
                 <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                 <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                  {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                  {STATIONS.map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
                 </Select>
               </div>
               <div>

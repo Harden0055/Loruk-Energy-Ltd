@@ -26,8 +26,8 @@ export default function Reports() {
       const customer = customers.find(c => c.id === selectedCustomerId);
       if (!customer) return;
 
-      const customerDeliveries = deliveries.filter(d => d.customerId === selectedCustomerId).sort((a,b) => a.date - b.date);
-      const customerPayments = payments.filter(p => p.customerId === selectedCustomerId).sort((a,b) => a.date - b.date);
+      const customerDeliveries = deliveries.filter(d => d.customerId === selectedCustomerId).sort((a,b) => b.date - a.date);
+      const customerPayments = payments.filter(p => p.customerId === selectedCustomerId).sort((a,b) => b.date - a.date);
       const totalLitres = customerDeliveries.reduce((sum, d) => sum + d.litres, 0);
 
       const doc = new jsPDF();
@@ -231,9 +231,9 @@ export default function Reports() {
               disabled={loading}
               className="w-full max-w-md px-4 py-2.5 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-theme-text font-semibold disabled:opacity-50 text-lg cursor-pointer"
             >
-              <option value="" disabled className="dark:bg-white/5">Choose a customer to generate report</option>
+              <option value="" disabled className="dark:bg-slate-900">Choose a customer to generate report</option>
               {customers.map(c => (
-                <option key={c.id} value={c.id} className="dark:bg-white/5">{c.name} - {formatCurrency(c.balance)} Bal</option>
+                <option key={c.id} value={c.id} className="dark:bg-slate-900">{c.name} - {formatCurrency(c.balance)} Bal</option>
               ))}
             </select>
           </div>

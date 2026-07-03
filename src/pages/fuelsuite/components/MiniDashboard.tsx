@@ -24,7 +24,7 @@ export default function MiniDashboard({ date, station, onFilterChange, stats }: 
             <div className="flex-1">
               <label className="block text-xs text-theme-text-muted mb-1">Station</label>
               <Select value={station} onChange={e => onFilterChange(date, e.target.value as Station)} className="h-9">
-                {['Combined Total', ...STATIONS].map(s => <option key={s} value={s}>{s}</option>)}
+                {['Combined Total', ...STATIONS].map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
               </Select>
             </div>
           </div>

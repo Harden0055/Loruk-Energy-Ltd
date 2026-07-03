@@ -105,7 +105,7 @@ export interface FleetExpense {
   amount: number;
   date: number;
   createdBy: string;
-  distance?: number;
+  litres?: number;
   station: 'Loruk - Ndalu' | 'Loruk - Junction' | 'Gel - Bungoma' | 'Gel - Kapenguria' | 'Kengas';
 }
 

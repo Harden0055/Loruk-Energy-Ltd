@@ -25,7 +25,7 @@ export default function PumpReadingsView() {
     return pumpReadings.filter(r => 
       (filterStation === 'Combined Total' || r.station === filterStation) &&
       (!filterDate || r.date === filterDate)
-    );
+    ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [pumpReadings, filterStation, filterDate]);
 
   const resetForm = () => {
@@ -96,7 +96,7 @@ export default function PumpReadingsView() {
           <div className="flex-1">
             <label className="block text-xs text-theme-text-muted mb-1">Station</label>
             <Select value={filterStation} onChange={e => setFilterStation(e.target.value as Station)} className="h-9">
-              {['Combined Total', ...STATIONS].map(s => <option key={s} value={s}>{s}</option>)}
+              {['Combined Total', ...STATIONS].map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
             </Select>
           </div>
         </div>
@@ -146,14 +146,14 @@ export default function PumpReadingsView() {
               <div>
                 <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                 <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                  {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                  {STATIONS.map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
                 </Select>
               </div>
               <div>
                 <label className="block text-xs text-theme-text-muted mb-1">Product</label>
                 <Select value={form.product} onChange={e => setForm({...form, product: e.target.value})}>
                   {products.map(p => (
-                    <option key={p.id} value={p.name}>{p.name}</option>
+                    <option className="dark:bg-slate-900" key={p.id} value={p.name}>{p.name}</option>
                   ))}
                 </Select>
               </div>

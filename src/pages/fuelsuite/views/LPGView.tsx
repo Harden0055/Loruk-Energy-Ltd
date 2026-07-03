@@ -241,7 +241,7 @@ export default function LPGView() {
           <div className="flex-1">
             <label className="block text-xs text-theme-text-muted mb-1">Station</label>
             <Select value={filterStation} onChange={e => setFilterStation(e.target.value as Station)} className="h-9">
-              {['Combined Total', ...STATIONS].map(s => <option key={s} value={s}>{s}</option>)}
+              {['Combined Total', ...STATIONS].map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
             </Select>
           </div>
         </div>
@@ -300,14 +300,14 @@ export default function LPGView() {
               <div>
                 <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                 <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                  {STATIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                  {STATIONS.map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
                 </Select>
               </div>
               <div className="col-span-1 md:col-span-1 lg:col-span-2">
                 <label className="block text-xs text-theme-text-muted mb-1">Item Size</label>
                 <Select value={form.item} onChange={e => setForm({...form, item: e.target.value})}>
-                  <option value="6kg Cylinder">6kg Cylinder</option>
-                  <option value="13kg Cylinder">13kg Cylinder</option>
+                  <option className="dark:bg-slate-900" value="6kg Cylinder">6kg Cylinder</option>
+                  <option className="dark:bg-slate-900" value="13kg Cylinder">13kg Cylinder</option>
                 </Select>
               </div>
               <div>

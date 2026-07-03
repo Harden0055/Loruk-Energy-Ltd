@@ -105,16 +105,16 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
   const fleetExpensesSummary = expenses.reduce((acc, curr) => {
     let car = acc.find(c => c.carRegistration === curr.carRegistration);
     if (!car) {
-      car = { carRegistration: curr.carRegistration, totalAmount: 0, totalDistance: 0 };
+      car = { carRegistration: curr.carRegistration, totalAmount: 0, totalLitres: 0 };
       acc.push(car);
     }
     car.totalAmount += curr.amount;
-    car.totalDistance += (curr.distance || 0);
+    car.totalLitres += (curr.litres || 0);
     return acc;
-  }, [] as { carRegistration: string, totalAmount: number, totalDistance: number }[])
+  }, [] as { carRegistration: string, totalAmount: number, totalLitres: number }[])
   .map(c => ({
     ...c,
-    avgCostPerKm: c.totalDistance > 0 ? c.totalAmount / c.totalDistance : 0
+    avgCostPerLitre: c.totalLitres > 0 ? c.totalAmount / c.totalLitres : 0
   }))
   .sort((a,b) => b.totalAmount - a.totalAmount);
 

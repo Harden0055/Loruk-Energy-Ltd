@@ -310,7 +310,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
       // Line item table
       const tableHeaders = [['Date', 'Transaction Type', 'Description', 'Amount (KES)', 'Closing Balance (KES)']];
-      const tableRows = [...timelineEvents].sort((a,b) => a.date - b.date).map(e => [
+      const tableRows = [...timelineEvents].sort((a,b) => b.date - a.date).map(e => [
         format(e.date, 'yyyy-MM-dd'),
         e.title,
         e.description,
@@ -533,7 +533,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             </span>
             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
               customer.status === 'active' 
-                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/45 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900 shadow-[0_0_8px_rgba(16,185,129,0.6)]' 
+                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/45 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900 shadow-[inset_0_0_8px_rgba(16,185,129,0.6)]' 
                 : 'bg-red-100 text-red-800 dark:bg-red-950/45 dark:text-red-400 border border-red-200 dark:border-red-900'
             }`}>
               {customer.status === 'active' ? 'Active Account' : 'Credit Risk'}
@@ -939,10 +939,10 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     onChange={e => setDeliveryProduct(e.target.value as any)}
                     className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold cursor-pointer outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
                   >
-                    <option value="Diesel">Diesel</option>
-                    <option value="Super (Premium)">Super (Premium)</option>
-                    <option value="Brake fluid">Brake fluid</option>
-                    <option value="Engine oil">Engine oil</option>
+                    <option value="Diesel" className="dark:bg-slate-900">Diesel</option>
+                    <option value="Super (Premium)" className="dark:bg-slate-900">Super (Premium)</option>
+                    <option value="Brake fluid" className="dark:bg-slate-900">Brake fluid</option>
+                    <option value="Engine oil" className="dark:bg-slate-900">Engine oil</option>
                   </select>
                 </div>
                 <div>
