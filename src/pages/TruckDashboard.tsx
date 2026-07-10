@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useFleetExpenses } from '../lib/db';
+import { useFleetExpenses, useTrucks } from '../lib/db';
 import { formatCurrency } from '../lib/utils';
 import { format } from 'date-fns';
 import { CarFront, TrendingUp, Route, Gauge, Fuel, MapPin, Award, CheckCircle2, Download } from 'lucide-react';
@@ -18,7 +18,7 @@ import {
   Line
 } from 'recharts';
 
-const CAR_REGISTRATIONS = [
+const FALLBACK_REGISTRATIONS = [
   'KDE 179Y',
   'KDL 019S',
   'KCY 842Y',
@@ -26,10 +26,13 @@ const CAR_REGISTRATIONS = [
   'KDW 028Y'
 ];
 
-const STATIONS = ['Loruk - Ndalu', 'Loruk - Junction', 'Gel - Bungoma', 'Gel - Kapenguria', 'Kengas'] as const;
-
 export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: { truckReg?: string | null, onNavigateToTruck?: (reg: string) => void, onBack?: () => void }) {
   const { expenses: allExpenses } = useFleetExpenses();
+  const { trucks } = useTrucks();
+
+  const CAR_REGISTRATIONS = useMemo(() => {
+    return trucks.length > 0 ? trucks.map(t => t.registration) : FALLBACK_REGISTRATIONS;
+  }, [trucks]);
 
   const expenses = useMemo(() => {
     return truckReg ? allExpenses.filter(e => e.carRegistration === truckReg) : allExpenses;

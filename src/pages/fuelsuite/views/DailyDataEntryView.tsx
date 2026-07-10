@@ -34,7 +34,7 @@ export default function DailyDataEntryView() {
   React.useEffect(() => {
     const previousReadings = pumpReadings
       .filter(pr => pr.station === station && pr.date < date)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      .sort((a, b) => b.date.localeCompare(a.date));
       
     setPumps(products.filter(p => !p.name.toLowerCase().includes('oil')).map(p => {
       const lastReading = previousReadings.find(pr => pr.product === p.name);
@@ -55,7 +55,7 @@ export default function DailyDataEntryView() {
     { item: '6kg Cylinder', quantity: 0, amount: 0 }
   ]);
 
-  // LPG Purchases (COGS)
+  // LPG Purchases
   const [lpgPurchases, setLpgPurchases] = useState<Partial<LPGTransaction>[]>([
     { item: '6kg Cylinder', quantity: 0, amount: 0 }
   ]);
@@ -245,7 +245,7 @@ export default function DailyDataEntryView() {
             <div>
               <label className="text-sm font-medium text-theme-text-muted block mb-1">Station</label>
               <Select value={station} onChange={(e) => setStation(e.target.value as Station)}>
-                {STATIONS.map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
+                {STATIONS.map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
               </Select>
             </div>
           </div>
@@ -409,8 +409,8 @@ export default function DailyDataEntryView() {
                     newSales[idx].item = e.target.value;
                     setEquipmentSales(newSales);
                   }}>
-                    <option className="dark:bg-slate-900" value="Burner">Burner</option>
-                    <option className="dark:bg-slate-900" value="Grill">Grill</option>
+                    <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="Burner">Burner</option>
+                    <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="Grill">Grill</option>
                   </Select>
                 </div>
                 <div className="w-20">
@@ -454,8 +454,8 @@ export default function DailyDataEntryView() {
                     newPurchases[idx].item = e.target.value;
                     setEquipmentPurchases(newPurchases);
                   }}>
-                    <option className="dark:bg-slate-900" value="Burner">Burner</option>
-                    <option className="dark:bg-slate-900" value="Grill">Grill</option>
+                    <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="Burner">Burner</option>
+                    <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="Grill">Grill</option>
                   </Select>
                 </div>
                 <div className="w-20">
@@ -536,8 +536,8 @@ export default function DailyDataEntryView() {
                     newRows[idx].customerName = e.target.value;
                     setInvoiceRows(newRows);
                   }}>
-                    <option className="dark:bg-slate-900" value="">Select Customer...</option>
-                    {customers.filter(c => activeStation === 'Combined Total' || c.station === activeStation).map(c => <option className="dark:bg-slate-900" key={c.id} value={c.name}>{c.name}</option>)}
+                    <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="">Select Customer...</option>
+                    {customers.filter(c => activeStation === 'Combined Total' || c.station === activeStation).map(c => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={c.id} value={c.name}>{c.name}</option>)}
                   </Select>
                 </div>
                 <div className="w-24">

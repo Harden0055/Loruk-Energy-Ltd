@@ -10,20 +10,18 @@ export default function Stations() {
   
   useEffect(() => {
     if (loading) return;
-    const defaultStations = [
-      { name: 'Loruk - Ndalu', code: 'LRK-NDL', location: 'Ndalu', status: 'active', tradingAs: 'T/A Loruk Ndalu', poBox: 'P.O BOX 342' },
-      { name: 'Loruk - Junction', code: 'LRK-JCT', location: 'Junction', status: 'active', tradingAs: 'T/A Loruk Junction', poBox: 'P.O BOX 342' },
-      { name: 'Gel - Bungoma', code: 'GEL-BGM', location: 'Bungoma', status: 'active', tradingAs: 'T/A Gel Bungoma', poBox: 'P.O BOX 342' },
-      { name: 'Gel - Kapenguria', code: 'GEL-KPG', location: 'Kapenguria', status: 'active', tradingAs: 'T/A Gel Kapenguria', poBox: 'P.O BOX 342' },
-      { name: 'Kengas', code: 'KGS-001', location: 'Kengas', status: 'active', tradingAs: 'T/A Kengas', poBox: 'P.O BOX 342' }
-    ];
-    
-    defaultStations.forEach((ds) => {
-      if (!stations.some(s => s.name === ds.name)) {
+    if (stations.length === 0) {
+      const defaultStations = [
+        { name: 'Loruk Energy Ltd', code: 'LRK-001', location: 'Loruk', status: 'active', tradingAs: 'T/A Loruk Energy Ltd', poBox: 'P.O BOX 342' },
+        { name: 'Ndalu Station', code: 'ST-001', location: 'Ndalu', status: 'active', tradingAs: 'T/A Ndalu Station', poBox: 'P.O BOX 342' },
+        { name: 'Junction Station', code: 'ST-002', location: 'Junction', status: 'active', tradingAs: 'T/A Junction Station', poBox: 'P.O BOX 342' }
+      ];
+      
+      defaultStations.forEach((ds) => {
         addStation(ds as any).catch(console.error);
-      }
-    });
-  }, [stations, loading]);
+      });
+    }
+  }, [stations.length, loading]);
   
   // Modals state
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -192,9 +190,9 @@ export default function Stations() {
             onChange={(e) => setStatusFilter(e.target.value as any)}
             className="px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 min-w-[140px]"
           >
-            <option className="dark:bg-slate-900" value="all">All Statuses</option>
-            <option className="dark:bg-slate-900" value="active">Active Only</option>
-            <option className="dark:bg-slate-900" value="inactive">Inactive Only</option>
+            <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="all">All Statuses</option>
+            <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="active">Active Only</option>
+            <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="inactive">Inactive Only</option>
           </select>
         </div>
 
@@ -382,8 +380,8 @@ export default function Stations() {
                   onChange={(e) => setStatus(e.target.value as any)}
                   className="w-full px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option className="dark:bg-slate-900" value="active">Active</option>
-                  <option className="dark:bg-slate-900" value="inactive">Inactive</option>
+                  <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="active">Active</option>
+                  <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="inactive">Inactive</option>
                 </select>
               </div>
 

@@ -11,25 +11,20 @@ export default function Products() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && products) {
+    if (!loading && products && products.length === 0) {
       const seed = async () => {
         try {
-          const missingDiesel = !products.some(p => p.name.toLowerCase() === 'diesel');
-          const missingSuper = !products.some(p => p.name.toLowerCase().includes('super'));
-          const missingBrake = !products.some(p => p.name.toLowerCase().includes('brake'));
-          const missingOil = !products.some(p => p.name.toLowerCase().includes('oil'));
-          
-          if (missingDiesel) await addProduct({ name: 'Diesel' });
-          if (missingSuper) await addProduct({ name: 'Super (Premium)' });
-          if (missingBrake) await addProduct({ name: 'Brake fluid' });
-          if (missingOil) await addProduct({ name: 'Engine oil' });
+          await addProduct({ name: 'Diesel' });
+          await addProduct({ name: 'Super (Premium)' });
+          await addProduct({ name: 'Brake fluid' });
+          await addProduct({ name: 'Engine oil' });
         } catch (e) {
           console.error('Seed error:', e);
         }
       };
       seed();
     }
-  }, [products, loading]);
+  }, [products?.length, loading]);
 
   const [form, setForm] = useState<Partial<ProductDef>>({
     name: '',
@@ -80,6 +75,15 @@ export default function Products() {
       setError(err instanceof Error ? err.message : String(err));
     }
   };
+
+  // Use a map to filter out duplicate product names (case-insensitive)
+  const uniqueProducts = Object.values(
+    (products || []).reduce((acc, p) => {
+      const key = p.name.trim().toLowerCase();
+      if (!acc[key]) acc[key] = p;
+      return acc;
+    }, {} as Record<string, ProductDef>)
+  );
 
   if (loading) {
     return <div className="p-8 text-slate-500 animate-pulse">Loading products...</div>;
@@ -164,7 +168,7 @@ export default function Products() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-blue-900/50">
-              {products.map(p => (
+              {uniqueProducts.map(p => (
                 <tr key={p.id} className="hover:bg-white/5 dark:hover:bg-blue-900/10 transition-colors">
                   <td className="modern-td">{p.name}</td>
                   <td className="modern-td">
@@ -177,7 +181,7 @@ export default function Products() {
                   </td>
                 </tr>
               ))}
-              {products.length === 0 && (
+              {uniqueProducts.length === 0 && (
                 <tr className="modern-tr">
                   <td colSpan={2} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">No products configured. Add one above.</td>
                 </tr>

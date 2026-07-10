@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '../lib/auth';
-import { useFleetExpenses, createFleetExpense, deleteFleetExpense, updateFleetExpense } from '../lib/db';
+import { useFleetExpenses, createFleetExpense, deleteFleetExpense, updateFleetExpense, useTrucks } from '../lib/db';
 import { formatCurrency, getStationColor } from '../lib/utils';
 import { format } from 'date-fns';
 import { Plus, Trash2, Download, Bot, Pencil, Truck } from 'lucide-react';
@@ -11,18 +11,45 @@ import { FleetExpense } from '../types';
 import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { setupPdfHeader, addPdfFooter } from '../lib/pdfTemplate';
 
-const CAR_REGISTRATIONS = ['KDE 179Y', 'KDL 019S', 'KCY 842Y', 'KCF 119R', 'KDW 028Y'];
-const STATIONS = ['Loruk - Ndalu', 'Loruk - Junction', 'Gel - Bungoma', 'Gel - Kapenguria', 'Kengas'] as const;
-type Station = typeof STATIONS[number];
+import { useStations } from '../lib/operationsDb';
+
+const FALLBACK_REGISTRATIONS = ['KDE 179Y', 'KDL 019S', 'KCY 842Y', 'KCF 119R', 'KDW 028Y'];
+const FALLBACK_STATIONS = ['Loruk - Ndalu', 'Loruk - Junction', 'Gel - Bungoma', 'Gel - Kapenguria', 'Kengas'];
+type Station = string;
 
 export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToTruck?: (reg: string) => void, onNavigate?: (page: string) => void }) {
   const { user } = useAuth();
   const { expenses, loading } = useFleetExpenses();
+  const { trucks } = useTrucks();
+
+  const CAR_REGISTRATIONS = useMemo(() => {
+    return trucks.length > 0 ? trucks.map(t => t.registration) : FALLBACK_REGISTRATIONS;
+  }, [trucks]);
+
   const [isAdding, setIsAdding] = useState(false);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   
-  const [carReg, setCarReg] = useState(CAR_REGISTRATIONS[0]);
-  const [station, setStation] = useState<Station>(STATIONS[0]);
+  const [carReg, setCarReg] = useState('');
+  
+  useEffect(() => {
+    if (CAR_REGISTRATIONS.length > 0 && (!carReg || !CAR_REGISTRATIONS.includes(carReg))) {
+      setCarReg(CAR_REGISTRATIONS[0]);
+    }
+  }, [CAR_REGISTRATIONS, carReg]);
+
+  const { stations } = useStations();
+  const STATIONS = useMemo(() => {
+    const activeStations = stations.filter(s => s.status === 'active').map(s => s.name);
+    return activeStations.length > 0 ? activeStations : FALLBACK_STATIONS;
+  }, [stations]);
+
+  const [station, setStation] = useState<string>('');
+
+  useEffect(() => {
+    if (STATIONS.length > 0 && (!station || !STATIONS.includes(station))) {
+      setStation(STATIONS[0]);
+    }
+  }, [STATIONS, station]);
   const [amount, setAmount] = useState('');
   const [litres, setLitres] = useState('');
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -135,7 +162,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
     doc.setFontSize(9.5);
     doc.setFont("helvetica", "bold");
     doc.setTextColor(60, 60, 60);
-    doc.text('Total Fueling Expenses:', 18, currentY + 9);
+    doc.text('Total Amount Fueled:', 18, currentY + 9);
     
     // Value
     doc.setFont("helvetica", "bold");
@@ -154,7 +181,9 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
     doc.setFont("helvetica", "normal");
     currentY += 6;
     
-    Object.entries(carTotals).forEach(([car, amount]) => {
+    Object.entries(carTotals)
+      .sort(([, a], [, b]) => b - a)
+      .forEach(([car, amount]) => {
       doc.text(`${car}: ${formatCurrency(amount)}`, 14, currentY);
       currentY += 6;
     });
@@ -166,7 +195,9 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
       doc.setFont("helvetica", "normal");
       currentY += 6;
       
-      Object.entries(stationTotals).forEach(([station, amount]) => {
+      Object.entries(stationTotals)
+        .sort(([, a], [, b]) => b - a)
+        .forEach(([station, amount]) => {
         doc.text(`${station}: ${formatCurrency(amount)}`, 14, currentY);
         currentY += 6;
       });
@@ -182,7 +213,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
       bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] },
       footStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
       head: [['Date', 'Car Reg', 'Station', 'Litres', 'Amount']],
-      body: [...filteredExpenses].sort((a,b) => b.date - a.date).map(e => [
+      body: [...filteredExpenses].sort((a,b) => a.date - b.date).map(e => [
         format(e.date, 'MMM d, yyyy'), 
         e.carRegistration, 
         e.station || '-', 
@@ -247,8 +278,8 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
           <h3 className="text-lg font-bold text-theme-text mb-4">{editingExpenseId ? 'Edit' : 'Add'} Expense</h3>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
             <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" />
-            <select value={carReg} onChange={(e) => setCarReg(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">{CAR_REGISTRATIONS.map(r => <option key={r} value={r} className="dark:bg-slate-900">{r}</option>)}</select>
-            <select value={station} onChange={(e) => setStation(e.target.value as Station)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">{STATIONS.map(s => <option key={s} value={s} className="dark:bg-slate-900">{s}</option>)}</select>
+            <select value={carReg} onChange={(e) => setCarReg(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">{CAR_REGISTRATIONS.map(r => <option key={r} value={r} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{r}</option>)}</select>
+            <select value={station} onChange={(e) => setStation(e.target.value as Station)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">{STATIONS.map(s => <option key={s} value={s} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{s}</option>)}</select>
             <input type="number" min="0" step="0.1" value={litres} onChange={(e) => setLitres(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" placeholder="Litres (L)" />
             <input type="number" required min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" placeholder="Amount (KES)" />
             <div className="flex gap-2 w-full">
@@ -329,15 +360,15 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
               <div>
                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Car</label>
                 <select value={selectedCar} onChange={e => setSelectedCar(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-sm text-blue-900 dark:text-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
-                  <option value="all" className="dark:bg-slate-900">All Cars</option>
-                  {CAR_REGISTRATIONS.map(r => <option key={r} value={r} className="dark:bg-slate-900">{r}</option>)}
+                  <option value="all" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">All Cars</option>
+                  {CAR_REGISTRATIONS.map(r => <option key={r} value={r} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{r}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Station</label>
                 <select value={selectedStation} onChange={e => setSelectedStation(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-sm text-blue-900 dark:text-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
-                  <option value="all" className="dark:bg-slate-900">All Stations</option>
-                  {STATIONS.map(s => <option key={s} value={s} className="dark:bg-slate-900">{s}</option>)}
+                  <option value="all" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">All Stations</option>
+                  {STATIONS.map(s => <option key={s} value={s} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{s}</option>)}
                 </select>
               </div>
               <div>

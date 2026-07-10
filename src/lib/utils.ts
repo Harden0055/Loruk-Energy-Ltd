@@ -16,7 +16,7 @@ export function formatLitres(litres: number) {
   return new Intl.NumberFormat('en-US', {
     style: 'decimal',
     maximumFractionDigits: 1,
-  }).format(litres) + ' L';
+  }).format(litres);
 }
 
 export function getStationColor(station: string) {

@@ -21,6 +21,7 @@ export default function Sidebar({ currentPage, onNavigate }: SidebarProps) {
     { id: 'customers', label: 'Customers', icon: Users },
     { id: 'ledger', label: 'Ledger', icon: BookOpen },
     { id: 'fleet', label: 'Fleet Fueling', icon: CarFront },
+    { id: 'trucks', label: 'Trucks', icon: Truck },
     { id: 'reports', label: 'Reports', icon: FileText },
     { id: 'stations', label: 'Stations', icon: MapPin },
     { id: 'products', label: 'Products', icon: Box },

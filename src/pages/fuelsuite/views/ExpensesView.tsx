@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useFuel, Expense , STATIONS } from '../context';
-import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td } from '../components';
-import { Plus, Pencil, Trash2, X } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td , MetricCard} from '../components';
+import { Plus, Pencil, Trash2, X, Receipt, CreditCard, Banknote } from 'lucide-react';
 
 export default function ExpensesView() {
   const { expenses, setExpenses, activeStation } = useFuel();
@@ -15,7 +15,7 @@ export default function ExpensesView() {
     amount: 0,
   });
 
-  const filteredData = expenses.filter(e => activeStation === 'Combined Total' || e.station === activeStation).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const filteredData = expenses.filter(e => activeStation === 'Combined Total' || e.station === activeStation).sort((a,b) => b.date.localeCompare(a.date));
 
   const resetForm = () => {
     setForm({
@@ -55,6 +55,14 @@ export default function ExpensesView() {
     resetForm();
   };
 
+  
+  const metrics = React.useMemo(() => {
+    const total = filteredData.reduce((sum, e) => sum + e.amount, 0);
+    const mPesa = filteredData.filter(e => e.category.toLowerCase().includes('m-pesa') || e.category.toLowerCase().includes('mpesa') || e.category.toLowerCase().includes('m.pesa')).reduce((sum, e) => sum + e.amount, 0);
+    const cash = total - mPesa;
+    return { total, mPesa, cash };
+  }, [filteredData]);
+
   return (
     <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
       <div className="flex justify-between items-center">
@@ -62,6 +70,12 @@ export default function ExpensesView() {
           <h1 className="text-2xl font-bold text-slate-100">Expenses</h1>
           <p className="text-theme-text-muted mt-1">Log station operational expenses.</p>
         </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <MetricCard title="Total Expenses" value={`KES ${metrics.total.toLocaleString()}`} icon={Receipt} colorClass="bg-[#122840] text-theme-text-muted" />
+        <MetricCard title="M-Pesa Expenses" value={`KES ${metrics.mPesa.toLocaleString()}`} icon={CreditCard} colorClass="bg-emerald-500/10 text-emerald-400" />
+        <MetricCard title="Cash Expenses" value={`KES ${metrics.cash.toLocaleString()}`} icon={Banknote} colorClass="bg-cyan-500/10 text-cyan-400" />
+      </div>
         <Button 
           onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} 
           variant={isFormOpen ? 'secondary' : 'purple'}
@@ -85,7 +99,7 @@ export default function ExpensesView() {
               <div>
                 <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                 <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                  {STATIONS.map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
+                  {STATIONS.map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
                 </Select>
               </div>
               <div>

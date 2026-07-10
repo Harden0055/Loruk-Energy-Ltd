@@ -262,8 +262,8 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
                 onChange={e => setForm({...form, customerId: e.target.value})}
                 className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-theme-text dark:text-blue-50 text-base shadow-sm font-semibold cursor-pointer"
               >
-                <option className="dark:bg-slate-900" value="" disabled>Select a customer...</option>
-                {customers.map(c => <option className="dark:bg-slate-900" key={c.id} value={c.id}>{c.name}</option>)}
+                <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="" disabled>Select a customer...</option>
+                {customers.map(c => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div>

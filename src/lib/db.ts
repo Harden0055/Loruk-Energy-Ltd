@@ -1,6 +1,6 @@
 import { collection, onSnapshot, query, addDoc, updateDoc, doc, deleteDoc, orderBy, getDocs, increment, setDoc } from 'firebase/firestore';
 import { db, auth } from './firebase';
-import { Customer, Delivery, Payment, FleetExpense, StationReport, Adjustment } from '../types';
+import { Customer, Delivery, Payment, FleetExpense, StationReport, Adjustment, Truck } from '../types';
 import { useState, useEffect } from 'react';
 import { useAuth } from './auth';
 import { 
@@ -145,6 +145,11 @@ export function useAdjustments() {
 export function useFleetExpenses() {
   const { data, loading } = useGenericDbCollection<FleetExpense>('fleetExpenses');
   return { expenses: data, loading };
+}
+
+export function useTrucks() {
+  const { data, loading } = useGenericDbCollection<Truck>('trucks', 'createdAt');
+  return { trucks: data, loading };
 }
 
 export function useStationReports() {
@@ -330,6 +335,22 @@ export const createFleetExpense = async (data: Omit<FleetExpense, 'id'>) => {
   );
 };
 
+export const createTruck = async (data: Omit<Truck, 'id' | 'createdAt'>) => {
+  const payload = {
+    ...data,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  };
+  return executeDbMutation(
+    'trucks',
+    () => addDoc(collection(db, 'trucks'), payload),
+    () => addLocalDoc('trucks', payload),
+    'create',
+    undefined,
+    payload
+  );
+};
+
 export const createStationReport = async (data: Omit<StationReport, 'id'>) => {
   return executeDbMutation(
     'stationReports',
@@ -346,6 +367,31 @@ export const deleteFleetExpense = async (id: string) => {
     'fleetExpenses',
     () => deleteDoc(doc(db, 'fleetExpenses', id)),
     () => deleteLocalDoc('fleetExpenses', id),
+    'delete',
+    id
+  );
+};
+
+export const updateTruck = async (id: string, data: Partial<Truck>) => {
+  const payload = {
+    ...data,
+    updatedAt: Date.now()
+  };
+  return executeDbMutation(
+    'trucks',
+    () => updateDoc(doc(db, 'trucks', id), payload),
+    () => updateLocalDoc('trucks', id, payload),
+    'update',
+    id,
+    payload
+  );
+};
+
+export const deleteTruck = async (id: string) => {
+  return executeDbMutation(
+    'trucks',
+    () => deleteDoc(doc(db, 'trucks', id)),
+    () => deleteLocalDoc('trucks', id),
     'delete',
     id
   );

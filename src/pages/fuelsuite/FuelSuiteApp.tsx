@@ -113,8 +113,8 @@ const MainContent = ({ currentView, onOpenSidebar, isProfileOpen, setIsProfileOp
                value={activeStation}
                onChange={(e) => setActiveStation(e.target.value as Station)}
              >
-               <option value="Combined Total" className="dark:bg-slate-900 text-gray-900 dark:text-white text-white font-medium">Combined Total</option>
-               {STATIONS.map(s => <option key={s} value={s} className="dark:bg-slate-900 text-gray-900 dark:text-white text-white font-medium">{s}</option>)}
+               <option value="Combined Total" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900 font-medium">Combined Total</option>
+               {STATIONS.map(s => <option key={s} value={s} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900 font-medium">{s}</option>)}
              </select>
              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#A1A1AA]">
                <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"></path></svg>

@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useFuel, Product } from '../context';
-import { Card, CardContent, CardHeader, CardTitle, Input, Button, Table, Th, Td } from '../components';
-import { Plus, Pencil, Trash2, X } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, Input, Button, Table, Th, Td , MetricCard} from '../components';
+import { Plus, Pencil, Trash2, X, Box, Tag, Layers } from 'lucide-react';
 
 export default function ProductsView() {
   const { products, setProducts } = useFuel();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isBulkFormOpen, setIsBulkFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [bulkInput, setBulkInput] = useState('');
 
   const [form, setForm] = useState<Partial<Product>>({
     name: '',
@@ -24,6 +26,7 @@ export default function ProductsView() {
     setForm({ ...product });
     setEditingId(product.id);
     setIsFormOpen(true);
+    setIsBulkFormOpen(false);
   };
 
   const handleDelete = (id: string) => {
@@ -51,6 +54,49 @@ export default function ProductsView() {
     }
   };
 
+  const handleBulkSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const names = bulkInput
+      .split(',')
+      .map(name => name.trim())
+      .filter(name => name.length > 0);
+      
+    if (names.length === 0) {
+      alert('Please enter at least one product name.');
+      return;
+    }
+    
+    const existingNames = new Set(products.map(p => p.name.trim().toLowerCase()));
+    const addedProducts: Product[] = [];
+    const duplicates: string[] = [];
+    
+    names.forEach(name => {
+      if (existingNames.has(name.toLowerCase())) {
+        duplicates.push(name);
+      } else {
+        const newProd: Product = {
+          id: Math.random().toString(36).substr(2, 9),
+          name: name,
+        };
+        addedProducts.push(newProd);
+        existingNames.add(name.toLowerCase());
+      }
+    });
+    
+    if (addedProducts.length > 0) {
+      setProducts(prev => [...prev, ...addedProducts]);
+    }
+    
+    if (duplicates.length > 0) {
+      alert(`Added ${addedProducts.length} new product(s). Ignored ${duplicates.length} duplicate(s): ${duplicates.join(', ')}`);
+    } else {
+      alert(`Successfully added ${addedProducts.length} new product(s).`);
+    }
+    
+    setBulkInput('');
+    setIsBulkFormOpen(false);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const newName = (form.name || '').trim();
@@ -74,6 +120,11 @@ export default function ProductsView() {
     resetForm();
   };
 
+  
+  const metrics = React.useMemo(() => {
+    return { total: products.length };
+  }, [products]);
+
   return (
     <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -81,15 +132,49 @@ export default function ProductsView() {
           <h1 className="text-2xl font-bold text-slate-100">Products Configuration</h1>
           <p className="text-theme-text-muted mt-1">Manage fuel and oil products across all stations.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button onClick={removeDuplicates} variant="secondary" className="flex items-center gap-2">
             Remove Duplicates
           </Button>
-          <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
+          <Button onClick={() => { 
+            setIsFormOpen(false);
+            setIsBulkFormOpen(prev => !prev);
+          }} variant="secondary" className="flex items-center gap-2">
+            {isBulkFormOpen ? <><X className="w-4 h-4" /> Cancel Bulk</> : <><Layers className="w-4 h-4" /> Bulk Add</>}
+          </Button>
+          <Button onClick={() => { 
+            setIsBulkFormOpen(false);
+            if (isFormOpen) resetForm(); else setIsFormOpen(true); 
+          }} className="flex items-center gap-2">
             {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Product</>}
           </Button>
         </div>
       </div>
+
+      {isBulkFormOpen && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Bulk Add Products</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleBulkSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs text-theme-text-muted mb-1">Comma-Separated Product Names</label>
+                <textarea 
+                  value={bulkInput} 
+                  onChange={e => setBulkInput(e.target.value)} 
+                  placeholder="e.g. Engine Oil, Brake Fluid, Kerosene, LPG 13kg" 
+                  required
+                  className="w-full h-24 px-3.5 py-2.5 bg-[#09090B] border border-theme-border rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow resize-y"
+                />
+              </div>
+              <div className="flex justify-end mt-2">
+                <Button type="submit">Bulk Save Products</Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
 
       {isFormOpen && (
         <Card>

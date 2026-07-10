@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useFuel, InventoryItem , STATIONS } from '../context';
-import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td } from '../components';
-import { Plus, Pencil, Trash2, X, AlertCircle } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td , MetricCard} from '../components';
+import { Plus, Pencil, Trash2, X, AlertCircle, Box, PackagePlus, PackageMinus } from 'lucide-react';
 
 const STANDARD_PRODUCTS = [
   'Diesel',
@@ -80,7 +80,7 @@ export default function InventoryView() {
       }
     });
 
-    return combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return combined.sort((a, b) => b.date.localeCompare(a.date));
   }, [inventoryItems, pumpReadings, lpgTransactions, activeTab, activeStation, filterDate]);
 
   const resetForm = () => {
@@ -188,6 +188,19 @@ export default function InventoryView() {
     return summary;
   }, [inventoryItems, pumpReadings, lpgTransactions, activeStation, filterDate]);
 
+  
+  const metrics = React.useMemo(() => {
+    let totalIn = 0;
+    let totalOut = 0;
+    let totalBal = 0;
+    Object.values(inventorySummary).forEach(s => {
+      totalIn += s.in;
+      totalOut += s.out;
+      totalBal += s.balance;
+    });
+    return { totalIn, totalOut, totalBal };
+  }, [inventorySummary]);
+
   return (
     <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -195,6 +208,12 @@ export default function InventoryView() {
           <h1 className="text-2xl font-bold text-slate-100">Inventory Management</h1>
           <p className="text-theme-text-muted mt-1">Track opening stock, purchases, and sales for all products.</p>
         </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <MetricCard title="Total Received" value={metrics.totalIn.toLocaleString(undefined, { maximumFractionDigits: 2 })} icon={PackagePlus} colorClass="bg-cyan-500/10 text-cyan-400" />
+        <MetricCard title="Total Dispatched" value={metrics.totalOut.toLocaleString(undefined, { maximumFractionDigits: 2 })} icon={PackageMinus} colorClass="bg-orange-500/10 text-orange-400" />
+        <MetricCard title="Total Balance" value={metrics.totalBal.toLocaleString(undefined, { maximumFractionDigits: 2 })} icon={Box} colorClass="bg-emerald-500/10 text-emerald-400" />
+      </div>
         <div className="flex items-center gap-2">
           <label className="text-sm font-medium text-theme-text-muted whitespace-nowrap">As of Date:</label>
           <Input type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)} className="h-9 w-40" />
@@ -298,14 +317,14 @@ export default function InventoryView() {
                   <div>
                     <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                     <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                      {STATIONS.map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
+                      {STATIONS.map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
                     </Select>
                   </div>
                   <div className="col-span-1 md:col-span-1 lg:col-span-2">
                     <label className="block text-xs text-theme-text-muted mb-1">Product</label>
                     <Select value={form.item} onChange={e => setForm({...form, item: e.target.value})} required>
                       {STANDARD_PRODUCTS.map(p => (
-                        <option className="dark:bg-slate-900" key={p} value={p}>{p}</option>
+                        <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={p} value={p}>{p}</option>
                       ))}
                     </Select>
                   </div>

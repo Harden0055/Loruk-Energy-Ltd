@@ -28,6 +28,10 @@ export interface Delivery {
   productType: string;
   litres: number;
   totalAmount: number;
+  superLitres?: number;
+  dieselLitres?: number;
+  superAmount?: number;
+  dieselAmount?: number;
   createdBy: string;
   createdAt?: number;
   updatedBy: string;
@@ -75,7 +79,7 @@ export interface StationExpense {
 
 export interface StationReport {
   id: string;
-  station: 'Loruk - Ndalu' | 'Loruk - Junction' | 'Gel - Bungoma' | 'Gel - Kapenguria' | 'Kengas';
+  station: string;
   date: number;
   attendantName?: string;
   
@@ -106,7 +110,7 @@ export interface FleetExpense {
   date: number;
   createdBy: string;
   litres?: number;
-  station: 'Loruk - Ndalu' | 'Loruk - Junction' | 'Gel - Bungoma' | 'Gel - Kapenguria' | 'Kengas';
+  station: string;
 }
 
 export interface UserProfile {
@@ -359,5 +363,14 @@ export interface OpeningStock {
   grill: number;
   updatedAt: number;
 }
+
+export interface Truck {
+  id?: string;
+  registration: string;
+  status: 'active' | 'inactive';
+  createdAt: number;
+  updatedAt?: number;
+}
+
 
 

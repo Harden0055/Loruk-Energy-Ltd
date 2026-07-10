@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useFuel, Invoice, Customer, STATIONS } from '../context';
-import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td } from '../components';
-import { Plus, Pencil, Trash2, X, Users, FileText } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td , MetricCard} from '../components';
+import { Plus, Pencil, Trash2, X, Users, FileText, UserCheck, UserX, Receipt, Banknote, AlertCircle } from 'lucide-react';
 
 export default function InvoicesView() {
   const { invoices, setInvoices, customers, setCustomers, activeStation } = useFuel();
@@ -39,10 +39,15 @@ export default function InvoicesView() {
   const filteredData = invoices
     .filter(i => filterStation === 'Combined Total' || i.station === filterStation)
     .filter(i => !filterDate || i.date === filterDate)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     
   const filteredCustomers = customers
-    .filter(c => filterStation === 'Combined Total' || c.station === filterStation);
+    .filter(c => filterStation === 'Combined Total' || c.station === filterStation)
+    .sort((a, b) => {
+      const codeA = a.code || '';
+      const codeB = b.code || '';
+      return codeA.localeCompare(codeB, undefined, { numeric: true, sensitivity: 'base' });
+    });
 
   const resetForm = () => {
     setForm({
@@ -77,6 +82,7 @@ export default function InvoicesView() {
   const handleEditCustomer = (customer: Customer) => {
     setCustomerForm({ ...customer });
     setEditingCustomerId(customer.id);
+    setActiveTab('customers');
     setIsCustomerFormOpen(true);
   };
 
@@ -125,6 +131,14 @@ export default function InvoicesView() {
     resetCustomerForm();
   };
 
+  
+  const metrics = React.useMemo(() => {
+    const totalInvoiced = filteredData.reduce((sum, i) => sum + i.totalAmount, 0);
+    const totalPaid = filteredData.reduce((sum, i) => sum + i.paidAmount, 0);
+    const totalOutstanding = totalInvoiced - totalPaid;
+    return { totalInvoiced, totalPaid, totalOutstanding };
+  }, [filteredData]);
+
   return (
     <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -132,6 +146,12 @@ export default function InvoicesView() {
           <h1 className="text-2xl font-bold text-slate-100">Customer Invoices</h1>
           <p className="text-theme-text-muted mt-1">Track and manage daily customer invoices and balances.</p>
         </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <MetricCard title="Total Invoiced" value={`KES ${metrics.totalInvoiced.toLocaleString()}`} icon={Receipt} colorClass="bg-[#122840] text-theme-text-muted" />
+        <MetricCard title="Total Paid" value={`KES ${metrics.totalPaid.toLocaleString()}`} icon={Banknote} colorClass="bg-emerald-500/10 text-emerald-400" />
+        <MetricCard title="Total Outstanding" value={`KES ${metrics.totalOutstanding.toLocaleString()}`} icon={AlertCircle} colorClass="bg-orange-500/10 text-orange-400" />
+      </div>
         
         {activeTab === 'invoices' ? (
           <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
@@ -170,8 +190,8 @@ export default function InvoicesView() {
           <div className="flex-1 min-w-[200px]">
             <label className="block text-xs text-theme-text-muted mb-1">Filter by Station</label>
             <Select value={filterStation} onChange={e => setFilterStation(e.target.value)} className="h-9">
-              <option className="dark:bg-slate-900" value="Combined Total">Combined Total (All)</option>
-              {STATIONS.map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
+              <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="Combined Total">Combined Total (All)</option>
+              {STATIONS.map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
             </Select>
           </div>
         </div>
@@ -193,14 +213,21 @@ export default function InvoicesView() {
                   <div>
                     <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                     <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                      {STATIONS.map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
+                      {STATIONS.map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
                     </Select>
                   </div>
                   <div className="col-span-2">
                     <label className="block text-xs text-theme-text-muted mb-1">Customer</label>
                     <Select value={form.customerName} onChange={e => setForm({...form, customerName: e.target.value})} required>
-                      <option className="dark:bg-slate-900" value="">Select a customer...</option>
-                      {customers.filter(c => c.station === form.station).map(c => <option className="dark:bg-slate-900" key={c.id} value={c.name}>{c.name}</option>)}
+                      <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="">Select a customer...</option>
+                      {customers
+                        .filter(c => c.station === form.station)
+                        .sort((a, b) => {
+                          const codeA = a.code || '';
+                          const codeB = b.code || '';
+                          return codeA.localeCompare(codeB, undefined, { numeric: true, sensitivity: 'base' });
+                        })
+                        .map(c => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={c.id} value={c.name}>{c.name}</option>)}
                     </Select>
                   </div>
                   <div>
@@ -228,17 +255,33 @@ export default function InvoicesView() {
                   <Th>Customer</Th>
                   <Th>Total (KES)</Th>
                   <Th>Paid (KES)</Th>
-                  <Th>Balance (KES)</Th>
+                  <Th>Invoice Bal (KES)</Th>
+                  <Th>Net Balance (KES)</Th>
                   <Th>Status</Th>
                   <Th>Actions</Th>
                 </tr>
               </thead>
               <tbody>
                 {filteredData.map(t => {
-                  const balance = t.totalAmount - t.paidAmount;
+                  const invoiceBalance = t.totalAmount - t.paidAmount;
+                  const customer = customers.find(c => c.name === t.customerName && c.station === t.station);
+                  // Compute chronological running balance (ordered ascending by date)
+                  const customerInvoices = invoices
+                    .filter(i => i.customerName === t.customerName && i.station === t.station)
+                    .sort((a, b) => {
+                      const dateCompare = (a.date || '').localeCompare(b.date || '');
+                      if (dateCompare !== 0) return dateCompare;
+                      return (a.id || '').localeCompare(b.id || '');
+                    });
+                  const tIndex = customerInvoices.findIndex(i => i.id === t.id);
+                  const customerOpeningBalance = customer ? (customer.openingBalance || 0) : 0;
+                  const runningInvoiced = customerInvoices.slice(0, tIndex + 1).reduce((sum, i) => sum + (i.totalAmount || 0), 0);
+                  const runningPaid = customerInvoices.slice(0, tIndex + 1).reduce((sum, i) => sum + (i.paidAmount || 0), 0);
+                  const customerNetBalance = customerOpeningBalance + runningInvoiced - runningPaid;
+
                   let statusText = 'UNPAID';
                   let statusClass = 'bg-red-500/10 text-red-500';
-                  if (balance <= 0) {
+                  if (invoiceBalance <= 0) {
                     statusText = 'PAID';
                     statusClass = 'bg-emerald-500/10 text-emerald-500';
                   } else if (t.paidAmount > 0) {
@@ -253,16 +296,39 @@ export default function InvoicesView() {
                       <Td><span className="font-semibold text-theme-text">{t.customerName}</span></Td>
                       <Td className="text-[#3B82F6] font-semibold font-mono">KES {t.totalAmount.toLocaleString()}</Td>
                       <Td className="text-[#00D4FF] font-semibold font-mono">KES {t.paidAmount.toLocaleString()}</Td>
-                      <Td className={`${balance > 0 ? 'text-[#00D4FF]' : 'text-emerald-400'} font-semibold font-mono`}>KES {balance.toLocaleString()}</Td>
+                      <Td className={`${invoiceBalance > 0 ? 'text-[#00D4FF]' : 'text-emerald-400'} font-semibold font-mono`}>KES {invoiceBalance.toLocaleString()}</Td>
+                      <Td className="text-[#A855F7] font-bold font-mono">KES {customerNetBalance.toLocaleString()}</Td>
                       <Td><span className={`px-2 py-1 rounded text-xs font-bold ${statusClass}`}>{statusText}</span></Td>
                       <Td>
-                        <div className="flex gap-3">
-                          <button onClick={() => handleEdit(t)} className="text-theme-text-muted hover:text-[#00D4FF] transition-colors cursor-pointer">
+                        <div className="flex gap-2.5 items-center">
+                          {/* Invoice actions */}
+                          <button onClick={() => handleEdit(t)} title="Edit Invoice" className="text-theme-text-muted hover:text-[#00D4FF] transition-colors cursor-pointer">
                             <Pencil className="w-4 h-4" />
                           </button>
-                          <button onClick={() => handleDelete(t.id)} className="text-theme-text-muted hover:text-red-400 transition-colors cursor-pointer">
+                          <button onClick={() => handleDelete(t.id)} title="Delete Invoice" className="text-theme-text-muted hover:text-red-400 transition-colors cursor-pointer mr-1">
                             <Trash2 className="w-4 h-4" />
                           </button>
+                          
+                          {customer && (
+                            <>
+                              <span className="text-gray-700 dark:text-gray-600 font-light select-none">|</span>
+                              {/* Customer actions */}
+                              <button 
+                                onClick={() => handleEditCustomer(customer)} 
+                                title="Edit Customer (Opening Balance & Credit Limit)" 
+                                className="text-theme-text-muted hover:text-[#A855F7] transition-colors cursor-pointer ml-1"
+                              >
+                                <UserCheck className="w-4 h-4" />
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteCustomer(customer.id)} 
+                                title="Delete Customer" 
+                                className="text-theme-text-muted hover:text-rose-500 transition-colors cursor-pointer"
+                              >
+                                <UserX className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </Td>
                     </tr>
@@ -270,7 +336,7 @@ export default function InvoicesView() {
                 })}
                 {filteredData.length === 0 && (
                   <tr className="modern-tr">
-                    <Td colSpan={8} className="text-center py-8 text-slate-500">No invoices recorded.</Td>
+                    <Td colSpan={9} className="text-center py-8 text-slate-500">No invoices recorded.</Td>
                   </tr>
                 )}
               </tbody>
@@ -291,7 +357,7 @@ export default function InvoicesView() {
                   <div>
                     <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                     <Select value={customerForm.station} onChange={e => setCustomerForm({...customerForm, station: e.target.value as any})}>
-                      {STATIONS.map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
+                      {STATIONS.map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
                     </Select>
                   </div>
                   <div>
@@ -354,10 +420,10 @@ export default function InvoicesView() {
                       <Td>{totalPaid.toLocaleString(undefined, {minimumFractionDigits: 2})}</Td>
                       <Td>
                         <div className="flex flex-col">
-                          <span className={balance > 0 ? (isOverLimit ? "text-rose-500 font-bold" : "text-amber-400 font-medium") : "text-emerald-400 font-medium"}>
+                          <span className={isOverLimit ? "text-rose-500 font-bold" : "text-[#A855F7] font-bold"}>
                             {balance.toLocaleString(undefined, {minimumFractionDigits: 2})}
                           </span>
-                          {isOverLimit && <span className="text-[10px] text-rose-500">Over Limit</span>}
+                          {isOverLimit && <span className="text-[10px] text-rose-500 font-semibold">Over Limit</span>}
                         </div>
                       </Td>
                       <Td>

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useFuel, CashPosition } from '../context';
-import { Card, CardContent, CardHeader, CardTitle, Input, Button, Table, Th, Td } from '../components';
+import { Card, CardContent, CardHeader, CardTitle, Input, Button, Table, Th, Td , MetricCard} from '../components';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { Plus, Pencil, Trash2, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Wallet, Smartphone, Banknote } from 'lucide-react';
 
 const COLORS = ['#00D4FF', '#3B82F6'];
 
@@ -59,6 +59,14 @@ export default function CashPositionView() {
     resetForm();
   };
 
+  
+  const metrics = React.useMemo(() => {
+    const totalMpesa = cashPositions.reduce((sum, c) => sum + c.mPesa, 0);
+    const totalCash = cashPositions.reduce((sum, c) => sum + c.cashOnHand, 0);
+    const total = totalMpesa + totalCash;
+    return { total, mPesa: totalMpesa, cash: totalCash };
+  }, [cashPositions]);
+
   return (
     <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
       <div className="flex justify-between items-center">
@@ -66,6 +74,12 @@ export default function CashPositionView() {
           <h1 className="text-2xl font-bold text-slate-100">Cash Position</h1>
           <p className="text-theme-text-muted mt-1">Track daily bank, M-Pesa, and cash totals.</p>
         </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <MetricCard title="Total Cash Flow" value={`KES ${metrics.total.toLocaleString()}`} icon={Wallet} colorClass="bg-[#122840] text-theme-text-muted" />
+        <MetricCard title="Total M-Pesa" value={`KES ${metrics.mPesa.toLocaleString()}`} icon={Smartphone} colorClass="bg-emerald-500/10 text-emerald-400" />
+        <MetricCard title="Total Cash on Hand" value={`KES ${metrics.cash.toLocaleString()}`} icon={Banknote} colorClass="bg-cyan-500/10 text-cyan-400" />
+      </div>
         <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
           {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Position</>}
         </Button>
@@ -148,7 +162,7 @@ export default function CashPositionView() {
                 </tr>
               </thead>
                <tbody>
-                {[...cashPositions].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(t => (
+                {[...cashPositions].sort((a,b) => b.date.localeCompare(a.date)).map(t => (
                   <tr key={t.id} className="hover:theme-bg-gradient transition-colors">
                     <Td>{t.date}</Td>
                     <Td className="text-[#00D4FF] font-semibold font-mono">KES {t.mPesa.toLocaleString()}</Td>

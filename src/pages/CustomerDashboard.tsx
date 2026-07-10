@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   useCustomers, 
   useDeliveries, 
@@ -64,6 +64,17 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const { adjustments } = useAdjustments();
   const { invoices } = useDailyInvoices();
   const { payments: invoicePaymentsList } = useInvoicePayments();
+  const { data: products } = useProducts();
+
+  const uniqueProducts = useMemo(() => {
+    return Object.values(
+      (products || []).reduce((acc, p) => {
+        const key = p.name.trim().toLowerCase();
+        if (!acc[key]) acc[key] = p;
+        return acc;
+      }, {} as Record<string, any>)
+    );
+  }, [products]);
 
   // Selected state
   const [filterType, setFilterType] = useState<'all' | 'delivery' | 'payment' | 'adjustment'>('all');
@@ -96,6 +107,11 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [deliveryProduct, setDeliveryProduct] = useState<string>('Diesel');
   const [deliveryLitres, setDeliveryLitres] = useState('');
   const [deliveryAmount, setDeliveryAmount] = useState('');
+  const [deliverySuperAmount, setDeliverySuperAmount] = useState('');
+  const [deliveryDieselAmount, setDeliveryDieselAmount] = useState('');
+  const [deliveryRate, setDeliveryRate] = useState('');
+  const [deliverySuperRate, setDeliverySuperRate] = useState('');
+  const [deliveryDieselRate, setDeliveryDieselRate] = useState('');
   const [deliveryDate, setDeliveryDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentDate, setPaymentDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -105,6 +121,132 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [adjustReason, setAdjustReason] = useState('');
 
   const { data: productDefs } = useProducts();
+
+  // Bidirectional calculations for CustomerDashboard:
+  const handleProductTypeChange = (newProduct: string) => {
+    setDeliveryRate('');
+    setDeliverySuperRate('');
+    setDeliveryDieselRate('');
+    setDeliveryProduct(newProduct);
+    setDeliveryLitres('');
+    setDeliverySuperAmount('');
+    setDeliveryDieselAmount('');
+    setDeliveryAmount('');
+  };
+
+  const handleLitresChange = (newLitresStr: string) => {
+    setDeliveryLitres(newLitresStr);
+    const isSplit = deliveryProduct === 'Super/Diesel Split';
+    if (isSplit) {
+      const parts = newLitresStr.split('/');
+      if (parts.length === 2) {
+        const superL = (parseFloat(parts[0]) || 0) * 1000;
+        const dieselL = (parseFloat(parts[1]) || 0) * 1000;
+        
+        let calculatedSuperAmount = deliverySuperAmount;
+        let calculatedDieselAmount = deliveryDieselAmount;
+        
+        const sRate = parseFloat(deliverySuperRate) || 0;
+        if (sRate > 0) {
+          calculatedSuperAmount = String(Math.round(superL * sRate));
+        } else if (parseFloat(deliverySuperAmount) > 0 && superL > 0) {
+          setDeliverySuperRate((parseFloat(deliverySuperAmount) / superL).toFixed(2));
+        }
+        
+        const dRate = parseFloat(deliveryDieselRate) || 0;
+        if (dRate > 0) {
+          calculatedDieselAmount = String(Math.round(dieselL * dRate));
+        } else if (parseFloat(deliveryDieselAmount) > 0 && dieselL > 0) {
+          setDeliveryDieselRate((parseFloat(deliveryDieselAmount) / dieselL).toFixed(2));
+        }
+        
+        const sum = (parseFloat(calculatedSuperAmount) || 0) + (parseFloat(calculatedDieselAmount) || 0);
+        setDeliverySuperAmount(calculatedSuperAmount);
+        setDeliveryDieselAmount(calculatedDieselAmount);
+        setDeliveryAmount(String(sum));
+      }
+    } else {
+      const l = parseFloat(newLitresStr) || 0;
+      const r = parseFloat(deliveryRate) || 0;
+      if (l > 0 && r > 0) {
+        setDeliveryAmount(String(Math.round(l * r)));
+      } else if (l > 0 && parseFloat(deliveryAmount) > 0) {
+        setDeliveryRate((parseFloat(deliveryAmount) / l).toFixed(2));
+      }
+    }
+  };
+
+  const handleRateChange = (newRateStr: string) => {
+    setDeliveryRate(newRateStr);
+    const l = parseFloat(deliveryLitres) || 0;
+    const r = parseFloat(newRateStr) || 0;
+    if (l > 0 && r > 0) {
+      setDeliveryAmount(String(Math.round(l * r)));
+    }
+  };
+
+  const handleTotalAmountChange = (newAmountStr: string) => {
+    setDeliveryAmount(newAmountStr);
+    const l = parseFloat(deliveryLitres) || 0;
+    const amt = parseFloat(newAmountStr) || 0;
+    if (l > 0 && amt > 0) {
+      setDeliveryRate((amt / l).toFixed(2));
+    }
+  };
+
+  const handleSuperRateChange = (newRateStr: string) => {
+    setDeliverySuperRate(newRateStr);
+    const parts = String(deliveryLitres).split('/');
+    if (parts.length === 2) {
+      const superL = (parseFloat(parts[0]) || 0) * 1000;
+      const r = parseFloat(newRateStr) || 0;
+      if (superL > 0 && r > 0) {
+        const calculatedSuperAmount = String(Math.round(superL * r));
+        setDeliverySuperAmount(calculatedSuperAmount);
+        setDeliveryAmount(String((parseFloat(calculatedSuperAmount) || 0) + (parseFloat(deliveryDieselAmount) || 0)));
+      }
+    }
+  };
+
+  const handleDieselRateChange = (newRateStr: string) => {
+    setDeliveryDieselRate(newRateStr);
+    const parts = String(deliveryLitres).split('/');
+    if (parts.length === 2) {
+      const dieselL = (parseFloat(parts[1]) || 0) * 1000;
+      const r = parseFloat(newRateStr) || 0;
+      if (dieselL > 0 && r > 0) {
+        const calculatedDieselAmount = String(Math.round(dieselL * r));
+        setDeliveryDieselAmount(calculatedDieselAmount);
+        setDeliveryAmount(String((parseFloat(deliverySuperAmount) || 0) + (parseFloat(calculatedDieselAmount) || 0)));
+      }
+    }
+  };
+
+  const handleSuperAmountChange = (newAmountStr: string) => {
+    setDeliverySuperAmount(newAmountStr);
+    const parts = String(deliveryLitres).split('/');
+    if (parts.length === 2) {
+      const superL = (parseFloat(parts[0]) || 0) * 1000;
+      const amt = parseFloat(newAmountStr) || 0;
+      if (superL > 0 && amt > 0) {
+        setDeliverySuperRate((amt / superL).toFixed(2));
+      }
+    }
+    setDeliveryAmount(String((parseFloat(newAmountStr) || 0) + (parseFloat(deliveryDieselAmount) || 0)));
+  };
+
+  const handleDieselAmountChange = (newAmountStr: string) => {
+    setDeliveryDieselAmount(newAmountStr);
+    const parts = String(deliveryLitres).split('/');
+    if (parts.length === 2) {
+      const dieselL = (parseFloat(parts[1]) || 0) * 1000;
+      const amt = parseFloat(newAmountStr) || 0;
+      if (dieselL > 0 && amt > 0) {
+        setDeliveryDieselRate((amt / dieselL).toFixed(2));
+      }
+    }
+    setDeliveryAmount(String((parseFloat(deliverySuperAmount) || 0) + (parseFloat(newAmountStr) || 0)));
+  };
 
   // Retrieve current customer
   const customer = useMemo(() => {
@@ -169,7 +311,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         date: d.date, 
         type: 'delivery' as const, 
         title: 'Fuel Delivery',
-        description: `Delivered ${d.litres.toLocaleString()}L of ${d.productType}`,
+        description: d.productType === 'Super/Diesel Split' ? `Delivered ${(d.superLitres || 0)/1000}/${(d.dieselLitres || 0)/1000}L split` : ['lpg', 'lubricant'].some(str => d.productType.toLowerCase().includes(str)) ? `Delivered ${d.productType}` : `Delivered ${d.litres.toLocaleString()}L of ${d.productType}`,
         amount: d.totalAmount, 
         val: d.totalAmount,
         createdBy: d.createdBy || 'System',
@@ -365,30 +507,66 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const handleAddDelivery = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customer) return;
-    const litresVal = parseFloat(deliveryLitres);
-    const amountVal = parseFloat(deliveryAmount);
-    if (!litresVal || !amountVal) {
-      alert('Please fill in Litres and Amount');
+    
+    const isNonLiquid = deliveryProduct.toLowerCase().includes('lpg') || deliveryProduct.toLowerCase().includes('lubricant');
+    const isSplit = deliveryProduct === 'Super/Diesel Split';
+    
+    if (!isSplit && ((!isNonLiquid && !deliveryLitres) || !deliveryAmount)) {
+      alert('Please fill in required fields');
       return;
     }
-
+    if (isSplit && (!deliveryLitres || !deliverySuperAmount || !deliveryDieselAmount)) {
+      alert('Please fill in required split fields');
+      return;
+    }
+    
     setModalLoading(true);
     try {
+      let amt = parseFloat(deliveryAmount) || 0;
+      let finalLitres = isNonLiquid ? 0 : parseFloat(deliveryLitres);
+      let superL = 0;
+      let dieselL = 0;
+      let superA = 0;
+      let dieselA = 0;
+      
+      if (isSplit) {
+        const parts = String(deliveryLitres).split('/');
+        if (parts.length === 2) {
+          superL = parseFloat(parts[0]) * 1000;
+          dieselL = parseFloat(parts[1]) * 1000;
+          finalLitres = superL + dieselL;
+        }
+        superA = parseFloat(deliverySuperAmount) || 0;
+        dieselA = parseFloat(deliveryDieselAmount) || 0;
+        amt = superA + dieselA;
+      }
+      
       await createDelivery({
         customerId: customer.id,
         date: new Date(deliveryDate).getTime(),
         productType: deliveryProduct,
-        litres: litresVal,
-        totalAmount: amountVal,
+        litres: finalLitres,
+        totalAmount: amt,
+        ...(isSplit ? {
+          superLitres: superL,
+          dieselLitres: dieselL,
+          superAmount: superA,
+          dieselAmount: dieselA
+        } : {}),
         createdBy: user?.email || 'Unknown'
       }, user?.email || 'Unknown');
 
       // Update customer balance & purchases volume
-      await updateCustomer(customer.id, {}, { balance: amountVal, totalPurchases: amountVal }, user?.email || 'Unknown');
+      await updateCustomer(customer.id, {}, { balance: amt, totalPurchases: amt }, user?.email || 'Unknown');
 
       setActiveModal(null);
       setDeliveryLitres('');
       setDeliveryAmount('');
+      setDeliverySuperAmount('');
+      setDeliveryDieselAmount('');
+      setDeliveryRate('');
+      setDeliverySuperRate('');
+      setDeliveryDieselRate('');
     } catch (err) {
       console.error(err);
       alert('Error recording delivery');
@@ -936,39 +1114,123 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Fuel Product</label>
                   <select 
                     value={deliveryProduct}
-                    onChange={e => setDeliveryProduct(e.target.value as any)}
+                    onChange={e => handleProductTypeChange(e.target.value as any)}
                     className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold cursor-pointer outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
                   >
-                    <option value="Diesel" className="dark:bg-slate-900">Diesel</option>
-                    <option value="Super (Premium)" className="dark:bg-slate-900">Super (Premium)</option>
-                    <option value="Brake fluid" className="dark:bg-slate-900">Brake fluid</option>
-                    <option value="Engine oil" className="dark:bg-slate-900">Engine oil</option>
+                    {uniqueProducts.map(p => (
+                      <option key={p.id} value={p.name} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{p.name}</option>
+                    ))}
+                    {uniqueProducts.length === 0 && (
+                      <>
+                        <option value="Diesel" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Diesel</option>
+                        <option value="Super (Premium)" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Super (Premium)</option>
+                        <option value="Brake fluid" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Brake fluid</option>
+                        <option value="Engine oil" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Engine oil</option>
+                      </>
+                    )}
+                    <option value="Super/Diesel Split" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Super/Diesel Split</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Litres Volume *</label>
-                  <input 
-                    type="number"
-                    step="0.01"
-                    required
-                    placeholder="0.00"
-                    value={deliveryLitres}
-                    onChange={e => setDeliveryLitres(e.target.value)}
-                    className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Total Amount Cost (KES) *</label>
-                  <input 
-                    type="number"
-                    step="0.01"
-                    required
-                    placeholder="0.00"
-                    value={deliveryAmount}
-                    onChange={e => setDeliveryAmount(e.target.value)}
-                    className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
-                  />
-                </div>
+                
+                {deliveryProduct === 'Super/Diesel Split' ? (
+                  <>
+                    <div>
+                      <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Litres Split (Super/Diesel e.g. 7/3)</label>
+                      <input 
+                        type="text" required placeholder="e.g. 7/3"
+                        value={deliveryLitres} onChange={e => handleLitresChange(e.target.value)}
+                        className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Multiplies digit by 1000 (e.g. 7/3 = 7000L Super, 3000L Diesel)</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Super Rate (KES/L)</label>
+                        <input 
+                          type="number" step="0.01" placeholder="e.g. 200.00"
+                          value={deliverySuperRate} onChange={e => handleSuperRateChange(e.target.value)}
+                          className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Diesel Rate (KES/L)</label>
+                        <input 
+                          type="number" step="0.01" placeholder="e.g. 180.00"
+                          value={deliveryDieselRate} onChange={e => handleDieselRateChange(e.target.value)}
+                          className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Super Amount (KES)</label>
+                        <input 
+                          type="number" step="0.01" required placeholder="0.00"
+                          value={deliverySuperAmount} onChange={e => handleSuperAmountChange(e.target.value)}
+                          className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Diesel Amount (KES)</label>
+                        <input 
+                          type="number" step="0.01" required placeholder="0.00"
+                          value={deliveryDieselAmount} onChange={e => handleDieselAmountChange(e.target.value)}
+                          className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Total Amount (KES)</label>
+                      <input 
+                        type="number" step="1" required
+                        value={deliveryAmount} onChange={e => handleTotalAmountChange(e.target.value)}
+                        className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-4">
+                    {!['lpg', 'lubricant'].some(str => deliveryProduct.toLowerCase().includes(str)) ? (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Litres / Quantity *</label>
+                          <input 
+                            type="number"
+                            step="0.01"
+                            required
+                            placeholder="0.00"
+                            value={deliveryLitres}
+                            onChange={e => handleLitresChange(e.target.value)}
+                            className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Rate (KES/L)</label>
+                          <input 
+                            type="number"
+                            step="0.01"
+                            placeholder="e.g. 195.50"
+                            value={deliveryRate}
+                            onChange={e => handleRateChange(e.target.value)}
+                            className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                          />
+                        </div>
+                      </div>
+                    ) : null}
+                    <div>
+                      <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Total Amount Cost (KES) *</label>
+                      <input 
+                        type="number"
+                        step="0.01"
+                        required
+                        placeholder="0.00"
+                        value={deliveryAmount}
+                        onChange={e => handleTotalAmountChange(e.target.value)}
+                        className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="px-6 py-4 bg-blue-100/50 dark:bg-white/5 border-t border-theme-border flex justify-end gap-3 rounded-b-xl">
                 <button

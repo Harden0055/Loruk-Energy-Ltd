@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useDeliveries, createDelivery, useCustomers, deleteDelivery, updateCustomer, updateDelivery } from '../lib/db';
+import { useProducts } from '../lib/operationsDb';
 import { formatCurrency, formatLitres } from '../lib/utils';
 import { useAuth } from '../lib/auth';
 import { Search, Plus, Bot, Trash2, AlertTriangle, X, Edit2, Check, SlidersHorizontal, RotateCcw, Fuel, Users, Coins, Flame, Download } from 'lucide-react';
@@ -175,6 +176,17 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
   const isAdmin = (user as any)?.role === 'admin' || user?.email?.includes('admin');
   const { deliveries, loading } = useDeliveries();
   const { customers } = useCustomers();
+  const { data: products } = useProducts();
+  const uniqueProducts = useMemo(() => {
+    return Object.values(
+      (products || []).reduce((acc, p) => {
+        const key = p.name.trim().toLowerCase();
+        if (!acc[key]) acc[key] = p;
+        return acc;
+      }, {} as Record<string, any>)
+    );
+  }, [products]);
+  
   const [search, setSearch] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
@@ -195,7 +207,10 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
     productType: string;
     litres: string;
     totalAmount: string;
+    superAmount?: string;
+    dieselAmount?: string;
   } | null>(null);
+
   const [inlineSaveLoading, setInlineSaveLoading] = useState(false);
 
   const [showFilters, setShowFilters] = useState(false);
@@ -212,8 +227,10 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
     setEditForm({
       customerId: d.customerId,
       productType: d.productType,
-      litres: String(d.litres),
-      totalAmount: String(d.totalAmount)
+      litres: d.productType === 'Super/Diesel Split' ? `${(d.superLitres || 0) / 1000}/${(d.dieselLitres || 0) / 1000}` : String(d.litres),
+      totalAmount: String(d.totalAmount),
+      superAmount: String(d.superAmount || 0),
+      dieselAmount: String(d.dieselAmount || 0)
     });
   };
 
@@ -229,11 +246,27 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
 
     setInlineSaveLoading(true);
     try {
-      const newLitres = parseFloat(editForm.litres);
-      const newAmt = parseFloat(editForm.totalAmount);
+      const isNonLiquid = editForm.productType.toLowerCase().includes('lpg') || editForm.productType.toLowerCase().includes('lubricant');
+      const isSplit = editForm.productType === 'Super/Diesel Split';
+      let newLitres = isNonLiquid ? 0 : parseFloat(editForm.litres);
+      let newAmt = parseFloat(editForm.totalAmount);
+      
+      let superL = originalDelivery.superLitres;
+      let dieselL = originalDelivery.dieselLitres;
+      let superA = originalDelivery.superAmount;
+      let dieselA = originalDelivery.dieselAmount;
 
-      if (isNaN(newLitres) || newLitres <= 0) {
-        alert('Please enter a valid volume (litres) greater than 0.');
+      if (isSplit) {
+        const parts = String(editForm.litres).split('/');
+        if (parts.length === 2) {
+          superL = parseFloat(parts[0]) * 1000;
+          dieselL = parseFloat(parts[1]) * 1000;
+          newLitres = superL + dieselL;
+        }
+      }
+
+      if (!isNonLiquid && !isSplit && (isNaN(newLitres) || newLitres <= 0)) {
+        alert('Please enter a valid volume or quantity greater than 0.');
         setInlineSaveLoading(false);
         return;
       }
@@ -280,7 +313,13 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
         customerId: newCustomerId,
         productType: newProductType,
         litres: newLitres,
-        totalAmount: newAmt
+        totalAmount: newAmt,
+        ...(isSplit ? {
+          superLitres: superL,
+          dieselLitres: dieselL,
+          superAmount: superA,
+          dieselAmount: dieselA
+        } : {})
       });
 
       setEditingId(null);
@@ -465,8 +504,22 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
 
   const stats = useMemo(() => {
     const totalVolume = filtered.reduce((sum, d) => sum + d.litres, 0);
-    const dieselVolume = filtered.filter(d => (d.productType || '').toLowerCase().includes('diesel')).reduce((sum, d) => sum + d.litres, 0);
-    const superVolume = filtered.filter(d => (d.productType || '').toLowerCase().includes('super')).reduce((sum, d) => sum + d.litres, 0);
+    
+    let dieselVolume = 0;
+    let superVolume = 0;
+    
+    filtered.forEach(d => {
+      const pt = (d.productType || '').toLowerCase();
+      if (pt === 'super/diesel split') {
+        dieselVolume += d.dieselLitres || 0;
+        superVolume += d.superLitres || 0;
+      } else if (pt.includes('diesel')) {
+        dieselVolume += d.litres;
+      } else if (pt.includes('super')) {
+        superVolume += d.litres;
+      }
+    });
+    
     const brakeFluidVolume = filtered.filter(d => (d.productType || '').toLowerCase().includes('brake')).reduce((sum, d) => sum + d.litres, 0);
     const engineOilVolume = filtered.filter(d => (d.productType || '').toLowerCase().includes('oil')).reduce((sum, d) => sum + d.litres, 0);
     const totalValue = filtered.reduce((sum, d) => sum + d.totalAmount, 0);
@@ -592,9 +645,9 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                 onChange={e => setFilterCustomerId(e.target.value)}
                 className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border text-sm text-theme-text rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
-                <option value="All" className="dark:bg-slate-900">All Customers</option>
+                <option value="All" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">All Customers</option>
                 {customers.map(c => (
-                  <option key={c.id} value={c.id} className="dark:bg-slate-900">{c.name}</option>
+                  <option key={c.id} value={c.id} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{c.name}</option>
                 ))}
               </select>
             </div>
@@ -607,11 +660,18 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                 onChange={e => setFilterProductType(e.target.value as any)}
                 className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border text-sm text-theme-text rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
-                <option value="All" className="dark:bg-slate-900">All Products</option>
-                <option value="Diesel" className="dark:bg-slate-900">Diesel</option>
-                <option value="Super (Premium)" className="dark:bg-slate-900">Super (Premium)</option>
-                <option value="Brake fluid" className="dark:bg-slate-900">Brake fluid</option>
-                <option value="Engine oil" className="dark:bg-slate-900">Engine oil</option>
+                <option value="All" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">All Products</option>
+                {uniqueProducts.map(p => (
+                  <option key={p.id} value={p.name} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{p.name}</option>
+                ))}
+                {uniqueProducts.length === 0 && (
+                  <>
+                    <option value="Diesel" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Diesel</option>
+                    <option value="Super (Premium)" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Super (Premium)</option>
+                    <option value="Brake fluid" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Brake fluid</option>
+                    <option value="Engine oil" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Engine oil</option>
+                  </>
+                )}
               </select>
             </div>
 
@@ -623,12 +683,12 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                 onChange={e => setSortBy(e.target.value)}
                 className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border text-sm text-theme-text rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
-                <option value="date-desc" className="dark:bg-slate-900">Newest First</option>
-                <option value="date-asc" className="dark:bg-slate-900">Oldest First</option>
-                <option value="litres-desc" className="dark:bg-slate-900">Volume (Highest First)</option>
-                <option value="litres-asc" className="dark:bg-slate-900">Volume (Lowest First)</option>
-                <option value="amount-desc" className="dark:bg-slate-900">Value (Highest First)</option>
-                <option value="amount-asc" className="dark:bg-slate-900">Value (Lowest First)</option>
+                <option value="date-desc" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Newest First</option>
+                <option value="date-asc" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Oldest First</option>
+                <option value="litres-desc" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Volume (Highest First)</option>
+                <option value="litres-asc" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Volume (Lowest First)</option>
+                <option value="amount-desc" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Value (Highest First)</option>
+                <option value="amount-asc" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Value (Lowest First)</option>
               </select>
             </div>
 
@@ -636,7 +696,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
             <div className="flex items-center justify-between p-3.5 glass-panel rounded-lg border border-theme-border text-xs text-gray-500 dark:text-gray-400">
               <div className="space-y-1">
                 <div>Filtered Results: <span className="font-bold text-theme-text">{filtered.length} / {deliveries.length}</span></div>
-                <div>Total Volume: <span className="font-bold text-gray-905 dark:text-theme-text">{formatLitres(filtered.reduce((sum, x) => sum + x.litres, 0))} L</span></div>
+                <div>Litres / Qty: <span className="font-bold text-gray-905 dark:text-theme-text">{formatLitres(filtered.reduce((sum, x) => sum + x.litres, 0))}</span></div>
                 <div>Total Amount: <span className="font-bold text-gray-950 dark:text-blue-50">{formatCurrency(filtered.reduce((sum, x) => sum + x.totalAmount, 0))}</span></div>
               </div>
             </div>
@@ -832,7 +892,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                 <th className="modern-th">Date</th>
                 <th className="modern-th">Customer</th>
                 <th className="modern-th">Product</th>
-                <th className="modern-th">Litres</th>
+                <th className="modern-th">Litres / Qty</th>
                 <th className="modern-th">Total Amount</th>
                 <th className="modern-th">Actions</th>
               </tr>
@@ -898,7 +958,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                             className="w-full px-2 py-1 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg text-sm text-theme-text focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                           >
                             {customers.map(c => (
-                              <option key={c.id} value={c.id} className="dark:bg-slate-900">{c.name}</option>
+                              <option key={c.id} value={c.id} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{c.name}</option>
                             ))}
                           </select>
                         </div>
@@ -920,10 +980,17 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                           onChange={e => setEditForm({ ...editForm, productType: e.target.value })}
                           className="px-2 py-1 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg text-sm font-bold text-theme-text focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                         >
-                          <option value="Diesel" className="dark:bg-slate-900">Diesel</option>
-                          <option value="Super (Premium)" className="dark:bg-slate-900">Super (Premium)</option>
-                          <option value="Brake fluid" className="dark:bg-slate-900">Brake fluid</option>
-                          <option value="Engine oil" className="dark:bg-slate-900">Engine oil</option>
+                          {uniqueProducts.map(p => (
+                            <option key={p.id} value={p.name} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{p.name}</option>
+                          ))}
+                          {uniqueProducts.length === 0 && (
+                            <>
+                              <option value="Diesel" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Diesel</option>
+                              <option value="Super (Premium)" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Super (Premium)</option>
+                              <option value="Brake fluid" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Brake fluid</option>
+                              <option value="Engine oil" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Engine oil</option>
+                            </>
+                          )}
                         </select>
                       ) : (
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-sm font-bold uppercase tracking-wider ${
@@ -940,16 +1007,27 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                       )}
                     </td>
                     <td className="modern-td">
-                      {isEditing && editForm ? (
-                        <input
-                          type="number"
-                          step="0.1"
-                          value={editForm.litres}
-                          onChange={e => setEditForm({ ...editForm, litres: e.target.value })}
-                          className="px-2 py-1 glass-panel border border-theme-border rounded-lg text-sm text-theme-text text-right focus:outline-none focus:ring-2 focus:ring-blue-500 w-24 font-mono font-bold"
-                        />
+                      {isEditing && editForm && !['lpg', 'lubricant'].some(str => editForm.productType.toLowerCase().includes(str)) ? (
+                        editForm.productType === 'Super/Diesel Split' ? (
+                          <input
+                            type="text"
+                            value={editForm.litres}
+                            onChange={e => setEditForm({ ...editForm, litres: e.target.value })}
+                            className="px-2 py-1 glass-panel border border-theme-border rounded-lg text-sm text-theme-text text-right focus:outline-none focus:ring-2 focus:ring-blue-500 w-24 font-mono font-bold"
+                          />
+                        ) : (
+                          <input
+                            type="number"
+                            step="0.1"
+                            value={editForm.litres}
+                            onChange={e => setEditForm({ ...editForm, litres: e.target.value })}
+                            className="px-2 py-1 glass-panel border border-theme-border rounded-lg text-sm text-theme-text text-right focus:outline-none focus:ring-2 focus:ring-blue-500 w-24 font-mono font-bold"
+                          />
+                        )
                       ) : (
-                        formatLitres(d.litres)
+                        d.productType === 'Super/Diesel Split'
+                          ? `${(d.superLitres || 0) / 1000}/${(d.dieselLitres || 0) / 1000}`
+                          : !['lpg', 'lubricant'].some(str => d.productType.toLowerCase().includes(str)) ? formatLitres(d.litres) : '-'
                       )}
                     </td>
                     <td className="modern-td">
@@ -1020,6 +1098,16 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
 export function AddDeliveryModal({ onClose, customers, initialData }: { onClose: () => void, customers: any[], initialData?: any }) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const { data: products } = useProducts();
+  const uniqueProducts = useMemo(() => {
+    return Object.values(
+      (products || []).reduce((acc, p) => {
+        const key = p.name.trim().toLowerCase();
+        if (!acc[key]) acc[key] = p;
+        return acc;
+      }, {} as Record<string, any>)
+    );
+  }, [products]);
 
   // find CustomerId by name if AI gave us a customerId or name that matches
   let matchedCustomerId = '';
@@ -1040,30 +1128,229 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
     }
     return {
       customerId: matchedCustomerId || '',
-      productType: initialData?.productType || 'Diesel' as 'Diesel' | 'Super',
+      productType: initialData?.productType || 'Diesel',
       litres: initialData?.litres ? String(initialData.litres) : '',
       totalAmount: initialData?.amount || initialData?.totalAmount ? String(initialData.amount || initialData.totalAmount) : '',
+      superAmount: '',
+      dieselAmount: '',
       date: format(new Date(), 'yyyy-MM-dd')
     };
   });
+
+  const [rate, setRate] = useState('');
+  const [superRate, setSuperRate] = useState('');
+  const [dieselRate, setDieselRate] = useState('');
 
   useEffect(() => {
     localStorage.setItem('addDeliveryForm', JSON.stringify(form));
   }, [form]);
 
+  const handleProductTypeChange = (newProduct: string) => {
+    setRate('');
+    setSuperRate('');
+    setDieselRate('');
+    setForm(prev => ({
+      ...prev,
+      productType: newProduct,
+      litres: '',
+      superAmount: '',
+      dieselAmount: '',
+      totalAmount: ''
+    }));
+  };
+
+  const handleLitresChange = (newLitresStr: string) => {
+    const isSplit = form.productType === 'Super/Diesel Split';
+    if (isSplit) {
+      const parts = newLitresStr.split('/');
+      if (parts.length === 2) {
+        const superL = (parseFloat(parts[0]) || 0) * 1000;
+        const dieselL = (parseFloat(parts[1]) || 0) * 1000;
+        
+        let calculatedSuperAmount = form.superAmount;
+        let calculatedDieselAmount = form.dieselAmount;
+        
+        const sRate = parseFloat(superRate) || 0;
+        if (sRate > 0) {
+          calculatedSuperAmount = String(Math.round(superL * sRate));
+        } else if (parseFloat(form.superAmount) > 0 && superL > 0) {
+          setSuperRate((parseFloat(form.superAmount) / superL).toFixed(2));
+        }
+        
+        const dRate = parseFloat(dieselRate) || 0;
+        if (dRate > 0) {
+          calculatedDieselAmount = String(Math.round(dieselL * dRate));
+        } else if (parseFloat(form.dieselAmount) > 0 && dieselL > 0) {
+          setDieselRate((parseFloat(form.dieselAmount) / dieselL).toFixed(2));
+        }
+        
+        const sum = (parseFloat(calculatedSuperAmount) || 0) + (parseFloat(calculatedDieselAmount) || 0);
+        setForm(prev => ({
+          ...prev,
+          litres: newLitresStr,
+          superAmount: calculatedSuperAmount,
+          dieselAmount: calculatedDieselAmount,
+          totalAmount: String(sum)
+        }));
+      } else {
+        setForm(prev => ({ ...prev, litres: newLitresStr }));
+      }
+    } else {
+      const l = parseFloat(newLitresStr) || 0;
+      const r = parseFloat(rate) || 0;
+      if (l > 0 && r > 0) {
+        const calculatedAmount = String(Math.round(l * r));
+        setForm(prev => ({
+          ...prev,
+          litres: newLitresStr,
+          totalAmount: calculatedAmount
+        }));
+      } else if (l > 0 && parseFloat(form.totalAmount) > 0) {
+        const calculatedRate = (parseFloat(form.totalAmount) / l).toFixed(2);
+        setRate(calculatedRate);
+        setForm(prev => ({ ...prev, litres: newLitresStr }));
+      } else {
+        setForm(prev => ({ ...prev, litres: newLitresStr }));
+      }
+    }
+  };
+
+  const handleRateChange = (newRateStr: string) => {
+    setRate(newRateStr);
+    const l = parseFloat(form.litres) || 0;
+    const r = parseFloat(newRateStr) || 0;
+    if (l > 0 && r > 0) {
+      const calculatedAmount = String(Math.round(l * r));
+      setForm(prev => ({
+        ...prev,
+        totalAmount: calculatedAmount
+      }));
+    }
+  };
+
+  const handleTotalAmountChange = (newAmountStr: string) => {
+    const l = parseFloat(form.litres) || 0;
+    const amt = parseFloat(newAmountStr) || 0;
+    if (l > 0 && amt > 0) {
+      const calculatedRate = (amt / l).toFixed(2);
+      setRate(calculatedRate);
+    }
+    setForm(prev => ({ ...prev, totalAmount: newAmountStr }));
+  };
+
+  const handleSuperRateChange = (newRateStr: string) => {
+    setSuperRate(newRateStr);
+    const parts = String(form.litres).split('/');
+    if (parts.length === 2) {
+      const superL = (parseFloat(parts[0]) || 0) * 1000;
+      const r = parseFloat(newRateStr) || 0;
+      if (superL > 0 && r > 0) {
+        const calculatedSuperAmount = String(Math.round(superL * r));
+        const sum = (parseFloat(calculatedSuperAmount) || 0) + (parseFloat(form.dieselAmount) || 0);
+        setForm(prev => ({
+          ...prev,
+          superAmount: calculatedSuperAmount,
+          totalAmount: String(sum)
+        }));
+      }
+    }
+  };
+
+  const handleDieselRateChange = (newRateStr: string) => {
+    setDieselRate(newRateStr);
+    const parts = String(form.litres).split('/');
+    if (parts.length === 2) {
+      const dieselL = (parseFloat(parts[1]) || 0) * 1000;
+      const r = parseFloat(newRateStr) || 0;
+      if (dieselL > 0 && r > 0) {
+        const calculatedDieselAmount = String(Math.round(dieselL * r));
+        const sum = (parseFloat(form.superAmount) || 0) + (parseFloat(calculatedDieselAmount) || 0);
+        setForm(prev => ({
+          ...prev,
+          dieselAmount: calculatedDieselAmount,
+          totalAmount: String(sum)
+        }));
+      }
+    }
+  };
+
+  const handleSuperAmountChange = (newAmountStr: string) => {
+    const parts = String(form.litres).split('/');
+    if (parts.length === 2) {
+      const superL = (parseFloat(parts[0]) || 0) * 1000;
+      const amt = parseFloat(newAmountStr) || 0;
+      if (superL > 0 && amt > 0) {
+        setSuperRate((amt / superL).toFixed(2));
+      }
+    }
+    const sum = (parseFloat(newAmountStr) || 0) + (parseFloat(form.dieselAmount) || 0);
+    setForm(prev => ({
+      ...prev,
+      superAmount: newAmountStr,
+      totalAmount: String(sum)
+    }));
+  };
+
+  const handleDieselAmountChange = (newAmountStr: string) => {
+    const parts = String(form.litres).split('/');
+    if (parts.length === 2) {
+      const dieselL = (parseFloat(parts[1]) || 0) * 1000;
+      const amt = parseFloat(newAmountStr) || 0;
+      if (dieselL > 0 && amt > 0) {
+        setDieselRate((amt / dieselL).toFixed(2));
+      }
+    }
+    const sum = (parseFloat(form.superAmount) || 0) + (parseFloat(newAmountStr) || 0);
+    setForm(prev => ({
+      ...prev,
+      dieselAmount: newAmountStr,
+      totalAmount: String(sum)
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.customerId || !form.litres || !form.totalAmount) return;
+    const isNonLiquid = form.productType.toLowerCase().includes('lpg') || form.productType.toLowerCase().includes('lubricant');
+    const isSplit = form.productType === 'Super/Diesel Split';
+    
+    if (!form.customerId || (!isNonLiquid && !form.litres)) return;
+    if (!isSplit && !form.totalAmount) return;
+    if (isSplit && (!form.superAmount || !form.dieselAmount)) return;
+    
     setLoading(true);
     
     try {
-      const amt = parseFloat(form.totalAmount);
+      let amt = parseFloat(form.totalAmount) || 0;
+      let finalLitres = isNonLiquid ? 0 : parseFloat(form.litres);
+      let superL = 0;
+      let dieselL = 0;
+      let superA = 0;
+      let dieselA = 0;
+      
+      if (isSplit) {
+        const parts = String(form.litres).split('/');
+        if (parts.length === 2) {
+          superL = parseFloat(parts[0]) * 1000;
+          dieselL = parseFloat(parts[1]) * 1000;
+          finalLitres = superL + dieselL;
+        }
+        superA = parseFloat(form.superAmount) || 0;
+        dieselA = parseFloat(form.dieselAmount) || 0;
+        amt = superA + dieselA;
+      }
+      
       await createDelivery({ 
         customerId: form.customerId, 
         date: new Date(form.date).getTime() || Date.now(),
         productType: form.productType,
-        litres: parseFloat(form.litres),
+        litres: finalLitres,
         totalAmount: amt,
+        ...(isSplit ? {
+          superLitres: superL,
+          dieselLitres: dieselL,
+          superAmount: superA,
+          dieselAmount: dieselA
+        } : {}),
         createdBy: user?.uid || 'unknown'
       }, user?.email || 'system');
       const customer = customers.find(c => c.id === form.customerId);
@@ -1099,21 +1386,29 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
                 onChange={e => setForm({...form, customerId: e.target.value})}
                 className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
               >
-                <option value="" disabled className="dark:bg-slate-900">Select a customer</option>
-                {customers.map(c => <option key={c.id} value={c.id} className="dark:bg-slate-900">{c.name}</option>)}
+                <option value="" disabled className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Select a customer</option>
+                {customers.map(c => <option key={c.id} value={c.id} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{c.name}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Product Type</label>
               <select 
                 value={form.productType}
-                onChange={e => setForm({...form, productType: e.target.value})}
+                onChange={e => handleProductTypeChange(e.target.value)}
                 className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
               >
-                <option value="Diesel" className="dark:bg-slate-900">Diesel</option>
-                <option value="Super (Premium)" className="dark:bg-slate-900">Super (Premium)</option>
-                <option value="Brake fluid" className="dark:bg-slate-900">Brake fluid</option>
-                <option value="Engine oil" className="dark:bg-slate-900">Engine oil</option>
+                {uniqueProducts.map(p => (
+                  <option key={p.id} value={p.name} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{p.name}</option>
+                ))}
+                {uniqueProducts.length === 0 && (
+                  <>
+                    <option value="Diesel" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Diesel</option>
+                    <option value="Super (Premium)" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Super (Premium)</option>
+                    <option value="Brake fluid" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Brake fluid</option>
+                    <option value="Engine oil" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Engine oil</option>
+                  </>
+                )}
+                <option value="Super/Diesel Split" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Super/Diesel Split</option>
               </select>
             </div>
             <div>
@@ -1126,24 +1421,95 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
                 className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Litres</label>
-                <input 
-                  type="number" step="0.1" required
-                  value={form.litres} onChange={e => setForm({...form, litres: e.target.value})}
-                  className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
-                />
+            
+            {form.productType === 'Super/Diesel Split' ? (
+              <>
+                <div>
+                  <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Litres Split (Super/Diesel e.g. 7/3)</label>
+                  <input 
+                    type="text" required placeholder="e.g. 7/3"
+                    value={form.litres} onChange={e => handleLitresChange(e.target.value)}
+                    className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Multiplies digit by 1000 (e.g. 7/3 = 7000L Super, 3000L Diesel)</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Super Rate (KES/L)</label>
+                    <input 
+                      type="number" step="0.01" placeholder="e.g. 200"
+                      value={superRate} onChange={e => handleSuperRateChange(e.target.value)}
+                      className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Diesel Rate (KES/L)</label>
+                    <input 
+                      type="number" step="0.01" placeholder="e.g. 180"
+                      value={dieselRate} onChange={e => handleDieselRateChange(e.target.value)}
+                      className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Super Amount (KES)</label>
+                    <input 
+                      type="number" step="0.01" required
+                      value={form.superAmount} onChange={e => handleSuperAmountChange(e.target.value)}
+                      className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Diesel Amount (KES)</label>
+                    <input 
+                      type="number" step="0.01" required
+                      value={form.dieselAmount} onChange={e => handleDieselAmountChange(e.target.value)}
+                      className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Total Amount (KES)</label>
+                  <input 
+                    type="number" step="1" required
+                    value={form.totalAmount} onChange={e => handleTotalAmountChange(e.target.value)}
+                    className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="space-y-4">
+                {!['lpg', 'lubricant'].some(str => form.productType.toLowerCase().includes(str)) ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Litres / Quantity</label>
+                      <input 
+                        type="number" step="0.1" required
+                        value={form.litres} onChange={e => handleLitresChange(e.target.value)}
+                        className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Rate (KES/L)</label>
+                      <input 
+                        type="number" step="0.01" placeholder="e.g. 195.50"
+                        value={rate} onChange={e => handleRateChange(e.target.value)}
+                        className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
+                      />
+                    </div>
+                  </div>
+                ) : null}
+                <div>
+                  <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Total Amount (KES)</label>
+                  <input 
+                    type="number" step="1" required
+                    value={form.totalAmount} onChange={e => handleTotalAmountChange(e.target.value)}
+                    className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Total Amount (KES)</label>
-                <input 
-                  type="number" step="1" required
-                  value={form.totalAmount} onChange={e => setForm({...form, totalAmount: e.target.value})}
-                  className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
-                />
-              </div>
-            </div>
+            )}
           </div>
           <div className="px-6 py-4 bg-blue-100/50 dark:bg-white/5 border-t border-theme-border flex justify-end gap-3">
              <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-cyan-400 hover:text-blue-900 dark:text-theme-text-muted dark:hover:text-blue-100 transition-colors">Cancel</button>

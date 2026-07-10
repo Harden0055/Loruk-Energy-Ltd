@@ -211,11 +211,12 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
     }
 
     let runningBalance = initialBalance;
-    return result.map(entry => {
+    const entriesWithBalance = result.map(entry => {
       runningBalance = runningBalance + entry.debit - entry.credit;
       return { ...entry, runningBalance };
     });
-  }, [ledgerEntries, selectedCustomerId, filterType, dateFrom, dateTo, customers]);
+    return entriesWithBalance.sort((a, b) => b.date - a.date);
+  }, [ledgerEntries, selectedCustomerId, filterType, dateFrom, dateTo, searchTerm, customers]);
 
   const totalDebits = filteredEntries.reduce((sum, e) => sum + e.debit, 0);
   const totalCredits = filteredEntries.reduce((sum, e) => sum + e.credit, 0);
@@ -266,7 +267,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
       headRow.splice(1, 0, 'Customer');
     }
 
-    const rows = [...filteredEntries].reverse().map(e => {
+    const rows = [...filteredEntries].map(e => {
       const row = [
         format(e.date, 'MM/dd/yyyy'),
         e.note,
@@ -374,9 +375,9 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
             onChange={(e) => setSelectedCustomerId(e.target.value)}
             className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-theme-text cursor-pointer"
           >
-            <option value="all" className="dark:bg-slate-900">All Customers</option>
+            <option value="all" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">All Customers</option>
             {customers.map(c => (
-              <option key={c.id} value={c.id} className="dark:bg-slate-900">{c.name}</option>
+              <option key={c.id} value={c.id} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{c.name}</option>
             ))}
           </select>
         </div>
@@ -387,10 +388,10 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
             onChange={(e) => setFilterType(e.target.value as any)}
             className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-theme-text cursor-pointer"
           >
-            <option value="all" className="dark:bg-slate-900">All Transactions</option>
-            <option value="delivery" className="dark:bg-slate-900">Deliveries (Debit)</option>
-            <option value="payment" className="dark:bg-slate-900">Payments (Credit)</option>
-            <option value="manual" className="dark:bg-slate-900">Manual Adjustments</option>
+            <option value="all" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">All Transactions</option>
+            <option value="delivery" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Deliveries (Debit)</option>
+            <option value="payment" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Payments (Credit)</option>
+            <option value="manual" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Manual Adjustments</option>
           </select>
         </div>
         <div>

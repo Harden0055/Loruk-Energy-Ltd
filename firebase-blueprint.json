@@ -11,6 +11,18 @@
       },
       "required": ["email", "role"]
     },
+    "Truck": {
+      "title": "Truck",
+      "description": "Dynamic company trucks fleet details",
+      "type": "object",
+      "properties": {
+        "registration": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "inactive"] },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["registration", "status", "createdAt"]
+    },
     "Customer": {
       "title": "Customer",
       "description": "Fuel station customer",
@@ -443,6 +455,10 @@
     "daily_reports/{reportId}": {
       "schema": { "$ref": "#/entities/DailyReportRecord" },
       "description": "Multi-station daily summaries and aggregations"
+    },
+    "trucks/{truckId}": {
+      "schema": { "$ref": "#/entities/Truck" },
+      "description": "Dynamic company trucks fleet registrations"
     }
   }
 }

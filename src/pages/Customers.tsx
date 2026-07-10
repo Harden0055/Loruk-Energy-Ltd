@@ -139,9 +139,9 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
             onChange={e => setStatusFilter(e.target.value as any)}
             className="w-full px-4 py-2.5 bg-sky-500/5 border border-theme-border rounded-lg text-base text-sky-300 dark:text-sky-300 font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors cursor-pointer"
           >
-            <option value="all" className="dark:bg-slate-900">All Statuses</option>
-            <option value="active" className="dark:bg-slate-900">Active</option>
-            <option value="credit_risk" className="dark:bg-slate-900">Credit Risk</option>
+            <option value="all" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">All Statuses</option>
+            <option value="active" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Active</option>
+            <option value="credit_risk" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Credit Risk</option>
           </select>
         </div>
         <button 
@@ -699,8 +699,8 @@ function EditCustomerModal({ customer, customers, onClose }: EditProps) {
                 onChange={e => setForm({...form, status: e.target.value as 'active' | 'credit_risk'})}
                 className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 text-theme-text dark:text-sky-100 text-base font-semibold cursor-pointer shadow-sm"
               >
-                <option className="dark:bg-slate-900" value="active">Active</option>
-                <option className="dark:bg-slate-900" value="credit_risk">Credit Risk</option>
+                <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="active">Active</option>
+                <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="credit_risk">Credit Risk</option>
               </select>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useFuel, PumpReading , STATIONS, Station } from '../context';
-import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td } from '../components';
-import { Plus, Pencil, Trash2, X } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td , MetricCard} from '../components';
+import { Plus, Pencil, Trash2, X, Droplet, TrendingUp, Banknote } from 'lucide-react';
 
 export default function PumpReadingsView() {
   const { activeStation, setActiveStation, pumpReadings, setPumpReadings, products } = useFuel();
@@ -25,7 +25,7 @@ export default function PumpReadingsView() {
     return pumpReadings.filter(r => 
       (filterStation === 'Combined Total' || r.station === filterStation) &&
       (!filterDate || r.date === filterDate)
-    ).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    ).sort((a, b) => b.date.localeCompare(a.date));
   }, [pumpReadings, filterStation, filterDate]);
 
   const resetForm = () => {
@@ -96,41 +96,18 @@ export default function PumpReadingsView() {
           <div className="flex-1">
             <label className="block text-xs text-theme-text-muted mb-1">Station</label>
             <Select value={filterStation} onChange={e => setFilterStation(e.target.value as Station)} className="h-9">
-              {['Combined Total', ...STATIONS].map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
+              {['Combined Total', ...STATIONS].map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
             </Select>
           </div>
         </div>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="flex items-center gap-4 glass-panel p-4 rounded-xl border border-theme-border shadow-sm">
-          <div className="p-3 bg-[#122840] text-theme-text-muted rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-          </div>
-          <div>
-            <p className="text-xs font-medium text-theme-text-muted">Total Volume</p>
-            <h3 className="text-xl font-bold text-slate-100">{metrics.totalVolume.toFixed(2)} L</h3>
-          </div>
-        </div>
-        <div className="flex items-center gap-4 glass-panel p-4 rounded-xl border border-theme-border shadow-sm">
-          <div className="p-3 bg-cyan-500/10 text-cyan-400 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-          </div>
-          <div>
-            <p className="text-xs font-medium text-theme-text-muted">Expected Sales</p>
-            <h3 className="text-xl font-bold text-cyan-400">KES {metrics.expectedSales.toLocaleString()}</h3>
-          </div>
-        </div>
-        <div className="flex items-center gap-4 glass-panel p-4 rounded-xl border border-theme-border shadow-sm">
-          <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
-          </div>
-          <div>
-            <p className="text-xs font-medium text-theme-text-muted">Collected Cash</p>
-            <h3 className="text-xl font-bold text-emerald-400">KES {metrics.collectedCash.toLocaleString()}</h3>
-          </div>
-        </div>
+        <MetricCard title="Total Volume" value={`${metrics.totalVolume.toFixed(2)} L`} icon={Droplet} colorClass="bg-[#122840] text-theme-text-muted" />
+        <MetricCard title="Expected Sales" value={`KES ${metrics.expectedSales.toLocaleString()}`} icon={TrendingUp} colorClass="bg-cyan-500/10 text-cyan-400" />
+        <MetricCard title="Collected Cash" value={`KES ${metrics.collectedCash.toLocaleString()}`} icon={Banknote} colorClass="bg-emerald-500/10 text-emerald-400" />
       </div>
+
+      
 
       {isFormOpen && (
         <Card>
@@ -146,14 +123,14 @@ export default function PumpReadingsView() {
               <div>
                 <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                 <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                  {STATIONS.map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
+                  {STATIONS.map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
                 </Select>
               </div>
               <div>
                 <label className="block text-xs text-theme-text-muted mb-1">Product</label>
                 <Select value={form.product} onChange={e => setForm({...form, product: e.target.value})}>
                   {products.map(p => (
-                    <option className="dark:bg-slate-900" key={p.id} value={p.name}>{p.name}</option>
+                    <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={p.id} value={p.name}>{p.name}</option>
                   ))}
                 </Select>
               </div>

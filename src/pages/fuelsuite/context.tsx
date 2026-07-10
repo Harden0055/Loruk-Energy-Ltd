@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { collection, onSnapshot, setDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
@@ -99,6 +99,11 @@ const FuelContext = createContext<FuelContextType | undefined>(undefined);
 
 function useFirebaseCollection<T extends {id?: string}>(collectionName: string, defaultValue: T[]): [T[], React.Dispatch<React.SetStateAction<T[]>>] {
   const [items, setItems] = useState<T[]>(defaultValue);
+  const itemsRef = useRef<T[]>(defaultValue);
+
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, collectionName), (snapshot) => {
@@ -110,6 +115,7 @@ function useFirebaseCollection<T extends {id?: string}>(collectionName: string, 
          });
       } else {
          setItems(data);
+         itemsRef.current = data;
       }
     }, (error) => {
       console.warn(`Error reading collection ${collectionName}`, error);
@@ -118,26 +124,41 @@ function useFirebaseCollection<T extends {id?: string}>(collectionName: string, 
   }, [collectionName]);
 
   const setCollectionItems = useCallback((action: React.SetStateAction<T[]>) => {
-    setItems(prevItems => {
-      const newItems = typeof action === 'function' ? (action as any)(prevItems) : action;
-      
-      newItems.forEach((newItem: T) => {
-         const oldItem = prevItems.find(i => i.id === newItem.id);
-         if (!oldItem || JSON.stringify(oldItem) !== JSON.stringify(newItem)) {
-            if (newItem.id) {
-               setDoc(doc(db, collectionName, newItem.id), newItem);
-            }
-         }
-      });
-      
-      prevItems.forEach((oldItem: T) => {
-         if (oldItem.id && !newItems.find(i => i.id === oldItem.id)) {
-            deleteDoc(doc(db, collectionName, oldItem.id));
-         }
-      });
+    const prevItems = itemsRef.current;
+    const newItems = typeof action === 'function' ? (action as any)(prevItems) : action;
+    
+    // Optimistically update local state
+    setItems(newItems);
+    itemsRef.current = newItems;
 
-      return newItems;
-    });
+    // Apply database updates asynchronously outside state updater context
+    const syncFirestore = async () => {
+      try {
+        // Handle additions and updates
+        for (const newItem of newItems) {
+          const oldItem = prevItems.find(i => i.id === newItem.id);
+          if (!oldItem || JSON.stringify(oldItem) !== JSON.stringify(newItem)) {
+            if (newItem.id) {
+              await setDoc(doc(db, collectionName, newItem.id), newItem);
+            }
+          }
+        }
+        
+        // Handle deletions
+        for (const oldItem of prevItems) {
+          if (oldItem.id && !newItems.find(i => i.id === oldItem.id)) {
+            await deleteDoc(doc(db, collectionName, oldItem.id));
+          }
+        }
+      } catch (error) {
+        console.error(`Error syncing collection ${collectionName} with Firestore:`, error);
+        // Rollback on failure
+        setItems(prevItems);
+        itemsRef.current = prevItems;
+      }
+    };
+
+    syncFirestore();
   }, [collectionName]);
 
   return [items, setCollectionItems as React.Dispatch<React.SetStateAction<T[]>>];

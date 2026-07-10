@@ -10,6 +10,7 @@ import Payments from './pages/Payments';
 import Ledger from './pages/Ledger';
 import Fleet from './pages/Fleet';
 import TruckDashboard from './pages/TruckDashboard';
+import Trucks from './pages/Trucks';
 import Customers from './pages/Customers';
 import Reports from './pages/Reports';
 import CustomerDashboard from './pages/CustomerDashboard';
@@ -25,7 +26,7 @@ import { Fuel, LogIn, RefreshCcw, Printer, Menu, AlertTriangle, User } from 'luc
 import { format } from 'date-fns';
 import { useProducts, addProduct } from './lib/operationsDb';
 
-type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'settings' | 'stations' | 'products' | 'assistant' | 'fuelsuite';
+type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'trucks' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'settings' | 'stations' | 'products' | 'assistant' | 'fuelsuite';
 
 function AuthenticatedApp() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -43,21 +44,18 @@ function AuthenticatedApp() {
   const { data: products, loading: productsLoading } = useProducts();
 
   useEffect(() => {
-    if (!productsLoading && products) {
+    if (!productsLoading && products && products.length === 0) {
       const seed = async () => {
         try {
-          const missingDiesel = !products.some(p => p.name.toLowerCase() === 'diesel');
-          const missingSuper = !products.some(p => p.name.toLowerCase().includes('super'));
-          
-          if (missingDiesel) await addProduct({ name: 'Diesel' });
-          if (missingSuper) await addProduct({ name: 'Super (Premium)' });
+          await addProduct({ name: 'Diesel' });
+          await addProduct({ name: 'Super (Premium)' });
         } catch (e) {
           console.error('Seed error:', e);
         }
       };
       seed();
     }
-  }, [products, productsLoading]);
+  }, [products?.length, productsLoading]);
 
   const navigateTo = (page: Page, params?: { customerId?: string | null, truckReg?: string | null }) => {
     const customerId = params?.customerId !== undefined ? params.customerId : (page === 'customerDashboard' ? selectedCustomerId : null);
@@ -254,6 +252,7 @@ function AuthenticatedApp() {
               />
             )}
             {currentPage === 'fleet' && <Fleet onNavigate={(p) => navigateTo(p as Page)} onNavigateToTruck={(reg) => { navigateTo('truckDashboard', { truckReg: reg }); }} />}
+            {currentPage === 'trucks' && <Trucks onNavigateToTruck={(reg) => { navigateTo('truckDashboard', { truckReg: reg }); }} />}
             {currentPage === 'truckDashboard' && <TruckDashboard truckReg={selectedTruckReg} onNavigateToTruck={(reg) => { navigateTo('truckDashboard', { truckReg: reg }); }} onBack={() => window.history.back()} />}
             {currentPage === 'customers' && (
               <Customers 

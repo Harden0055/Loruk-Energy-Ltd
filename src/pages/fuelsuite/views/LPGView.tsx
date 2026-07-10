@@ -31,7 +31,7 @@ export default function LPGView() {
       isFromInventory: true
     }));
 
-  const allLpgData = [...lpgTransactions, ...lpgInventoryItems].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const allLpgData = [...lpgTransactions, ...lpgInventoryItems].sort((a, b) => b.date.localeCompare(a.date));
 
   const filteredData = useMemo(() => {
     return allLpgData.filter(t => 
@@ -148,8 +148,8 @@ export default function LPGView() {
             <span className="text-3xl font-bold text-cyan-400 mt-2">Ksh {totalSalesAmount.toLocaleString()}</span>
           </div>
           <div className="flex flex-col justify-center bg-orange-500/10 border border-orange-500/20 p-6 rounded-xl shadow-sm">
-            <span className="text-sm text-theme-text-muted font-medium">Total LPG Purchases (COGS)</span>
-            <span className="text-3xl font-bold text-orange-400 mt-2">- Ksh {totalPurchasesAmount.toLocaleString()}</span>
+            <span className="text-sm text-theme-text-muted font-medium">Total LPG Purchases</span>
+            <span className="text-3xl font-bold text-orange-400 mt-2">Ksh {totalPurchasesAmount.toLocaleString()}</span>
           </div>
           <div className="flex flex-col justify-center bg-emerald-500/10 border border-emerald-500/20 p-6 rounded-xl shadow-sm">
             <span className="text-sm text-theme-text-muted font-medium">Net Profit (LPG)</span>
@@ -197,7 +197,7 @@ export default function LPGView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {statsData.filter(t => t.type !== 'opening').sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(t => (
+                  {statsData.filter(t => t.type !== 'opening').sort((a,b) => b.date.localeCompare(a.date)).map(t => (
                     <tr key={t.id} className="border-b border-theme-border/50 hover:bg-[#122840]/50 transition-colors">
                       <td className="modern-td">{t.date}</td>
                       <td className="modern-td">
@@ -241,7 +241,7 @@ export default function LPGView() {
           <div className="flex-1">
             <label className="block text-xs text-theme-text-muted mb-1">Station</label>
             <Select value={filterStation} onChange={e => setFilterStation(e.target.value as Station)} className="h-9">
-              {['Combined Total', ...STATIONS].map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
+              {['Combined Total', ...STATIONS].map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
             </Select>
           </div>
         </div>
@@ -300,14 +300,14 @@ export default function LPGView() {
               <div>
                 <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                 <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                  {STATIONS.map(s => <option className="dark:bg-slate-900" key={s} value={s}>{s}</option>)}
+                  {STATIONS.map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
                 </Select>
               </div>
               <div className="col-span-1 md:col-span-1 lg:col-span-2">
                 <label className="block text-xs text-theme-text-muted mb-1">Item Size</label>
                 <Select value={form.item} onChange={e => setForm({...form, item: e.target.value})}>
-                  <option className="dark:bg-slate-900" value="6kg Cylinder">6kg Cylinder</option>
-                  <option className="dark:bg-slate-900" value="13kg Cylinder">13kg Cylinder</option>
+                  <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="6kg Cylinder">6kg Cylinder</option>
+                  <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="13kg Cylinder">13kg Cylinder</option>
                 </Select>
               </div>
               <div>

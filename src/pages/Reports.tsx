@@ -54,12 +54,21 @@ export default function Reports() {
       doc.setFont("helvetica", "bold");
       doc.text('Fuel Deliveries History', 14, currentY);
       
-      const deliveryRows = customerDeliveries.map(d => [
-        format(d.date, 'MM/dd/yyyy'),
-        d.productType,
-        formatLitres(d.litres),
-        formatCurrency(d.totalAmount)
-      ]);
+      const deliveryRows = customerDeliveries.map(d => {
+        let typeStr = d.productType;
+        let litresStr = formatLitres(d.litres);
+        if (d.productType === 'Super/Diesel Split') {
+          litresStr = `${(d.superLitres || 0)/1000}/${(d.dieselLitres || 0)/1000} (split)`;
+        } else if (['lpg', 'lubricant'].some(str => d.productType.toLowerCase().includes(str))) {
+          litresStr = '-';
+        }
+        return [
+          format(d.date, 'MM/dd/yyyy'),
+          typeStr,
+          litresStr,
+          formatCurrency(d.totalAmount)
+        ];
+      });
 
       autoTable(doc, {
         startY: currentY + 5,
@@ -133,8 +142,8 @@ export default function Reports() {
         const todayTime = today.getTime();
         const tomorrowTime = todayTime + 24 * 60 * 60 * 1000;
 
-        const dailyDeliveries = deliveries.filter(d => d.date >= todayTime && d.date < tomorrowTime).sort((a, b) => a.date - b.date);
-        const dailyPayments = payments.filter(p => p.date >= todayTime && p.date < tomorrowTime).sort((a, b) => a.date - b.date);
+        const dailyDeliveries = deliveries.filter(d => d.date >= todayTime && d.date < tomorrowTime).sort((a, b) => b.date - a.date);
+        const dailyPayments = payments.filter(p => p.date >= todayTime && p.date < tomorrowTime).sort((a, b) => b.date - a.date);
 
         const doc = new jsPDF();
 
@@ -231,9 +240,9 @@ export default function Reports() {
               disabled={loading}
               className="w-full max-w-md px-4 py-2.5 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-theme-text font-semibold disabled:opacity-50 text-lg cursor-pointer"
             >
-              <option value="" disabled className="dark:bg-slate-900">Choose a customer to generate report</option>
+              <option value="" disabled className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Choose a customer to generate report</option>
               {customers.map(c => (
-                <option key={c.id} value={c.id} className="dark:bg-slate-900">{c.name} - {formatCurrency(c.balance)} Bal</option>
+                <option key={c.id} value={c.id} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{c.name} - {formatCurrency(c.balance)} Bal</option>
               ))}
             </select>
           </div>

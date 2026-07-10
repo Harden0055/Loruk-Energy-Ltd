@@ -30,10 +30,8 @@ export default function DailyReportView() {
   ), [expenses, selectedDate, activeStation]);
 
   const dailyInvoices = useMemo(() => invoices.filter(
-    i => (activeStation === 'Combined Total' ? true : i.station === activeStation)
-    // Note: Invoices in context don't have a date field currently, but let's assume they are all debts for now or we filter if added.
-    // For now, let's just show all unpaid invoices as debts.
-  ), [invoices, activeStation]);
+    i => (activeStation === 'Combined Total' ? true : i.station === activeStation) && i.date === selectedDate
+  ), [invoices, activeStation, selectedDate]);
 
   const unpaidDebts = dailyInvoices.filter(i => i.totalAmount - i.paidAmount > 0);
 
@@ -72,7 +70,7 @@ export default function DailyReportView() {
   const totalGases = dailyLpgSales.reduce((sum, t) => sum + t.amount, 0);
   const totalGasesPurchases = dailyLpgPurchases.reduce((sum, t) => sum + t.amount, 0);
   const totalFuelSales = Object.values(groupedReadings).reduce((sum, g) => sum + g.totalSales, 0);
-  const totalSales = totalFuelSales + totalGases;
+  const totalSales = totalFuelSales; // LPG sales omitted from revenue calculation
 
   const todayInvoices = invoices.filter(i => i.date === selectedDate && (activeStation === 'Combined Total' ? true : i.station === activeStation));
   const totalInvoicesAmount = todayInvoices.reduce((sum, i) => sum + i.totalAmount, 0);
@@ -86,11 +84,11 @@ export default function DailyReportView() {
   const totalExpensesAmount = actualExpenses.reduce((sum, e) => sum + e.amount, 0);
   const totalMPesaAmount = dailyCashPos?.mPesa ?? mPesaExpenses.reduce((sum, e) => sum + e.amount, 0);
 
-  const expectedCashOnHand = totalSales - totalGasesPurchases - (totalDebts + totalExpensesAmount + totalMPesaAmount);
+  const expectedCashOnHand = totalSales - (totalDebts + totalExpensesAmount + totalMPesaAmount);
   const cashAtHand = dailyCashPos?.cashOnHand ?? expectedCashOnHand;
   
-  // As requested: (cash at hand + m-pesa + total expenses + total invoices + total LPG purchase - paid invoices) - total sales
-  const sumAccounted = cashAtHand + totalMPesaAmount + totalExpensesAmount + totalInvoicesAmount + totalGasesPurchases - paidInvoicesAmount;
+  // Omitted LPG Purchases and LPG sales in the calculation to remain neutral
+  const sumAccounted = cashAtHand + totalMPesaAmount + totalExpensesAmount + totalInvoicesAmount - paidInvoicesAmount;
   const cashDifference = sumAccounted - totalSales;
 
   // Added fuel / Inventory balances could be fetched from InventoryItems
@@ -140,8 +138,8 @@ export default function DailyReportView() {
             <span className="text-3xl font-bold text-cyan-400 mt-2">Ksh {allLpgSalesAmount.toLocaleString()}</span>
           </div>
           <div className="flex flex-col justify-center bg-orange-500/10 border border-orange-500/20 p-6 rounded-xl shadow-sm">
-            <span className="text-sm text-theme-text-muted font-medium">Total LPG Purchases (COGS)</span>
-            <span className="text-3xl font-bold text-orange-400 mt-2">- Ksh {allLpgPurchasesAmount.toLocaleString()}</span>
+            <span className="text-sm text-theme-text-muted font-medium">Total LPG Purchases</span>
+            <span className="text-3xl font-bold text-orange-400 mt-2">Ksh {allLpgPurchasesAmount.toLocaleString()}</span>
           </div>
           <div className="flex flex-col justify-center bg-emerald-500/10 border border-emerald-500/20 p-6 rounded-xl shadow-sm">
             <span className="text-sm text-theme-text-muted font-medium">Net Profit (LPG)</span>
@@ -189,7 +187,7 @@ export default function DailyReportView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {lpgStatsData.filter(t => t.type !== 'opening').sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map(t => (
+                  {lpgStatsData.filter(t => t.type !== 'opening').sort((a,b) => b.date.localeCompare(a.date)).map(t => (
                     <tr key={t.id} className="border-b border-theme-border/50 hover:bg-[#122840]/50 transition-colors">
                       <td className="modern-td">{t.date}</td>
                       <td className="modern-td">
@@ -306,8 +304,8 @@ export default function DailyReportView() {
 
           {totalGasesPurchases > 0 && (
             <div className="flex justify-between items-center text-lg text-orange-300 border-b border-theme-border py-4">
-              <span>Cost of Goods Sold (LPG Purchases)</span>
-              <span>- Ksh {totalGasesPurchases.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+              <span>LPG Purchases</span>
+              <span>Ksh {totalGasesPurchases.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
             </div>
           )}
 

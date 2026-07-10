@@ -74,6 +74,14 @@ function getInitialMockData(collectionName: string): any[] {
       return [];
     case 'opening_stocks':
       return [];
+    case 'trucks':
+      return [
+        { id: 'tr_1', registration: 'KDE 179Y', status: 'active', createdAt: now, updatedAt: now },
+        { id: 'tr_2', registration: 'KDL 019S', status: 'active', createdAt: now, updatedAt: now },
+        { id: 'tr_3', registration: 'KCY 842Y', status: 'active', createdAt: now, updatedAt: now },
+        { id: 'tr_4', registration: 'KCF 119R', status: 'active', createdAt: now, updatedAt: now },
+        { id: 'tr_5', registration: 'KDW 028Y', status: 'active', createdAt: now, updatedAt: now }
+      ];
     default:
       return [];
   }
