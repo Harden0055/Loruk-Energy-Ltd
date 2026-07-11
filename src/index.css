@@ -118,10 +118,13 @@ svg.lucide[class*="text-amber"],
     box-shadow: 0 0 40px rgba(59, 130, 246, 0.08) !important;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
     position: relative;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
   }
 
   .glass-panel:hover {
-    transform: translateY(-4px) !important;
+    transform: translateY(-4px) translateZ(0) !important;
     box-shadow: 0 0 60px rgba(59, 130, 246, 0.18) !important;
     border-color: rgba(59, 130, 246, 0.15) !important;
   }
@@ -352,6 +355,9 @@ svg.lucide[class*="text-amber"],
     background: rgba(18, 18, 22, 0.85) !important;
     border: 1px solid rgba(255, 255, 255, 0.05) !important;
     box-shadow: 0 0 40px rgba(59, 130, 246, 0.05) !important;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
   }
 
   .modern-table {

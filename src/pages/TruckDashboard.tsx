@@ -128,7 +128,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="glass-panel border p-5 rounded-xl">
             <h3 className="font-bold text-lg mb-4">Fuel Spend by Vehicle</h3>
-            <div className="h-64 relative overflow-hidden">
+            <div className="h-64 relative overflow-hidden" style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform' }}>
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                     <BarChart data={vehicleSpendData}>
                         <XAxis dataKey="name" />
@@ -145,7 +145,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
         </div>
         <div className="glass-panel border p-5 rounded-xl">
             <h3 className="font-bold text-lg mb-4">Expenditure Trend</h3>
-            <div className="h-64 relative overflow-hidden">
+            <div className="h-64 relative overflow-hidden" style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform' }}>
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                     <AreaChart data={timelineChartData}>
                         <XAxis dataKey="dateStr" />
@@ -158,7 +158,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
         </div>
         <div className="glass-panel border p-5 rounded-xl lg:col-span-2">
             <h3 className="font-bold text-lg mb-4">Fuel Efficiency Trend (L/KES)</h3>
-            <div className="h-64 relative overflow-hidden">
+            <div className="h-64 relative overflow-hidden" style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform' }}>
                 <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                     <LineChart data={efficiencyTrendData}>
                         <XAxis dataKey="date" />

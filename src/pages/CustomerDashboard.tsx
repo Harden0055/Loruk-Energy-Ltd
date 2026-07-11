@@ -864,7 +864,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             </div>
           </div>
           
-          <div className="h-72 w-full relative overflow-hidden">
+          <div className="h-72 w-full relative overflow-hidden" style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform' }}>
             {chartData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-sm text-gray-400 bg-gray-50/50 dark:bg-white/5 rounded-lg border border-dashed border-theme-border">
                 Not enough transactions to map chart data

@@ -199,12 +199,12 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
             Top Customer Balances
           </h2>
         </div>
-        <div className="h-[220px] w-full text-xs relative overflow-hidden">
+        <div className="h-[220px] w-full text-xs relative overflow-hidden" style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform' }}>
           <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <BarChart data={topDebtors} layout="vertical" margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.03)" horizontal={false} />
               <XAxis type="number" stroke="#71717A" tickLine={false} axisLine={false} hide />
-              <YAxis dataKey="name" type="category" tick={<CustomerTick />} stroke="#71717A" tickLine={false} axisLine={false} width={80} />
+              <YAxis dataKey="name" type="category" tick={<CustomerTick />} stroke="#71717A" tickLine={false} axisLine={false} width={160} />
               <Tooltip 
                 contentStyle={{ backgroundColor: 'rgba(10, 10, 14, 0.98)', color: '#FFFFFF', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '12px' }} 
                 cursor={{fill: 'rgba(0, 212, 255, 0.08)', opacity: 0.2}} 
@@ -225,7 +225,7 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
               Fleet Fueling Trend
             </h2>
           </div>
-          <div className="h-[220px] w-full text-xs relative overflow-hidden">
+          <div className="h-[220px] w-full text-xs relative overflow-hidden" style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform' }}>
             {fleetTrend.length === 0 ? (
               <div className="text-center text-sm text-[#71717A] py-8">No fleet fueling logged yet.</div>
             ) : (
@@ -250,7 +250,7 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
               Fleet Fueling Comparison
             </h2>
           </div>
-          <div className="h-[220px] w-full text-xs relative overflow-hidden">
+          <div className="h-[220px] w-full text-xs relative overflow-hidden" style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform' }}>
              {fleetExpensesSummary.length === 0 ? (
                <div className="text-center text-sm text-[#71717A] py-8">No fleet fueling logged yet.</div>
              ) : (

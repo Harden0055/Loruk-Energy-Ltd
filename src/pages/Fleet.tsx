@@ -394,7 +394,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
              <Truck className="w-4 h-4" /> Fleet Fueling Comparison
           </h3>
-          <div className="h-64 w-full text-xs relative overflow-hidden">
+          <div className="h-64 w-full text-xs relative overflow-hidden" style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform' }}>
              {fleetExpensesSummary.length === 0 ? (
                <div className="text-center text-sm text-gray-400 py-8">No fleet fueling logs yet.</div>
              ) : (
