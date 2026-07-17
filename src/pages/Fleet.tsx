@@ -40,9 +40,16 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
   const { stations } = useStations();
   const STATION_OPTIONS = useMemo(() => {
     const activeStations = stations.filter(s => s.status === 'active');
+    
+    const formatLabel = (label: string) => {
+      const lower = label.toLowerCase();
+      if (lower.includes('luqman') || lower.includes('kengas')) return label;
+      return label.startsWith('T/A ') ? label.substring(4) : label;
+    };
+
     let options = activeStations.length > 0 
-      ? activeStations.map(s => ({ value: s.name, label: s.tradingAs || s.name }))
-      : FALLBACK_STATIONS.map(s => ({ value: s, label: s }));
+      ? activeStations.map(s => ({ value: s.name, label: formatLabel(s.tradingAs || s.name) }))
+      : FALLBACK_STATIONS.map(s => ({ value: s, label: formatLabel(s) }));
 
     // Make labels unique if multiple have the same tradingAs
     const labelCounts = options.reduce((acc, opt) => {
@@ -58,7 +65,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
     const existingValues = new Set(options.map(o => o.value));
     expenses.forEach(e => {
       if (e.station && !existingValues.has(e.station)) {
-        options.push({ value: e.station, label: e.station });
+        options.push({ value: e.station, label: formatLabel(e.station) });
         existingValues.add(e.station);
       }
     });
