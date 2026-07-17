@@ -98,14 +98,14 @@ function AuthenticatedApp() {
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
         <div 
-          className="fixed inset-0 glass-panel backdrop-blur-sm z-40 lg:hidden print-hide"
+          className="fixed inset-0 glass-panel  z-40 lg:hidden print-hide"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
       
       {/* Print Warning Modal */}
       {showPrintWarning && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 print-hide">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50  p-4 print-hide">
           <div className="glass-panel p-6 rounded-xl shadow-2xl max-w-md w-full border border-theme-border">
             <h3 className="text-xl font-bold mb-3 flex items-center gap-2 text-blue-900 dark:text-theme-text">
               <Printer className="w-5 h-5" />

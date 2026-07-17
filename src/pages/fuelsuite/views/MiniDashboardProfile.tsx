@@ -64,7 +64,7 @@ export default function MiniDashboardProfile({ onClose }: MiniDashboardProfilePr
   const overallNetProfit = overallTotalRevenue - overallTotalExpenses;
 
   return (
-    <div className="fixed inset-0 bg-[#00000095] backdrop-blur-md z-50 flex justify-end">
+    <div className="fixed inset-0 bg-[#00000095]  z-50 flex justify-end">
       <div className="w-full max-w-2xl bg-[#0E0E11] h-full shadow-[0_0_50px_rgba(59,130,246,0.15)] flex flex-col border-l border-white/5 animate-in slide-in-from-right duration-300">
         
         {/* SVG Definitions for Premium Gradients inside sidebar too */}
@@ -127,7 +127,7 @@ export default function MiniDashboardProfile({ onClose }: MiniDashboardProfilePr
               Station Revenue vs Expenses
             </h3>
             <div className="h-56 relative overflow-hidden">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+              <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
                 <BarChart data={stationData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.03)" vertical={false} />
                   <XAxis dataKey="name" stroke="#71717A" fontSize={10} fontWeight={600} tickLine={false} axisLine={false} />
@@ -153,7 +153,7 @@ export default function MiniDashboardProfile({ onClose }: MiniDashboardProfilePr
             </h3>
             <div className="h-56 w-full relative overflow-hidden flex items-center justify-center">
               {productData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
                   <PieChart>
                     <Pie
                       data={productData}

@@ -80,7 +80,7 @@ export default function InventoryView() {
       }
     });
 
-    return combined.sort((a, b) => b.date.localeCompare(a.date));
+    return combined.sort((a, b) => ((b.createdAt || b.date) > (a.createdAt || a.date) ? -1 : 1));
   }, [inventoryItems, pumpReadings, lpgTransactions, activeTab, activeStation, filterDate]);
 
   const resetForm = () => {

@@ -154,7 +154,7 @@ export default function DailyReportView() {
           <div className="glass-panel p-6 rounded-xl border border-theme-border shadow-md">
             <h4 className="text-sm font-bold text-theme-text-muted mb-6 uppercase tracking-wider">Trend Analysis</h4>
             <div className="h-[400px] relative overflow-hidden">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+              <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
                 <BarChart data={lpgChartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#122840" vertical={false} />
                   <XAxis dataKey="date" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} />
@@ -187,7 +187,7 @@ export default function DailyReportView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {lpgStatsData.filter(t => t.type !== 'opening').sort((a,b) => b.date.localeCompare(a.date)).map(t => (
+                  {lpgStatsData.filter(t => t.type !== 'opening').sort((a,b) => ((b.createdAt || b.date) > (a.createdAt || a.date) ? -1 : 1)).map(t => (
                     <tr key={t.id} className="border-b border-theme-border/50 hover:bg-[#122840]/50 transition-colors">
                       <td className="modern-td">{t.date}</td>
                       <td className="modern-td">
@@ -399,7 +399,7 @@ export default function DailyReportView() {
             <div className="pt-6 border-t border-theme-border">
               <h4 className="text-lg font-bold text-theme-text mb-4 text-center">Cash Position Split</h4>
               <div className="h-64 w-full relative overflow-hidden flex flex-col items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
                   <PieChart>
                     <Pie
                       data={[

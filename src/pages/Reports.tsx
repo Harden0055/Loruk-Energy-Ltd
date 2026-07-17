@@ -26,8 +26,8 @@ export default function Reports() {
       const customer = customers.find(c => c.id === selectedCustomerId);
       if (!customer) return;
 
-      const customerDeliveries = deliveries.filter(d => d.customerId === selectedCustomerId).sort((a,b) => b.date - a.date);
-      const customerPayments = payments.filter(p => p.customerId === selectedCustomerId).sort((a,b) => b.date - a.date);
+      const customerDeliveries = deliveries.filter(d => d.customerId === selectedCustomerId).sort((a,b) => (b.createdAt || b.date) - (a.createdAt || a.date));
+      const customerPayments = payments.filter(p => p.customerId === selectedCustomerId).sort((a,b) => (b.createdAt || b.date) - (a.createdAt || a.date));
       const totalLitres = customerDeliveries.reduce((sum, d) => sum + d.litres, 0);
 
       const doc = new jsPDF();
@@ -142,8 +142,8 @@ export default function Reports() {
         const todayTime = today.getTime();
         const tomorrowTime = todayTime + 24 * 60 * 60 * 1000;
 
-        const dailyDeliveries = deliveries.filter(d => d.date >= todayTime && d.date < tomorrowTime).sort((a, b) => b.date - a.date);
-        const dailyPayments = payments.filter(p => p.date >= todayTime && p.date < tomorrowTime).sort((a, b) => b.date - a.date);
+        const dailyDeliveries = deliveries.filter(d => d.date >= todayTime && d.date < tomorrowTime).sort((a, b) => (b.createdAt || b.date) - (a.createdAt || a.date));
+        const dailyPayments = payments.filter(p => p.date >= todayTime && p.date < tomorrowTime).sort((a, b) => (b.createdAt || b.date) - (a.createdAt || a.date));
 
         const doc = new jsPDF();
 

@@ -35,7 +35,7 @@ const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen 
   return (
     <>
       {isOpen && (
-        <div className="fixed inset-0 bg-[#00000080] backdrop-blur-sm z-40 lg:hidden" onClick={() => setIsOpen(false)} />
+        <div className="fixed inset-0 bg-[#00000080]  z-40 lg:hidden" onClick={() => setIsOpen(false)} />
       )}
       <div className={`fixed lg:static inset-y-0 left-0 z-50 transform lg:transform-none transition-transform duration-300 ease-in-out w-64 bg-[#0E0E11] border-r border-theme-border flex flex-col h-full text-theme-text hide-scrollbar overflow-y-auto ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
         <div className="p-6 border-b border-theme-border/30 flex items-center justify-between">

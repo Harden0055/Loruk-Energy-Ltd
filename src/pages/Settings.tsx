@@ -514,7 +514,7 @@ export default function Settings() {
 
 
       {showClearConfirm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
+        <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-[100]">
           <div className="glass-panel w-full max-w-sm rounded-xl shadow-2xl p-6 border border-amber-200 dark:border-amber-900/40">
             <h3 className="text-lg font-bold text-gray-900 dark:text-blue-50 mb-2">Confirm Action</h3>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
@@ -541,7 +541,7 @@ export default function Settings() {
       )}
 
       {showRestoreConfirm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
+        <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-[100]">
           <div className="glass-panel w-full max-w-sm rounded-xl shadow-2xl p-6 border border-theme-border">
             <h3 className="text-lg font-bold text-gray-900 dark:text-blue-50 mb-2">Restore Custom Data</h3>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
@@ -568,7 +568,7 @@ export default function Settings() {
       )}
 
       {showClearLedgerConfirm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
+        <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-[100]">
           <div className="glass-panel w-full max-w-sm rounded-xl shadow-2xl p-6 border border-red-200 dark:border-red-900/45">
             <h3 className="text-lg font-bold text-gray-900 dark:text-blue-50 mb-2">Confirm Account Wipe</h3>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">

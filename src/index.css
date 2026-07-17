@@ -2,12 +2,17 @@
 @import "tailwindcss";
 
 :root {
-  --color-theme-bg: #09090B;
-  --color-theme-panel: rgba(18, 18, 22, 0.85);
+  --color-theme-bg: #000000;
+  --color-theme-bg-dark: #000000;
+  --color-theme-panel: #121216;
+  --color-theme-panel-dark: #121216;
   --color-theme-panel-elevated: #18181C;
   --color-theme-border: rgba(255, 255, 255, 0.05);
+  --color-theme-border-dark: rgba(255, 255, 255, 0.05);
   --color-theme-text: #FFFFFF;
+  --color-theme-text-dark: #FFFFFF;
   --color-theme-text-muted: #A1A1AA;
+  --color-theme-text-muted-dark: #A1A1AA;
   --color-theme-primary: #3B82F6;
   --color-theme-accent: #00D4FF;
   --color-theme-highlight: #00E5FF;
@@ -20,11 +25,16 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --animate-fade-in: fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
-  --color-theme-bg: #09090B;
-  --color-theme-panel: rgba(18, 18, 22, 0.85);
+  --color-theme-bg: #000000;
+  --color-theme-bg-dark: #000000;
+  --color-theme-panel: #121216;
+  --color-theme-panel-dark: #121216;
   --color-theme-border: rgba(255, 255, 255, 0.05);
+  --color-theme-border-dark: rgba(255, 255, 255, 0.05);
   --color-theme-text: #FFFFFF;
+  --color-theme-text-dark: #FFFFFF;
   --color-theme-text-muted: #A1A1AA;
+  --color-theme-text-muted-dark: #A1A1AA;
   
   --color-theme-primary: #3B82F6;
   --color-theme-accent: #00D4FF;
@@ -52,20 +62,27 @@
 
 /* Custom Base Resets for Cyber Dark Look */
 html, body {
-  background-color: #09090B !important;
+  background-color: #000000 !important;
   color: #FFFFFF !important;
   font-family: 'Inter', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6 {
+.dark {
+  background-color: #000000 !important;
   color: #FFFFFF !important;
+}
+
+
+
+h1, h2, h3, h4, h5, h6 {
+  color: inherit !important;
   letter-spacing: -0.025em;
 }
 
 p, span, div, label {
-  color: #A1A1AA;
+  color: inherit;
 }
 
 /* Unified Lucide Icon Styling */
@@ -106,28 +123,21 @@ svg.lucide[class*="text-amber"],
 
 @layer utilities {
   .theme-bg-gradient {
-    background: radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.12), transparent 50%),
-                radial-gradient(circle at 90% 80%, rgba(0, 212, 255, 0.1), transparent 50%),
-                linear-gradient(180deg, #09090B 0%, #0E0E11 100%) !important;
-  }
+  background: #000000 !important;
+}
 
   .glass-panel {
-    background: rgba(14, 14, 18, 0.94) !important;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    border-radius: 20px !important;
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.08) !important;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    position: relative;
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-    will-change: transform;
-  }
+  background: rgba(18, 18, 22, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.2s ease-in-out !important;
+}
 
   .glass-panel:hover {
-    transform: translateY(-4px) translateZ(0) !important;
-    box-shadow: 0 0 60px rgba(59, 130, 246, 0.18) !important;
-    border-color: rgba(59, 130, 246, 0.15) !important;
-  }
+  border-color: rgba(59, 130, 246, 0.2) !important;
+  box-shadow: 0 4px 25px rgba(59, 130, 246, 0.1) !important;
+}
 
   .glass-row {
     background: rgba(255, 255, 255, 0.01) !important;
@@ -203,38 +213,20 @@ svg.lucide[class*="text-amber"],
     text-shadow: 0 0 10px rgba(0, 212, 255, 0.7) !important;
   }
 
-  .glow-blue {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4) !important;
-  }
+  
 
-  .glow-blue-text {
-    text-shadow: 0 0 10px rgba(59, 130, 246, 0.8) !important;
-  }
+  
 
-  .glow-emerald {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.4) !important;
-  }
+  
 
-  .glow-emerald-text {
-    text-shadow: 0 0 10px rgba(16, 185, 129, 0.8) !important;
-  }
+  
 
-  .glow-sky-text {
-    text-shadow: 0 0 10px rgba(56, 189, 248, 0.8) !important;
-  }
+  
 
   /* Custom Glow Icon Helpers to override general lucide stroke/color style */
-  .glow-blue-icon {
-    color: #00D4FF !important;
-    stroke: #00D4FF !important;
-    filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.8)) !important;
-  }
+  
 
-  .glow-blue-wrapper {
-    background: rgba(0, 212, 255, 0.08) !important;
-    border: 1px solid rgba(0, 212, 255, 0.25) !important;
-    box-shadow: 0 0 15px rgba(0, 212, 255, 0.2) !important;
-  }
+  
 
   .icon-white {
     color: #FFFFFF !important;
@@ -269,32 +261,22 @@ svg.lucide[class*="text-amber"],
 
   .sidebar-item-active,
   .sidebar-item-active-blue {
-    background: linear-gradient(90deg, rgba(59, 130, 246, 0.22) 0%, rgba(59, 130, 246, 0.06) 100%) !important;
-    box-shadow: inset 0 0 15px rgba(59, 130, 246, 0.15), 0 0 20px rgba(59, 130, 246, 0.1) !important;
-    color: #FFFFFF !important;
-    font-weight: 600 !important;
+    background: rgba(59, 130, 246, 0.1) !important;
+    color: #3B82F6 !important;
+    font-weight: 500 !important;
   }
 
   .sidebar-item-active::before,
   .sidebar-item-active-blue::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 60%;
-    width: 4px;
-    background: #00D4FF !important;
-    border-radius: 0 4px 4px 0;
-    box-shadow: 0 0 12px #00D4FF !important;
+    display: none;
   }
 
   .sidebar-item-active svg.lucide,
   .sidebar-item-active span,
   .sidebar-item-active-blue svg.lucide,
   .sidebar-item-active-blue span {
-    color: #00D4FF !important;
-    stroke: #00D4FF !important;
+    color: #3B82F6 !important;
+    stroke: #3B82F6 !important;
   }
 
   .sidebar-item-active-purple {
@@ -350,15 +332,12 @@ svg.lucide[class*="text-amber"],
   }
 
   .modern-table-container {
-    border-radius: 20px !important;
-    overflow: hidden;
-    background: rgba(18, 18, 22, 0.85) !important;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.05) !important;
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
-    will-change: transform;
-  }
+  border-radius: 16px !important;
+  overflow: hidden;
+  background: rgba(18, 18, 22, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+}
 
   .modern-table {
     width: 100%;
@@ -367,26 +346,25 @@ svg.lucide[class*="text-amber"],
   }
 
   .modern-th {
-    padding: 1rem 1.25rem !important;
-    font-weight: 600 !important;
-    color: #71717A !important;
-    background: rgba(255, 255, 255, 0.02) !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
-  }
+  padding: 1rem 1.25rem !important;
+  font-weight: 600 !important;
+  color: #A1A1AA !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
 
   .modern-tr {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
-    background: transparent !important;
-    transition: all 0.2s ease-out !important;
-  }
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+  background: transparent !important;
+  transition: all 0.2s ease-out !important;
+}
 
   .modern-tr:hover {
-    background: rgba(59, 130, 246, 0.03) !important;
-    box-shadow: inset 0 0 15px rgba(59, 130, 246, 0.03) !important;
-  }
+  background: rgba(59, 130, 246, 0.04) !important;
+}
 
   .modern-td {
     padding: 1rem 1.25rem !important;
@@ -489,15 +467,38 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   color-scheme: dark;
 }
 
-/* Global color lighting effect for icons in interactive elements */
-button svg, a svg, .sidebar-item svg, svg.text-white {
-  filter: drop-shadow(0 0 6px currentColor);
-}
-button:hover svg, a:hover svg, .sidebar-item:hover svg, svg.text-white:hover {
-  filter: drop-shadow(0 0 10px currentColor);
-}
-
 /* Hyperlinks in general should have a nice blue hover */
-a:hover svg, button.hover\:underline:hover svg, .glow-blue-text:hover svg {
-  filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6));
-}
+
+
+
+
+
+
+
+
+
+
+  .glow-blue-wrapper {
+    background: rgba(59, 130, 246, 0.1) !important;
+    border-radius: 8px;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .glow-blue-icon {
+    color: #3B82F6 !important;
+    stroke: #3B82F6 !important;
+    filter: none !important;
+  }
+  
+  .glass-panel {
+    background: #111115 !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2) !important;
+  }
+  .modern-table-container {
+    background: #111115 !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2) !important;
+  }

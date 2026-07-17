@@ -25,7 +25,7 @@ export default function PumpReadingsView() {
     return pumpReadings.filter(r => 
       (filterStation === 'Combined Total' || r.station === filterStation) &&
       (!filterDate || r.date === filterDate)
-    ).sort((a, b) => b.date.localeCompare(a.date));
+    ).sort((a, b) => ((b.createdAt || b.date) > (a.createdAt || a.date) ? -1 : 1));
   }, [pumpReadings, filterStation, filterDate]);
 
   const resetForm = () => {

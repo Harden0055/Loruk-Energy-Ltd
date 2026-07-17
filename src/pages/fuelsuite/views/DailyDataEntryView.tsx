@@ -34,7 +34,7 @@ export default function DailyDataEntryView() {
   React.useEffect(() => {
     const previousReadings = pumpReadings
       .filter(pr => pr.station === station && pr.date < date)
-      .sort((a, b) => b.date.localeCompare(a.date));
+      .sort((a, b) => ((b.createdAt || b.date) > (a.createdAt || a.date) ? -1 : 1));
       
     setPumps(products.filter(p => !p.name.toLowerCase().includes('oil')).map(p => {
       const lastReading = previousReadings.find(pr => pr.product === p.name);

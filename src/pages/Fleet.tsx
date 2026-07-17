@@ -38,10 +38,14 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
   }, [CAR_REGISTRATIONS, carReg]);
 
   const { stations } = useStations();
-  const STATIONS = useMemo(() => {
-    const activeStations = stations.filter(s => s.status === 'active').map(s => s.name);
-    return activeStations.length > 0 ? activeStations : FALLBACK_STATIONS;
+  const STATION_OPTIONS = useMemo(() => {
+    const activeStations = stations.filter(s => s.status === 'active');
+    return activeStations.length > 0 
+      ? activeStations.map(s => ({ value: s.name, label: s.tradingAs || s.name }))
+      : FALLBACK_STATIONS.map(s => ({ value: s, label: s }));
   }, [stations]);
+
+  const STATIONS = useMemo(() => STATION_OPTIONS.map(o => o.value), [STATION_OPTIONS]);
 
   const [station, setStation] = useState<string>('');
 
@@ -78,7 +82,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
     if (selectedStation !== 'all') result = result.filter(e => e.station === selectedStation);
     if (dateFrom) result = result.filter(e => e.date >= new Date(dateFrom).getTime());
     if (dateTo) result = result.filter(e => e.date <= new Date(dateTo).getTime() + 86399999);
-    return result.sort((a, b) => b.date - a.date);
+    return result.sort((a, b) => (b.createdAt || b.date) - (a.createdAt || a.date));
   }, [expenses, selectedCar, selectedStation, dateFrom, dateTo]);
 
   const fleetExpensesSummary = useMemo(() => {
@@ -198,7 +202,8 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
       Object.entries(stationTotals)
         .sort(([, a], [, b]) => b - a)
         .forEach(([station, amount]) => {
-        doc.text(`${station}: ${formatCurrency(amount)}`, 14, currentY);
+        const stationLabel = STATION_OPTIONS.find(opt => opt.value === station)?.label || station;
+        doc.text(`${stationLabel}: ${formatCurrency(amount)}`, 14, currentY);
         currentY += 6;
       });
     }
@@ -213,10 +218,10 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
       bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] },
       footStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
       head: [['Date', 'Car Reg', 'Station', 'Litres', 'Amount']],
-      body: [...filteredExpenses].sort((a,b) => a.date - b.date).map(e => [
+      body: [...filteredExpenses].sort((a,b) => (a.createdAt || a.date) - (b.createdAt || b.date)).map(e => [
         format(e.date, 'MMM d, yyyy'), 
         e.carRegistration, 
-        e.station || '-', 
+        e.station ? (STATION_OPTIONS.find(opt => opt.value === e.station)?.label || e.station) : '-', 
         e.litres ? `${e.litres} L` : '-',
         `${e.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KES`
       ]),
@@ -228,7 +233,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
     addPdfFooter(
       doc, 
       (doc as any).lastAutoTable.finalY + 10, 
-      selectedStation === 'all' ? 'All Stations' : `${selectedStation} Station`,
+      selectedStation === 'all' ? 'All Stations' : `${STATION_OPTIONS.find(opt => opt.value === selectedStation)?.label || selectedStation} Station`,
       'P.O BOX 342'
     );
 
@@ -279,7 +284,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
             <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" />
             <select value={carReg} onChange={(e) => setCarReg(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">{CAR_REGISTRATIONS.map(r => <option key={r} value={r} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{r}</option>)}</select>
-            <select value={station} onChange={(e) => setStation(e.target.value as Station)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">{STATIONS.map(s => <option key={s} value={s} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{s}</option>)}</select>
+            <select value={station} onChange={(e) => setStation(e.target.value as Station)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">{STATION_OPTIONS.map(s => <option key={s.value} value={s.value} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{s.label}</option>)}</select>
             <input type="number" min="0" step="0.1" value={litres} onChange={(e) => setLitres(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" placeholder="Litres (L)" />
             <input type="number" required min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" placeholder="Amount (KES)" />
             <div className="flex gap-2 w-full">
@@ -368,7 +373,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                 <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Station</label>
                 <select value={selectedStation} onChange={e => setSelectedStation(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-sm text-blue-900 dark:text-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
                   <option value="all" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">All Stations</option>
-                  {STATIONS.map(s => <option key={s} value={s} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{s}</option>)}
+                  {STATION_OPTIONS.map(s => <option key={s.value} value={s.value} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{s.label}</option>)}
                 </select>
               </div>
               <div>
@@ -394,11 +399,11 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
              <Truck className="w-4 h-4" /> Fleet Fueling Comparison
           </h3>
-          <div className="h-64 w-full text-xs relative overflow-hidden" style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform' }}>
+          <div className="h-64 w-full text-xs relative overflow-hidden" >
              {fleetExpensesSummary.length === 0 ? (
                <div className="text-center text-sm text-gray-400 py-8">No fleet fueling logs yet.</div>
              ) : (
-               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+               <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
                  <BarChart data={fleetExpensesSummary} layout="vertical" margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.3} horizontal={false} />
                    <XAxis type="number" stroke="#9ca3af" tickLine={false} axisLine={false} hide />
@@ -441,7 +446,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                       : e.station === 'Kengas' ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200'
                       : ''
                     }`}>
-                      {e.station}
+                      {STATION_OPTIONS.find(opt => opt.value === e.station)?.label || e.station}
                     </span>
                   )}
                 </td>
@@ -495,7 +500,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
       </div>
 
       {deleteDialog.isOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100] transition-opacity">
+        <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-[100] transition-opacity">
           <div className="glass-panel w-full max-w-sm rounded-xl shadow-2xl p-6 border border-gray-150 border-theme-border transform transition-all">
             <h3 className="text-lg font-bold text-gray-900 dark:text-blue-50 mb-2">Confirm Action</h3>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">

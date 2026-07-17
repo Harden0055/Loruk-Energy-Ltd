@@ -340,7 +340,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         sortOrder: 3
       }))
     ].sort((a, b) => {
-      if (a.date !== b.date) return a.date - b.date;
+      if (a.date !== b.date) return (a.createdAt || a.date) - (b.createdAt || b.date);
       return a.sortOrder - b.sortOrder;
     }); 
 
@@ -406,7 +406,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       ...customerDeliveries.map(d => ({ date: d.date, type: 'delivery', val: d.totalAmount })),
       ...customerPayments.map(p => ({ date: p.date, type: 'payment', val: -(p.amount || 0) })),
       ...customerAdjustments.map(a => ({ date: a.date, type: 'adjustment', val: a.type === 'debit' ? a.amount : -a.amount }))
-    ].sort((a, b) => a.date - b.date);
+    ].sort((a, b) => (a.createdAt || a.date) - (b.createdAt || b.date));
 
     let runningBalance = customer?.openingBalance 
       ? (customer.openingBalanceType === 'advance' ? -customer.openingBalance : customer.openingBalance) 
@@ -452,7 +452,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
       // Line item table
       const tableHeaders = [['Date', 'Transaction Type', 'Description', 'Amount (KES)', 'Closing Balance (KES)']];
-      const tableRows = [...timelineEvents].sort((a,b) => b.date - a.date).map(e => [
+      const tableRows = [...timelineEvents].sort((a,b) => (b.createdAt || b.date) - (a.createdAt || a.date)).map(e => [
         format(e.date, 'yyyy-MM-dd'),
         e.title,
         e.description,
@@ -864,13 +864,13 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             </div>
           </div>
           
-          <div className="h-72 w-full relative overflow-hidden" style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform' }}>
+          <div className="h-72 w-full relative overflow-hidden" >
             {chartData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-sm text-gray-400 bg-gray-50/50 dark:bg-white/5 rounded-lg border border-dashed border-theme-border">
                 Not enough transactions to map chart data
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+              <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
                 <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="balanceGrad" x1="0" y1="0" x2="0" y2="1">
@@ -1089,7 +1089,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
       {/* QUICK MODALS MAP */}
       {activeModal === 'delivery' && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-theme-border w-full max-w-sm overflow-hidden transform transition-all duration-300">
             <form onSubmit={handleAddDelivery}>
               <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:bg-white/5 flex justify-between items-center">
@@ -1254,7 +1254,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       )}
 
       {activeModal === 'payment' && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-theme-border w-full max-w-sm overflow-hidden transform transition-all duration-300">
             <form onSubmit={handleAddPayment}>
               <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:bg-white/5 flex justify-between items-center">
@@ -1310,7 +1310,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       )}
 
       {activeModal === 'adjustment' && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-theme-border w-full max-w-sm overflow-hidden transform transition-all duration-300">
             <form onSubmit={handleAddAdjustment}>
               <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:bg-white/5 flex justify-between items-center">

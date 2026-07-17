@@ -49,7 +49,7 @@ export default function Payments({ onViewCustomer }: { onViewCustomer?: (id: str
   const filtered = payments.filter(p => {
     const cust = customers.find(c => c.id === p.customerId);
     return cust?.name.toLowerCase().includes(search.toLowerCase());
-  }).sort((a, b) => b.date - a.date);
+  }).sort((a, b) => (b.createdAt || b.date) - (a.createdAt || a.date));
 
   return (
     <div className="space-y-6">
@@ -246,7 +246,7 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/45  flex items-center justify-center p-4 z-50">
       <div className="bg-[#0E0E12] rounded-xl shadow-2xl border border-theme-border w-full max-w-sm overflow-hidden transition-colors">
         <form onSubmit={handleSubmit}>
           <div className="px-6 py-5 border-b border-theme-border bg-emerald-500/5 dark:bg-emerald-500/5 flex justify-between items-center">
@@ -313,7 +313,7 @@ function DeletePaymentConfirmModal({
   onClose
 }: DeletePaymentProps) {
   return (
-    <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+    <div className="fixed inset-0 bg-black/45  flex items-center justify-center p-4 z-50 animate-fade-in">
       <div className="glass-panel rounded-xl shadow-2xl border border-theme-border w-full max-w-md overflow-hidden transform transition-all duration-300 scale-100">
         <div className="p-6">
           <div className="flex items-center gap-3.5 text-red-600 dark:text-red-400 mb-4 bg-red-50 dark:bg-red-950/30 p-4 rounded-xl border border-red-100 dark:border-red-900/50">

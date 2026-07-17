@@ -27,7 +27,7 @@ function DeleteDeliveryConfirmModal({
   onClose 
 }: DeleteDeliveryProps) {
   return (
-    <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+    <div className="fixed inset-0 bg-black/45  flex items-center justify-center p-4 z-50 animate-fade-in">
       <div className="glass-panel rounded-xl shadow-2xl border border-theme-border w-full max-w-md overflow-hidden transform transition-all duration-300 scale-100">
         <div className="p-6">
           <div className="flex items-center gap-3.5 text-red-600 dark:text-red-400 mb-4 bg-red-50 dark:bg-red-950/20 p-4 rounded-xl border border-red-100 dark:border-red-900/50">
@@ -112,7 +112,7 @@ function DeleteMultipleConfirmModal({
   onClose
 }: DeleteMultipleProps) {
   return (
-    <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+    <div className="fixed inset-0 bg-black/45  flex items-center justify-center p-4 z-50 animate-fade-in">
       <div className="glass-panel rounded-xl shadow-2xl border border-theme-border w-full max-w-md overflow-hidden transform transition-all duration-300 scale-100">
         <div className="p-6">
           <div className="flex items-center gap-3.5 text-red-600 dark:text-red-400 mb-4 bg-red-50 dark:bg-red-950/20 p-4 rounded-xl border border-red-100 dark:border-red-900/50">
@@ -209,6 +209,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
     totalAmount: string;
     superAmount?: string;
     dieselAmount?: string;
+    date: string;
   } | null>(null);
 
   const [inlineSaveLoading, setInlineSaveLoading] = useState(false);
@@ -230,7 +231,8 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
       litres: d.productType === 'Super/Diesel Split' ? `${(d.superLitres || 0) / 1000}/${(d.dieselLitres || 0) / 1000}` : String(d.litres),
       totalAmount: String(d.totalAmount),
       superAmount: String(d.superAmount || 0),
-      dieselAmount: String(d.dieselAmount || 0)
+      dieselAmount: String(d.dieselAmount || 0),
+      date: format(d.date, "yyyy-MM-dd'T'HH:mm")
     });
   };
 
@@ -314,6 +316,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
         productType: newProductType,
         litres: newLitres,
         totalAmount: newAmt,
+        date: new Date(editForm.date).getTime() || Date.now(),
         ...(isSplit ? {
           superLitres: superL,
           dieselLitres: dieselL,
@@ -442,7 +445,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
     result.sort((a, b) => {
       switch (sortBy) {
         case 'date-asc':
-          return a.date - b.date;
+          return (a.createdAt || a.date) - (b.createdAt || b.date);
         case 'litres-desc':
           return b.litres - a.litres;
         case 'litres-asc':
@@ -453,7 +456,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
           return a.totalAmount - b.totalAmount;
         case 'date-desc':
         default:
-          return b.date - a.date;
+          return (b.createdAt || b.date) - (a.createdAt || a.date);
       }
     });
 
@@ -948,7 +951,18 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                         className="w-4 h-4 text-cyan-500 border-theme-border rounded focus:ring-blue-500 dark:bg-white/5 border-theme-border cursor-pointer"
                       />
                     </td>
-                    <td className="modern-td">{format(d.date, 'MMM d, yyyy HH:mm')}</td>
+                    <td className="modern-td">
+                      {isEditing && editForm ? (
+                        <input
+                          type="datetime-local"
+                          value={editForm.date}
+                          onChange={e => setEditForm({ ...editForm, date: e.target.value })}
+                          className="w-full px-2 py-1 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg text-sm text-theme-text focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      ) : (
+                        format(d.date, 'MMM d, yyyy HH:mm')
+                      )}
+                    </td>
                     <td className="modern-td">
                       {isEditing && editForm ? (
                         <div className="w-full min-w-[150px]">
@@ -1370,7 +1384,7 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
   };
 
   return (
-    <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/45  flex items-center justify-center p-4 z-50">
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-theme-border w-full max-w-md overflow-hidden transition-colors">
         <form onSubmit={handleSubmit}>
           <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:bg-white/5 flex justify-between items-center">

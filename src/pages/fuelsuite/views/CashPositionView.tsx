@@ -92,7 +92,7 @@ export default function CashPositionView() {
               <CardTitle>Current Split (Latest)</CardTitle>
             </CardHeader>
             <CardContent className="h-64 flex flex-col items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                 <PieChart>
                   <Pie
                     data={pieData}
@@ -162,7 +162,7 @@ export default function CashPositionView() {
                 </tr>
               </thead>
                <tbody>
-                {[...cashPositions].sort((a,b) => b.date.localeCompare(a.date)).map(t => (
+                {[...cashPositions].sort((a,b) => ((b.createdAt || b.date) > (a.createdAt || a.date) ? -1 : 1)).map(t => (
                   <tr key={t.id} className="hover:theme-bg-gradient transition-colors">
                     <Td>{t.date}</Td>
                     <Td className="text-[#00D4FF] font-semibold font-mono">KES {t.mPesa.toLocaleString()}</Td>

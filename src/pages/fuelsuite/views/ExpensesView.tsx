@@ -15,7 +15,7 @@ export default function ExpensesView() {
     amount: 0,
   });
 
-  const filteredData = expenses.filter(e => activeStation === 'Combined Total' || e.station === activeStation).sort((a,b) => b.date.localeCompare(a.date));
+  const filteredData = expenses.filter(e => activeStation === 'Combined Total' || e.station === activeStation).sort((a,b) => ((b.createdAt || b.date) > (a.createdAt || a.date) ? -1 : 1));
 
   const resetForm = () => {
     setForm({

@@ -57,7 +57,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
   }, [allExpenses, truckReg]);
 
   const timelineChartData = useMemo(() => {
-    const sorted = [...expenses].sort((a, b) => a.date - b.date);
+    const sorted = [...expenses].sort((a, b) => (a.createdAt || a.date) - (b.createdAt || b.date));
     const grouped: { [key: string]: { dateStr: string; amount: number } } = {};
     
     sorted.forEach(e => {
@@ -82,7 +82,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
     return Object.entries(groups).map(([date, data]) => ({
       date,
       efficiency: data.totalAmount > 0 ? data.totalLitres / data.totalAmount : 0
-    })).sort((a, b) => a.date.localeCompare(b.date));
+    })).sort((a, b) => ((a.createdAt || a.date) > (b.createdAt || b.date) ? 1 : -1));
   }, [expenses]);
 
   return (
@@ -128,8 +128,8 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="glass-panel border p-5 rounded-xl">
             <h3 className="font-bold text-lg mb-4">Fuel Spend by Vehicle</h3>
-            <div className="h-64 relative overflow-hidden" style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform' }}>
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <div className="h-64 relative overflow-hidden" >
+                <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
                     <BarChart data={vehicleSpendData}>
                         <XAxis dataKey="name" />
                         <YAxis />
@@ -145,8 +145,8 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
         </div>
         <div className="glass-panel border p-5 rounded-xl">
             <h3 className="font-bold text-lg mb-4">Expenditure Trend</h3>
-            <div className="h-64 relative overflow-hidden" style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform' }}>
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <div className="h-64 relative overflow-hidden" >
+                <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
                     <AreaChart data={timelineChartData}>
                         <XAxis dataKey="dateStr" />
                         <YAxis />
@@ -158,8 +158,8 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
         </div>
         <div className="glass-panel border p-5 rounded-xl lg:col-span-2">
             <h3 className="font-bold text-lg mb-4">Fuel Efficiency Trend (L/KES)</h3>
-            <div className="h-64 relative overflow-hidden" style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform' }}>
-                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <div className="h-64 relative overflow-hidden" >
+                <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
                     <LineChart data={efficiencyTrendData}>
                         <XAxis dataKey="date" />
                         <YAxis />
@@ -186,7 +186,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
               </tr>
             </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-blue-900">
-            {expenses.sort((a, b) => b.date - a.date).map(e => {
+            {expenses.sort((a, b) => (b.createdAt || b.date) - (a.createdAt || a.date)).map(e => {
               const badgeClass = e.station === 'Gel - Bungoma' ? 'bg-pink-100 dark:bg-pink-900/50 text-pink-800 dark:text-pink-200' 
                                 : e.station === 'Gel - Kapenguria' ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200' 
                                 : e.station === 'Kengas' ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200'

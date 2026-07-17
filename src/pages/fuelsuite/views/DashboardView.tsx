@@ -161,7 +161,7 @@ export default function DashboardView() {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-[#121216]/95 backdrop-blur-xl border border-white/80 p-3 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] text-xs z-50">
+        <div className="bg-[#121216]/95  border border-white/80 p-3 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] text-xs z-50">
           <p className="text-[#A1A1AA] font-semibold mb-1.5">{label}</p>
           {payload.map((p: any, i: number) => (
             <p key={i} className="font-semibold" style={{ color: p.color || p.fill }}>
@@ -177,7 +177,7 @@ export default function DashboardView() {
   const CustomPieTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-[#121216]/95 backdrop-blur-xl border border-white/80 p-3 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] text-xs z-50 font-semibold">
+        <div className="bg-[#121216]/95  border border-white/80 p-3 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] text-xs z-50 font-semibold">
           <p style={{ color: payload[0].payload.fill || payload[0].fill }}>
             {payload[0].name}: KES {payload[0].payload.actualValue?.toLocaleString() || payload[0].value?.toLocaleString()}
           </p>
@@ -255,7 +255,7 @@ export default function DashboardView() {
           
           <div className="flex items-center h-[200px] mt-8">
             <div className="w-1/2 h-full relative">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+              <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
                 <PieChart>
                   <Pie
                     data={totalRevenuePieData}
@@ -310,7 +310,7 @@ export default function DashboardView() {
           </div>
           <div className="flex flex-col md:flex-row h-auto md:h-[240px]">
             <div className="w-full md:w-1/2 h-[200px] md:h-full">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+              <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
                 <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="100%" barSize={8} data={radialData} startAngle={180} endAngle={-180}>
                   <RadialBar
                     background={{ fill: 'rgba(255, 255, 255, 0.03)' }}
@@ -320,7 +320,7 @@ export default function DashboardView() {
                   <Tooltip cursor={false} content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       return (
-                         <div className="bg-[#121216]/95 backdrop-blur-xl border border-white/10 p-3 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] text-xs z-50 font-semibold">
+                         <div className="bg-[#121216]/95  border border-white/10 p-3 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] text-xs z-50 font-semibold">
                            <p style={{ color: payload[0].payload.fill }}>
                              {payload[0].payload.name}: KES {payload[0].payload.displayVal?.toLocaleString() || 0}
                            </p>
@@ -362,7 +362,7 @@ export default function DashboardView() {
             Distribution by Location
           </h3>
           <div className="flex-1 min-h-[200px] relative">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
               <PieChart>
                 <Pie
                   data={distributionPieData}
@@ -408,7 +408,7 @@ export default function DashboardView() {
             </div>
           </div>
           <div className="flex-1 min-h-[200px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                 <PolarGrid stroke="rgba(255,255,255,0.04)" />
                 <PolarAngleAxis dataKey="subject" tick={{ fill: '#71717A', fontSize: 9, fontWeight: 600 }} />
@@ -429,7 +429,7 @@ export default function DashboardView() {
             <span className="text-base font-bold text-white tracking-tight">KES {totalRevenue.toLocaleString()}</span>
           </div>
           <div className="h-[200px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
               <ComposedChart data={foundationData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
@@ -499,7 +499,7 @@ export default function DashboardView() {
             </div>
           </div>
           <div className="h-[200px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+            <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
               <LineChart data={forecastData} margin={{ top: 20, right: 10, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255, 255, 255, 0.03)" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#71717A', fontSize: 10, fontWeight: 500 }} dy={10} />

@@ -70,7 +70,7 @@ export default function AIInputModal({ onClose, onResult }: AIInputModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+    <div className="fixed inset-0 bg-black/60  z-50 flex items-center justify-center p-4 animate-fade-in">
       <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-theme-border w-full max-w-lg overflow-hidden flex flex-col transform transition-all duration-300">
         <div className="px-6 py-5 border-b border-theme-border flex justify-between items-center bg-blue-100/50 dark:bg-white/5">
           <div className="flex items-center gap-2 text-cyan-500 dark:text-blue-400">

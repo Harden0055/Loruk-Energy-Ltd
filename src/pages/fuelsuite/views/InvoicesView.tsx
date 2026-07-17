@@ -39,7 +39,7 @@ export default function InvoicesView() {
   const filteredData = invoices
     .filter(i => filterStation === 'Combined Total' || i.station === filterStation)
     .filter(i => !filterDate || i.date === filterDate)
-    .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    .sort((a, b) => ((b.createdAt || b.date) > (a.createdAt || a.date) ? -1 : 1));
     
   const filteredCustomers = customers
     .filter(c => filterStation === 'Combined Total' || c.station === filterStation)

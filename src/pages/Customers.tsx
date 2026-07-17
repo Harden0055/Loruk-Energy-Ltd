@@ -405,7 +405,7 @@ function AddCustomerModal({ onClose, customers }: ModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/45  flex items-center justify-center p-4 z-50">
       <div className="bg-[#0E0E12] rounded-xl shadow-2xl border border-theme-border w-full max-w-md overflow-hidden transition-colors">
         <form onSubmit={handleSubmit}>
           <div className="px-6 py-5 border-b border-theme-border flex justify-between items-center bg-sky-500/5 dark:bg-sky-500/5">
@@ -596,7 +596,7 @@ function EditCustomerModal({ customer, customers, onClose }: EditProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/45  flex items-center justify-center p-4 z-50">
       <div className="bg-[#0E0E12] rounded-xl shadow-2xl border border-theme-border w-full max-w-md overflow-hidden transition-colors">
         <form onSubmit={handleSubmit}>
           <div className="px-6 py-5 border-b border-theme-border flex justify-between items-center bg-sky-500/5 dark:bg-sky-500/5">
@@ -737,7 +737,7 @@ interface DeleteProps {
 
 function DeleteConfirmModal({ customer, isDeleting, error, onConfirm, onClose }: DeleteProps) {
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-50">
       <div className="glass-panel rounded-xl shadow-2xl border border-theme-border w-full max-w-md overflow-hidden">
         <div className="p-6">
           <div className="flex items-center gap-3.5 text-red-600 dark:text-red-500 mb-4 bg-red-50 dark:bg-red-950/20 p-4 rounded-xl border border-red-100 dark:border-red-900/50">
@@ -848,7 +848,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in" id="adjust-balance-modal">
+    <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-50 animate-fade-in" id="adjust-balance-modal">
       <div className="bg-[#0E0E12] rounded-xl shadow-2xl border border-theme-border w-full max-w-sm overflow-hidden transform transition-all duration-300">
         <div className="px-6 py-4 border-b border-theme-border bg-sky-500/5 dark:bg-sky-500/5 flex justify-between items-center">
           <div>

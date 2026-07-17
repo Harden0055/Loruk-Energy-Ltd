@@ -291,7 +291,7 @@ export default function Stations() {
 
       {/* Form Dialog Modal */}
       {isFormOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-xs" id="station-form-modal">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 " id="station-form-modal">
           <div className="glass-panel rounded-xl overflow-hidden border border-theme-border shadow-2xl w-full max-w-md animate-in fade-in zoom-in duration-200">
             <div className="flex justify-between items-center px-6 py-4 border-b border-gray-150 dark:border-blue-950 bg-gray-50/50 dark:bg-white/5">
               <h3 className="font-bold text-lg text-gray-900 dark:text-white">
@@ -408,7 +408,7 @@ export default function Stations() {
 
       {/* Delete Confirmation Modal */}
       {deletingStation && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-xs" id="delete-station-confirm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 " id="delete-station-confirm">
           <div className="glass-panel rounded-xl overflow-hidden border border-theme-border shadow-2xl w-full max-w-sm animate-in fade-in zoom-in duration-200">
             <div className="p-6 text-center space-y-4">
               <div className="w-12 h-12 bg-red-100 dark:bg-red-950/50 rounded-full flex items-center justify-center text-red-600 mx-auto">

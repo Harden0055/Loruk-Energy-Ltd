@@ -1,6 +1,6 @@
 import { useCustomers, useFleetExpenses, fetchSeedData, deleteSeedData } from '../lib/db';
 import { formatCurrency, formatLitres } from '../lib/utils';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { Users, TrendingUp, AlertCircle, Truck, Fuel, Activity, DollarSign, Plus, X, CarFront, ShieldCheck } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSync } from '../lib/sync';
@@ -66,7 +66,7 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
       createdBy: e.createdBy,
       station: e.station
     }))
-    .sort((a, b) => b.date - a.date)
+    .sort((a, b) => (b.createdAt || b.date) - (a.createdAt || a.date))
     .slice(0, 10);
   }, [expenses]);
 
@@ -154,7 +154,7 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
       {/* Inactive Trucks Warning - REMOVED */}
 
       {showClearConfirm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
+        <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-[100]">
           <div className="glass-panel w-full max-w-sm rounded-xl shadow-2xl p-6 border border-amber-200 dark:border-amber-900/40">
             <h3 className="text-lg font-bold text-gray-900 dark:text-blue-50 mb-2">Confirm Action</h3>
             <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
@@ -199,8 +199,8 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
             Top Customer Balances
           </h2>
         </div>
-        <div className="h-[220px] w-full text-xs relative overflow-hidden" style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform' }}>
-          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+        <div className="h-[220px] w-full text-xs relative overflow-hidden" >
+          <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
             <BarChart data={topDebtors} layout="vertical" margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.03)" horizontal={false} />
               <XAxis type="number" stroke="#71717A" tickLine={false} axisLine={false} hide />
@@ -225,18 +225,24 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
               Fleet Fueling Trend
             </h2>
           </div>
-          <div className="h-[220px] w-full text-xs relative overflow-hidden" style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform' }}>
+          <div className="h-[220px] w-full text-xs relative overflow-hidden" >
             {fleetTrend.length === 0 ? (
               <div className="text-center text-sm text-[#71717A] py-8">No fleet fueling logged yet.</div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-                <LineChart data={fleetTrend}>
+              <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
+                <AreaChart data={fleetTrend}>
+                  <defs>
+                    <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.03)" vertical={false} />
                   <XAxis dataKey="date" stroke="#71717A" tickLine={false} axisLine={false} />
                   <YAxis stroke="#71717A" tickLine={false} axisLine={false} width={40} />
                   <Tooltip contentStyle={{ backgroundColor: 'rgba(10, 10, 14, 0.98)', color: '#FFFFFF', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '12px' }} />
-                  <Line type="monotone" dataKey="Amount" stroke="#3B82F6" strokeWidth={3} dot={{ stroke: '#3B82F6', strokeWidth: 2, r: 4, fill: '#09090B' }} activeDot={{ r: 6, strokeWidth: 0, fill: '#3B82F6' }} />
-                </LineChart>
+                  <Area type="monotone" dataKey="Amount" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorAmount)" dot={{ stroke: '#3B82F6', strokeWidth: 2, r: 4, fill: '#111115' }} activeDot={{ r: 6, strokeWidth: 0, fill: '#3B82F6' }} />
+                </AreaChart>
               </ResponsiveContainer>
             )}
           </div>
@@ -250,11 +256,11 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
               Fleet Fueling Comparison
             </h2>
           </div>
-          <div className="h-[220px] w-full text-xs relative overflow-hidden" style={{ transform: 'translateZ(0)', WebkitTransform: 'translateZ(0)', willChange: 'transform' }}>
+          <div className="h-[220px] w-full text-xs relative overflow-hidden" >
              {fleetExpensesSummary.length === 0 ? (
                <div className="text-center text-sm text-[#71717A] py-8">No fleet fueling logged yet.</div>
              ) : (
-               <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+               <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
                  <BarChart data={fleetExpensesSummary} layout="vertical" margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.03)" horizontal={false} />
                    <XAxis type="number" stroke="#71717A" tickLine={false} axisLine={false} hide />
@@ -274,7 +280,7 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
 
 
           {/* h-180 container block
-             <ResponsiveContainer width="100%" height="100%">
+             <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                 <PieChart>
                   <Pie data={fuelData} cx="50%" cy="50%" innerRadius={55} outerRadius={75} paddingAngle={2} dataKey="value" stroke="none">
                     {fuelData.map((entry, index) => (
@@ -379,8 +385,8 @@ function MetricCard({ title, value, icon: Icon, color }: any) {
     <div className="glass-panel p-5 rounded-[20px] transition-all duration-300 hover:translate-y-[-4px] hover:shadow-[0_0_50px_rgba(0,212,255,0.18)] hover:border-[#00D4FF]/30 flex flex-col justify-between h-36">
       <div className="flex items-start justify-between">
         <p className="text-[10px] font-semibold tracking-wider text-[#A1A1AA] uppercase">{title}</p>
-        <div className="w-8 h-8 rounded-lg shrink-0 glow-blue-wrapper flex items-center justify-center">
-          <Icon className="w-4 h-4 glow-blue-icon" />
+        <div className="w-8 h-8 rounded-lg shrink-0 bg-white/5 flex items-center justify-center">
+          <Icon className={`w-4 h-4 ${color || 'text-blue-500'}`} />
         </div>
       </div>
       <div>

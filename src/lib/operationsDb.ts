@@ -918,7 +918,7 @@ export async function getPreviousStopReading(station: string, product: string, d
   }
 
   // Sort descending by date
-  priorReadings.sort((a, b) => b.date - a.date);
+  priorReadings.sort((a, b) => (b.createdAt || b.date) - (a.createdAt || a.date));
   return priorReadings[0].litresStop || 0;
 }
 
