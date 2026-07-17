@@ -40,10 +40,31 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
   const { stations } = useStations();
   const STATION_OPTIONS = useMemo(() => {
     const activeStations = stations.filter(s => s.status === 'active');
-    return activeStations.length > 0 
+    let options = activeStations.length > 0 
       ? activeStations.map(s => ({ value: s.name, label: s.tradingAs || s.name }))
       : FALLBACK_STATIONS.map(s => ({ value: s, label: s }));
-  }, [stations]);
+
+    // Make labels unique if multiple have the same tradingAs
+    const labelCounts = options.reduce((acc, opt) => {
+      acc[opt.label] = (acc[opt.label] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    options = options.map(opt => ({
+      value: opt.value,
+      label: labelCounts[opt.label] > 1 && opt.label !== opt.value ? `${opt.label} (${opt.value})` : opt.label
+    }));
+
+    const existingValues = new Set(options.map(o => o.value));
+    expenses.forEach(e => {
+      if (e.station && !existingValues.has(e.station)) {
+        options.push({ value: e.station, label: e.station });
+        existingValues.add(e.station);
+      }
+    });
+
+    return options;
+  }, [stations, expenses]);
 
   const STATIONS = useMemo(() => STATION_OPTIONS.map(o => o.value), [STATION_OPTIONS]);
 
