@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useFuel, Expense , STATIONS } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td , MetricCard} from '../components';
 import { Plus, Pencil, Trash2, X, Receipt, CreditCard, Banknote } from 'lucide-react';
+import { useConfirm } from '../useConfirm';
 
 export default function ExpensesView() {
+  const { confirm: confirmDelete, dialog: confirmDialog } = useConfirm();
   const { expenses, setExpenses, activeStation } = useFuel();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -35,10 +37,10 @@ export default function ExpensesView() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this expense?')) {
+  confirmDelete('Are you sure you want to delete this record?', () => {
       setExpenses(prev => prev.filter(e => e.id !== id));
-    }
-  };
+    });
+};
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,8 +65,7 @@ export default function ExpensesView() {
     return { total, mPesa, cash };
   }, [filteredData]);
 
-  return (
-    <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
+  return (<div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">Expenses</h1>
@@ -156,6 +157,8 @@ export default function ExpensesView() {
           </tbody>
         </Table>
       </Card>
-    </div>
+    {confirmDialog}
+      </div>
+  
   );
 }

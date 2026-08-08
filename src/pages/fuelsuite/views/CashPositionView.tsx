@@ -3,10 +3,12 @@ import { useFuel, CashPosition } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Button, Table, Th, Td , MetricCard} from '../components';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Plus, Pencil, Trash2, X, Wallet, Smartphone, Banknote } from 'lucide-react';
+import { useConfirm } from '../useConfirm';
 
 const COLORS = ['#00D4FF', '#3B82F6'];
 
 export default function CashPositionView() {
+  const { confirm: confirmDelete, dialog: confirmDialog } = useConfirm();
   const { cashPositions, setCashPositions } = useFuel();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -40,10 +42,10 @@ export default function CashPositionView() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this position?')) {
+  confirmDelete('Are you sure you want to delete this record?', () => {
       setCashPositions(prev => prev.filter(p => p.id !== id));
-    }
-  };
+    });
+};
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,8 +69,7 @@ export default function CashPositionView() {
     return { total, mPesa: totalMpesa, cash: totalCash };
   }, [cashPositions]);
 
-  return (
-    <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
+  return (<div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">Cash Position</h1>
@@ -190,6 +191,8 @@ export default function CashPositionView() {
           </Card>
         </div>
       </div>
-    </div>
+    {confirmDialog}
+      </div>
+  
   );
 }

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useFuel, InventoryItem , STATIONS } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td , MetricCard} from '../components';
 import { Plus, Pencil, Trash2, X, AlertCircle, Box, PackagePlus, PackageMinus } from 'lucide-react';
+import { useConfirm } from '../useConfirm';
 
 const STANDARD_PRODUCTS = [
   'Diesel',
@@ -15,7 +16,8 @@ const STANDARD_PRODUCTS = [
 ];
 
 export default function InventoryView() {
-  const { inventoryItems, setInventoryItems, activeStation, pumpReadings, lpgTransactions } = useFuel();
+  const { confirm: confirmDelete, dialog: confirmDialog } = useConfirm();
+  const { inventoryItems, setInventoryItems, activeStation, pumpReadings, setPumpReadings, lpgTransactions, setLpgTransactions } = useFuel();
   const [activeTab, setActiveTab] = useState<'overview' | 'in' | 'out' | 'opening'>('overview');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -101,10 +103,16 @@ export default function InventoryView() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this record?')) {
-      setInventoryItems(prev => prev.filter(i => i.id !== id));
-    }
+  const handleDelete = (id: string, source: string = 'inventory') => {
+    confirmDelete('Are you sure you want to delete this record?', () => {
+      if (source === 'inventory') {
+        setInventoryItems(prev => prev.filter(i => i.id !== id));
+      } else if (source === 'pump') {
+        setPumpReadings(prev => prev.filter(p => p.id !== id));
+      } else if (source === 'lpg') {
+        setLpgTransactions(prev => prev.filter(l => l.id !== id));
+      }
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -201,8 +209,7 @@ export default function InventoryView() {
     return { totalIn, totalOut, totalBal };
   }, [inventorySummary]);
 
-  return (
-    <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
+  return (<div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">Inventory Management</h1>
@@ -367,16 +374,21 @@ export default function InventoryView() {
                       <Td>{t.amount.toLocaleString()}</Td>
                       <Td>
                         {t.source === 'inventory' ? (
-                          <div className="flex gap-3">
+                          <div className="flex gap-3 items-center">
                             <button onClick={() => handleEdit(t)} className="text-theme-text-muted hover:text-cyan-400 transition-colors">
                               <Pencil className="w-4 h-4" />
                             </button>
-                            <button onClick={() => handleDelete(t.id)} className="text-theme-text-muted hover:text-red-400 transition-colors">
+                            <button onClick={() => handleDelete(t.id, t.source)} className="text-theme-text-muted hover:text-red-400 transition-colors">
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         ) : (
-                          <span className="text-xs text-slate-500 italic">via {t.source === 'pump' ? 'Pump Readings' : 'LPG'}</span>
+                          <div className="flex gap-3 items-center">
+                            <span className="text-xs text-slate-500 italic">via {t.source === 'pump' ? 'Pump Readings' : 'LPG'}</span>
+                            <button onClick={() => handleDelete(t.id, t.source)} className="text-theme-text-muted hover:text-red-400 transition-colors ml-2" title={`Delete this ${t.source === 'pump' ? 'Pump Reading' : 'LPG Transaction'}`}>
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         )}
                       </Td>
                     </tr>
@@ -392,6 +404,8 @@ export default function InventoryView() {
           </Card>
         </>
       )}
-    </div>
+    {confirmDialog}
+      </div>
+  
   );
 }

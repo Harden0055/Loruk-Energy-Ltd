@@ -2,8 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { useFuel, PumpReading , STATIONS, Station } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td , MetricCard} from '../components';
 import { Plus, Pencil, Trash2, X, Droplet, TrendingUp, Banknote } from 'lucide-react';
+import { useConfirm } from '../useConfirm';
 
 export default function PumpReadingsView() {
+  const { confirm: confirmDelete, dialog: confirmDialog } = useConfirm();
   const { activeStation, setActiveStation, pumpReadings, setPumpReadings, products } = useFuel();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -49,10 +51,10 @@ export default function PumpReadingsView() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this reading?')) {
+  confirmDelete('Are you sure you want to delete this record?', () => {
       setPumpReadings(prev => prev.filter(r => r.id !== id));
-    }
-  };
+    });
+};
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,8 +77,7 @@ export default function PumpReadingsView() {
     return { totalVolume, expectedSales, collectedCash };
   }, [filteredReadings]);
 
-  return (
-    <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
+  return (<div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">Pump Readings</h1>
@@ -211,6 +212,8 @@ export default function PumpReadingsView() {
           </tbody>
         </Table>
       </Card>
-    </div>
+    {confirmDialog}
+      </div>
+  
   );
 }

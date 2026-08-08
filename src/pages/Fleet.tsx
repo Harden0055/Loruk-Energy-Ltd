@@ -14,7 +14,7 @@ import { setupPdfHeader, addPdfFooter } from '../lib/pdfTemplate';
 import { useStations } from '../lib/operationsDb';
 
 const FALLBACK_REGISTRATIONS = ['KDE 179Y', 'KDL 019S', 'KCY 842Y', 'KCF 119R', 'KDW 028Y'];
-const FALLBACK_STATIONS = ['Loruk - Ndalu', 'Loruk - Junction', 'Gel - Bungoma', 'Gel - Kapenguria', 'Kengas'];
+const FALLBACK_STATIONS = ['Loruk - Ndalu', 'Loruk - Junction', 'Gel - Bungoma', 'Gel - Kapenguria', 'Kengas', 'Luqman'];
 type Station = string;
 
 export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToTruck?: (reg: string) => void, onNavigate?: (page: string) => void }) {
@@ -42,25 +42,23 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
     const activeStations = stations.filter(s => s.status === 'active');
     
     const formatLabel = (label: string) => {
-      const lower = label.toLowerCase();
-      if (lower.includes('luqman') || lower.includes('kengas')) return label;
-      return label.startsWith('T/A ') ? label.substring(4) : label;
+      let l = label.replace(/^T\/A\s+/i, '');
+      if (l.toLowerCase() === 'gel kapenguria') return 'Gel - Kapenguria';
+      if (l.toLowerCase() === 'gel bungoma') return 'Gel - Bungoma';
+      if (l.toLowerCase() === 'loruk ndalu') return 'Loruk - Ndalu';
+      if (l.toLowerCase() === 'loruk junction') return 'Loruk - Junction';
+      return l;
     };
 
     let options = activeStations.length > 0 
-      ? activeStations.map(s => ({ value: s.name, label: formatLabel(s.tradingAs || s.name) }))
-      : FALLBACK_STATIONS.map(s => ({ value: s, label: formatLabel(s) }));
-
-    // Make labels unique if multiple have the same tradingAs
-    const labelCounts = options.reduce((acc, opt) => {
-      acc[opt.label] = (acc[opt.label] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    options = options.map(opt => ({
-      value: opt.value,
-      label: labelCounts[opt.label] > 1 && opt.label !== opt.value ? `${opt.label} (${opt.value})` : opt.label
-    }));
+      ? activeStations.map(s => {
+          const name = formatLabel(s.tradingAs || s.name);
+          return { value: name, label: name };
+        })
+      : FALLBACK_STATIONS.map(s => {
+          const name = formatLabel(s);
+          return { value: name, label: name };
+        });
 
     const existingValues = new Set(options.map(o => o.value));
     expenses.forEach(e => {
@@ -504,8 +502,10 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                         setDate(format(dateObj, 'yyyy-MM-dd'));
                         
                         setIsAdding(true); 
-                        // Smoothly scroll the page to the top so the form is visible
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        // Smoothly scroll the page to the form
+                        setTimeout(() => {
+                          document.getElementById('add-expense-form-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 50);
                       }} 
                       className="p-1 text-cyan-500 hover:text-blue-800 transition-colors cursor-pointer" 
                       title="Edit Expense"

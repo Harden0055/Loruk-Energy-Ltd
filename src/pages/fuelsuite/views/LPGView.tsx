@@ -3,8 +3,10 @@ import { useFuel, LPGTransaction , STATIONS, Station } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td, MetricCard } from '../components';
 import { Plus, CheckSquare, ShoppingCart, RefreshCcw, Pencil, Trash2, X, Flame } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, CartesianGrid } from 'recharts';
+import { useConfirm } from '../useConfirm';
 
 export default function LPGView() {
+  const { confirm: confirmDelete, dialog: confirmDialog } = useConfirm();
   const { lpgTransactions, setLpgTransactions, inventoryItems, activeStation } = useFuel();
   const [activeTab, setActiveTab] = useState<'sales' | 'purchases' | 'opening'>('sales');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -104,10 +106,10 @@ export default function LPGView() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this record?')) {
+  confirmDelete('Are you sure you want to delete this record?', () => {
       setLpgTransactions(prev => prev.filter(t => t.id !== id));
-    }
-  };
+    });
+};
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,8 +128,7 @@ export default function LPGView() {
   };
 
   if (showLpgProfit) {
-    return (
-      <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
+    return (<div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
             <Flame className="text-orange-400 w-8 h-8" />
@@ -370,6 +371,8 @@ export default function LPGView() {
           </tbody>
         </Table>
       </Card>
-    </div>
+    {confirmDialog}
+      </div>
+  
   );
 }

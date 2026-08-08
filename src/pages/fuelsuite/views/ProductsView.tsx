@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useFuel, Product } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Button, Table, Th, Td , MetricCard} from '../components';
 import { Plus, Pencil, Trash2, X, Box, Tag, Layers } from 'lucide-react';
+import { useConfirm } from '../useConfirm';
 
 export default function ProductsView() {
+  const { confirm: confirmDelete, dialog: confirmDialog } = useConfirm();
   const { products, setProducts } = useFuel();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isBulkFormOpen, setIsBulkFormOpen] = useState(false);
@@ -30,10 +32,10 @@ export default function ProductsView() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this product?')) {
+  confirmDelete('Are you sure you want to delete this record?', () => {
       setProducts(prev => prev.filter(p => p.id !== id));
-    }
-  };
+    });
+};
 
   const removeDuplicates = () => {
     const seenNames = new Set<string>();
@@ -49,9 +51,8 @@ export default function ProductsView() {
       return;
     }
 
-    if (confirm(`Found ${duplicates.length} duplicate(s). Remove them?`)) {
+    
       setProducts(prev => prev.filter(p => !duplicates.find(d => d.id === p.id)));
-    }
   };
 
   const handleBulkSubmit = (e: React.FormEvent) => {
@@ -125,8 +126,7 @@ export default function ProductsView() {
     return { total: products.length };
   }, [products]);
 
-  return (
-    <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
+  return (<div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">Products Configuration</h1>
@@ -234,6 +234,8 @@ export default function ProductsView() {
           </Table>
         </div>
       </Card>
-    </div>
+    {confirmDialog}
+      </div>
+  
   );
 }

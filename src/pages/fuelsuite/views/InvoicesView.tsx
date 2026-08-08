@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { useFuel, Invoice, Customer, STATIONS } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td , MetricCard} from '../components';
 import { Plus, Pencil, Trash2, X, Users, FileText, UserCheck, UserX, Receipt, Banknote, AlertCircle } from 'lucide-react';
+import { useConfirm } from '../useConfirm';
 
 export default function InvoicesView() {
+  const { confirm: confirmDelete, dialog: confirmDialog } = useConfirm();
   const { invoices, setInvoices, customers, setCustomers, activeStation } = useFuel();
   const [activeTab, setActiveTab] = useState<'invoices' | 'customers'>('invoices');
   
@@ -87,16 +89,16 @@ export default function InvoicesView() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this invoice?')) {
+  confirmDelete('Are you sure you want to delete this record?', () => {
       setInvoices(prev => prev.filter(i => i.id !== id));
-    }
-  };
+    });
+};
 
   const handleDeleteCustomer = (id: string) => {
-    if (confirm('Are you sure you want to delete this customer?')) {
+  confirmDelete('Are you sure you want to delete this record?', () => {
       setCustomers(prev => prev.filter(c => c.id !== id));
-    }
-  };
+    });
+};
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,8 +141,7 @@ export default function InvoicesView() {
     return { totalInvoiced, totalPaid, totalOutstanding };
   }, [filteredData]);
 
-  return (
-    <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
+  return (<div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-100">Customer Invoices</h1>
@@ -449,6 +450,8 @@ export default function InvoicesView() {
           </Card>
         </div>
       )}
-    </div>
+    {confirmDialog}
+      </div>
+  
   );
 }
