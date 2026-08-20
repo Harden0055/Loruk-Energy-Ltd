@@ -1,17 +1,16 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useFuel } from '../context';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   LineChart, Line, Legend, PieChart, Pie, Cell, RadialBarChart, RadialBar, 
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ComposedChart, Area 
 } from 'recharts';
-import { ChevronDown, Navigation } from 'lucide-react';
 
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
 export default function DashboardView() {
-  const { activeStation, pumpReadings, expenses, lpgTransactions, inventoryItems, invoices, customers } = useFuel();
-  const [filterYear, setFilterYear] = useState<string>(new Date().getFullYear().toString());
+  const { activeStation, pumpReadings, expenses, lpgTransactions, inventoryItems, invoices } = useFuel();
+  const [filterYear] = useState<string>('All');
   
   // Helpers
   const filterByYearAndStation = (item: any) => {
@@ -187,8 +186,6 @@ export default function DashboardView() {
     return null;
   };
 
-  const years = ['All', '2024', '2025', '2026', '2027', '2028'];
-
   return (
     <div className="min-h-screen theme-bg-gradient text-theme-text font-sans p-6 overflow-y-auto">
       
@@ -209,36 +206,6 @@ export default function DashboardView() {
           </linearGradient>
         </defs>
       </svg>
-
-      {/* Top Navigation Bar */}
-      <div className="flex flex-col lg:flex-row items-center justify-between glass-panel rounded-[20px] px-3 py-3 mb-6 gap-4">
-        <div className="flex items-center w-full lg:w-auto overflow-x-auto hide-scrollbar pb-1 lg:pb-0">
-          <div className="px-4 border-r border-theme-border/30 shrink-0">
-            <Navigation className="w-5 h-5 text-[#00D4FF]" />
-          </div>
-          <div className="flex text-xs font-semibold uppercase tracking-wider shrink-0 gap-1.5 ml-3">
-            <button className="px-5 py-2.5 bg-[#3B82F6]/10 text-[#00D4FF] rounded-xl border border-[#3B82F6]/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]">Dashboard</button>
-            <button className="px-5 py-2.5 text-[#A1A1AA] hover:text-white hover:bg-white/5 rounded-xl transition-all">Distribution</button>
-            <button className="px-5 py-2.5 text-[#A1A1AA] hover:text-white hover:bg-white/5 rounded-xl transition-all">Performance</button>
-            <button className="px-5 py-2.5 text-[#A1A1AA] hover:text-white hover:bg-white/5 rounded-xl transition-all">Foundation</button>
-            <button className="px-5 py-2.5 text-[#A1A1AA] hover:text-white hover:bg-white/5 rounded-xl transition-all">Top 5 Rank</button>
-            <button className="px-5 py-2.5 text-[#A1A1AA] hover:text-white hover:bg-white/5 rounded-xl transition-all flex items-center gap-1">
-              Forecast <ChevronDown className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-        <div className="flex gap-1.5 text-xs font-semibold pr-2 shrink-0 overflow-x-auto hide-scrollbar w-full lg:w-auto justify-start lg:justify-end">
-          {years.map(y => (
-            <button 
-              key={y}
-              onClick={() => setFilterYear(y)}
-              className={`px-3.5 py-1.5 rounded-lg transition-all whitespace-nowrap cursor-pointer ${filterYear === y ? 'bg-blue-500/10 text-cyan-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]' : 'bg-[#121216]/60 border border-theme-border/50 text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
-            >
-              {y}
-            </button>
-          ))}
-        </div>
-      </div>
 
       <div className="grid grid-cols-12 gap-6">
         

@@ -696,3 +696,20 @@ export async function restoreLostCustomers() {
 
 export { updateLpgStock, updateFuelVolume } from './inventoryUpdate';
 
+
+export const updateAdjustment = async (id: string, data: Partial<Adjustment>, userEmail: string) => {
+  const payload = {
+    ...data,
+    updatedAt: Date.now(),
+    updatedBy: userEmail,
+    actionType: 'update' as const
+  };
+  return executeDbMutation(
+    'adjustments',
+    () => updateDoc(doc(db, 'adjustments', id), payload),
+    () => updateLocalDoc('adjustments', id, payload),
+    'update',
+    id,
+    payload
+  );
+};
