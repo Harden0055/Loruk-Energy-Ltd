@@ -17,6 +17,8 @@ export default function MiniDashboardProfile({ onClose }: MiniDashboardProfilePr
       const pReadings = pumpReadings.filter(r => r.station === station);
       const fuelRevenue = pReadings.reduce((sum, r) => sum + ((r.litresStop - r.litresStart) * r.ratePerLitre), 0);
       const fuelLitres = pReadings.reduce((sum, r) => sum + (r.litresStop - r.litresStart), 0);
+      const superLitres = pReadings.filter(r => r.product.toLowerCase().includes('super')).reduce((sum, r) => sum + (r.litresStop - r.litresStart), 0);
+      const dieselLitres = pReadings.filter(r => r.product.toLowerCase().includes('diesel')).reduce((sum, r) => sum + (r.litresStop - r.litresStart), 0);
       
       const lTransactions = lpgTransactions.filter(t => t.station === station);
       const lpgRevenue = lTransactions.filter(t => t.type === 'sale').reduce((sum, t) => sum + t.amount, 0);
@@ -28,6 +30,8 @@ export default function MiniDashboardProfile({ onClose }: MiniDashboardProfilePr
         name: station,
         fuelRevenue,
         fuelLitres,
+        superLitres,
+        dieselLitres,
         lpgRevenue,
         totalRevenue: fuelRevenue + lpgRevenue,
         expenses: totalExp,
@@ -190,13 +194,13 @@ export default function MiniDashboardProfile({ onClose }: MiniDashboardProfilePr
             <div className="overflow-x-auto">
               <table className="modern-table">
                 <thead>
-                  <tr className="border-b border-white/5">
-                    <th className="modern-th text-left">Station</th>
-                    <th className="modern-th text-right">Fuel Rev.</th>
-                    <th className="modern-th text-right">LPG Rev.</th>
-                    <th className="modern-th text-right">Expenses</th>
-                    <th className="modern-th text-right">Net Pos.</th>
-                  </tr>
+                    <tr className="border-b border-white/5">
+                      <th className="modern-th text-left">Station</th>
+                      <th className="modern-th text-right">Super (L)</th>
+                      <th className="modern-th text-right">Diesel (L)</th>
+                      <th className="modern-th text-right">Expenses</th>
+                      <th className="modern-th text-right">Net Pos.</th>
+                    </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {stationData.map(st => (

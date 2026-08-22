@@ -88,7 +88,7 @@ export default function PumpReadingsView() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
-              Pump Readings
+              White Oils
             </h1>
             <p className="text-theme-text-muted mt-0.5 text-xs">Log and track daily dispenser meter readings & fuel reconciliation.</p>
           </div>
@@ -112,10 +112,9 @@ export default function PumpReadingsView() {
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <MetricCard title="Total Volume" value={`${metrics.totalVolume.toFixed(2)} L`} icon={Droplet} colorClass="bg-[#122840] text-theme-text-muted" />
         <MetricCard title="Total Sales Amount" value={`KES ${Math.round(metrics.totalSalesAmount).toLocaleString()}`} icon={TrendingUp} colorClass="bg-cyan-500/10 text-cyan-400" />
-        <MetricCard title="Calculated Sales" value={`KES ${Math.round(metrics.calculatedSales).toLocaleString()}`} icon={Banknote} colorClass="bg-blue-500/10 text-blue-400" />
         <MetricCard 
           title="Net Variance" 
           value={`KES ${Math.round(metrics.netVariance) > 0 ? '+' : ''}${Math.round(metrics.netVariance).toLocaleString()}`} 
@@ -190,7 +189,6 @@ export default function PumpReadingsView() {
               <Th>Product</Th>
               <Th>Volume (L)</Th>
               <Th>Sales Amount (KES)</Th>
-              <Th>Calculated (KES)</Th>
               <Th>Variance</Th>
               <Th>Actions</Th>
             </tr>
@@ -210,7 +208,6 @@ export default function PumpReadingsView() {
                   </Td>
                   <Td className="font-semibold font-mono">{volume.toFixed(2)}</Td>
                   <Td className="text-cyan-400 font-semibold font-mono">KES {Math.round(salesAmount).toLocaleString()}</Td>
-                  <Td className="text-blue-400 font-semibold font-mono">KES {Math.round(calculated).toLocaleString()}</Td>
                   <Td>
                     <span className={`font-semibold font-mono ${Math.round(variance) === 0 ? 'text-theme-text-muted' : Math.round(variance) > 0 ? 'text-cyan-400' : 'text-red-400'}`}>
                       {Math.round(variance) > 0 ? '+' : ''}{Math.round(variance).toLocaleString()}

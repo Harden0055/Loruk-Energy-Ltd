@@ -25,6 +25,7 @@ export interface LPGTransaction {
   type: 'sale' | 'purchase' | 'opening';
   item: string;
   quantity: number;
+  completeQuantity?: number;
   rate?: number;
   amount: number;
 }

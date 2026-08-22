@@ -188,10 +188,11 @@ export default function InventoryView() {
     // Process LPG Transactions
     relevantLpg.forEach(lpg => {
       const qty = Number(lpg.quantity) || 0;
-      if (qty > 0) {
+      const completeQty = Number(lpg.completeQuantity) || 0;
+      if (qty > 0 || completeQty > 0) {
         const linked = findLinkedProduct(lpg.item, activeProducts);
         if (linked && summary[linked.id]) {
-          if (lpg.type === 'sale') summary[linked.id].out += qty;
+          if (lpg.type === 'sale') summary[linked.id].out += (qty + completeQty);
           else if (lpg.type === 'purchase') summary[linked.id].in += qty;
           else if (lpg.type === 'opening') summary[linked.id].opening += qty;
         }
@@ -207,12 +208,33 @@ export default function InventoryView() {
             if (is13Kg && (n.includes('13kg') || n.includes('13 kg'))) return true;
             return false;
           });
+          
           if (emptyLinked && summary[emptyLinked.id]) {
-            summary[emptyLinked.id].out += qty;
+            // Refills: receive empty cylinder (IN)
+            summary[emptyLinked.id].in += qty;
+            // Complete package: empty cylinder leaves (OUT)
+            summary[emptyLinked.id].out += completeQty;
+          }
+          
+          // Complete package accessories deduction (Burner & Grill for 6Kg complete)
+          if (completeQty > 0 && is6Kg) {
+            const burner = activeProducts.find(p => p.name.toLowerCase().includes('burner'));
+            if (burner && summary[burner.id]) summary[burner.id].out += completeQty;
+            const grill = activeProducts.find(p => p.name.toLowerCase().includes('grill'));
+            if (grill && summary[grill.id]) summary[grill.id].out += completeQty;
           }
         } else if (lpg.type === 'purchase') {
-          const emptyLinked = activeProducts.find(p => p.name.toLowerCase().includes('empty') && findLinkedProduct(lpg.item, [p]));
+          const is6Kg = lpg.item.toLowerCase().includes('6kg') || lpg.item.toLowerCase().includes('6 kg');
+          const is13Kg = lpg.item.toLowerCase().includes('13kg') || lpg.item.toLowerCase().includes('13 kg');
+          const emptyLinked = activeProducts.find(p => {
+            const n = p.name.toLowerCase();
+            if (!n.includes('empty')) return false;
+            if (is6Kg && (n.includes('6kg') || n.includes('6 kg'))) return true;
+            if (is13Kg && (n.includes('13kg') || n.includes('13 kg'))) return true;
+            return false;
+          });
           if (emptyLinked && summary[emptyLinked.id]) {
+            // When buying full LPG, you give empty cylinder to supplier (OUT)
             summary[emptyLinked.id].out += qty;
           }
         }

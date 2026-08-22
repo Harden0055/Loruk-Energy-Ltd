@@ -16,13 +16,13 @@ import MasterRecordsView from './views/MasterRecordsView';
 import DailyReportView from './views/DailyReportView';
 import MiniDashboardProfile from './views/MiniDashboardProfile';
 
-export type ViewType = 'Dashboard' | 'Daily Data Entry' | 'Pump Readings' | 'LPG' | 'Inventory' | 'Expenses' | 'Invoices' | 'Cash Position' | 'Master Records' | 'Reports' | 'Daily Report' | 'Settings';
+export type ViewType = 'Dashboard' | 'Daily Data Entry' | 'White Oils' | 'LPG' | 'Inventory' | 'Expenses' | 'Invoices' | 'Cash Position' | 'Master Records' | 'Reports' | 'Daily Report' | 'Settings';
 
 const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen }: { currentView: ViewType, setCurrentView: (v: ViewType) => void, onBackToMain: () => void, isOpen: boolean, setIsOpen: (o: boolean) => void }) => {
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard },
     { name: 'Daily Data Entry', icon: FileText },
-    { name: 'Pump Readings', icon: Fuel },
+    { name: 'White Oils', icon: Fuel },
     { name: 'LPG', icon: Flame },
     { name: 'Inventory', icon: Box },
     { name: 'Expenses', icon: ReceiptText },
@@ -151,7 +151,7 @@ const MainContent = ({ currentView, onOpenSidebar, isProfileOpen, setIsProfileOp
       <div className="flex-1 overflow-auto">
         {currentView === 'Dashboard' && <DashboardView />}
         {currentView === 'Daily Data Entry' && <DailyDataEntryView />}
-        {currentView === 'Pump Readings' && <PumpReadingsView />}
+        {currentView === 'White Oils' && <PumpReadingsView />}
         {currentView === 'LPG' && <LPGView />}
         {currentView === 'Inventory' && <InventoryView />}
         {currentView === 'Settings' && <ProductsView />}

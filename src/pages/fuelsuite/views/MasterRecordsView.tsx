@@ -444,6 +444,16 @@ export default function MasterRecordsView() {
                       />
                     </div>
                     <div>
+                      <label className="text-xs uppercase font-bold text-slate-400 block mb-1">Complete Qty</label>
+                      <input
+                        type="number"
+                        value={editingItem.data.completeQuantity || 0}
+                        onChange={(e) => setEditingItem({ ...editingItem, data: { ...editingItem.data, completeQuantity: parseFloat(e.target.value) || 0 } })}
+                        className="w-full bg-slate-900 border border-theme-border rounded-xl px-3 py-2 text-sm text-white"
+                      />
+                    </div>
+                  </div>
+                  <div>
                       <label className="text-xs uppercase font-bold text-slate-400 block mb-1">Total Amount (KES)</label>
                       <input
                         type="number"
@@ -451,7 +461,6 @@ export default function MasterRecordsView() {
                         onChange={(e) => setEditingItem({ ...editingItem, data: { ...editingItem.data, amount: parseFloat(e.target.value) || 0 } })}
                         className="w-full bg-slate-900 border border-theme-border rounded-xl px-3 py-2 text-sm text-white"
                       />
-                    </div>
                   </div>
                 </>
               )}

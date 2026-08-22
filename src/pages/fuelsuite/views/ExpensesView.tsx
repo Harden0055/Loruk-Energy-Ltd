@@ -58,6 +58,7 @@ export default function ExpensesView() {
   const [activeTab, setActiveTab] = useState<'log' | 'recurring' | 'analytics'>('log');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState<{ isOpen: boolean, code: string | null }>({ isOpen: false, code: null });
 
   // Filters & search
   const [searchQuery, setSearchQuery] = useState('');
@@ -648,15 +649,29 @@ export default function ExpensesView() {
                 </tr>
               </thead>
               <tbody>
-                {filteredData.map(t => {
+                {Object.entries(
+                  filteredData.reduce((acc, expense) => {
+                    const key = expense.expenseCode || 'EXP-MISC';
+                    if (!acc[key]) {
+                      acc[key] = { ...expense, amount: 0, count: 0, expenses: [] };
+                    }
+                    acc[key].amount += Number(expense.amount || 0);
+                    acc[key].count += 1;
+                    acc[key].expenses.push(expense);
+                    return acc;
+                  }, {} as Record<string, Expense & { count: number, expenses: Expense[] }>)
+                ).map(([code, t]) => {
                   const meta = getExpenseBadgeMeta(t.category, t.expenseCode);
                   const CatIcon = meta.icon;
-                  const displayCode = t.expenseCode || 'EXP-MISC';
                   
                   return (
-                    <tr key={t.id} className="hover:theme-bg-gradient transition-colors">
+                    <tr 
+                      key={code} 
+                      className="hover:theme-bg-gradient transition-colors cursor-pointer"
+                      onClick={() => setIsDetailsModalOpen({ isOpen: true, code })}
+                    >
                       <Td className="whitespace-nowrap font-mono text-xs text-slate-300">
-                        {t.date}
+                        {t.expenses.map(e => e.date).sort().reverse()[0]} (Latest)
                       </Td>
                       <Td>
                         <span className="text-xs text-theme-text-muted uppercase tracking-tight font-semibold">
@@ -666,7 +681,7 @@ export default function ExpensesView() {
                       <Td>
                         <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-mono font-bold border ${meta.badge}`}>
                           <Tag className="w-3 h-3 opacity-70" />
-                          {displayCode}
+                          {code}
                         </span>
                       </Td>
                       <Td>
@@ -678,11 +693,9 @@ export default function ExpensesView() {
                             <div className="font-semibold text-slate-100 text-xs">
                               {t.category}
                             </div>
-                            {t.description && (
-                              <div className="text-[11px] text-slate-400 line-clamp-1">
-                                {t.description}
-                              </div>
-                            )}
+                            <div className="text-[11px] text-slate-400">
+                              {t.count} entries
+                            </div>
                           </div>
                         </div>
                       </Td>
@@ -713,17 +726,51 @@ export default function ExpensesView() {
                       <Td>
                         <div className="flex items-center justify-center gap-2">
                           <button 
-                            onClick={() => handleEdit(t)} 
                             className="p-1.5 rounded-lg text-slate-400 hover:text-purple-300 hover:bg-purple-500/10 transition-colors cursor-pointer"
-                            title="Edit Expense"
+                            title="View Details"
                           >
-                            <Pencil className="w-4 h-4" />
+                            <ChevronRight className="w-4 h-4" />
                           </button>
                         </div>
                       </Td>
                     </tr>
                   );
                 })}
+...
+      {/* Details Modal */}
+      {isDetailsModalOpen.isOpen && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+          <Card className="max-w-4xl w-full max-h-[80vh] overflow-y-auto bg-slate-900 border-theme-border">
+            <CardHeader className="flex flex-row justify-between items-center border-b border-theme-border/60 pb-4">
+              <CardTitle className="text-lg font-bold">Expenses for {isDetailsModalOpen.code}</CardTitle>
+              <Button variant="secondary" onClick={() => setIsDetailsModalOpen({ isOpen: false, code: null })}>Close</Button>
+            </CardHeader>
+            <CardContent className="p-4">
+              <Table>
+                <thead>
+                  <tr>
+                    <Th>Date</Th>
+                    <Th>Description</Th>
+                    <Th className="text-right">Amount (KES)</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredData
+                    .filter(e => e.expenseCode === isDetailsModalOpen.code)
+                    .sort((a,b) => b.date.localeCompare(a.date))
+                    .map(e => (
+                      <tr key={e.id}>
+                        <Td>{e.date}</Td>
+                        <Td>{e.description}</Td>
+                        <Td className="text-right">KES {e.amount.toLocaleString()}</Td>
+                      </tr>
+                    ))}
+                </tbody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
                 {filteredData.length === 0 && (
                   <tr>

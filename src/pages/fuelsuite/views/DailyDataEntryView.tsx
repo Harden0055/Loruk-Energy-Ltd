@@ -346,7 +346,7 @@ export default function DailyDataEntryView() {
 
     // 2. LINK & SAVE LPG TRANSACTIONS (Feeds LPG page & Inventory stock/cylinders)
     const newLpgSales: LPGTransaction[] = lpgSales
-      .filter(s => (Number(s.quantity) > 0 || Number(s.amount) > 0) && s.item)
+      .filter(s => (Number(s.quantity) > 0 || Number(s.amount) > 0 || Number(s.completeQuantity) > 0) && s.item)
       .map(s => ({
         id: s.id || generateId(),
         date,
@@ -354,6 +354,7 @@ export default function DailyDataEntryView() {
         type: 'sale',
         item: s.item!,
         quantity: Number(s.quantity) || 0,
+        completeQuantity: Number(s.completeQuantity) || 0,
         amount: Number(s.amount) || 0
       }));
 
@@ -783,7 +784,7 @@ export default function DailyDataEntryView() {
                   </Select>
                 </div>
                 <div className="w-24 sm:w-28">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Qty Sold</label>
+                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Qty (Refill)</label>
                   <Input 
                     type="number" 
                     placeholder="Qty" 
@@ -791,6 +792,19 @@ export default function DailyDataEntryView() {
                     onChange={(e) => {
                       const newSales = [...lpgSales];
                       newSales[idx].quantity = parseFloat(e.target.value) || 0;
+                      setLpgSales(newSales);
+                    }} 
+                  />
+                </div>
+                <div className="w-24 sm:w-28">
+                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Qty (Complete)</label>
+                  <Input 
+                    type="number" 
+                    placeholder="Complete" 
+                    value={sale.completeQuantity === 0 ? '' : sale.completeQuantity || ''} 
+                    onChange={(e) => {
+                      const newSales = [...lpgSales];
+                      newSales[idx].completeQuantity = parseFloat(e.target.value) || 0;
                       setLpgSales(newSales);
                     }} 
                   />
