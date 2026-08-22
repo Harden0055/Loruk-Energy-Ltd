@@ -8,10 +8,11 @@ import { format } from 'date-fns';
 import { setupPdfHeader, addPdfFooter } from '../../../lib/pdfTemplate';
 
 export default function ReportsView() {
-  const { activeStation, pumpReadings, expenses, lpgTransactions } = useFuel();
+  const { activeStation, pumpReadings, expenses, lpgTransactions, inventoryItems } = useFuel();
   const [isGenerating, setIsGenerating] = useState(false);
 
   const filteredReadings = pumpReadings.filter(r => activeStation === 'Combined Total' || r.station === activeStation);
+  const filteredInventory = inventoryItems.filter(i => activeStation === 'Combined Total' || i.station === activeStation);
   const filteredExpenses = expenses; // Assuming expenses apply globally or could be filtered similarly
 
   const fuelRevenue = filteredReadings.reduce((acc, r) => {
@@ -19,14 +20,28 @@ export default function ReportsView() {
     return acc + (sAmount > 0 ? sAmount : ((r.litresStop - r.litresStart) * r.ratePerLitre));
   }, 0);
   const lpgRevenue = lpgTransactions.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.amount, 0);
+  const accessoryRevenue = filteredInventory.filter(t => t.type === 'out' && 
+    !t.item.toLowerCase().includes('super') && 
+    !t.item.toLowerCase().includes('diesel') && 
+    !t.item.toLowerCase().includes('lpg') &&
+    !t.item.toLowerCase().includes('cylinder')
+  ).reduce((acc, t) => acc + t.amount, 0);
+
   const lpgCOGS = lpgTransactions.filter(t => t.type === 'purchase').reduce((acc, t) => acc + t.amount, 0);
+  const accessoryPurchases = filteredInventory.filter(t => t.type === 'in' && 
+    !t.item.toLowerCase().includes('super') && 
+    !t.item.toLowerCase().includes('diesel') && 
+    !t.item.toLowerCase().includes('lpg') &&
+    !t.item.toLowerCase().includes('cylinder')
+  ).reduce((acc, t) => acc + t.amount, 0);
+
   const operatingExpenses = filteredExpenses.reduce((acc, e) => acc + e.amount, 0);
 
   // Simplified approximation of COGS for fuel (assuming 90% cost for demo purposes)
   const fuelCOGS = fuelRevenue * 0.90;
 
-  const totalRevenue = fuelRevenue + lpgRevenue;
-  const totalCOGS = fuelCOGS + lpgCOGS;
+  const totalRevenue = fuelRevenue + lpgRevenue + accessoryRevenue;
+  const totalCOGS = fuelCOGS + lpgCOGS + accessoryPurchases;
   const grossProfit = totalRevenue - totalCOGS;
   const netProfit = grossProfit - operatingExpenses;
 
@@ -56,18 +71,20 @@ export default function ReportsView() {
         head: [['Account Category', 'Amount (KES)']],
         body: [
           ['REVENUE', ''],
-          ['  Fuel Sales', fuelRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })],
-          ['  LPG Sales', lpgRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })],
-          ['Total Revenue', totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+          ['  Fuel Sales', Math.round(fuelRevenue).toLocaleString()],
+          ['  LPG Sales', Math.round(lpgRevenue).toLocaleString()],
+          ['  Accessories Sales', Math.round(accessoryRevenue).toLocaleString()],
+          ['Total Revenue', Math.round(totalRevenue).toLocaleString()],
           ['COST OF GOODS SOLD', ''],
-          ['  Fuel COGS (Est.)', fuelCOGS.toLocaleString(undefined, { minimumFractionDigits: 2 })],
-          ['  LPG Purchases', lpgCOGS.toLocaleString(undefined, { minimumFractionDigits: 2 })],
-          ['Total COGS', totalCOGS.toLocaleString(undefined, { minimumFractionDigits: 2 })],
-          ['GROSS PROFIT', grossProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })],
+          ['  Fuel COGS (Est.)', Math.round(fuelCOGS).toLocaleString()],
+          ['  LPG Purchases', Math.round(lpgCOGS).toLocaleString()],
+          ['  Accessories Purchases', Math.round(accessoryPurchases).toLocaleString()],
+          ['Total COGS', Math.round(totalCOGS).toLocaleString()],
+          ['GROSS PROFIT', Math.round(grossProfit).toLocaleString()],
           ['OPERATING EXPENSES', ''],
-          ['  General Expenses', operatingExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })],
-          ['Total Expenses', operatingExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })],
-          ['NET PROFIT', netProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })]
+          ['  General Expenses', Math.round(operatingExpenses).toLocaleString()],
+          ['Total Expenses', Math.round(operatingExpenses).toLocaleString()],
+          ['NET PROFIT', Math.round(netProfit).toLocaleString()]
         ],
         theme: 'striped',
         headStyles: { fillColor: [6, 182, 212] },
@@ -124,19 +141,19 @@ export default function ReportsView() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <MetricCard 
           title="Total Revenue" 
-          value={`KES ${totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} 
+          value={`KES ${Math.round(totalRevenue).toLocaleString()}`} 
           icon={ArrowUpRight} 
           colorClass="bg-cyan-500/10 text-cyan-400" 
         />
         <MetricCard 
           title="Gross Profit" 
-          value={`KES ${grossProfit.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} 
+          value={`KES ${Math.round(grossProfit).toLocaleString()}`} 
           icon={TrendingUp} 
           colorClass="bg-blue-500/10 text-blue-400" 
         />
         <MetricCard 
           title="Net Profit" 
-          value={`KES ${netProfit.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} 
+          value={`KES ${Math.round(netProfit).toLocaleString()}`} 
           icon={DollarSign} 
           colorClass={netProfit >= 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"} 
         />
@@ -156,15 +173,19 @@ export default function ReportsView() {
               </tr>
               <tr className="modern-tr">
                 <td className="modern-td">Fuel Sales</td>
-                <td className="modern-td">{fuelRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                <td className="modern-td">{Math.round(fuelRevenue).toLocaleString()}</td>
               </tr>
               <tr className="modern-tr">
                 <td className="modern-td">LPG Sales</td>
-                <td className="modern-td">{lpgRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                <td className="modern-td">{Math.round(lpgRevenue).toLocaleString()}</td>
+              </tr>
+              <tr className="modern-tr">
+                <td className="modern-td">Accessories Sales</td>
+                <td className="modern-td">{Math.round(accessoryRevenue).toLocaleString()}</td>
               </tr>
               <tr className="modern-tr">
                 <td className="modern-td">Total Revenue</td>
-                <td className="modern-td font-semibold text-cyan-400">{totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                <td className="modern-td font-semibold text-cyan-400">{Math.round(totalRevenue).toLocaleString()}</td>
               </tr>
 
               {/* COGS */}
@@ -173,21 +194,25 @@ export default function ReportsView() {
               </tr>
               <tr className="modern-tr">
                 <td className="modern-td">Fuel COGS</td>
-                <td className="modern-td">({fuelCOGS.toLocaleString(undefined, { minimumFractionDigits: 2 })})</td>
+                <td className="modern-td">({Math.round(fuelCOGS).toLocaleString()})</td>
               </tr>
               <tr className="modern-tr">
                 <td className="modern-td">LPG Purchases</td>
-                <td className="modern-td">({lpgCOGS.toLocaleString(undefined, { minimumFractionDigits: 2 })})</td>
+                <td className="modern-td">({Math.round(lpgCOGS).toLocaleString()})</td>
+              </tr>
+              <tr className="modern-tr">
+                <td className="modern-td">Accessories Purchases</td>
+                <td className="modern-td">({Math.round(accessoryPurchases).toLocaleString()})</td>
               </tr>
               <tr className="modern-tr">
                 <td className="modern-td">Total COGS</td>
-                <td className="modern-td font-semibold text-orange-400">({totalCOGS.toLocaleString(undefined, { minimumFractionDigits: 2 })})</td>
+                <td className="modern-td font-semibold text-orange-400">({Math.round(totalCOGS).toLocaleString()})</td>
               </tr>
 
               {/* GROSS PROFIT */}
               <tr className="modern-tr bg-blue-500/5 font-semibold">
                 <td className="modern-td">GROSS PROFIT</td>
-                <td className="modern-td text-blue-400">{grossProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                <td className="modern-td text-blue-400">{Math.round(grossProfit).toLocaleString()}</td>
               </tr>
 
               {/* EXPENSES */}
@@ -196,18 +221,18 @@ export default function ReportsView() {
               </tr>
               <tr className="modern-tr">
                 <td className="modern-td">General Expenses</td>
-                <td className="modern-td">({operatingExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })})</td>
+                <td className="modern-td">({Math.round(operatingExpenses).toLocaleString()})</td>
               </tr>
               <tr className="modern-tr">
                 <td className="modern-td">Total Expenses</td>
-                <td className="modern-td font-semibold text-red-400">({operatingExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })})</td>
+                <td className="modern-td font-semibold text-red-400">({Math.round(operatingExpenses).toLocaleString()})</td>
               </tr>
 
               {/* NET PROFIT */}
               <tr className={`bg-[#122840]/50 font-bold text-lg`}>
                 <td className="modern-td">NET PROFIT</td>
                 <td className={`px-6 py-6 text-right ${netProfit >= 0 ? 'text-emerald-400' : 'text-red-500'}`}>
-                  {netProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  {Math.round(netProfit).toLocaleString()}
                 </td>
               </tr>
             </tbody>

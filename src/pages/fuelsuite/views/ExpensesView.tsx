@@ -162,12 +162,6 @@ export default function ExpensesView() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = (id: string) => {
-    confirmDelete('Are you sure you want to delete this expense record?', () => {
-      setExpenses(prev => prev.filter(e => e.id !== id));
-    });
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingId) {
@@ -253,12 +247,6 @@ export default function ExpensesView() {
       setExpenseTemplates(prev => [...prev, newT]);
     }
     setIsTemplateModalOpen(false);
-  };
-
-  const handleDeleteTemplate = (id: string) => {
-    confirmDelete('Are you sure you want to delete this expense code parameter? Existing logged records will remain untouched.', () => {
-      setExpenseTemplates(prev => prev.filter(t => t.id !== id));
-    });
   };
 
   // Metrics computation
@@ -731,13 +719,6 @@ export default function ExpensesView() {
                           >
                             <Pencil className="w-4 h-4" />
                           </button>
-                          <button 
-                            onClick={() => handleDelete(t.id)} 
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
-                            title="Delete Expense"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
                         </div>
                       </Td>
                     </tr>
@@ -823,13 +804,6 @@ export default function ExpensesView() {
                           title="Edit Code Parameter"
                         >
                           <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteTemplate(tpl.id)}
-                          className="p-1 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                          title="Delete Code Parameter"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -1112,7 +1086,6 @@ export default function ExpensesView() {
         </div>
       )}
 
-      {confirmDialog}
     </div>
   );
 }

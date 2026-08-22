@@ -49,7 +49,7 @@ export default function DashboardView() {
   const totalRevenuePieData = [
     { name: 'Fuel', value: fuelRevenue || 1, fill: '#3B82F6' }, // Electric Blue
     { name: 'LPG', value: lpgRevenue || 1, fill: '#00D4FF' }, // Neon Cyan
-    { name: 'Oils', value: invRevenue || 1, fill: '#60A5FA' }, // Light Blue
+    { name: 'Accessories', value: invRevenue || 1, fill: '#60A5FA' }, // Light Blue
   ];
 
   // 2. Categories (Radial)
@@ -61,7 +61,7 @@ export default function DashboardView() {
     productSales[r.product] = (productSales[r.product] || 0) + amount;
   });
   productSales['LPG'] = lpgRevenue;
-  productSales['Oils'] = invRevenue;
+  productSales['Accessories'] = invRevenue;
 
   const sortedProducts = Object.entries(productSales)
     .sort((a, b) => b[1] - a[1])
@@ -267,7 +267,7 @@ export default function DashboardView() {
               </div>
               <div className="flex items-center gap-2.5">
                 <div className="w-2.5 h-2.5 rounded-full bg-[#60A5FA] shadow-[0_0_8px_#60A5FA]" />
-                <span className="text-[#A1A1AA] font-medium">Lubricants</span>
+                <span className="text-[#A1A1AA] font-medium">Accessories</span>
                 <span className="ml-auto text-white font-semibold">{invPct}%</span>
               </div>
             </div>

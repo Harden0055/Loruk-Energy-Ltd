@@ -58,12 +58,6 @@ export default function PumpReadingsView() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-  confirmDelete('Are you sure you want to delete this record?', () => {
-      setPumpReadings(prev => prev.filter(r => r.id !== id));
-    });
-};
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingId) {
@@ -120,13 +114,13 @@ export default function PumpReadingsView() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <MetricCard title="Total Volume" value={`${metrics.totalVolume.toFixed(2)} L`} icon={Droplet} colorClass="bg-[#122840] text-theme-text-muted" />
-        <MetricCard title="Total Sales Amount" value={`KES ${metrics.totalSalesAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}`} icon={TrendingUp} colorClass="bg-cyan-500/10 text-cyan-400" />
-        <MetricCard title="Calculated Sales" value={`KES ${metrics.calculatedSales.toLocaleString(undefined, {minimumFractionDigits: 2})}`} icon={Banknote} colorClass="bg-blue-500/10 text-blue-400" />
+        <MetricCard title="Total Sales Amount" value={`KES ${Math.round(metrics.totalSalesAmount).toLocaleString()}`} icon={TrendingUp} colorClass="bg-cyan-500/10 text-cyan-400" />
+        <MetricCard title="Calculated Sales" value={`KES ${Math.round(metrics.calculatedSales).toLocaleString()}`} icon={Banknote} colorClass="bg-blue-500/10 text-blue-400" />
         <MetricCard 
           title="Net Variance" 
-          value={`KES ${metrics.netVariance > 0 ? '+' : ''}${metrics.netVariance.toLocaleString(undefined, {minimumFractionDigits: 2})}`} 
+          value={`KES ${Math.round(metrics.netVariance) > 0 ? '+' : ''}${Math.round(metrics.netVariance).toLocaleString()}`} 
           icon={TrendingUp} 
-          colorClass={metrics.netVariance < 0 ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'} 
+          colorClass={Math.round(metrics.netVariance) < 0 ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'} 
         />
       </div>
 
@@ -215,20 +209,17 @@ export default function PumpReadingsView() {
                     <ProductIconBadge name={r.product} category="Fuel" size="sm" />
                   </Td>
                   <Td className="font-semibold font-mono">{volume.toFixed(2)}</Td>
-                  <Td className="text-cyan-400 font-semibold font-mono">KES {salesAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</Td>
-                  <Td className="text-blue-400 font-semibold font-mono">KES {calculated.toLocaleString(undefined, {minimumFractionDigits: 2})}</Td>
+                  <Td className="text-cyan-400 font-semibold font-mono">KES {Math.round(salesAmount).toLocaleString()}</Td>
+                  <Td className="text-blue-400 font-semibold font-mono">KES {Math.round(calculated).toLocaleString()}</Td>
                   <Td>
-                    <span className={`font-semibold font-mono ${variance === 0 ? 'text-theme-text-muted' : variance > 0 ? 'text-cyan-400' : 'text-red-400'}`}>
-                      {variance > 0 ? '+' : ''}{variance.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                    <span className={`font-semibold font-mono ${Math.round(variance) === 0 ? 'text-theme-text-muted' : Math.round(variance) > 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                      {Math.round(variance) > 0 ? '+' : ''}{Math.round(variance).toLocaleString()}
                     </span>
                   </Td>
                   <Td>
                     <div className="flex gap-3">
-                      <button onClick={() => handleEdit(r)} className="text-theme-text-muted hover:text-[#00D4FF] transition-colors cursor-pointer">
+                      <button onClick={() => handleEdit(r)} className="text-theme-text-muted hover:text-[#00D4FF] transition-colors cursor-pointer" title="Edit">
                         <Pencil className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleDelete(r.id)} className="text-theme-text-muted hover:text-red-400 transition-colors cursor-pointer">
-                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </Td>
@@ -238,7 +229,6 @@ export default function PumpReadingsView() {
           </tbody>
         </Table>
       </Card>
-    {confirmDialog}
       </div>
   );
 }

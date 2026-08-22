@@ -47,12 +47,6 @@ export default function CashPositionView() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    confirmDelete('Are you sure you want to delete this record?', () => {
-      setCashPositions(prev => prev.filter(p => p.id !== id));
-    });
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingId) {
@@ -183,11 +177,8 @@ export default function CashPositionView() {
                     <Td className="text-[#00D4FF] font-bold font-mono">KES {((t.mPesa || 0) + (t.cashOnHand || 0)).toLocaleString()}</Td>
                     <Td>
                       <div className="flex gap-3">
-                        <button onClick={() => handleEdit(t)} className="text-theme-text-muted hover:text-[#00D4FF] transition-colors cursor-pointer">
+                        <button onClick={() => handleEdit(t)} className="text-theme-text-muted hover:text-[#00D4FF] transition-colors cursor-pointer" title="Edit">
                           <Pencil className="w-4 h-4" />
-                        </button>
-                        <button onClick={() => handleDelete(t.id)} className="text-theme-text-muted hover:text-red-400 transition-colors cursor-pointer">
-                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </Td>
@@ -203,7 +194,6 @@ export default function CashPositionView() {
           </Card>
         </div>
       </div>
-    {confirmDialog}
       </div>
   
   );

@@ -88,18 +88,6 @@ export default function InvoicesView() {
     setIsCustomerFormOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-  confirmDelete('Are you sure you want to delete this record?', () => {
-      setInvoices(prev => prev.filter(i => i.id !== id));
-    });
-};
-
-  const handleDeleteCustomer = (id: string) => {
-  confirmDelete('Are you sure you want to delete this record?', () => {
-      setCustomers(prev => prev.filter(c => c.id !== id));
-    });
-};
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingId) {
@@ -314,11 +302,8 @@ export default function InvoicesView() {
                       <Td>
                         <div className="flex gap-2.5 items-center">
                           {/* Invoice actions */}
-                          <button onClick={() => handleEdit(t)} title="Edit Invoice" className="text-theme-text-muted hover:text-[#00D4FF] transition-colors cursor-pointer">
+                          <button onClick={() => handleEdit(t)} title="Edit Invoice" className="text-theme-text-muted hover:text-[#00D4FF] transition-colors cursor-pointer mr-1">
                             <Pencil className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => handleDelete(t.id)} title="Delete Invoice" className="text-theme-text-muted hover:text-red-400 transition-colors cursor-pointer mr-1">
-                            <Trash2 className="w-4 h-4" />
                           </button>
                           
                           {customer && (
@@ -331,13 +316,6 @@ export default function InvoicesView() {
                                 className="text-theme-text-muted hover:text-[#A855F7] transition-colors cursor-pointer ml-1"
                               >
                                 <UserCheck className="w-4 h-4" />
-                              </button>
-                              <button 
-                                onClick={() => handleDeleteCustomer(customer.id)} 
-                                title="Delete Customer" 
-                                className="text-theme-text-muted hover:text-rose-500 transition-colors cursor-pointer"
-                              >
-                                <UserX className="w-4 h-4" />
                               </button>
                             </>
                           )}
@@ -447,11 +425,8 @@ export default function InvoicesView() {
                       </Td>
                       <Td>
                         <div className="flex gap-3">
-                          <button onClick={() => handleEditCustomer(c)} className="text-theme-text-muted hover:text-cyan-400 transition-colors">
+                          <button onClick={() => handleEditCustomer(c)} className="text-theme-text-muted hover:text-cyan-400 transition-colors" title="Edit">
                             <Pencil className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => handleDeleteCustomer(c.id)} className="text-theme-text-muted hover:text-red-400 transition-colors">
-                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </Td>
@@ -468,7 +443,6 @@ export default function InvoicesView() {
           </Card>
         </div>
       )}
-    {confirmDialog}
       </div>
   );
 }

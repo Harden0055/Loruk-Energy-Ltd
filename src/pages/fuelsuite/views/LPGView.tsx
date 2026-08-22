@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useFuel, LPGTransaction , Station } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td, MetricCard, ProductIconBadge } from '../components';
-import { Plus, CheckSquare, ShoppingCart, RefreshCcw, Pencil, Trash2, X, Flame } from 'lucide-react';
+import { Plus, CheckSquare, ShoppingCart, RefreshCcw, Pencil, Trash2, X, Flame, Boxes } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, CartesianGrid } from 'recharts';
 import { useConfirm } from '../useConfirm';
 
@@ -21,9 +21,16 @@ export default function LPGView() {
   }, [activeStation]);
 
   const lpgProductOptions = useMemo(() => {
-    const fromCatalog = (products || []).filter(p => p.name.toLowerCase().includes('lpg') || p.name.toLowerCase().includes('cylinder') || p.category === 'LPG');
+    const fromCatalog = (products || []).filter(p => 
+      p.category === 'LPG' || 
+      p.category === 'Accessories' || 
+      p.name.toLowerCase().includes('lpg') || 
+      p.name.toLowerCase().includes('cylinder') || 
+      p.name.toLowerCase().includes('burner') || 
+      p.name.toLowerCase().includes('grill')
+    );
     if (fromCatalog.length > 0) return fromCatalog.map(p => p.name);
-    return ['6Kg LPG', '13Kg LPG', '6kg Cylinder', '13kg Cylinder'];
+    return ['6Kg LPG', '13Kg LPG', 'Burner', 'Grill', '6Kg LPG - Empty', '13Kg LPG - Empty'];
   }, [products]);
 
   const [form, setForm] = useState<Partial<LPGTransaction>>({
@@ -36,11 +43,16 @@ export default function LPGView() {
   });
 
   const lpgInventoryItems = inventoryItems
-    .filter(i => (i.item === '6kg LPG' || i.item === '13kg LPG' || i.item === '6kg Cylinder' || i.item === '13kg Cylinder'))
+    .filter(i => {
+      const n = i.item.toLowerCase();
+      const prod = (products || []).find(p => p.name.toLowerCase() === n);
+      const isLpgOrAcc = prod && (prod.category === 'LPG' || prod.category === 'Accessories');
+      return isLpgOrAcc || n.includes('lpg') || n.includes('cylinder') || n.includes('burner') || n.includes('grill');
+    })
     .map(i => ({
       ...i,
       type: (i.type === 'in' ? 'purchase' : i.type === 'out' ? 'sale' : 'opening') as "purchase" | "sale" | "opening",
-      item: i.item.replace('LPG', 'Cylinder').trim(), // Normalize naming
+      item: i.item,
       isFromInventory: true
     }));
 
@@ -67,12 +79,14 @@ export default function LPGView() {
     const totalPurchasesAmount = statsData.filter(t => t.type === 'purchase').reduce((acc, t) => acc + t.amount, 0);
 
     return {
+      totalOpening,
       totalBought,
       totalSold,
       currentInv,
       totalSalesAmount,
       totalPurchasesAmount,
       stats: [
+        { label: 'Opening', value: totalOpening },
         { label: 'Purchased', value: totalBought },
         { label: 'Sold', value: totalSold },
         { label: 'Net', value: totalBought - totalSold },
@@ -80,7 +94,7 @@ export default function LPGView() {
     };
   }, [allLpgData, filterStation, filterDate]);
 
-  const { totalBought, totalSold, currentInv, totalSalesAmount, totalPurchasesAmount } = metrics;
+  const { totalOpening, totalBought, totalSold, currentInv, totalSalesAmount, totalPurchasesAmount } = metrics;
 
   const statsData = allLpgData;
 
@@ -116,12 +130,6 @@ export default function LPGView() {
     setEditingId(tx.id);
     setIsFormOpen(true);
   };
-
-  const handleDelete = (id: string) => {
-  confirmDelete('Are you sure you want to delete this record?', () => {
-      setLpgTransactions(prev => prev.filter(t => t.id !== id));
-    });
-};
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -252,9 +260,9 @@ export default function LPGView() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
-              LPG Sales & Inventory
+              LPG & Accessories Sales & Inventory
             </h1>
-            <p className="text-theme-text-muted mt-0.5 text-xs">Manage gas cylinders tracking, refilling & stock balance.</p>
+            <p className="text-theme-text-muted mt-0.5 text-xs">Manage gas cylinders, accessories tracking & stock balance.</p>
           </div>
         </div>
       </div>
@@ -274,7 +282,8 @@ export default function LPGView() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <MetricCard title="Opening Stock" value={`${totalOpening} Cylinders`} icon={Boxes} colorClass="bg-blue-500/10 text-blue-400" />
         <MetricCard title="Total Bought" value={`${totalBought} Cylinders`} icon={ShoppingCart} colorClass="bg-[#122840] text-theme-text-muted" />
         <MetricCard title="Total Sold" value={`${totalSold} Cylinders`} icon={CheckSquare} colorClass="bg-cyan-500/10 text-cyan-400" />
         <MetricCard title="Current Inventory" value={`${currentInv} Cylinders`} icon={RefreshCcw} colorClass="bg-emerald-500/10 text-emerald-400" />
@@ -418,11 +427,8 @@ export default function LPGView() {
                 <Td>
                   {!(t as any).isFromInventory ? (
                     <div className="flex gap-3">
-                      <button onClick={() => handleEdit(t as LPGTransaction)} className="text-theme-text-muted hover:text-[#00D4FF] transition-colors cursor-pointer">
+                      <button onClick={() => handleEdit(t as LPGTransaction)} className="text-theme-text-muted hover:text-[#00D4FF] transition-colors cursor-pointer" title="Edit">
                         <Pencil className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleDelete(t.id)} className="text-theme-text-muted hover:text-red-400 transition-colors cursor-pointer">
-                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   ) : (
@@ -439,7 +445,6 @@ export default function LPGView() {
           </tbody>
         </Table>
       </Card>
-    {confirmDialog}
       </div>
   
   );

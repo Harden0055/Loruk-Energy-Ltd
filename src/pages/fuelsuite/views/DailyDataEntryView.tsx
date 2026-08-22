@@ -289,6 +289,16 @@ export default function DailyDataEntryView() {
 
   const totalSales = pumpSalesAmount + lpgSalesAmount + equipmentSalesAmount;
 
+  const lpgPurchasesAmount = useMemo(() => {
+    return lpgPurchases.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  }, [lpgPurchases]);
+
+  const equipmentPurchasesAmount = useMemo(() => {
+    return equipmentPurchases.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  }, [equipmentPurchases]);
+
+  const totalCOGS = lpgPurchasesAmount + equipmentPurchasesAmount;
+
   const expensesAmount = useMemo(() => {
     return expenseRows.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
   }, [expenseRows]);
@@ -301,7 +311,7 @@ export default function DailyDataEntryView() {
     return invoiceRows.reduce((sum, i) => sum + (Number(i.paidAmount) || 0), 0);
   }, [invoiceRows]);
 
-  const expectedTotalCash = totalSales - expensesAmount - invoicesTotal + paidInvoicesAmount;
+  const expectedTotalCash = totalSales - totalCOGS - expensesAmount - invoicesTotal + paidInvoicesAmount;
   const expectedCashOnHand = expectedTotalCash - (mPesa || 0);
   const variance = (manualCashOnHand || 0) - expectedCashOnHand;
 
@@ -482,7 +492,7 @@ export default function DailyDataEntryView() {
   };
 
   return (
-    <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500 max-w-5xl mx-auto">
+    <div className="px-4 sm:px-8 py-6 pb-32 space-y-6 animate-in fade-in duration-500 max-w-[1500px] w-full mx-auto">
       {/* Header & Action Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -664,7 +674,7 @@ export default function DailyDataEntryView() {
                   </div>
                   <div>
                     <label className="text-xs font-medium text-theme-text-muted block mb-1">Sales Amount</label>
-                    <Input disabled value={salesAmount.toFixed(2)} className="bg-slate-950 font-mono text-cyan-300 font-bold" />
+                    <Input disabled value={Math.round(salesAmount).toLocaleString()} className="bg-slate-950 font-mono text-cyan-300 font-bold" />
                   </div>
                   <div>
                     <label className="text-xs font-medium text-theme-text-muted block mb-1">Litres Start</label>
@@ -718,14 +728,14 @@ export default function DailyDataEntryView() {
                   </div>
                   <div>
                     <label className="text-xs font-medium text-theme-text-muted block mb-1">Calculated Sales</label>
-                    <Input disabled value={`KES ${calculatedSales.toLocaleString(undefined, {minimumFractionDigits: 2})}`} className="bg-slate-950 text-cyan-300 font-semibold font-mono" />
+                    <Input disabled value={`KES ${Math.round(calculatedSales).toLocaleString()}`} className="bg-slate-950 text-cyan-300 font-semibold font-mono" />
                   </div>
                   <div>
                     <label className="text-xs font-medium text-theme-text-muted block mb-1">Variance (Sales Amount - Calculated)</label>
                     <Input 
                       disabled 
-                      value={`${variance > 0 ? '+' : ''}${variance.toFixed(2)}`} 
-                      className={`bg-slate-950 font-semibold font-mono ${variance < 0 ? 'text-red-400' : variance > 0 ? 'text-cyan-400' : 'text-emerald-400'}`} 
+                      value={`${Math.round(variance) > 0 ? '+' : ''}${Math.round(variance).toLocaleString()}`} 
+                      className={`bg-slate-950 font-semibold font-mono ${Math.round(variance) < 0 ? 'text-red-400' : Math.round(variance) > 0 ? 'text-cyan-400' : 'text-emerald-400'}`} 
                     />
                   </div>
                 </div>
@@ -754,8 +764,9 @@ export default function DailyDataEntryView() {
           </CardHeader>
           <CardContent className="p-6 pt-0 space-y-3">
             {lpgSales.map((sale, idx) => (
-              <div key={idx} className="flex gap-2 items-end">
-                <div className="flex-1">
+              <div key={idx} className="flex gap-3 items-end flex-wrap sm:flex-nowrap p-2.5 rounded-lg bg-slate-900/40 border border-theme-border/40">
+                <div className="flex-1 min-w-[140px]">
+                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Cylinder / Item</label>
                   <Select 
                     value={sale.item || lpgProducts[0]?.name || '6Kg LPG'} 
                     onChange={(e) => {
@@ -771,7 +782,8 @@ export default function DailyDataEntryView() {
                     ))}
                   </Select>
                 </div>
-                <div className="w-20">
+                <div className="w-24 sm:w-28">
+                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Qty Sold</label>
                   <Input 
                     type="number" 
                     placeholder="Qty" 
@@ -783,7 +795,8 @@ export default function DailyDataEntryView() {
                     }} 
                   />
                 </div>
-                <div className="w-28">
+                <div className="w-32 sm:w-40">
+                  <label className="text-[10px] uppercase font-bold text-purple-400 block mb-1">Total Amount (KES)</label>
                   <Input 
                     type="number" 
                     placeholder="Amount" 
@@ -793,11 +806,12 @@ export default function DailyDataEntryView() {
                       newSales[idx].amount = parseFloat(e.target.value) || 0;
                       setLpgSales(newSales);
                     }} 
+                    className="font-mono font-bold text-slate-100"
                   />
                 </div>
                 <Button 
                   variant="danger" 
-                  className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20" 
+                  className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 mb-0.5" 
                   onClick={() => setLpgSales(lpgSales.filter((_, i) => i !== idx))}
                 >
                   <Trash2 className="w-4 h-4" />
@@ -824,8 +838,8 @@ export default function DailyDataEntryView() {
           </CardHeader>
           <CardContent className="p-6 pt-0 space-y-3">
             {lpgPurchases.map((purchase, idx) => (
-              <div key={idx} className="flex gap-2 items-end flex-wrap sm:flex-nowrap">
-                <div className="flex-1 min-w-[120px]">
+              <div key={idx} className="flex gap-2.5 items-end flex-wrap sm:flex-nowrap p-2.5 rounded-lg bg-slate-900/40 border border-theme-border/40">
+                <div className="flex-1 min-w-[130px]">
                   <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Item / Cylinder</label>
                   <Select 
                     value={purchase.item || lpgProducts[0]?.name || '6Kg LPG'} 
@@ -842,7 +856,7 @@ export default function DailyDataEntryView() {
                     ))}
                   </Select>
                 </div>
-                <div className="w-20">
+                <div className="w-20 sm:w-24">
                   <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Qty</label>
                   <Input 
                     type="number" 
@@ -859,7 +873,7 @@ export default function DailyDataEntryView() {
                     }} 
                   />
                 </div>
-                <div className="w-24">
+                <div className="w-24 sm:w-28">
                   <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Rate (Ksh)</label>
                   <Input 
                     type="number" 
@@ -875,8 +889,8 @@ export default function DailyDataEntryView() {
                     }} 
                   />
                 </div>
-                <div className="w-28">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Amount</label>
+                <div className="w-32 sm:w-36">
+                  <label className="text-[10px] uppercase font-bold text-emerald-400 block mb-1">Amount (KES)</label>
                   <Input 
                     type="number" 
                     placeholder="Amount" 
@@ -886,6 +900,7 @@ export default function DailyDataEntryView() {
                       newPurchases[idx].amount = parseFloat(e.target.value) || 0;
                       setLpgPurchases(newPurchases);
                     }} 
+                    className="font-mono font-bold text-slate-100"
                   />
                 </div>
                 <Button 
@@ -920,8 +935,9 @@ export default function DailyDataEntryView() {
           </CardHeader>
           <CardContent className="p-6 pt-0 space-y-3">
             {equipmentSales.map((sale, idx) => (
-              <div key={idx} className="flex gap-2 items-end">
-                <div className="flex-1">
+              <div key={idx} className="flex gap-3 items-end flex-wrap sm:flex-nowrap p-2.5 rounded-lg bg-slate-900/40 border border-theme-border/40">
+                <div className="flex-1 min-w-[140px]">
+                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Catalog Item</label>
                   <Select 
                     value={sale.item || accessoryProducts[0]?.name || 'Burner'} 
                     onChange={(e) => {
@@ -937,7 +953,8 @@ export default function DailyDataEntryView() {
                     ))}
                   </Select>
                 </div>
-                <div className="w-20">
+                <div className="w-24 sm:w-28">
+                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Qty Sold</label>
                   <Input 
                     type="number" 
                     placeholder="Qty" 
@@ -949,7 +966,8 @@ export default function DailyDataEntryView() {
                     }} 
                   />
                 </div>
-                <div className="w-28">
+                <div className="w-32 sm:w-40">
+                  <label className="text-[10px] uppercase font-bold text-purple-400 block mb-1">Total Amount (KES)</label>
                   <Input 
                     type="number" 
                     placeholder="Amount" 
@@ -959,11 +977,12 @@ export default function DailyDataEntryView() {
                       newSales[idx].amount = parseFloat(e.target.value) || 0;
                       setEquipmentSales(newSales);
                     }} 
+                    className="font-mono font-bold text-slate-100"
                   />
                 </div>
                 <Button 
                   variant="danger" 
-                  className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20" 
+                  className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 mb-0.5" 
                   onClick={() => setEquipmentSales(equipmentSales.filter((_, i) => i !== idx))}
                 >
                   <Trash2 className="w-4 h-4" />
@@ -990,8 +1009,8 @@ export default function DailyDataEntryView() {
           </CardHeader>
           <CardContent className="p-6 pt-0 space-y-3">
             {equipmentPurchases.map((purchase, idx) => (
-              <div key={idx} className="flex gap-2 items-end flex-wrap sm:flex-nowrap">
-                <div className="flex-1 min-w-[120px]">
+              <div key={idx} className="flex gap-2.5 items-end flex-wrap sm:flex-nowrap p-2.5 rounded-lg bg-slate-900/40 border border-theme-border/40">
+                <div className="flex-1 min-w-[130px]">
                   <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Catalog Item</label>
                   <Select 
                     value={purchase.item || accessoryProducts[0]?.name || 'Burner'} 
@@ -1008,7 +1027,7 @@ export default function DailyDataEntryView() {
                     ))}
                   </Select>
                 </div>
-                <div className="w-20">
+                <div className="w-20 sm:w-24">
                   <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Qty</label>
                   <Input 
                     type="number" 
@@ -1025,7 +1044,7 @@ export default function DailyDataEntryView() {
                     }} 
                   />
                 </div>
-                <div className="w-24">
+                <div className="w-24 sm:w-28">
                   <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Rate (Ksh)</label>
                   <Input 
                     type="number" 
@@ -1041,8 +1060,8 @@ export default function DailyDataEntryView() {
                     }} 
                   />
                 </div>
-                <div className="w-28">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Amount</label>
+                <div className="w-32 sm:w-36">
+                  <label className="text-[10px] uppercase font-bold text-emerald-400 block mb-1">Amount (KES)</label>
                   <Input 
                     type="number" 
                     placeholder="Amount" 
@@ -1052,6 +1071,7 @@ export default function DailyDataEntryView() {
                       newPurchases[idx].amount = parseFloat(e.target.value) || 0;
                       setEquipmentPurchases(newPurchases);
                     }} 
+                    className="font-mono font-bold text-slate-100"
                   />
                 </div>
                 <Button 
@@ -1217,8 +1237,9 @@ export default function DailyDataEntryView() {
           </CardHeader>
           <CardContent className="p-6 pt-0 space-y-3">
             {invoiceRows.map((invoice, idx) => (
-              <div key={idx} className="flex gap-2 items-end">
-                <div className="flex-1">
+              <div key={idx} className="flex gap-3 items-end flex-wrap sm:flex-nowrap p-2.5 rounded-lg bg-slate-900/40 border border-theme-border/40">
+                <div className="flex-1 min-w-[180px]">
+                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Customer / Debtor</label>
                   <Select 
                     value={invoice.customerName || ''} 
                     onChange={(e) => {
@@ -1237,7 +1258,8 @@ export default function DailyDataEntryView() {
                       ))}
                   </Select>
                 </div>
-                <div className="w-24">
+                <div className="w-32 sm:w-44">
+                  <label className="text-[10px] uppercase font-bold text-amber-400 block mb-1">Invoice Total (KES)</label>
                   <Input 
                     type="number" 
                     placeholder="Total" 
@@ -1247,9 +1269,11 @@ export default function DailyDataEntryView() {
                       newRows[idx].totalAmount = parseFloat(e.target.value) || 0;
                       setInvoiceRows(newRows);
                     }} 
+                    className="font-mono font-bold text-slate-100"
                   />
                 </div>
-                <div className="w-24">
+                <div className="w-32 sm:w-44">
+                  <label className="text-[10px] uppercase font-bold text-emerald-400 block mb-1">Paid / Deposit (KES)</label>
                   <Input 
                     type="number" 
                     placeholder="Paid" 
@@ -1259,11 +1283,12 @@ export default function DailyDataEntryView() {
                       newRows[idx].paidAmount = parseFloat(e.target.value) || 0;
                       setInvoiceRows(newRows);
                     }} 
+                    className="font-mono font-bold text-slate-100"
                   />
                 </div>
                 <Button 
                   variant="danger" 
-                  className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20" 
+                  className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 mb-0.5" 
                   onClick={() => setInvoiceRows(invoiceRows.filter((_, i) => i !== idx))}
                 >
                   <Trash2 className="w-4 h-4" />
@@ -1286,32 +1311,36 @@ export default function DailyDataEntryView() {
           </span>
         </CardHeader>
         <CardContent className="p-6 pt-0 space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-6 border-b border-theme-border">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 pb-6 border-b border-theme-border">
             <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-800">
               <p className="text-xs text-theme-text-muted">Total Sales (Pump+LPG+Other)</p>
-              <p className="text-lg font-bold text-slate-100 mt-1 font-mono">KES {totalSales.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+              <p className="text-lg font-bold text-slate-100 mt-1 font-mono">KES {Math.round(totalSales).toLocaleString()}</p>
+            </div>
+            <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+              <p className="text-xs text-theme-text-muted">Cost of Goods (COGS / Refills)</p>
+              <p className="text-lg font-bold text-orange-400 mt-1 font-mono">KES {Math.round(totalCOGS).toLocaleString()}</p>
             </div>
             <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-800">
               <p className="text-xs text-theme-text-muted">Total Expenses</p>
-              <p className="text-lg font-bold text-red-400 mt-1 font-mono">KES {expensesAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+              <p className="text-lg font-bold text-red-400 mt-1 font-mono">KES {Math.round(expensesAmount).toLocaleString()}</p>
             </div>
             <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-800">
               <p className="text-xs text-theme-text-muted">Invoices Issued</p>
-              <p className="text-lg font-bold text-amber-400 mt-1 font-mono">KES {invoicesTotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+              <p className="text-lg font-bold text-amber-400 mt-1 font-mono">KES {Math.round(invoicesTotal).toLocaleString()}</p>
             </div>
             <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-800">
               <p className="text-xs text-theme-text-muted">Debt Paid Amount</p>
-              <p className="text-lg font-bold text-emerald-400 mt-1 font-mono">KES {paidInvoicesAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
+              <p className="text-lg font-bold text-emerald-400 mt-1 font-mono">KES {Math.round(paidInvoicesAmount).toLocaleString()}</p>
             </div>
-            <div className="col-span-2 md:col-span-4 bg-slate-950/80 p-4 rounded-xl border border-cyan-500/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div className="col-span-2 sm:col-span-3 lg:col-span-5 bg-slate-950/80 p-4 rounded-xl border border-cyan-500/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <div>
                 <p className="text-xs text-cyan-400 font-semibold uppercase tracking-wider">All Money Received (Expected Net Cash)</p>
                 <p className="text-2xl font-bold text-emerald-400 mt-0.5 font-mono">
-                  KES {expectedTotalCash.toLocaleString(undefined, {minimumFractionDigits: 2})}
+                  KES {Math.round(expectedTotalCash).toLocaleString()}
                 </p>
               </div>
               <div className="text-xs text-theme-text-muted">
-                Formula: (Total Sales - Expenses - Uncollected Invoices + Paid Debts)
+                Formula: (Total Sales - COGS - Expenses - Uncollected Invoices + Paid Debts)
               </div>
             </div>
           </div>
@@ -1335,7 +1364,7 @@ export default function DailyDataEntryView() {
               <Input 
                 type="text" 
                 disabled 
-                value={`KES ${expectedCashOnHand.toLocaleString(undefined, {minimumFractionDigits: 2})}`} 
+                value={`KES ${Math.round(expectedCashOnHand).toLocaleString()}`} 
                 className="bg-slate-950 text-cyan-300 font-bold font-mono" 
               />
             </div>
@@ -1355,15 +1384,15 @@ export default function DailyDataEntryView() {
                 Reconciliation Variance
               </label>
               <div className={`p-2.5 rounded-lg font-bold text-base border font-mono flex items-center justify-between ${
-                variance > 0 ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/40' : 
-                variance < 0 ? 'bg-red-950/40 text-red-400 border-red-500/40' : 
+                Math.round(variance) > 0 ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/40' : 
+                Math.round(variance) < 0 ? 'bg-red-950/40 text-red-400 border-red-500/40' : 
                 'bg-slate-900 text-slate-300 border-slate-700'
               }`}>
-                <span>KES {Math.abs(variance).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                <span>KES {Math.round(Math.abs(variance)).toLocaleString()}</span>
                 <span className="text-xs px-2 py-0.5 rounded font-sans uppercase">
-                  {variance > 0 && 'Excess'}
-                  {variance < 0 && 'Shortfall / Less'}
-                  {variance === 0 && 'Balanced (0.00)'}
+                  {Math.round(variance) > 0 && 'Excess'}
+                  {Math.round(variance) < 0 && 'Shortfall / Less'}
+                  {Math.round(variance) === 0 && 'Balanced (0)'}
                 </span>
               </div>
             </div>

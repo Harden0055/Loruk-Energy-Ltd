@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { FuelProvider, useFuel, Station } from './context';
-import { LayoutDashboard, Fuel, Flame, Box, ReceiptText, FileText, Wallet, BarChart3, Menu, X, User, Settings, Building2 } from 'lucide-react';
+import { LayoutDashboard, Fuel, Flame, Box, ReceiptText, FileText, Wallet, BarChart3, Menu, X, User, Settings, Building2, Printer, Database } from 'lucide-react';
 import DashboardView from './views/DashboardView';
 import PumpReadingsView from './views/PumpReadingsView';
 import LPGView from './views/LPGView';
@@ -11,11 +11,12 @@ import CashPositionView from './views/CashPositionView';
 import ReportsView from './views/ReportsView';
 import ProductsView from './views/ProductsView';
 import DailyDataEntryView from './views/DailyDataEntryView';
+import MasterRecordsView from './views/MasterRecordsView';
 
 import DailyReportView from './views/DailyReportView';
 import MiniDashboardProfile from './views/MiniDashboardProfile';
 
-export type ViewType = 'Dashboard' | 'Daily Data Entry' | 'Pump Readings' | 'LPG' | 'Inventory' | 'Expenses' | 'Invoices' | 'Cash Position' | 'Reports' | 'Daily Report' | 'Settings';
+export type ViewType = 'Dashboard' | 'Daily Data Entry' | 'Pump Readings' | 'LPG' | 'Inventory' | 'Expenses' | 'Invoices' | 'Cash Position' | 'Master Records' | 'Reports' | 'Daily Report' | 'Settings';
 
 const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen }: { currentView: ViewType, setCurrentView: (v: ViewType) => void, onBackToMain: () => void, isOpen: boolean, setIsOpen: (o: boolean) => void }) => {
   const menuItems = [
@@ -27,6 +28,7 @@ const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen 
     { name: 'Expenses', icon: ReceiptText },
     { name: 'Invoices', icon: FileText },
     { name: 'Cash Position', icon: Wallet },
+    { name: 'Master Records', icon: Database },
     { name: 'Reports', icon: BarChart3 },
     { name: 'Daily Report', icon: FileText },
     { name: 'Settings', icon: Settings },
@@ -85,7 +87,7 @@ const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen 
   );
 };
 
-const MainContent = ({ currentView, onOpenSidebar, isProfileOpen, setIsProfileOpen }: { currentView: ViewType, onOpenSidebar: () => void, isProfileOpen: boolean, setIsProfileOpen: (b: boolean) => void }) => {
+const MainContent = ({ currentView, onOpenSidebar, isProfileOpen, setIsProfileOpen, onPrint }: { currentView: ViewType, onOpenSidebar: () => void, isProfileOpen: boolean, setIsProfileOpen: (b: boolean) => void, onPrint: () => void }) => {
   const { activeStation, setActiveStation, stations } = useFuel();
   
   const stationsList = useMemo(() => {
@@ -106,6 +108,15 @@ const MainContent = ({ currentView, onOpenSidebar, isProfileOpen, setIsProfileOp
          </div>
          
          <div className="flex items-center gap-3">
+           <button
+             onClick={onPrint}
+             className="flex items-center gap-2 text-sm font-semibold text-white bg-white/5 hover:bg-white/10 px-3.5 py-2 rounded-xl border border-theme-border transition-all duration-300 cursor-pointer shadow-md hover:scale-102"
+             title="Print Page"
+           >
+             <Printer className="w-4 h-4 text-cyan-400" />
+             <span className="hidden sm:inline">Print</span>
+           </button>
+
            <button 
              onClick={() => setIsProfileOpen(true)}
              className="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl bg-[#3B82F6]/10 text-[#00D4FF] hover:bg-[#3B82F6]/20 transition-all duration-300 border border-[#3B82F6]/30 shadow-[0_0_15px_rgba(59,130,246,0.15)] cursor-pointer"
@@ -147,6 +158,7 @@ const MainContent = ({ currentView, onOpenSidebar, isProfileOpen, setIsProfileOp
         {currentView === 'Expenses' && <ExpensesView />}
         {currentView === 'Invoices' && <InvoicesView />}
         {currentView === 'Cash Position' && <CashPositionView />}
+        {currentView === 'Master Records' && <MasterRecordsView />}
         {currentView === 'Reports' && <ReportsView />}
         {currentView === 'Daily Report' && <DailyReportView />}
       </div>
@@ -159,11 +171,68 @@ export default function FuelSuiteApp({ onBackToMain }: { onBackToMain: () => voi
   const [currentView, setCurrentView] = useState<ViewType>('Dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [showPrintWarning, setShowPrintWarning] = useState(false);
+
+  const handlePrint = () => {
+    try {
+      if (window.self !== window.top) {
+        setShowPrintWarning(true);
+      } else {
+        window.print();
+      }
+    } catch {
+      window.print();
+    }
+  };
 
   return (
     <div className="flex h-screen theme-bg-gradient font-sans selection:bg-cyan-500/30 overflow-hidden relative">
+      {showPrintWarning && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 print-hide">
+          <div className="glass-panel p-6 rounded-2xl shadow-2xl max-w-md w-full border border-theme-border">
+            <h3 className="text-xl font-bold mb-3 flex items-center gap-2 text-white">
+              <Printer className="w-5 h-5 text-cyan-400" />
+              Print / Save as PDF
+            </h3>
+            <p className="text-slate-300 text-sm mb-6 leading-relaxed">
+              To print or save this report as PDF in the preview environment, please open the applet in a new tab or use your browser's direct print shortcut (<code className="bg-slate-800 px-1.5 py-0.5 rounded text-cyan-300 font-mono text-xs">Ctrl+P</code> / <code className="bg-slate-800 px-1.5 py-0.5 rounded text-cyan-300 font-mono text-xs">Cmd+P</code>).
+            </p>
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setShowPrintWarning(false)}
+                className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 font-medium rounded-xl transition-colors text-sm cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => {
+                  try {
+                    window.print();
+                  } catch {
+                    window.open(window.location.href, '_blank');
+                  }
+                  setShowPrintWarning(false);
+                }}
+                className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-xl transition-colors text-sm font-semibold cursor-pointer"
+              >
+                Print Now
+              </button>
+              <button 
+                onClick={() => {
+                  window.open(window.location.href, '_blank');
+                  setShowPrintWarning(false);
+                }}
+                className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold rounded-xl transition-colors text-sm cursor-pointer shadow-lg shadow-cyan-500/20"
+              >
+                Open in New Tab
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Sidebar currentView={currentView} setCurrentView={setCurrentView} onBackToMain={onBackToMain} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-      <MainContent currentView={currentView} onOpenSidebar={() => setIsSidebarOpen(true)} isProfileOpen={isProfileOpen} setIsProfileOpen={setIsProfileOpen} />
+      <MainContent currentView={currentView} onOpenSidebar={() => setIsSidebarOpen(true)} isProfileOpen={isProfileOpen} setIsProfileOpen={setIsProfileOpen} onPrint={handlePrint} />
     </div>
   );
 }

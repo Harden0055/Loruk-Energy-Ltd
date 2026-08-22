@@ -198,9 +198,17 @@ export default function InventoryView() {
 
         // Automatic empty cylinder calculation if empty item exists in Product List
         if (lpg.type === 'sale') {
-          const emptyLinked = activeProducts.find(p => p.name.toLowerCase().includes('empty') && findLinkedProduct(lpg.item, [p]));
+          const is6Kg = lpg.item.toLowerCase().includes('6kg') || lpg.item.toLowerCase().includes('6 kg');
+          const is13Kg = lpg.item.toLowerCase().includes('13kg') || lpg.item.toLowerCase().includes('13 kg');
+          const emptyLinked = activeProducts.find(p => {
+            const n = p.name.toLowerCase();
+            if (!n.includes('empty')) return false;
+            if (is6Kg && (n.includes('6kg') || n.includes('6 kg'))) return true;
+            if (is13Kg && (n.includes('13kg') || n.includes('13 kg'))) return true;
+            return false;
+          });
           if (emptyLinked && summary[emptyLinked.id]) {
-            summary[emptyLinked.id].in += qty;
+            summary[emptyLinked.id].out += qty;
           }
         } else if (lpg.type === 'purchase') {
           const emptyLinked = activeProducts.find(p => p.name.toLowerCase().includes('empty') && findLinkedProduct(lpg.item, [p]));
@@ -360,18 +368,6 @@ export default function InventoryView() {
     setForm({ ...item });
     setEditingId(item.id);
     setIsFormOpen(true);
-  };
-
-  const handleDelete = (id: string, source: string = 'inventory') => {
-    confirmDelete('Are you sure you want to delete this record?', () => {
-      if (source === 'inventory') {
-        setInventoryItems(prev => prev.filter(i => i.id !== id));
-      } else if (source === 'pump') {
-        setPumpReadings(prev => prev.filter(p => p.id !== id));
-      } else if (source === 'lpg') {
-        setLpgTransactions(prev => prev.filter(l => l.id !== id));
-      }
-    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -770,26 +766,12 @@ export default function InventoryView() {
                               >
                                 <Pencil className="w-4 h-4" />
                               </button>
-                              <button 
-                                onClick={() => handleDelete(t.id, t.source)} 
-                                className="text-theme-text-muted hover:text-red-400 transition-colors cursor-pointer"
-                                title="Delete"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
                             </div>
                           ) : (
                             <div className="flex gap-3 justify-end items-center">
                               <span className="text-xs text-slate-500 italic">
                                 via {t.source === 'pump' ? 'Pump Readings' : 'LPG'}
                               </span>
-                              <button 
-                                onClick={() => handleDelete(t.id, t.source)} 
-                                className="text-theme-text-muted hover:text-red-400 transition-colors ml-2 cursor-pointer" 
-                                title={`Delete this ${t.source === 'pump' ? 'Pump Reading' : 'LPG Transaction'}`}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
                             </div>
                           )}
                         </Td>
@@ -810,7 +792,6 @@ export default function InventoryView() {
         </>
       )}
 
-      {confirmDialog}
     </div>
   );
 }

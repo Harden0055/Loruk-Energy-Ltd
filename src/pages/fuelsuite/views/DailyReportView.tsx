@@ -70,9 +70,28 @@ export default function DailyReportView() {
   }, [dailyReadings]);
 
   const totalGases = dailyLpgSales.reduce((sum, t) => sum + t.amount, 0);
-  const totalGasesPurchases = dailyLpgPurchases.reduce((sum, t) => sum + t.amount, 0);
+  const dailyAccessoriesSales = useMemo(() => inventoryItems.filter(
+    i => i.date === selectedDate && i.type === 'out' && (activeStation === 'Combined Total' ? true : i.station === activeStation) &&
+    !i.item.toLowerCase().includes('super') && 
+    !i.item.toLowerCase().includes('diesel') && 
+    !i.item.toLowerCase().includes('lpg') &&
+    !i.item.toLowerCase().includes('cylinder')
+  ), [inventoryItems, selectedDate, activeStation]);
+
+  const dailyAccessoriesPurchases = useMemo(() => inventoryItems.filter(
+    i => i.date === selectedDate && i.type === 'in' && (activeStation === 'Combined Total' ? true : i.station === activeStation) &&
+    !i.item.toLowerCase().includes('super') && 
+    !i.item.toLowerCase().includes('diesel') && 
+    !i.item.toLowerCase().includes('lpg') &&
+    !i.item.toLowerCase().includes('cylinder')
+  ), [inventoryItems, selectedDate, activeStation]);
+
+  const totalAccessoriesSales = dailyAccessoriesSales.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+  const totalAccessoriesPurchases = dailyAccessoriesPurchases.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+
+  const totalGasesPurchases = dailyLpgPurchases.reduce((sum, t) => sum + t.amount, 0) + totalAccessoriesPurchases;
   const totalFuelSales = Object.values(groupedReadings).reduce((sum, g) => sum + g.totalSales, 0);
-  const totalSales = totalFuelSales; // LPG sales omitted from revenue calculation
+  const totalSales = totalFuelSales + totalGases + totalAccessoriesSales;
 
   const todayInvoices = invoices.filter(i => i.date === selectedDate && (activeStation === 'Combined Total' ? true : i.station === activeStation));
   const totalInvoicesAmount = todayInvoices.reduce((sum, i) => sum + i.totalAmount, 0);
@@ -86,12 +105,10 @@ export default function DailyReportView() {
   const totalExpensesAmount = actualExpenses.reduce((sum, e) => sum + e.amount, 0);
   const totalMPesaAmount = dailyCashPos?.mPesa ?? mPesaExpenses.reduce((sum, e) => sum + e.amount, 0);
 
-  const expectedCashOnHand = totalSales - (totalDebts + totalExpensesAmount + totalMPesaAmount);
+  const expectedCashOnHand = totalSales - (totalDebts + totalExpensesAmount + totalGasesPurchases + totalMPesaAmount) + paidInvoicesAmount;
   const cashAtHand = dailyCashPos?.cashOnHand ?? expectedCashOnHand;
   
-  // Omitted LPG Purchases and LPG sales in the calculation to remain neutral
-  const sumAccounted = cashAtHand + totalMPesaAmount + totalExpensesAmount + totalInvoicesAmount - paidInvoicesAmount;
-  const cashDifference = sumAccounted - totalSales;
+  const cashDifference = totalSales - totalDebts - totalExpensesAmount - totalGasesPurchases - totalMPesaAmount - cashAtHand + paidInvoicesAmount;
 
   // Added fuel / Inventory balances could be fetched from InventoryItems
   const dailyFuelAdded = inventoryItems.filter(i => 
@@ -236,8 +253,22 @@ export default function DailyReportView() {
             className="w-auto"
           />
           <button
-            onClick={() => window.print()}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 rounded-lg transition-colors text-sm font-medium print:hidden"
+            onClick={() => {
+              try {
+                if (window.self !== window.top) {
+                  try {
+                    window.print();
+                  } catch {
+                    window.open(window.location.href, '_blank');
+                  }
+                } else {
+                  window.print();
+                }
+              } catch {
+                window.open(window.location.href, '_blank');
+              }
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 rounded-lg transition-colors text-sm font-medium print:hidden cursor-pointer"
           >
             <Printer className="w-4 h-4" />
             Print PDF
@@ -273,7 +304,7 @@ export default function DailyReportView() {
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-theme-border/50 text-cyan-400 font-bold">
                 <span>Total Litres: {data.totalLitres.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
-                <span>Ksh {data.totalSales.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                <span>Ksh {Math.round(data.totalSales).toLocaleString()}</span>
               </div>
             </div>
           ))}
@@ -288,7 +319,12 @@ export default function DailyReportView() {
           <div className="space-y-4 border-b border-theme-border/50 pb-6">
             <div className="flex justify-between items-center">
               <span className="text-lg">Gases (LPG Sales)</span>
-              <span className="font-bold">Ksh {totalGases.toLocaleString()}</span>
+              <span className="font-bold">Ksh {Math.round(totalGases).toLocaleString()}</span>
+            </div>
+
+            <div className="flex justify-between items-center">
+              <span className="text-lg">Accessories Sales</span>
+              <span className="font-bold">Ksh {Math.round(totalAccessoriesSales).toLocaleString()}</span>
             </div>
             
             {dailyFuelAdded.length > 0 && (
@@ -306,13 +342,13 @@ export default function DailyReportView() {
           {/* TOTAL SALES */}
           <div className="flex justify-between items-center text-xl font-bold text-emerald-400 border-b border-theme-border pb-6">
             <span>TOTAL SALES</span>
-            <span>Ksh {totalSales.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+            <span>Ksh {Math.round(totalSales).toLocaleString()}</span>
           </div>
 
           {totalGasesPurchases > 0 && (
             <div className="flex justify-between items-center text-lg text-orange-300 border-b border-theme-border py-4">
               <span>LPG Purchases</span>
-              <span>Ksh {totalGasesPurchases.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+              <span>Ksh {Math.round(totalGasesPurchases).toLocaleString()}</span>
             </div>
           )}
 
@@ -331,22 +367,22 @@ export default function DailyReportView() {
           {/* DEPTS & EXPENSES GRID */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-b border-theme-border pb-6">
             <div>
-              <h4 className="text-lg font-bold text-theme-text border-b border-theme-border pb-2 mb-3">Depts (Debts)</h4>
+              <h4 className="text-lg font-bold text-theme-text border-b border-theme-border pb-2 mb-3">Invoices</h4>
               {unpaidDebts.length > 0 ? (
                 <div className="space-y-2">
                   {unpaidDebts.map(debt => (
                     <div key={debt.id} className="flex justify-between">
                       <span>{debt.customerName}</span>
-                      <span>{(debt.totalAmount - debt.paidAmount).toLocaleString()}</span>
+                      <span>{Math.round(debt.totalAmount - debt.paidAmount).toLocaleString()}</span>
                     </div>
                   ))}
                   <div className="flex justify-between pt-2 border-t border-theme-border font-bold text-orange-400 mt-2">
-                    <span>Total Depts</span>
-                    <span>= {totalDebts.toLocaleString()}</span>
+                    <span>Total Invoices</span>
+                    <span>= {Math.round(totalDebts).toLocaleString()}</span>
                   </div>
                 </div>
               ) : (
-                <div className="text-slate-500 italic">No debts recorded.</div>
+                <div className="text-slate-500 italic">No invoices recorded.</div>
               )}
             </div>
             
@@ -365,13 +401,13 @@ export default function DailyReportView() {
                         <span className="text-slate-200">{exp.category}</span>
                       </div>
                       <span className="font-mono font-bold text-rose-400">
-                        {exp.amount.toLocaleString()}
+                        {Math.round(exp.amount).toLocaleString()}
                       </span>
                     </div>
                   ))}
                   <div className="flex justify-between pt-2 border-t border-theme-border font-bold text-red-400 mt-2">
                     <span>Total Expenses</span>
-                    <span>= {totalExpensesAmount.toLocaleString()}</span>
+                    <span>= {Math.round(totalExpensesAmount).toLocaleString()}</span>
                   </div>
                 </div>
               ) : (
@@ -384,28 +420,28 @@ export default function DailyReportView() {
           <div className="space-y-4">
             <div className="flex justify-between items-center text-xl font-bold bg-[#1d8f58]/20 border border-[#1d8f58]/40 p-4 rounded-lg">
               <span className="text-slate-100">Money in M-Pesa</span>
-              <span className="text-emerald-400">{totalMPesaAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+              <span className="text-emerald-400">Ksh {Math.round(totalMPesaAmount).toLocaleString()}</span>
             </div>
             
             <div className="flex justify-between items-center text-xl font-bold bg-[#122840]/30 p-4 rounded-lg">
               <span className="text-slate-100">Cash at hand</span>
-              <span className="text-cyan-400">{cashAtHand.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+              <span className="text-cyan-400">Ksh {Math.round(cashAtHand).toLocaleString()}</span>
             </div>
 
             <div className={`flex justify-between items-center text-xl font-bold p-4 rounded-lg border ${
-              cashDifference > 0 ? 'bg-emerald-500/20 border-emerald-500/40' : 
-              cashDifference < 0 ? 'bg-red-500/20 border-red-500/40' : 
+              Math.round(cashDifference) > 0 ? 'bg-emerald-500/20 border-emerald-500/40' : 
+              Math.round(cashDifference) < 0 ? 'bg-red-500/20 border-red-500/40' : 
               'bg-slate-500/20 border-slate-500/40'
             }`}>
               <span className="text-slate-100">
-                {cashDifference > 0 ? 'Excess' : cashDifference < 0 ? 'Short / Loss' : 'Balanced'}
+                {Math.round(cashDifference) > 0 ? 'Excess' : Math.round(cashDifference) < 0 ? 'Short / Loss' : 'Balanced'}
               </span>
               <span className={
-                cashDifference > 0 ? 'text-emerald-400' : 
-                cashDifference < 0 ? 'text-red-400' : 
+                Math.round(cashDifference) > 0 ? 'text-emerald-400' : 
+                Math.round(cashDifference) < 0 ? 'text-red-400' : 
                 'text-theme-text-muted'
               }>
-                {cashDifference !== 0 ? (cashDifference > 0 ? '+' : '') + cashDifference.toLocaleString(undefined, {minimumFractionDigits: 2}) : '0.00'}
+                {Math.round(cashDifference) !== 0 ? (Math.round(cashDifference) > 0 ? '+' : '') + Math.round(cashDifference).toLocaleString() : '0'}
               </span>
             </div>
           </div>
