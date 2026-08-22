@@ -342,7 +342,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         sortOrder: 3
       }))
     ].sort((a, b) => {
-      if (a.date !== b.date) return (a.createdAt || a.date) - (b.createdAt || b.date);
+      if (a.date !== b.date) return a.date - b.date;
       return a.sortOrder - b.sortOrder;
     }); 
 
@@ -408,7 +408,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       ...customerDeliveries.map(d => ({ date: d.date, type: 'delivery', val: d.totalAmount })),
       ...customerPayments.map(p => ({ date: p.date, type: 'payment', val: -(p.amount || 0) })),
       ...customerAdjustments.map(a => ({ date: a.date, type: 'adjustment', val: a.type === 'debit' ? a.amount : -a.amount }))
-    ].sort((a, b) => (a.createdAt || a.date) - (b.createdAt || b.date));
+    ].sort((a, b) => a.date - b.date);
 
     let runningBalance = customer?.openingBalance 
       ? (customer.openingBalanceType === 'advance' ? -customer.openingBalance : customer.openingBalance) 
@@ -454,7 +454,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
       // Line item table
       const tableHeaders = [['Date', 'Transaction Type', 'Description', 'Amount (KES)', 'Closing Balance (KES)']];
-      const tableRows = [...timelineEvents].sort((a,b) => (b.createdAt || b.date) - (a.createdAt || a.date)).map(e => [
+      const tableRows = [...timelineEvents].sort((a,b) => b.date - a.date).map(e => [
         format(e.date, 'yyyy-MM-dd'),
         e.title,
         e.description,

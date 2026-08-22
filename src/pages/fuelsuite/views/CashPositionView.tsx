@@ -9,25 +9,31 @@ const COLORS = ['#00D4FF', '#3B82F6'];
 
 export default function CashPositionView() {
   const { confirm: confirmDelete, dialog: confirmDialog } = useConfirm();
-  const { cashPositions, setCashPositions } = useFuel();
+  const { cashPositions, setCashPositions, activeStation, stations } = useFuel();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [form, setForm] = useState<Partial<CashPosition>>({
     date: new Date().toISOString().split('T')[0],
+    station: activeStation === 'Combined Total' ? (stations[0]?.name || 'Station 1') : activeStation,
     mPesa: 0,
     cashOnHand: 0,
   });
 
-  const latest = cashPositions[cashPositions.length - 1] || { mPesa: 0, cashOnHand: 0 };
+  const filteredPositions = cashPositions.filter(p => 
+    activeStation === 'Combined Total' || !p.station || p.station === activeStation
+  ).sort((a, b) => b.date.localeCompare(a.date));
+
+  const latest = filteredPositions[0] || { mPesa: 0, cashOnHand: 0 };
   const pieData = [
-    { name: 'M-Pesa', value: latest.mPesa },
-    { name: 'Cash on Hand', value: latest.cashOnHand },
+    { name: 'M-Pesa', value: latest.mPesa || 0 },
+    { name: 'Cash on Hand', value: latest.cashOnHand || 0 },
   ];
 
   const resetForm = () => {
     setForm({
       date: new Date().toISOString().split('T')[0],
+      station: activeStation === 'Combined Total' ? (stations[0]?.name || 'Station 1') : activeStation,
       mPesa: 0,
       cashOnHand: 0,
     });
@@ -42,10 +48,10 @@ export default function CashPositionView() {
   };
 
   const handleDelete = (id: string) => {
-  confirmDelete('Are you sure you want to delete this record?', () => {
+    confirmDelete('Are you sure you want to delete this record?', () => {
       setCashPositions(prev => prev.filter(p => p.id !== id));
     });
-};
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +60,7 @@ export default function CashPositionView() {
     } else {
       const newPos: CashPosition = {
         id: Math.random().toString(36).substr(2, 9),
+        station: form.station || (activeStation === 'Combined Total' ? (stations[0]?.name || 'Station 1') : activeStation),
         ...form as Omit<CashPosition, 'id'>
       };
       setCashPositions(prev => [...prev, newPos]);
@@ -61,29 +68,34 @@ export default function CashPositionView() {
     resetForm();
   };
 
-  
   const metrics = React.useMemo(() => {
-    const totalMpesa = cashPositions.reduce((sum, c) => sum + c.mPesa, 0);
-    const totalCash = cashPositions.reduce((sum, c) => sum + c.cashOnHand, 0);
+    const totalMpesa = filteredPositions.reduce((sum, c) => sum + (c.mPesa || 0), 0);
+    const totalCash = filteredPositions.reduce((sum, c) => sum + (c.cashOnHand || 0), 0);
     const total = totalMpesa + totalCash;
     return { total, mPesa: totalMpesa, cash: totalCash };
-  }, [cashPositions]);
+  }, [filteredPositions]);
 
   return (<div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-100">Cash Position</h1>
-          <p className="text-theme-text-muted mt-1">Track daily bank, M-Pesa, and cash totals.</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.25)]">
+            <Wallet className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-100">Cash Position</h1>
+            <p className="text-theme-text-muted mt-0.5 text-xs">Track daily bank, M-Pesa, and cash liquidity across stations.</p>
+          </div>
         </div>
+
+        <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
+          {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Position</>}
+        </Button>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <MetricCard title="Total Cash Flow" value={`KES ${metrics.total.toLocaleString()}`} icon={Wallet} colorClass="bg-[#122840] text-theme-text-muted" />
         <MetricCard title="Total M-Pesa" value={`KES ${metrics.mPesa.toLocaleString()}`} icon={Smartphone} colorClass="bg-emerald-500/10 text-emerald-400" />
         <MetricCard title="Total Cash on Hand" value={`KES ${metrics.cash.toLocaleString()}`} icon={Banknote} colorClass="bg-cyan-500/10 text-cyan-400" />
-      </div>
-        <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
-          {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Position</>}
-        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -163,12 +175,12 @@ export default function CashPositionView() {
                 </tr>
               </thead>
                <tbody>
-                {[...cashPositions].sort((a,b) => ((b.createdAt || b.date) > (a.createdAt || a.date) ? -1 : 1)).map(t => (
+                {filteredPositions.map(t => (
                   <tr key={t.id} className="hover:theme-bg-gradient transition-colors">
                     <Td>{t.date}</Td>
-                    <Td className="text-[#00D4FF] font-semibold font-mono">KES {t.mPesa.toLocaleString()}</Td>
-                    <Td className="text-[#3B82F6] font-semibold font-mono">KES {t.cashOnHand.toLocaleString()}</Td>
-                    <Td className="text-[#00D4FF] font-bold font-mono">KES {(t.mPesa + t.cashOnHand).toLocaleString()}</Td>
+                    <Td className="text-[#00D4FF] font-semibold font-mono">KES {(t.mPesa || 0).toLocaleString()}</Td>
+                    <Td className="text-[#3B82F6] font-semibold font-mono">KES {(t.cashOnHand || 0).toLocaleString()}</Td>
+                    <Td className="text-[#00D4FF] font-bold font-mono">KES {((t.mPesa || 0) + (t.cashOnHand || 0)).toLocaleString()}</Td>
                     <Td>
                       <div className="flex gap-3">
                         <button onClick={() => handleEdit(t)} className="text-theme-text-muted hover:text-[#00D4FF] transition-colors cursor-pointer">
@@ -181,7 +193,7 @@ export default function CashPositionView() {
                     </Td>
                   </tr>
                 ))}
-                {cashPositions.length === 0 && (
+                {filteredPositions.length === 0 && (
                   <tr className="modern-tr">
                     <Td colSpan={5} className="text-center py-8 text-slate-500">No positions recorded.</Td>
                   </tr>

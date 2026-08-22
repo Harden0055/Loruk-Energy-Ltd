@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useFuel } from '../context';
-import { Card, CardContent, CardHeader, CardTitle } from '../components';
-import { FileDown } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, MetricCard } from '../components';
+import { FileDown, BarChart3, TrendingUp, DollarSign, ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
@@ -14,7 +14,10 @@ export default function ReportsView() {
   const filteredReadings = pumpReadings.filter(r => activeStation === 'Combined Total' || r.station === activeStation);
   const filteredExpenses = expenses; // Assuming expenses apply globally or could be filtered similarly
 
-  const fuelRevenue = filteredReadings.reduce((acc, r) => acc + ((r.litresStop - r.litresStart) * r.ratePerLitre), 0);
+  const fuelRevenue = filteredReadings.reduce((acc, r) => {
+    const sAmount = (r.salesStop || 0) - (r.salesStart || 0);
+    return acc + (sAmount > 0 ? sAmount : ((r.litresStop - r.litresStart) * r.ratePerLitre));
+  }, 0);
   const lpgRevenue = lpgTransactions.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.amount, 0);
   const lpgCOGS = lpgTransactions.filter(t => t.type === 'purchase').reduce((acc, t) => acc + t.amount, 0);
   const operatingExpenses = filteredExpenses.reduce((acc, e) => acc + e.amount, 0);
@@ -99,18 +102,44 @@ export default function ReportsView() {
   return (
     <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-100">Financial Reports</h1>
-          <p className="text-theme-text-muted mt-1">Profit & Loss Statement for {activeStation}</p>
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
+            <BarChart3 className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-100">Financial Reports</h1>
+            <p className="text-theme-text-muted mt-0.5 text-xs">Profit & Loss Statement and station performance for {activeStation}</p>
+          </div>
         </div>
         <button
           onClick={handleDownloadPDF}
           disabled={isGenerating}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 rounded-lg font-bold transition-all hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] active:scale-95 disabled:opacity-50"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 rounded-lg font-bold transition-all hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] active:scale-95 disabled:opacity-50 cursor-pointer"
         >
           <FileDown className="w-5 h-5" />
           {isGenerating ? 'Generating...' : 'Export P&L PDF'}
         </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <MetricCard 
+          title="Total Revenue" 
+          value={`KES ${totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} 
+          icon={ArrowUpRight} 
+          colorClass="bg-cyan-500/10 text-cyan-400" 
+        />
+        <MetricCard 
+          title="Gross Profit" 
+          value={`KES ${grossProfit.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} 
+          icon={TrendingUp} 
+          colorClass="bg-blue-500/10 text-blue-400" 
+        />
+        <MetricCard 
+          title="Net Profit" 
+          value={`KES ${netProfit.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} 
+          icon={DollarSign} 
+          colorClass={netProfit >= 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400"} 
+        />
       </div>
 
       <Card className="max-w-4xl mx-auto">
@@ -135,7 +164,7 @@ export default function ReportsView() {
               </tr>
               <tr className="modern-tr">
                 <td className="modern-td">Total Revenue</td>
-                <td className="modern-td">{totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                <td className="modern-td font-semibold text-cyan-400">{totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
               </tr>
 
               {/* COGS */}
@@ -152,13 +181,13 @@ export default function ReportsView() {
               </tr>
               <tr className="modern-tr">
                 <td className="modern-td">Total COGS</td>
-                <td className="modern-td">({totalCOGS.toLocaleString(undefined, { minimumFractionDigits: 2 })})</td>
+                <td className="modern-td font-semibold text-orange-400">({totalCOGS.toLocaleString(undefined, { minimumFractionDigits: 2 })})</td>
               </tr>
 
               {/* GROSS PROFIT */}
-              <tr className="modern-tr">
+              <tr className="modern-tr bg-blue-500/5 font-semibold">
                 <td className="modern-td">GROSS PROFIT</td>
-                <td className="modern-td">{grossProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                <td className="modern-td text-blue-400">{grossProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
               </tr>
 
               {/* EXPENSES */}
@@ -171,7 +200,7 @@ export default function ReportsView() {
               </tr>
               <tr className="modern-tr">
                 <td className="modern-td">Total Expenses</td>
-                <td className="modern-td">({operatingExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })})</td>
+                <td className="modern-td font-semibold text-red-400">({operatingExpenses.toLocaleString(undefined, { minimumFractionDigits: 2 })})</td>
               </tr>
 
               {/* NET PROFIT */}

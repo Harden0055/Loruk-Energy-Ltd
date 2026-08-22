@@ -57,7 +57,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
   }, [allExpenses, truckReg]);
 
   const timelineChartData = useMemo(() => {
-    const sorted = [...expenses].sort((a, b) => (a.createdAt || a.date) - (b.createdAt || b.date));
+    const sorted = [...expenses].sort((a, b) => a.date - b.date);
     const grouped: { [key: string]: { dateStr: string; amount: number } } = {};
     
     sorted.forEach(e => {
@@ -82,7 +82,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
     return Object.entries(groups).map(([date, data]) => ({
       date,
       efficiency: data.totalAmount > 0 ? data.totalLitres / data.totalAmount : 0
-    })).sort((a, b) => ((a.createdAt || a.date) > (b.createdAt || b.date) ? 1 : -1));
+    })).sort((a, b) => a.date.localeCompare(b.date));
   }, [expenses]);
 
   return (
@@ -186,7 +186,7 @@ export default function TruckDashboard({ truckReg, onNavigateToTruck, onBack }: 
               </tr>
             </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-blue-900">
-            {expenses.sort((a, b) => (b.createdAt || b.date) - (a.createdAt || a.date)).map(e => {
+            {expenses.sort((a, b) => b.date - a.date).map(e => {
               const badgeClass = e.station === 'Gel - Bungoma' ? 'bg-pink-100 dark:bg-pink-900/50 text-pink-800 dark:text-pink-200' 
                                 : e.station === 'Gel - Kapenguria' ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200' 
                                 : e.station === 'Kengas' ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200'

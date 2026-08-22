@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { useFuel, LPGTransaction , STATIONS, Station } from '../context';
-import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td, MetricCard } from '../components';
+import { useFuel, LPGTransaction , Station } from '../context';
+import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td, MetricCard, ProductIconBadge } from '../components';
 import { Plus, CheckSquare, ShoppingCart, RefreshCcw, Pencil, Trash2, X, Flame } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, CartesianGrid } from 'recharts';
 import { useConfirm } from '../useConfirm';
 
 export default function LPGView() {
   const { confirm: confirmDelete, dialog: confirmDialog } = useConfirm();
-  const { lpgTransactions, setLpgTransactions, inventoryItems, activeStation } = useFuel();
+  const { lpgTransactions, setLpgTransactions, inventoryItems, activeStation, stations, products } = useFuel();
   const [activeTab, setActiveTab] = useState<'sales' | 'purchases' | 'opening'>('sales');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -16,11 +16,22 @@ export default function LPGView() {
   const [filterDate, setFilterDate] = useState<string>('');
   const [filterStation, setFilterStation] = useState<Station>(activeStation);
 
+  React.useEffect(() => {
+    setFilterStation(activeStation);
+  }, [activeStation]);
+
+  const lpgProductOptions = useMemo(() => {
+    const fromCatalog = (products || []).filter(p => p.name.toLowerCase().includes('lpg') || p.name.toLowerCase().includes('cylinder') || p.category === 'LPG');
+    if (fromCatalog.length > 0) return fromCatalog.map(p => p.name);
+    return ['6Kg LPG', '13Kg LPG', '6kg Cylinder', '13kg Cylinder'];
+  }, [products]);
+
   const [form, setForm] = useState<Partial<LPGTransaction>>({
     date: new Date().toISOString().split('T')[0],
-    station: activeStation === 'Combined Total' ? STATIONS[0] : activeStation,
-    item: '6kg Cylinder',
+    station: activeStation === 'Combined Total' ? (stations[0]?.name || 'Loruk Ndalu Filling Station') : activeStation,
+    item: lpgProductOptions[0] || '6Kg LPG',
     quantity: 1,
+    rate: 0,
     amount: 0,
   });
 
@@ -33,7 +44,7 @@ export default function LPGView() {
       isFromInventory: true
     }));
 
-  const allLpgData = [...lpgTransactions, ...lpgInventoryItems].sort((a, b) => ((b.createdAt || b.date) > (a.createdAt || a.date) ? -1 : 1));
+  const allLpgData = [...lpgTransactions, ...lpgInventoryItems].sort((a, b) => b.date.localeCompare(a.date));
 
   const filteredData = useMemo(() => {
     return allLpgData.filter(t => 
@@ -90,9 +101,10 @@ export default function LPGView() {
   const resetForm = () => {
     setForm({
       date: new Date().toISOString().split('T')[0],
-      station: activeStation === 'Combined Total' ? STATIONS[0] : activeStation,
-      item: '6kg Cylinder',
+      station: activeStation === 'Combined Total' ? (stations[0]?.name || 'Station 1') : activeStation,
+      item: lpgProductOptions[0] || '6kg Cylinder',
       quantity: 1,
+      rate: 0,
       amount: 0,
     });
     setEditingId(null);
@@ -118,7 +130,7 @@ export default function LPGView() {
     } else {
       const newTx: LPGTransaction = {
         id: Math.random().toString(36).substr(2, 9),
-        station: form.station || (activeStation === 'Combined Total' ? STATIONS[0] : activeStation),
+        station: form.station || (activeStation === 'Combined Total' ? (stations[0]?.name || 'Station 1') : activeStation),
         type: activeTab === 'sales' ? 'sale' : activeTab === 'purchases' ? 'purchase' : 'opening',
         ...form as Omit<LPGTransaction, 'id' | 'type' | 'station'>
       };
@@ -130,9 +142,14 @@ export default function LPGView() {
   if (showLpgProfit) {
     return (<div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
         <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-3">
-            <Flame className="text-orange-400 w-8 h-8" />
-            <h2 className="text-2xl font-bold text-slate-100">LPG Profit Profile</h2>
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.25)]">
+              <Flame className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-slate-100">LPG Profit Profile</h2>
+              <p className="text-xs text-theme-text-muted">Net margins & volume trends for gas cylinders</p>
+            </div>
           </div>
           <button 
             onClick={() => setShowLpgProfit(false)}
@@ -198,7 +215,7 @@ export default function LPGView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {statsData.filter(t => t.type !== 'opening').sort((a,b) => ((b.createdAt || b.date) > (a.createdAt || a.date) ? -1 : 1)).map(t => (
+                  {statsData.filter(t => t.type !== 'opening').sort((a,b) => b.date.localeCompare(a.date)).map(t => (
                     <tr key={t.id} className="border-b border-theme-border/50 hover:bg-[#122840]/50 transition-colors">
                       <td className="modern-td">{t.date}</td>
                       <td className="modern-td">
@@ -206,8 +223,10 @@ export default function LPGView() {
                           {t.type}
                         </span>
                       </td>
-                      <td className="modern-td">{t.item}</td>
-                      <td className="modern-td">Ksh {t.amount.toLocaleString()}</td>
+                      <td className="modern-td">
+                        <ProductIconBadge name={t.item} category="LPG" size="sm" />
+                      </td>
+                      <td className="modern-td font-mono font-semibold">Ksh {t.amount.toLocaleString()}</td>
                     </tr>
                   ))}
                   {statsData.filter(t => t.type !== 'opening').length === 0 && (
@@ -226,10 +245,17 @@ export default function LPGView() {
 
   return (
     <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-100">LPG Sales & Inventory</h1>
-          <p className="text-theme-text-muted mt-1">Manage LPG gas cylinders tracking.</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.25)]">
+            <Flame className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
+              LPG Sales & Inventory
+            </h1>
+            <p className="text-theme-text-muted mt-0.5 text-xs">Manage gas cylinders tracking, refilling & stock balance.</p>
+          </div>
         </div>
       </div>
 
@@ -242,7 +268,7 @@ export default function LPGView() {
           <div className="flex-1">
             <label className="block text-xs text-theme-text-muted mb-1">Station</label>
             <Select value={filterStation} onChange={e => setFilterStation(e.target.value as Station)} className="h-9">
-              {['Combined Total', ...STATIONS].map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
+              {['Combined Total', ...stations.map(s=>s.name)].map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
             </Select>
           </div>
         </div>
@@ -255,8 +281,8 @@ export default function LPGView() {
       </div>
 
       <div className="flex justify-end pt-2 pb-2">
-        <button onClick={() => setShowLpgProfit(true)} className="text-cyan-400 hover:text-cyan-300 underline underline-offset-4 text-sm font-medium transition-colors">
-          View LPG Profit Profile
+        <button onClick={() => setShowLpgProfit(true)} className="text-cyan-400 hover:text-cyan-300 underline underline-offset-4 text-sm font-medium transition-colors cursor-pointer flex items-center gap-1.5">
+          <Flame className="w-4 h-4 text-orange-400" /> View LPG Profit Profile
         </button>
       </div>
 
@@ -293,33 +319,73 @@ export default function LPGView() {
             <CardTitle>{editingId ? `Edit ${activeTab === 'sales' ? 'Sale' : activeTab === 'purchases' ? 'Purchase' : 'Opening Stock'}` : `New ${activeTab === 'sales' ? 'Sale' : activeTab === 'purchases' ? 'Purchase' : 'Opening Stock'}`}</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-6 gap-4">
-              <div>
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-12 gap-4">
+              <div className="col-span-1 md:col-span-2">
                 <label className="block text-xs text-theme-text-muted mb-1">Date</label>
                 <Input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} required />
               </div>
-              <div>
+              <div className="col-span-1 md:col-span-2">
                 <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                 <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                  {STATIONS.map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
+                  {stations.map(s => { const name = s.name; return name; }).map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
                 </Select>
               </div>
-              <div className="col-span-1 md:col-span-1 lg:col-span-2">
-                <label className="block text-xs text-theme-text-muted mb-1">Item Size</label>
+              <div className="col-span-1 md:col-span-3">
+                <label className="block text-xs text-theme-text-muted mb-1">Item / Product</label>
                 <Select value={form.item} onChange={e => setForm({...form, item: e.target.value})}>
-                  <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="6kg Cylinder">6kg Cylinder</option>
-                  <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="13kg Cylinder">13kg Cylinder</option>
+                  {lpgProductOptions.map(opt => (
+                    <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={opt} value={opt}>
+                      {opt}
+                    </option>
+                  ))}
                 </Select>
               </div>
-              <div>
+              <div className="col-span-1 md:col-span-1">
                 <label className="block text-xs text-theme-text-muted mb-1">Qty</label>
-                <Input type="number" value={form.quantity} onChange={e => setForm({...form, quantity: parseInt(e.target.value)})} required />
+                <Input 
+                  type="number" 
+                  value={form.quantity || ''} 
+                  onChange={e => {
+                    const q = parseInt(e.target.value) || 0;
+                    const r = form.rate || 0;
+                    setForm({
+                      ...form, 
+                      quantity: q,
+                      amount: r > 0 ? q * r : form.amount
+                    });
+                  }} 
+                  required 
+                />
               </div>
-              <div className="col-span-1">
+              <div className="col-span-1 md:col-span-2">
+                <label className="block text-xs text-theme-text-muted mb-1">Rate (Ksh / unit)</label>
+                <Input 
+                  type="number" 
+                  step="any"
+                  placeholder="Rate"
+                  value={form.rate || ''} 
+                  onChange={e => {
+                    const r = parseFloat(e.target.value) || 0;
+                    const q = form.quantity || 0;
+                    setForm({
+                      ...form, 
+                      rate: r,
+                      amount: q > 0 ? q * r : form.amount
+                    });
+                  }} 
+                />
+              </div>
+              <div className="col-span-1 md:col-span-2">
                 <label className="block text-xs text-theme-text-muted mb-1">Total Amount (KES)</label>
-                <Input type="number" step="0.01" value={form.amount} onChange={e => setForm({...form, amount: parseFloat(e.target.value)})} required />
+                <Input 
+                  type="number" 
+                  step="0.01" 
+                  value={form.amount || ''} 
+                  onChange={e => setForm({...form, amount: parseFloat(e.target.value) || 0})} 
+                  required 
+                />
               </div>
-              <div className="col-span-1 md:col-span-5 flex justify-end mt-2">
+              <div className="col-span-1 md:col-span-12 flex justify-end mt-2">
                 <Button type="submit">{editingId ? 'Update Entry' : 'Save Entry'}</Button>
               </div>
             </form>
@@ -344,7 +410,9 @@ export default function LPGView() {
               <tr key={t.id} className="hover:theme-bg-gradient transition-colors">
                 <Td>{t.date}</Td>
                 <Td><span className="text-xs text-theme-text-muted uppercase tracking-tight font-medium">{t.station}</span></Td>
-                <Td><span className="font-semibold text-theme-text">{t.item}</span></Td>
+                <Td>
+                  <ProductIconBadge name={t.item} category="LPG" size="sm" />
+                </Td>
                 <Td className="font-semibold font-mono">{t.quantity}</Td>
                 <Td className="text-[#00D4FF] font-semibold font-mono">KES {t.amount.toLocaleString()}</Td>
                 <Td>

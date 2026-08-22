@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { useFuel, STATIONS } from '../context';
+import { useFuel } from '../context';
 import { X, User, BarChart2, TrendingUp, DollarSign } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 
@@ -10,10 +10,10 @@ interface MiniDashboardProfileProps {
 const COLORS = ['#3B82F6', '#00D4FF', '#60A5FA', '#38BDF8', '#22C55E'];
 
 export default function MiniDashboardProfile({ onClose }: MiniDashboardProfileProps) {
-  const { pumpReadings, lpgTransactions, expenses, invoices } = useFuel();
+  const { pumpReadings, lpgTransactions, expenses, invoices , stations} = useFuel();
 
   const stationData = useMemo(() => {
-    return STATIONS.map(station => {
+    return stations.map(station => { const name = station.name; return name; }).map(station => {
       const pReadings = pumpReadings.filter(r => r.station === station);
       const fuelRevenue = pReadings.reduce((sum, r) => sum + ((r.litresStop - r.litresStart) * r.ratePerLitre), 0);
       const fuelLitres = pReadings.reduce((sum, r) => sum + (r.litresStop - r.litresStart), 0);

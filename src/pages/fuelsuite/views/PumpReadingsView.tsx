@@ -1,48 +1,52 @@
 import React, { useState, useMemo } from 'react';
-import { useFuel, PumpReading , STATIONS, Station } from '../context';
-import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td , MetricCard} from '../components';
-import { Plus, Pencil, Trash2, X, Droplet, TrendingUp, Banknote } from 'lucide-react';
+import { useFuel, PumpReading , Station } from '../context';
+import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td , MetricCard, ProductIconBadge } from '../components';
+import { Plus, Pencil, Trash2, X, Droplet, TrendingUp, Banknote, Fuel } from 'lucide-react';
 import { useConfirm } from '../useConfirm';
 
 export default function PumpReadingsView() {
   const { confirm: confirmDelete, dialog: confirmDialog } = useConfirm();
-  const { activeStation, setActiveStation, pumpReadings, setPumpReadings, products } = useFuel();
+  const { activeStation, setActiveStation, pumpReadings, setPumpReadings, products , stations} = useFuel();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   
   const [filterDate, setFilterDate] = useState<string>('');
   const [filterStation, setFilterStation] = useState<Station>(activeStation);
 
+  React.useEffect(() => {
+    setFilterStation(activeStation);
+  }, [activeStation]);
+
+  const defaultStation = activeStation === 'Combined Total' ? (stations[0]?.name || 'Loruk Ndalu Filling Station') : activeStation;
+
   const [form, setForm] = useState<Partial<PumpReading>>({
     date: new Date().toISOString().split('T')[0],
-    station: STATIONS[0],
-    product: products[0]?.name || 'Super Petrol',
+    station: defaultStation,
+    product: products[0]?.name || 'Super ( Premium )',
     salesStart: 0,
     salesStop: 0,
     litresStart: 0,
     litresStop: 0,
     ratePerLitre: 0,
-    manualCash: 0,
   });
 
   const filteredReadings = useMemo(() => {
     return pumpReadings.filter(r => 
       (filterStation === 'Combined Total' || r.station === filterStation) &&
       (!filterDate || r.date === filterDate)
-    ).sort((a, b) => ((b.createdAt || b.date) > (a.createdAt || a.date) ? -1 : 1));
+    ).sort((a, b) => b.date.localeCompare(a.date));
   }, [pumpReadings, filterStation, filterDate]);
 
   const resetForm = () => {
     setForm({
       date: new Date().toISOString().split('T')[0],
-      station: STATIONS[0],
+      station: (stations[0]?.name || 'Station 1'),
       product: products[0]?.name || 'Super Petrol',
       salesStart: 0,
       salesStop: 0,
       litresStart: 0,
       litresStop: 0,
       ratePerLitre: 0,
-      manualCash: 0,
     });
     setEditingId(null);
     setIsFormOpen(false);
@@ -76,16 +80,24 @@ export default function PumpReadingsView() {
 
   const metrics = useMemo(() => {
     const totalVolume = filteredReadings.reduce((sum, r) => sum + (r.litresStop - r.litresStart), 0);
-    const expectedSales = filteredReadings.reduce((sum, r) => sum + (r.litresStop - r.litresStart) * r.ratePerLitre, 0);
-    const collectedCash = filteredReadings.reduce((sum, r) => sum + r.manualCash, 0);
-    return { totalVolume, expectedSales, collectedCash };
+    const totalSalesAmount = filteredReadings.reduce((sum, r) => sum + ((r.salesStop || 0) - (r.salesStart || 0)), 0);
+    const calculatedSales = filteredReadings.reduce((sum, r) => sum + (r.litresStop - r.litresStart) * r.ratePerLitre, 0);
+    const netVariance = totalSalesAmount - calculatedSales;
+    return { totalVolume, totalSalesAmount, calculatedSales, netVariance };
   }, [filteredReadings]);
 
   return (<div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-100">Pump Readings</h1>
-          <p className="text-theme-text-muted mt-1">Log and track daily fuel dispenser readings.</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
+            <Fuel className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
+              Pump Readings
+            </h1>
+            <p className="text-theme-text-muted mt-0.5 text-xs">Log and track daily dispenser meter readings & fuel reconciliation.</p>
+          </div>
         </div>
         <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
           {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Reading</>}
@@ -101,18 +113,22 @@ export default function PumpReadingsView() {
           <div className="flex-1">
             <label className="block text-xs text-theme-text-muted mb-1">Station</label>
             <Select value={filterStation} onChange={e => setFilterStation(e.target.value as Station)} className="h-9">
-              {['Combined Total', ...STATIONS].map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
+              {['Combined Total', ...stations.map(s=>s.name)].map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
             </Select>
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <MetricCard title="Total Volume" value={`${metrics.totalVolume.toFixed(2)} L`} icon={Droplet} colorClass="bg-[#122840] text-theme-text-muted" />
-        <MetricCard title="Expected Sales" value={`KES ${metrics.expectedSales.toLocaleString()}`} icon={TrendingUp} colorClass="bg-cyan-500/10 text-cyan-400" />
-        <MetricCard title="Collected Cash" value={`KES ${metrics.collectedCash.toLocaleString()}`} icon={Banknote} colorClass="bg-emerald-500/10 text-emerald-400" />
+        <MetricCard title="Total Sales Amount" value={`KES ${metrics.totalSalesAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}`} icon={TrendingUp} colorClass="bg-cyan-500/10 text-cyan-400" />
+        <MetricCard title="Calculated Sales" value={`KES ${metrics.calculatedSales.toLocaleString(undefined, {minimumFractionDigits: 2})}`} icon={Banknote} colorClass="bg-blue-500/10 text-blue-400" />
+        <MetricCard 
+          title="Net Variance" 
+          value={`KES ${metrics.netVariance > 0 ? '+' : ''}${metrics.netVariance.toLocaleString(undefined, {minimumFractionDigits: 2})}`} 
+          icon={TrendingUp} 
+          colorClass={metrics.netVariance < 0 ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'} 
+        />
       </div>
-
-      
 
       {isFormOpen && (
         <Card>
@@ -129,19 +145,19 @@ export default function PumpReadingsView() {
                 <div>
                   <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                   <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                    {STATIONS.map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
+                    {stations.map(s => { const name = s.name; return name; }).map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
                   </Select>
                 </div>
                 <div>
                   <label className="block text-xs text-theme-text-muted mb-1">Product</label>
                   <Select value={form.product} onChange={e => setForm({...form, product: e.target.value})}>
-                    {products.filter(p => p.name.toLowerCase().includes('super') || p.name.toLowerCase().includes('diesel')).map(p => (
+                    {products.filter(p => p.name.toLowerCase().includes('super') || p.name.toLowerCase().includes('diesel') || p.category === 'Fuel').map(p => (
                       <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={p.id} value={p.name}>{p.name}</option>
                     ))}
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div>
                   <label className="block text-xs text-theme-text-muted mb-1">Sales Start</label>
                   <Input type="number" step="0.01" value={form.salesStart} onChange={e => setForm({...form, salesStart: parseFloat(e.target.value)})} required />
@@ -162,10 +178,6 @@ export default function PumpReadingsView() {
                   <label className="block text-xs text-theme-text-muted mb-1">Rate per Litre</label>
                   <Input type="number" step="0.01" value={form.ratePerLitre} onChange={e => setForm({...form, ratePerLitre: parseFloat(e.target.value)})} required />
                 </div>
-                <div>
-                  <label className="block text-xs text-theme-text-muted mb-1">Manual Cash</label>
-                  <Input type="number" step="0.01" value={form.manualCash} onChange={e => setForm({...form, manualCash: parseFloat(e.target.value)})} required />
-                </div>
               </div>
               <div className="flex justify-end mt-2">
                 <Button type="submit">{editingId ? 'Update Reading' : 'Save Reading'}</Button>
@@ -183,8 +195,8 @@ export default function PumpReadingsView() {
               <Th>Station</Th>
               <Th>Product</Th>
               <Th>Volume (L)</Th>
-              <Th>Expected (KES)</Th>
-              <Th>Collected (KES)</Th>
+              <Th>Sales Amount (KES)</Th>
+              <Th>Calculated (KES)</Th>
               <Th>Variance</Th>
               <Th>Actions</Th>
             </tr>
@@ -192,19 +204,22 @@ export default function PumpReadingsView() {
           <tbody>
             {filteredReadings.map(r => {
               const volume = r.litresStop - r.litresStart;
-              const expected = volume * r.ratePerLitre;
-              const variance = r.manualCash - expected;
+              const salesAmount = (r.salesStop || 0) - (r.salesStart || 0);
+              const calculated = volume * r.ratePerLitre;
+              const variance = salesAmount - calculated;
               return (
                 <tr key={r.id} className="hover:theme-bg-gradient transition-colors">
                   <Td>{r.date}</Td>
                   <Td>{r.station}</Td>
-                  <Td><span className="px-2 py-1 rounded text-xs font-semibold bg-blue-500/10 text-blue-400 border border-theme-border">{r.product}</span></Td>
-                  <Td className="font-semibold font-mono">{volume.toFixed(2)}</Td>
-                  <Td className="text-[#3B82F6] font-semibold font-mono">KES {expected.toLocaleString()}</Td>
-                  <Td className="text-[#00D4FF] font-semibold font-mono">KES {r.manualCash.toLocaleString()}</Td>
                   <Td>
-                    <span className={`font-semibold font-mono ${variance === 0 ? 'text-theme-text-muted' : variance > 0 ? 'text-[#00D4FF]' : 'text-red-400'}`}>
-                      {variance > 0 ? '+' : ''}{variance.toLocaleString()}
+                    <ProductIconBadge name={r.product} category="Fuel" size="sm" />
+                  </Td>
+                  <Td className="font-semibold font-mono">{volume.toFixed(2)}</Td>
+                  <Td className="text-cyan-400 font-semibold font-mono">KES {salesAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</Td>
+                  <Td className="text-blue-400 font-semibold font-mono">KES {calculated.toLocaleString(undefined, {minimumFractionDigits: 2})}</Td>
+                  <Td>
+                    <span className={`font-semibold font-mono ${variance === 0 ? 'text-theme-text-muted' : variance > 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                      {variance > 0 ? '+' : ''}{variance.toLocaleString(undefined, {minimumFractionDigits: 2})}
                     </span>
                   </Td>
                   <Td>
@@ -225,6 +240,5 @@ export default function PumpReadingsView() {
       </Card>
     {confirmDialog}
       </div>
-  
   );
 }

@@ -34,7 +34,10 @@ export default function DashboardView() {
   const filteredInvoices = invoices.filter(filterByYearAndStation);
 
   // 1. Total Revenue Breakdown
-  const fuelRevenue = filteredPump.reduce((acc, r) => acc + ((r.litresStop - r.litresStart) * r.ratePerLitre), 0);
+  const fuelRevenue = filteredPump.reduce((acc, r) => {
+    const sAmount = (r.salesStop || 0) - (r.salesStart || 0);
+    return acc + (sAmount > 0 ? sAmount : ((r.litresStop - r.litresStart) * r.ratePerLitre));
+  }, 0);
   const lpgRevenue = filteredLpg.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.amount, 0);
   const invRevenue = filteredInv.filter(t => t.type === 'out').reduce((acc, t) => acc + t.amount, 0);
   const totalRevenue = fuelRevenue + lpgRevenue + invRevenue;
@@ -53,7 +56,9 @@ export default function DashboardView() {
   // Group products
   const productSales: Record<string, number> = {};
   filteredPump.forEach(r => {
-    productSales[r.product] = (productSales[r.product] || 0) + ((r.litresStop - r.litresStart) * r.ratePerLitre);
+    const sAmount = (r.salesStop || 0) - (r.salesStart || 0);
+    const amount = sAmount > 0 ? sAmount : ((r.litresStop - r.litresStart) * r.ratePerLitre);
+    productSales[r.product] = (productSales[r.product] || 0) + amount;
   });
   productSales['LPG'] = lpgRevenue;
   productSales['Oils'] = invRevenue;
@@ -76,7 +81,9 @@ export default function DashboardView() {
   // 3. Distribution by Location
   const stationRevenue: Record<string, number> = {};
   pumpReadings.filter(r => filterYear === 'All' || (r.date && r.date.startsWith(filterYear))).forEach(r => {
-    stationRevenue[r.station] = (stationRevenue[r.station] || 0) + ((r.litresStop - r.litresStart) * r.ratePerLitre);
+    const sAmount = (r.salesStop || 0) - (r.salesStart || 0);
+    const amount = sAmount > 0 ? sAmount : ((r.litresStop - r.litresStart) * r.ratePerLitre);
+    stationRevenue[r.station] = (stationRevenue[r.station] || 0) + amount;
   });
   lpgTransactions.filter(r => r.type === 'sale' && (filterYear === 'All' || (r.date && r.date.startsWith(filterYear)))).forEach(r => {
     stationRevenue[r.station] = (stationRevenue[r.station] || 0) + r.amount;

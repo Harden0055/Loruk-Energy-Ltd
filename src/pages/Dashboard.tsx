@@ -66,7 +66,7 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
       createdBy: e.createdBy,
       station: e.station
     }))
-    .sort((a, b) => (b.createdAt || b.date) - (a.createdAt || a.date))
+    .sort((a, b) => b.date - a.date)
     .slice(0, 10);
   }, [expenses]);
 

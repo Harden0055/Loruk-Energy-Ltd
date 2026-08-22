@@ -149,7 +149,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
     });
 
     // Sort chronologically
-    return entries.sort((a, b) => (a.createdAt || a.date) - (b.createdAt || b.date));
+    return entries.sort((a, b) => a.date - b.date);
   }, [deliveries, payments, adjustments, customers, loading]);
 
   const filteredEntries = useMemo(() => {
@@ -215,7 +215,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
       runningBalance = runningBalance + entry.debit - entry.credit;
       return { ...entry, runningBalance };
     });
-    return entriesWithBalance.sort((a, b) => (b.createdAt || b.date) - (a.createdAt || a.date));
+    return entriesWithBalance.sort((a, b) => b.date - a.date);
   }, [ledgerEntries, selectedCustomerId, filterType, dateFrom, dateTo, searchTerm, customers]);
 
   const totalDebits = filteredEntries.reduce((sum, e) => sum + e.debit, 0);

@@ -3,7 +3,7 @@ import { useFuel } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input } from '../components';
 import { format } from 'date-fns';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from 'recharts';
-import { X, Flame, Printer } from 'lucide-react';
+import { X, Flame, Printer, ClipboardList } from 'lucide-react';
 
 const COLORS = ['#06b6d4', '#f59e0b'];
 
@@ -46,7 +46,9 @@ export default function DailyReportView() {
 
     dailyReadings.forEach(r => {
       const litres = r.litresStop - r.litresStart;
-      const sales = r.manualCash || (litres * r.ratePerLitre);
+      const sales = (r.salesStop !== undefined && r.salesStart !== undefined && r.salesStop > 0)
+        ? (r.salesStop - r.salesStart)
+        : (litres * r.ratePerLitre);
       
       if (!groups[r.product]) {
         groups[r.product] = {
@@ -187,7 +189,7 @@ export default function DailyReportView() {
                   </tr>
                 </thead>
                 <tbody>
-                  {lpgStatsData.filter(t => t.type !== 'opening').sort((a,b) => ((b.createdAt || b.date) > (a.createdAt || a.date) ? -1 : 1)).map(t => (
+                  {lpgStatsData.filter(t => t.type !== 'opening').sort((a,b) => b.date.localeCompare(a.date)).map(t => (
                     <tr key={t.id} className="border-b border-theme-border/50 hover:bg-[#122840]/50 transition-colors">
                       <td className="modern-td">{t.date}</td>
                       <td className="modern-td">
@@ -216,9 +218,14 @@ export default function DailyReportView() {
   return (
     <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-100">Daily Station Report</h1>
-          <p className="text-theme-text-muted mt-1">Detailed end-of-day summary</p>
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
+            <ClipboardList className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-100">Daily Station Report</h1>
+            <p className="text-theme-text-muted mt-0.5 text-xs">Detailed end-of-day summary & cash reconciliation</p>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <label className="text-sm font-medium text-theme-text-muted">Date:</label>
@@ -348,9 +355,18 @@ export default function DailyReportView() {
               {actualExpenses.length > 0 ? (
                 <div className="space-y-2">
                   {actualExpenses.map(exp => (
-                    <div key={exp.id} className="flex justify-between">
-                      <span className="truncate pr-2">{exp.category}</span>
-                      <span>{exp.amount.toLocaleString()}</span>
+                    <div key={exp.id} className="flex justify-between items-center text-sm">
+                      <div className="flex items-center gap-2 truncate pr-2">
+                        {exp.expenseCode && (
+                          <span className="font-mono font-bold text-[11px] px-1.5 py-0.5 rounded bg-purple-950/60 text-purple-300 border border-purple-800/60">
+                            {exp.expenseCode}
+                          </span>
+                        )}
+                        <span className="text-slate-200">{exp.category}</span>
+                      </div>
+                      <span className="font-mono font-bold text-rose-400">
+                        {exp.amount.toLocaleString()}
+                      </span>
                     </div>
                   ))}
                   <div className="flex justify-between pt-2 border-t border-theme-border font-bold text-red-400 mt-2">

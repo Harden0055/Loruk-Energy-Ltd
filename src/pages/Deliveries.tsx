@@ -447,7 +447,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
     result.sort((a, b) => {
       switch (sortBy) {
         case 'date-asc':
-          return (a.createdAt || a.date) - (b.createdAt || b.date);
+          return a.date - b.date;
         case 'litres-desc':
           return b.litres - a.litres;
         case 'litres-asc':
@@ -458,7 +458,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
           return a.totalAmount - b.totalAmount;
         case 'date-desc':
         default:
-          return (b.createdAt || b.date) - (a.createdAt || a.date);
+          return b.date - a.date;
       }
     });
 

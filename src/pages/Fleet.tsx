@@ -108,7 +108,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
     if (selectedStation !== 'all') result = result.filter(e => e.station === selectedStation);
     if (dateFrom) result = result.filter(e => e.date >= new Date(dateFrom).getTime());
     if (dateTo) result = result.filter(e => e.date <= new Date(dateTo).getTime() + 86399999);
-    return result.sort((a, b) => (b.createdAt || b.date) - (a.createdAt || a.date));
+    return result.sort((a, b) => b.date - a.date);
   }, [expenses, selectedCar, selectedStation, dateFrom, dateTo]);
 
   const fleetExpensesSummary = useMemo(() => {
@@ -244,7 +244,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
       bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] },
       footStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
       head: [['Date', 'Car Reg', 'Station', 'Litres', 'Amount']],
-      body: [...filteredExpenses].sort((a,b) => (a.createdAt || a.date) - (b.createdAt || b.date)).map(e => [
+      body: [...filteredExpenses].sort((a,b) => a.date - b.date).map(e => [
         format(e.date, 'MMM d, yyyy'), 
         e.carRegistration, 
         e.station ? (STATION_OPTIONS.find(opt => opt.value === e.station)?.label || e.station) : '-', 

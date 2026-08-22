@@ -49,7 +49,7 @@ export default function Payments({ onViewCustomer }: { onViewCustomer?: (id: str
   const filtered = payments.filter(p => {
     const cust = customers.find(c => c.id === p.customerId);
     return cust?.name.toLowerCase().includes(search.toLowerCase());
-  }).sort((a, b) => (b.createdAt || b.date) - (a.createdAt || a.date));
+  }).sort((a, b) => b.date - a.date);
 
   return (
     <div className="space-y-6">

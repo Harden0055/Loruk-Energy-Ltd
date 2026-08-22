@@ -5,10 +5,8 @@ c = c.replace(/const \{ products, setProducts \} = useFuel\(\);/, "const { produ
 
 c = c.replace(/import \{ useFuel, Product \} from '\.\.\/context';/, "import { useFuel, Product, StationData } from '../context';\nimport { doc, setDoc } from 'firebase/firestore';\nimport { db } from '../../../lib/firebase';");
 
-// We'll add a new state for the new station input
 c = c.replace(/const \[isBulkFormOpen, setIsBulkFormOpen\] = useState\(false\);/, "const [isBulkFormOpen, setIsBulkFormOpen] = useState(false);\n  const [newStationName, setNewStationName] = useState('');");
 
-// And an add station handler
 c = c.replace(/const resetForm = \(\) => \{/, `const handleAddStation = () => {
     if (newStationName.trim()) {
       const newStation: StationData = { id: Math.random().toString(36).substr(2, 9), name: newStationName.trim() };
@@ -26,14 +24,7 @@ c = c.replace(/const resetForm = \(\) => \{/, `const handleAddStation = () => {
 
   const resetForm = () => {`);
 
-// Now modify the return JSX
-const returnJSXStart = c.indexOf('return (');
-const firstCardEnd = c.indexOf('</Card>', returnJSXStart) + 7;
-
-// Find the Products Configuration header and add Stations section after it or below the Products Card
-const oldCard = c.slice(returnJSXStart, firstCardEnd);
-c = c.replace(oldCard, oldCard + `
-
+const newCard = `
       <Card className="mt-8 border-theme-border glass-panel">
         <CardHeader>
           <CardTitle className="text-lg text-cyan-400">Stations Configuration</CardTitle>
@@ -77,7 +68,10 @@ c = c.replace(oldCard, oldCard + `
             </tbody>
           </Table>
         </CardContent>
-      </Card>`);
+      </Card>
+`;
+
+c = c.replace(/\{confirmDialog\}\n\s*<\/div>/, newCard + "\n      {confirmDialog}\n      </div>");
 
 c = c.replace(/Products Configuration/g, "Settings Configuration");
 

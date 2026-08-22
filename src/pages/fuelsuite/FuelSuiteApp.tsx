@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { FuelProvider, useFuel, Station, STATIONS } from './context';
-import { LayoutDashboard, Fuel, Flame, Box, ReceiptText, FileText, Wallet, BarChart3, Menu, X, User } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { FuelProvider, useFuel, Station } from './context';
+import { LayoutDashboard, Fuel, Flame, Box, ReceiptText, FileText, Wallet, BarChart3, Menu, X, User, Settings, Building2 } from 'lucide-react';
 import DashboardView from './views/DashboardView';
 import PumpReadingsView from './views/PumpReadingsView';
 import LPGView from './views/LPGView';
@@ -15,7 +15,7 @@ import DailyDataEntryView from './views/DailyDataEntryView';
 import DailyReportView from './views/DailyReportView';
 import MiniDashboardProfile from './views/MiniDashboardProfile';
 
-export type ViewType = 'Dashboard' | 'Daily Data Entry' | 'Pump Readings' | 'LPG' | 'Inventory' | 'Expenses' | 'Invoices' | 'Cash Position' | 'Reports' | 'Daily Report' | 'Products';
+export type ViewType = 'Dashboard' | 'Daily Data Entry' | 'Pump Readings' | 'LPG' | 'Inventory' | 'Expenses' | 'Invoices' | 'Cash Position' | 'Reports' | 'Daily Report' | 'Settings';
 
 const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen }: { currentView: ViewType, setCurrentView: (v: ViewType) => void, onBackToMain: () => void, isOpen: boolean, setIsOpen: (o: boolean) => void }) => {
   const menuItems = [
@@ -24,12 +24,12 @@ const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen 
     { name: 'Pump Readings', icon: Fuel },
     { name: 'LPG', icon: Flame },
     { name: 'Inventory', icon: Box },
-    { name: 'Products', icon: Box },
     { name: 'Expenses', icon: ReceiptText },
     { name: 'Invoices', icon: FileText },
     { name: 'Cash Position', icon: Wallet },
     { name: 'Reports', icon: BarChart3 },
     { name: 'Daily Report', icon: FileText },
+    { name: 'Settings', icon: Settings },
   ];
 
   return (
@@ -52,7 +52,7 @@ const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen 
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentView === item.name;
-            const isNegativeTheme = ['Daily Data Entry', 'Daily Report', 'Expenses', 'Products'].includes(item.name);
+            const isNegativeTheme = ['Daily Data Entry', 'Daily Report', 'Expenses', 'Settings'].includes(item.name);
             const activeClass = isNegativeTheme ? 'sidebar-item-active-purple' : 'sidebar-item-active-blue';
             const iconActiveColor = isNegativeTheme ? 'text-[#B15DFF]' : 'text-[#00D4FF]';
             return (
@@ -86,11 +86,18 @@ const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen 
 };
 
 const MainContent = ({ currentView, onOpenSidebar, isProfileOpen, setIsProfileOpen }: { currentView: ViewType, onOpenSidebar: () => void, isProfileOpen: boolean, setIsProfileOpen: (b: boolean) => void }) => {
-  const { activeStation, setActiveStation } = useFuel();
+  const { activeStation, setActiveStation, stations } = useFuel();
   
+  const stationsList = useMemo(() => {
+    return stations.length > 0 ? stations : [
+      { id: '1', name: 'Loruk Ndalu Filling Station' },
+      { id: '2', name: 'Loruk Junction Filling Station' },
+    ];
+  }, [stations]);
+
   return (
     <div className="flex-1 theme-bg-gradient overflow-hidden flex flex-col min-w-0">
-      <header className="p-4 border-b border-theme-border/30 bg-transparent flex flex-row items-center justify-between gap-4 z-10 relative">
+      <header className="p-4 border-b border-theme-border/30 bg-[#0E0E11]/80 backdrop-blur-md flex flex-row items-center justify-between gap-4 z-10 relative">
          <div className="flex items-center gap-4">
            <button onClick={onOpenSidebar} className="lg:hidden p-2 text-[#A1A1AA] hover:bg-white/5 rounded-lg transition-all cursor-pointer">
               <Menu className="w-5 h-5" />
@@ -106,18 +113,26 @@ const MainContent = ({ currentView, onOpenSidebar, isProfileOpen, setIsProfileOp
            >
              <User className="w-4 h-4 text-[#00D4FF]" />
            </button>
-           <label className="text-[10px] font-semibold text-[#A1A1AA] uppercase tracking-wider hidden sm:block">Current Station</label>
-           <div className="relative">
-             <select 
-               className="appearance-none bg-[#121216]/80 border border-theme-border/50 text-white rounded-xl pl-4 pr-10 py-2.5 text-xs font-semibold focus:outline-none focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6] transition-all cursor-pointer hover:bg-[#18181C]"
-               value={activeStation}
-               onChange={(e) => setActiveStation(e.target.value as Station)}
-             >
-               <option value="Combined Total" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900 font-medium">Combined Total</option>
-               {STATIONS.map(s => <option key={s} value={s} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900 font-medium">{s}</option>)}
-             </select>
-             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#A1A1AA]">
-               <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"></path></svg>
+
+           <div className="flex items-center gap-2 bg-slate-900/90 border border-theme-border rounded-xl px-3 py-1.5 shadow-sm">
+             <Building2 className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+             <div className="flex flex-col">
+               <label className="text-[9px] font-bold text-cyan-400 uppercase tracking-widest leading-tight">Station Filter</label>
+               <select 
+                 className="appearance-none bg-transparent text-white text-xs font-semibold focus:outline-none cursor-pointer pr-4 hover:text-cyan-300 transition-colors"
+                 value={activeStation}
+                 onChange={(e) => setActiveStation(e.target.value as Station)}
+               >
+                 <option value="Combined Total" className="bg-slate-900 text-slate-100 font-semibold">Combined Total (All Stations)</option>
+                 {stationsList.map(s => (
+                   <option key={s.id || s.name} value={s.name} className="bg-slate-900 text-slate-100 font-semibold">
+                     {s.name}
+                   </option>
+                 ))}
+               </select>
+             </div>
+             <div className="pointer-events-none text-[#A1A1AA]">
+               <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"></path></svg>
              </div>
            </div>
          </div>
@@ -128,7 +143,7 @@ const MainContent = ({ currentView, onOpenSidebar, isProfileOpen, setIsProfileOp
         {currentView === 'Pump Readings' && <PumpReadingsView />}
         {currentView === 'LPG' && <LPGView />}
         {currentView === 'Inventory' && <InventoryView />}
-        {currentView === 'Products' && <ProductsView />}
+        {currentView === 'Settings' && <ProductsView />}
         {currentView === 'Expenses' && <ExpensesView />}
         {currentView === 'Invoices' && <InvoicesView />}
         {currentView === 'Cash Position' && <CashPositionView />}

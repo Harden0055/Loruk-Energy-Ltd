@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { useFuel, Invoice, Customer, STATIONS } from '../context';
+import { useFuel, Invoice, Customer } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td , MetricCard} from '../components';
-import { Plus, Pencil, Trash2, X, Users, FileText, UserCheck, UserX, Receipt, Banknote, AlertCircle } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, Users, FileText, UserCheck, UserX, Receipt, Banknote, AlertCircle, User, CreditCard } from 'lucide-react';
 import { useConfirm } from '../useConfirm';
 
 export default function InvoicesView() {
   const { confirm: confirmDelete, dialog: confirmDialog } = useConfirm();
-  const { invoices, setInvoices, customers, setCustomers, activeStation } = useFuel();
+  const { invoices, setInvoices, customers, setCustomers, activeStation , stations} = useFuel();
   const [activeTab, setActiveTab] = useState<'invoices' | 'customers'>('invoices');
   
   // Invoice state
@@ -16,7 +16,7 @@ export default function InvoicesView() {
   const [filterStation, setFilterStation] = useState<string>(activeStation);
   const [form, setForm] = useState<Partial<Invoice>>({
     date: new Date().toISOString().split('T')[0],
-    station: activeStation === 'Combined Total' ? STATIONS[0] : activeStation,
+    station: activeStation === 'Combined Total' ? (stations[0]?.name || 'Station 1') : activeStation,
     customerName: '',
     totalAmount: 0,
     paidAmount: 0,
@@ -30,7 +30,7 @@ export default function InvoicesView() {
     name: '', 
     creditLimit: 0, 
     openingBalance: 0,
-    station: activeStation === 'Combined Total' ? STATIONS[0] : activeStation
+    station: activeStation === 'Combined Total' ? (stations[0]?.name || 'Station 1') : activeStation
   });
 
   // Keep filterStation in sync with global activeStation if it changes (optional but good pattern)
@@ -41,7 +41,7 @@ export default function InvoicesView() {
   const filteredData = invoices
     .filter(i => filterStation === 'Combined Total' || i.station === filterStation)
     .filter(i => !filterDate || i.date === filterDate)
-    .sort((a, b) => ((b.createdAt || b.date) > (a.createdAt || a.date) ? -1 : 1));
+    .sort((a, b) => b.date.localeCompare(a.date));
     
   const filteredCustomers = customers
     .filter(c => filterStation === 'Combined Total' || c.station === filterStation)
@@ -54,7 +54,7 @@ export default function InvoicesView() {
   const resetForm = () => {
     setForm({
       date: new Date().toISOString().split('T')[0],
-      station: activeStation === 'Combined Total' ? STATIONS[0] : activeStation,
+      station: activeStation === 'Combined Total' ? (stations[0]?.name || 'Station 1') : activeStation,
       customerName: '',
       totalAmount: 0,
       paidAmount: 0,
@@ -69,7 +69,7 @@ export default function InvoicesView() {
       name: '', 
       creditLimit: 0, 
       openingBalance: 0,
-      station: activeStation === 'Combined Total' ? STATIONS[0] : activeStation 
+      station: activeStation === 'Combined Total' ? (stations[0]?.name || 'Station 1') : activeStation 
     });
     setEditingCustomerId(null);
     setIsCustomerFormOpen(false);
@@ -107,7 +107,7 @@ export default function InvoicesView() {
     } else {
       const newInv: Invoice = {
         id: Math.random().toString(36).substr(2, 9),
-        station: form.station || (activeStation === 'Combined Total' ? STATIONS[0] : activeStation),
+        station: form.station || (activeStation === 'Combined Total' ? (stations[0]?.name || 'Station 1') : activeStation),
         ...form as Omit<Invoice, 'id' | 'station'>
       };
       setInvoices(prev => [...prev, newInv]);
@@ -122,7 +122,7 @@ export default function InvoicesView() {
     } else {
       const newCustomer: Customer = {
         id: Math.random().toString(36).substr(2, 9),
-        station: customerForm.station || (activeStation === 'Combined Total' ? STATIONS[0] : activeStation),
+        station: customerForm.station || (activeStation === 'Combined Total' ? (stations[0]?.name || 'Station 1') : activeStation),
         code: customerForm.code || '',
         name: customerForm.name || '',
         creditLimit: customerForm.creditLimit || 0,
@@ -133,7 +133,6 @@ export default function InvoicesView() {
     resetCustomerForm();
   };
 
-  
   const metrics = React.useMemo(() => {
     const totalInvoiced = filteredData.reduce((sum, i) => sum + i.totalAmount, 0);
     const totalPaid = filteredData.reduce((sum, i) => sum + i.paidAmount, 0);
@@ -143,17 +142,16 @@ export default function InvoicesView() {
 
   return (<div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-100">Customer Invoices</h1>
-          <p className="text-theme-text-muted mt-1">Track and manage daily customer invoices and balances.</p>
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.25)]">
+            <FileText className="w-6 h-6" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-100">Customer Invoices</h1>
+            <p className="text-theme-text-muted mt-0.5 text-xs">Track and manage daily customer invoices and balances.</p>
+          </div>
         </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <MetricCard title="Total Invoiced" value={`KES ${metrics.totalInvoiced.toLocaleString()}`} icon={Receipt} colorClass="bg-[#122840] text-theme-text-muted" />
-        <MetricCard title="Total Paid" value={`KES ${metrics.totalPaid.toLocaleString()}`} icon={Banknote} colorClass="bg-emerald-500/10 text-emerald-400" />
-        <MetricCard title="Total Outstanding" value={`KES ${metrics.totalOutstanding.toLocaleString()}`} icon={AlertCircle} colorClass="bg-orange-500/10 text-orange-400" />
-      </div>
-        
         {activeTab === 'invoices' ? (
           <Button onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} className="flex items-center gap-2">
             {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Invoice</>}
@@ -163,6 +161,12 @@ export default function InvoicesView() {
             {isCustomerFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Customer</>}
           </Button>
         )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <MetricCard title="Total Invoiced" value={`KES ${metrics.totalInvoiced.toLocaleString()}`} icon={Receipt} colorClass="bg-[#122840] text-theme-text-muted" />
+        <MetricCard title="Total Paid" value={`KES ${metrics.totalPaid.toLocaleString()}`} icon={Banknote} colorClass="bg-emerald-500/10 text-emerald-400" />
+        <MetricCard title="Total Outstanding" value={`KES ${metrics.totalOutstanding.toLocaleString()}`} icon={AlertCircle} colorClass="bg-orange-500/10 text-orange-400" />
       </div>
 
       <div className="flex gap-4 border-b border-theme-border mb-6">
@@ -192,7 +196,7 @@ export default function InvoicesView() {
             <label className="block text-xs text-theme-text-muted mb-1">Filter by Station</label>
             <Select value={filterStation} onChange={e => setFilterStation(e.target.value)} className="h-9">
               <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="Combined Total">Combined Total (All)</option>
-              {STATIONS.map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
+              {stations.map(s => { const name = s.name; return name; }).map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
             </Select>
           </div>
         </div>
@@ -214,7 +218,7 @@ export default function InvoicesView() {
                   <div>
                     <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                     <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                      {STATIONS.map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
+                      {stations.map(s => { const name = s.name; return name; }).map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
                     </Select>
                   </div>
                   <div className="col-span-2">
@@ -294,7 +298,14 @@ export default function InvoicesView() {
                     <tr key={t.id} className="hover:theme-bg-gradient transition-colors">
                       <Td><span className="text-sm text-theme-text-muted">{t.date || '-'}</span></Td>
                       <Td><span className="text-xs text-theme-text-muted uppercase tracking-tight font-medium">{t.station}</span></Td>
-                      <Td><span className="font-semibold text-theme-text">{t.customerName}</span></Td>
+                      <Td>
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-md bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                            <User className="w-3.5 h-3.5" />
+                          </div>
+                          <span className="font-semibold text-theme-text">{t.customerName}</span>
+                        </div>
+                      </Td>
                       <Td className="text-[#3B82F6] font-semibold font-mono">KES {t.totalAmount.toLocaleString()}</Td>
                       <Td className="text-[#00D4FF] font-semibold font-mono">KES {t.paidAmount.toLocaleString()}</Td>
                       <Td className={`${invoiceBalance > 0 ? 'text-[#00D4FF]' : 'text-emerald-400'} font-semibold font-mono`}>KES {invoiceBalance.toLocaleString()}</Td>
@@ -358,7 +369,7 @@ export default function InvoicesView() {
                   <div>
                     <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                     <Select value={customerForm.station} onChange={e => setCustomerForm({...customerForm, station: e.target.value as any})}>
-                      {STATIONS.map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
+                      {stations.map(s => { const name = s.name; return name; }).map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
                     </Select>
                   </div>
                   <div>
@@ -414,7 +425,14 @@ export default function InvoicesView() {
                     <tr key={c.id} className="hover:theme-bg-gradient transition-colors">
                       <Td><span className="text-xs text-theme-text-muted uppercase tracking-tight font-medium">{c.station}</span></Td>
                       <Td><span className="text-xs text-theme-text-muted font-mono">{c.code}</span></Td>
-                      <Td><span className="font-semibold text-theme-text">{c.name}</span></Td>
+                      <Td>
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-md bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                            <User className="w-3.5 h-3.5" />
+                          </div>
+                          <span className="font-semibold text-theme-text">{c.name}</span>
+                        </div>
+                      </Td>
                       <Td>{creditLimit.toLocaleString(undefined, {minimumFractionDigits: 2})}</Td>
                       <Td>{openingBalance.toLocaleString(undefined, {minimumFractionDigits: 2})}</Td>
                       <Td>{totalAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</Td>
@@ -452,6 +470,5 @@ export default function InvoicesView() {
       )}
     {confirmDialog}
       </div>
-  
   );
 }
