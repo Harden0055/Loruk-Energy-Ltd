@@ -10,8 +10,10 @@ export interface PumpReading {
   date: string;
   station: Station;
   product: string;
-  startReading: number;
-  stopReading: number;
+  salesStart: number;
+  salesStop: number;
+  litresStart: number;
+  litresStop: number;
   ratePerLitre: number;
   manualCash: number;
 }
@@ -63,6 +65,7 @@ export interface CashPosition {
 export interface Product {
   id: string;
   name: string;
+  itemCode?: string;
 }
 
 export interface Customer {

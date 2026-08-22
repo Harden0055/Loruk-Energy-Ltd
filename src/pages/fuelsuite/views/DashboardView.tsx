@@ -34,7 +34,7 @@ export default function DashboardView() {
   const filteredInvoices = invoices.filter(filterByYearAndStation);
 
   // 1. Total Revenue Breakdown
-  const fuelRevenue = filteredPump.reduce((acc, r) => acc + ((r.stopReading - r.startReading) * r.ratePerLitre), 0);
+  const fuelRevenue = filteredPump.reduce((acc, r) => acc + ((r.litresStop - r.litresStart) * r.ratePerLitre), 0);
   const lpgRevenue = filteredLpg.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.amount, 0);
   const invRevenue = filteredInv.filter(t => t.type === 'out').reduce((acc, t) => acc + t.amount, 0);
   const totalRevenue = fuelRevenue + lpgRevenue + invRevenue;
@@ -53,7 +53,7 @@ export default function DashboardView() {
   // Group products
   const productSales: Record<string, number> = {};
   filteredPump.forEach(r => {
-    productSales[r.product] = (productSales[r.product] || 0) + ((r.stopReading - r.startReading) * r.ratePerLitre);
+    productSales[r.product] = (productSales[r.product] || 0) + ((r.litresStop - r.litresStart) * r.ratePerLitre);
   });
   productSales['LPG'] = lpgRevenue;
   productSales['Oils'] = invRevenue;
@@ -76,7 +76,7 @@ export default function DashboardView() {
   // 3. Distribution by Location
   const stationRevenue: Record<string, number> = {};
   pumpReadings.filter(r => filterYear === 'All' || (r.date && r.date.startsWith(filterYear))).forEach(r => {
-    stationRevenue[r.station] = (stationRevenue[r.station] || 0) + ((r.stopReading - r.startReading) * r.ratePerLitre);
+    stationRevenue[r.station] = (stationRevenue[r.station] || 0) + ((r.litresStop - r.litresStart) * r.ratePerLitre);
   });
   lpgTransactions.filter(r => r.type === 'sale' && (filterYear === 'All' || (r.date && r.date.startsWith(filterYear)))).forEach(r => {
     stationRevenue[r.station] = (stationRevenue[r.station] || 0) + r.amount;
@@ -106,7 +106,7 @@ export default function DashboardView() {
 
   // 5. Foundation (Monthly Rev vs Exp)
   const monthlyData = MONTHS.map(m => ({ name: m, rev: 0, exp: 0 }));
-  filteredPump.forEach(r => { monthlyData[getMonthIndex(r.date)].rev += ((r.stopReading - r.startReading) * r.ratePerLitre); });
+  filteredPump.forEach(r => { monthlyData[getMonthIndex(r.date)].rev += ((r.litresStop - r.litresStart) * r.ratePerLitre); });
   filteredLpg.filter(t => t.type === 'sale').forEach(t => { monthlyData[getMonthIndex(t.date)].rev += t.amount; });
   filteredInv.filter(t => t.type === 'out').forEach(t => { monthlyData[getMonthIndex(t.date)].rev += t.amount; });
   filteredExpenses.forEach(e => { monthlyData[getMonthIndex(e.date)].exp += e.amount; });

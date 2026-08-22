@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useProducts, addProduct, updateProduct, deleteProduct } from '../lib/operationsDb';
 import { ProductDef } from '../types';
 import { Plus, Pencil, Trash2, X, Box } from 'lucide-react';
+import { useConfirm } from './fuelsuite/useConfirm';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function Products() {
@@ -9,6 +10,7 @@ export default function Products() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { confirm: confirmDelete, dialog: confirmDialog } = useConfirm();
 
   useEffect(() => {
     if (!loading && products && products.length === 0) {
@@ -30,6 +32,9 @@ export default function Products() {
     name: '',
   });
 
+
+
+
   const resetForm = () => {
     setForm({
       name: '',
@@ -48,8 +53,11 @@ export default function Products() {
     setIsFormOpen(true);
   };
 
+  
+
+
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this product? Note: existing records using this product string will not be affected.')) {
+    confirmDelete('Are you sure you want to delete this product?', async () => {
       try {
         setError(null);
         await deleteProduct(id);
@@ -57,7 +65,7 @@ export default function Products() {
         console.error('Failed to delete product:', err);
         setError(err instanceof Error ? err.message : String(err));
       }
-    }
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,14 +84,14 @@ export default function Products() {
     }
   };
 
-  // Use a map to filter out duplicate product names (case-insensitive)
-  const uniqueProducts = Object.values(
+  
+  
     (products || []).reduce((acc, p) => {
       const key = p.name.trim().toLowerCase();
       if (!acc[key]) acc[key] = p;
       return acc;
     }, {} as Record<string, ProductDef>)
-  );
+
 
   if (loading) {
     return <div className="p-8 text-slate-500 animate-pulse">Loading products...</div>;
@@ -97,6 +105,7 @@ export default function Products() {
       className="max-w-4xl mx-auto space-y-8"
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+
         <div>
           <h1 className="text-2xl font-bold text-theme-text flex items-center gap-2">
             <Box className="w-6 h-6 text-cyan-500 dark:text-blue-400" />
@@ -163,33 +172,38 @@ export default function Products() {
           <table className="modern-table">
             <thead className="text-xs text-gray-500 dark:text-gray-400 glass-panel uppercase tracking-wider">
               <tr className="modern-tr">
+                <th className="modern-th">Product Code</th>
                 <th className="modern-th">Product Name</th>
                 <th className="modern-th">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-blue-900/50">
-              {uniqueProducts.map(p => (
+              {(products || []).map(p => (
                 <tr key={p.id} className="hover:bg-white/5 dark:hover:bg-blue-900/10 transition-colors">
+                  <td className="modern-td font-mono text-sm text-theme-text-muted">{p.id}</td>
                   <td className="modern-td">{p.name}</td>
                   <td className="modern-td">
-                    <button onClick={() => handleEdit(p)} className="p-1.5 bg-blue-50 dark:bg-white/5 text-cyan-500 dark:text-blue-400 rounded-md hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors">
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => handleDelete(p.id)} className="p-1.5 bg-red-50 dark:bg-red-900/40 text-red-600 dark:text-red-400 rounded-md hover:bg-red-100 dark:hover:bg-red-800 transition-colors">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => handleEdit(p)} className="p-1.5 bg-blue-50 dark:bg-white/5 text-cyan-500 dark:text-blue-400 rounded-md hover:bg-blue-100 dark:hover:bg-blue-800 transition-colors">
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => handleDelete(p.id)} className="p-1.5 bg-red-50 dark:bg-red-900/40 text-red-600 dark:text-red-400 rounded-md hover:bg-red-100 dark:hover:bg-red-800 transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
-              {uniqueProducts.length === 0 && (
+              {(products || []).length === 0 && (
                 <tr className="modern-tr">
-                  <td colSpan={2} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">No products configured. Add one above.</td>
+                  <td colSpan={3} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">No products configured. Add one above.</td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
       </div>
+      {confirmDialog}
     </motion.div>
   );
 }

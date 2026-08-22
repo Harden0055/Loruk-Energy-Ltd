@@ -1,4 +1,6 @@
 export interface ProductDef {
+  sortOrder?: number;
+  category?: string;
   id: string;
   name: string;
   createdAt?: number;
@@ -25,6 +27,7 @@ export interface Delivery {
   id: string;
   customerId: string;
   date: number;
+  productId?: string;
   productType: string;
   litres: number;
   totalAmount: number;

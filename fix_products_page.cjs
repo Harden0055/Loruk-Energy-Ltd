@@ -1,0 +1,10 @@
+const fs = require('fs');
+let content = fs.readFileSync('./src/pages/Products.tsx', 'utf8');
+content = content.replace('const (products || []) = Object.values(', '');
+content = content.replace('      (products || []).reduce((acc, p) => {', '');
+content = content.replace('        const key = p.name.trim().toLowerCase();', '');
+content = content.replace('        if (!acc[key]) acc[key] = p;', '');
+content = content.replace('        return acc;', '');
+content = content.replace('      }, {} as Record<string, ProductDef>)', '');
+content = content.replace('  );', '');
+fs.writeFileSync('./src/pages/Products.tsx', content);

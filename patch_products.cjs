@@ -1,28 +1,44 @@
 const fs = require('fs');
-let code = fs.readFileSync('src/pages/fuelsuite/views/ProductsView.tsx', 'utf8');
+const file = './src/lib/operationsDb.ts';
+let content = fs.readFileSync(file, 'utf8');
 
-if (!code.includes('MetricCard')) {
-  code = code.replace(/import {([^}]+)} from '\.\.\/components';/, "import {$1, MetricCard} from '../components';");
+const newFunc = `
+export async function replaceProductsWithStandard(existingProducts: ProductDef[]) {
+  // Delete all existing
+  for (const p of existingProducts) {
+    if (p.id) {
+      await deleteDoc(doc(db, 'products', p.id));
+      await deleteLocalDoc('products', p.id);
+    }
+  }
+
+  const standardProducts = [
+    { id: 'white_oil_super_petrol', name: 'Super Petrol', category: 'White Oils', sortOrder: 1 },
+    { id: 'white_oil_diesel_fuel', name: 'Diesel Fuel', category: 'White Oils', sortOrder: 2 },
+    { id: 'white_oil_super_premium', name: 'Super (Premium)', category: 'White Oils', sortOrder: 3 },
+    { id: 'lpg_13kg', name: '13KG LPG', category: 'LPG', sortOrder: 4 },
+    { id: 'lpg_6kg', name: '6KG LPG', category: 'LPG', sortOrder: 5 },
+    { id: 'empty_13kg', name: '13KG LPG - Empty', category: 'Empties', sortOrder: 6 },
+    { id: 'empty_6kg', name: '6KG LPG - Empty', category: 'Empties', sortOrder: 7 },
+    { id: 'acc_burner', name: 'Burner', category: 'Burners and Grills', sortOrder: 8 },
+    { id: 'acc_grill', name: 'Grill', category: 'Burners and Grills', sortOrder: 9 },
+    { id: 'lube_engine_oil', name: 'Engine oil', category: 'Lubricants', sortOrder: 10 },
+    { id: 'lube_brake_fluid', name: 'Brake fluid', category: 'Lubricants', sortOrder: 11 },
+  ];
+
+  for (const sp of standardProducts) {
+    const payload = { 
+      name: sp.name, 
+      category: sp.category,
+      sortOrder: sp.sortOrder,
+      createdAt: Date.now(),
+      createdBy: auth.currentUser?.email || auth.currentUser?.uid || 'System'
+    };
+    await setDoc(doc(db, 'products', sp.id), payload);
+    await addLocalDoc('products', { ...payload, id: sp.id });
+  }
 }
-
-code = code.replace("import { Plus, Pencil, Trash2, X } from 'lucide-react';", "import { Plus, Pencil, Trash2, X, Box, Tag, Layers } from 'lucide-react';");
-
-const metricsCode = `
-  const metrics = React.useMemo(() => {
-    return { total: products.length };
-  }, [products]);
 `;
 
-code = code.replace("return (\n    <div", metricsCode + "\n  return (\n    <div");
-
-const dashboardCode = `
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <MetricCard title="Total Products" value={metrics.total} icon={Box} colorClass="bg-[#122840] text-theme-text-muted" />
-        <MetricCard title="Active Categories" value="2" icon={Layers} colorClass="bg-emerald-500/10 text-emerald-400" />
-        <MetricCard title="Tracked Items" value={metrics.total} icon={Tag} colorClass="bg-cyan-500/10 text-cyan-400" />
-      </div>
-`;
-
-code = code.replace(/<div className="flex justify-between items-center">[\s\S]*?<\/div>\n/, match => match + dashboardCode);
-
-fs.writeFileSync('src/pages/fuelsuite/views/ProductsView.tsx', code);
+content += '\n' + newFunc;
+fs.writeFileSync(file, content);

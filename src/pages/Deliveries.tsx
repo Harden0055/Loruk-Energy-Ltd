@@ -313,6 +313,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
 
       await updateDelivery(id, {
         customerId: newCustomerId,
+        productId: uniqueProducts.find(p => p.name === newProductType)?.id || '',
         productType: newProductType,
         litres: newLitres,
         totalAmount: newAmt,
@@ -346,6 +347,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
     const csv = Papa.unparse(filtered.map(d => ({
         Date: format(d.date, 'yyyy-MM-dd HH:mm'),
         Customer: customers.find(c => c.id === d.customerId)?.name || 'Unknown',
+        'Product Code': d.productId || '-',
         Product: d.productType,
         Litres: d.litres,
         Amount: d.totalAmount
@@ -894,7 +896,8 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                 </th>
                 <th className="modern-th">Date</th>
                 <th className="modern-th">Customer</th>
-                <th className="modern-th">Product</th>
+                      <th className="modern-th">Code</th>
+                      <th className="modern-th">Product</th>
                 <th className="modern-th">Litres / Qty</th>
                 <th className="modern-th">Total Amount</th>
                 <th className="modern-th">Actions</th>
@@ -928,7 +931,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                   </tr>
                 ))
               ) : filtered.length === 0 ? (
-                <tr className="modern-tr"><td colSpan={7} className="px-4 py-8 text-center text-gray-600 dark:text-gray-300 text-base">No deliveries found.</td></tr>
+                <tr className="modern-tr"><td colSpan={8} className="px-4 py-8 text-center text-gray-600 dark:text-gray-300 text-base">No deliveries found.</td></tr>
               ) : filtered.map((d, idx) => {
                 const isEditing = editingId === d.id;
                 return (
@@ -1356,6 +1359,7 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
       await createDelivery({ 
         customerId: form.customerId, 
         date: new Date(form.date).getTime() || Date.now(),
+        productId: uniqueProducts.find(p => p.name === form.productType)?.id || '',
         productType: form.productType,
         litres: finalLitres,
         totalAmount: amt,

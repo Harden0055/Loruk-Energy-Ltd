@@ -15,8 +15,8 @@ export default function MiniDashboardProfile({ onClose }: MiniDashboardProfilePr
   const stationData = useMemo(() => {
     return STATIONS.map(station => {
       const pReadings = pumpReadings.filter(r => r.station === station);
-      const fuelRevenue = pReadings.reduce((sum, r) => sum + ((r.stopReading - r.startReading) * r.ratePerLitre), 0);
-      const fuelLitres = pReadings.reduce((sum, r) => sum + (r.stopReading - r.startReading), 0);
+      const fuelRevenue = pReadings.reduce((sum, r) => sum + ((r.litresStop - r.litresStart) * r.ratePerLitre), 0);
+      const fuelLitres = pReadings.reduce((sum, r) => sum + (r.litresStop - r.litresStart), 0);
       
       const lTransactions = lpgTransactions.filter(t => t.station === station);
       const lpgRevenue = lTransactions.filter(t => t.type === 'sale').reduce((sum, t) => sum + t.amount, 0);
@@ -41,8 +41,8 @@ export default function MiniDashboardProfile({ onClose }: MiniDashboardProfilePr
     
     pumpReadings.forEach(r => {
       if (!products[r.product]) products[r.product] = { revenue: 0, volume: 0 };
-      products[r.product].revenue += ((r.stopReading - r.startReading) * r.ratePerLitre);
-      products[r.product].volume += (r.stopReading - r.startReading);
+      products[r.product].revenue += ((r.litresStop - r.litresStart) * r.ratePerLitre);
+      products[r.product].volume += (r.litresStop - r.litresStart);
     });
 
     lpgTransactions.filter(t => t.type === 'sale').forEach(t => {

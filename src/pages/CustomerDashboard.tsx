@@ -823,11 +823,11 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             </div>
           </div>
           <div className="mt-4">
-            <h3 className={`text-2xl font-black font-mono tracking-tight leading-none ${calculatedBalance < 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-pink-600 dark:text-pink-400'}`}>
-              {formatCurrency(calculatedBalance)}
+            <h3 className={`text-2xl font-black font-mono tracking-tight leading-none ${calculatedBalance < 0 ? 'text-green-600 dark:text-green-400' : calculatedBalance > 0 ? 'text-purple-600 dark:text-purple-400' : 'text-gray-900 dark:text-white'}`}>
+              {formatCurrency(Math.abs(calculatedBalance))}
             </h3>
             {calculatedBalance < 0 ? (
-               <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-2 flex items-center gap-1.5 uppercase tracking-wide">
+               <p className="text-xs text-green-600 dark:text-green-400 font-bold mt-2 flex items-center gap-1.5 uppercase tracking-wide">
                 <CheckCircle className="w-3.5 h-3.5" /> Advance Balance Credit
               </p>
             ) : isCreditRisk ? (
@@ -835,9 +835,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <ShieldAlert className="w-3.5 h-3.5 animate-bounce" /> Credit Limit Alert!
               </p>
             ) : (
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-2">
-                Active customer outstanding balance.
-              </p>
+              <p className="text-xs text-purple-600 dark:text-purple-400 font-bold mt-2 flex items-center gap-1.5 uppercase tracking-wide">Active customer outstanding balance.</p>
             )}
           </div>
         </div>
@@ -1130,19 +1128,19 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     <td className={`border border-theme-border px-4 sm:px-6 py-4 text-right font-mono font-bold text-base whitespace-nowrap ${
                       e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit'))
                         ? 'text-purple-600 dark:text-purple-400'
-                        : 'text-emerald-600 dark:text-emerald-400 font-medium'
+                        : 'text-green-600 dark:text-green-400 font-medium'
                     }`}>
                       {e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit')) ? '+' : '-'}
                       {formatCurrency(e.amount)}
                     </td>
                     <td className={`border border-theme-border px-4 sm:px-6 py-4 text-right font-mono font-bold text-base whitespace-nowrap ${
                       e.balanceAfter > 0
-                        ? 'text-pink-600 dark:text-pink-400'
+                        ? 'text-purple-600 dark:text-purple-400'
                         : e.balanceAfter < 0
-                          ? 'text-emerald-600 dark:text-emerald-400'
+                          ? 'text-green-600 dark:text-green-400'
                           : 'text-gray-600 dark:text-gray-300'
                     }`}>
-                      {formatCurrency(e.balanceAfter)}
+                      {formatCurrency(Math.abs(e.balanceAfter))}
                     </td>
                   </tr>
                 ))

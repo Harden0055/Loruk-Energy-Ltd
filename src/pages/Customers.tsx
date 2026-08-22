@@ -240,11 +240,11 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
                   </td>
                   <td className="modern-td">{formatCurrency(c.creditLimit)}</td>
                   <td className="modern-td">
-                    <span className={c.openingBalanceType === 'advance' ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-gray-600 dark:text-gray-400'}>
+                    <span className={c.openingBalanceType === 'advance' ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-gray-600 dark:text-gray-400'}>
                       {c.openingBalanceType === 'advance' ? '-' : ''}{formatCurrency(c.openingBalance || 0)}
                     </span>
                     {c.openingBalanceType === 'advance' && (
-                      <span className="block text-[10px] uppercase tracking-wider font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5">Advance</span>
+                      <span className="block text-[10px] uppercase tracking-wider font-extrabold text-green-600 dark:text-green-400 mt-0.5">Advance</span>
                     )}
                   </td>
                   {(() => {
@@ -252,14 +252,14 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
                     return (
                       <td className={`px-6 py-4 text-base font-mono font-bold text-right ${
                         dynamicBalance > 0 
-                          ? 'text-pink-600 dark:text-pink-400' 
+                          ? 'text-purple-600 dark:text-purple-400' 
                           : dynamicBalance < 0 
-                            ? 'text-emerald-600 dark:text-emerald-400 font-semibold' 
+                            ? 'text-green-600 dark:text-green-400 font-semibold' 
                             : 'text-gray-700 dark:text-gray-300'
                       }`}>
                         {formatCurrency(dynamicBalance)}
                         {dynamicBalance < 0 && (
-                          <span className="block text-[10px] uppercase tracking-wider font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5">Advance Balance</span>
+                          <span className="block text-[10px] uppercase tracking-wider font-extrabold text-green-600 dark:text-green-400 mt-0.5">Advance Balance</span>
                         )}
                       </td>
                     );

@@ -38,27 +38,27 @@ export default function DailyReportView() {
   // Group readings by product (Super, Diesel, etc.)
   const groupedReadings = useMemo(() => {
     const groups: Record<string, {
-      startReading: number;
-      stopReading: number;
+      litresStart: number;
+      litresStop: number;
       totalLitres: number;
       totalSales: number;
     }> = {};
 
     dailyReadings.forEach(r => {
-      const litres = r.stopReading - r.startReading;
+      const litres = r.litresStop - r.litresStart;
       const sales = r.manualCash || (litres * r.ratePerLitre);
       
       if (!groups[r.product]) {
         groups[r.product] = {
-          startReading: r.startReading,
-          stopReading: r.stopReading,
+          litresStart: r.litresStart,
+          litresStop: r.litresStop,
           totalLitres: litres,
           totalSales: sales
         };
       } else {
         // Aggregate if multiple readings for same product exist on same day
-        groups[r.product].startReading = Math.min(groups[r.product].startReading, r.startReading);
-        groups[r.product].stopReading = Math.max(groups[r.product].stopReading, r.stopReading);
+        groups[r.product].litresStart = Math.min(groups[r.product].litresStart, r.litresStart);
+        groups[r.product].litresStop = Math.max(groups[r.product].litresStop, r.litresStop);
         groups[r.product].totalLitres += litres;
         groups[r.product].totalSales += sales;
       }
@@ -258,11 +258,11 @@ export default function DailyReportView() {
               <h3 className="text-lg font-bold text-theme-text uppercase tracking-widest mb-4">{product}</h3>
               <div className="flex justify-between items-center mb-1">
                 <span>Sales Start (Litres)</span>
-                <span>{data.startReading.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                <span>{data.litresStart.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
               </div>
               <div className="flex justify-between items-center mb-3">
                 <span>Sales Stop (Litres)</span>
-                <span>{data.stopReading.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                <span>{data.litresStop.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
               </div>
               <div className="flex justify-between items-center pt-2 border-t border-theme-border/50 text-cyan-400 font-bold">
                 <span>Total Litres: {data.totalLitres.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>

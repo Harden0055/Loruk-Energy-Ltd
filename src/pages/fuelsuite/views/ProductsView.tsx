@@ -14,11 +14,13 @@ export default function ProductsView() {
 
   const [form, setForm] = useState<Partial<Product>>({
     name: '',
+    itemCode: '',
   });
 
   const resetForm = () => {
     setForm({
       name: '',
+      itemCode: '',
     });
     setEditingId(null);
     setIsFormOpen(false);
@@ -36,6 +38,26 @@ export default function ProductsView() {
       setProducts(prev => prev.filter(p => p.id !== id));
     });
 };
+
+
+  const standardizeProducts = () => {
+    confirmDelete('This will replace all current products with the standard list and sorted order. Proceed?', () => {
+      const standardProducts = [
+        { id: 'white_oil_super_petrol', name: 'Super Petrol', sortOrder: 1 },
+        { id: 'white_oil_diesel_fuel', name: 'Diesel Fuel', sortOrder: 2 },
+        { id: 'white_oil_super_premium', name: 'Super (Premium)', sortOrder: 3 },
+        { id: 'lpg_13kg', name: '13KG LPG', sortOrder: 4 },
+        { id: 'lpg_6kg', name: '6KG LPG', sortOrder: 5 },
+        { id: 'empty_13kg', name: '13KG LPG - Empty', sortOrder: 6 },
+        { id: 'empty_6kg', name: '6KG LPG - Empty', sortOrder: 7 },
+        { id: 'acc_burner', name: 'Burner', sortOrder: 8 },
+        { id: 'acc_grill', name: 'Grill', sortOrder: 9 },
+        { id: 'lube_engine_oil', name: 'Engine oil', sortOrder: 10 },
+        { id: 'lube_brake_fluid', name: 'Brake fluid', sortOrder: 11 },
+      ];
+      setProducts(standardProducts);
+    });
+  };
 
   const removeDuplicates = () => {
     const seenNames = new Set<string>();
@@ -133,8 +155,8 @@ export default function ProductsView() {
           <p className="text-theme-text-muted mt-1">Manage fuel and oil products across all stations.</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button onClick={removeDuplicates} variant="secondary" className="flex items-center gap-2">
-            Remove Duplicates
+          <Button onClick={standardizeProducts} variant="secondary" className="flex items-center gap-2 text-yellow-500 hover:text-yellow-400">
+            Standardize Products
           </Button>
           <Button onClick={() => { 
             setIsFormOpen(false);
@@ -183,9 +205,13 @@ export default function ProductsView() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="col-span-1 md:col-span-2">
+              <div className="col-span-1 md:col-span-1">
                 <label className="block text-xs text-theme-text-muted mb-1">Product Name</label>
                 <Input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} placeholder="e.g. Super Premium" required />
+              </div>
+              <div className="col-span-1 md:col-span-1">
+                <label className="block text-xs text-theme-text-muted mb-1">Item Code (Optional)</label>
+                <Input type="text" value={form.itemCode || ''} onChange={e => setForm({...form, itemCode: e.target.value})} placeholder="e.g. PRD-001" />
               </div>
               <div className="col-span-1 md:col-span-2 flex justify-end mt-2">
                 <Button type="submit">{editingId ? 'Update Product' : 'Save Product'}</Button>
@@ -204,14 +230,23 @@ export default function ProductsView() {
             <thead>
               <tr className="modern-tr">
                 <Th>Product Name</Th>
+                <Th>Item Code</Th>
                 <Th>Actions</Th>
               </tr>
             </thead>
             <tbody>
-              {products.map(p => (
+              {[...products].sort((a: any, b: any) => {
+                if (!a.itemCode && !b.itemCode) return (a.sortOrder || 99) - (b.sortOrder || 99);
+                if (!a.itemCode) return 1;
+                if (!b.itemCode) return -1;
+                return a.itemCode.localeCompare(b.itemCode);
+              }).map(p => (
                 <tr key={p.id} className="hover:theme-bg-gradient transition-colors">
                   <Td>
                     <span className="font-semibold text-theme-text">{p.name}</span>
+                  </Td>
+                  <Td>
+                    <span className="text-theme-text-muted">{p.itemCode || '-'}</span>
                   </Td>
                   <Td>
                     <div className="flex gap-3">

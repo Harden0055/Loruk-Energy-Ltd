@@ -14,7 +14,7 @@ export default function ReportsView() {
   const filteredReadings = pumpReadings.filter(r => activeStation === 'Combined Total' || r.station === activeStation);
   const filteredExpenses = expenses; // Assuming expenses apply globally or could be filtered similarly
 
-  const fuelRevenue = filteredReadings.reduce((acc, r) => acc + ((r.stopReading - r.startReading) * r.ratePerLitre), 0);
+  const fuelRevenue = filteredReadings.reduce((acc, r) => acc + ((r.litresStop - r.litresStart) * r.ratePerLitre), 0);
   const lpgRevenue = lpgTransactions.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.amount, 0);
   const lpgCOGS = lpgTransactions.filter(t => t.type === 'purchase').reduce((acc, t) => acc + t.amount, 0);
   const operatingExpenses = filteredExpenses.reduce((acc, e) => acc + e.amount, 0);

@@ -17,8 +17,10 @@ export default function PumpReadingsView() {
     date: new Date().toISOString().split('T')[0],
     station: STATIONS[0],
     product: products[0]?.name || 'Super Petrol',
-    startReading: 0,
-    stopReading: 0,
+    salesStart: 0,
+    salesStop: 0,
+    litresStart: 0,
+    litresStop: 0,
     ratePerLitre: 0,
     manualCash: 0,
   });
@@ -35,8 +37,10 @@ export default function PumpReadingsView() {
       date: new Date().toISOString().split('T')[0],
       station: STATIONS[0],
       product: products[0]?.name || 'Super Petrol',
-      startReading: 0,
-      stopReading: 0,
+      salesStart: 0,
+      salesStop: 0,
+      litresStart: 0,
+      litresStop: 0,
       ratePerLitre: 0,
       manualCash: 0,
     });
@@ -71,8 +75,8 @@ export default function PumpReadingsView() {
   };
 
   const metrics = useMemo(() => {
-    const totalVolume = filteredReadings.reduce((sum, r) => sum + (r.stopReading - r.startReading), 0);
-    const expectedSales = filteredReadings.reduce((sum, r) => sum + (r.stopReading - r.startReading) * r.ratePerLitre, 0);
+    const totalVolume = filteredReadings.reduce((sum, r) => sum + (r.litresStop - r.litresStart), 0);
+    const expectedSales = filteredReadings.reduce((sum, r) => sum + (r.litresStop - r.litresStart) * r.ratePerLitre, 0);
     const collectedCash = filteredReadings.reduce((sum, r) => sum + r.manualCash, 0);
     return { totalVolume, expectedSales, collectedCash };
   }, [filteredReadings]);
@@ -116,43 +120,55 @@ export default function PumpReadingsView() {
             <CardTitle>{editingId ? 'Edit Pump Reading' : 'New Pump Reading'}</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
-                <label className="block text-xs text-theme-text-muted mb-1">Date</label>
-                <Input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} required />
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs text-theme-text-muted mb-1">Date</label>
+                  <Input type="date" value={form.date} onChange={e => setForm({...form, date: e.target.value})} required />
+                </div>
+                <div>
+                  <label className="block text-xs text-theme-text-muted mb-1">Station</label>
+                  <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
+                    {STATIONS.map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-xs text-theme-text-muted mb-1">Product</label>
+                  <Select value={form.product} onChange={e => setForm({...form, product: e.target.value})}>
+                    {products.filter(p => p.name.toLowerCase().includes('super') || p.name.toLowerCase().includes('diesel')).map(p => (
+                      <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={p.id} value={p.name}>{p.name}</option>
+                    ))}
+                  </Select>
+                </div>
               </div>
-              <div>
-                <label className="block text-xs text-theme-text-muted mb-1">Station</label>
-                <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                  {STATIONS.map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
-                </Select>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-xs text-theme-text-muted mb-1">Sales Start</label>
+                  <Input type="number" step="0.01" value={form.salesStart} onChange={e => setForm({...form, salesStart: parseFloat(e.target.value)})} required />
+                </div>
+                <div>
+                  <label className="block text-xs text-theme-text-muted mb-1">Sales Stop</label>
+                  <Input type="number" step="0.01" value={form.salesStop} onChange={e => setForm({...form, salesStop: parseFloat(e.target.value)})} required />
+                </div>
+                <div>
+                  <label className="block text-xs text-theme-text-muted mb-1">Litres Start</label>
+                  <Input type="number" step="0.01" value={form.litresStart} onChange={e => setForm({...form, litresStart: parseFloat(e.target.value)})} required />
+                </div>
+                <div>
+                  <label className="block text-xs text-theme-text-muted mb-1">Litres Stop</label>
+                  <Input type="number" step="0.01" value={form.litresStop} onChange={e => setForm({...form, litresStop: parseFloat(e.target.value)})} required />
+                </div>
+                <div>
+                  <label className="block text-xs text-theme-text-muted mb-1">Rate per Litre</label>
+                  <Input type="number" step="0.01" value={form.ratePerLitre} onChange={e => setForm({...form, ratePerLitre: parseFloat(e.target.value)})} required />
+                </div>
+                <div>
+                  <label className="block text-xs text-theme-text-muted mb-1">Manual Cash</label>
+                  <Input type="number" step="0.01" value={form.manualCash} onChange={e => setForm({...form, manualCash: parseFloat(e.target.value)})} required />
+                </div>
               </div>
-              <div>
-                <label className="block text-xs text-theme-text-muted mb-1">Product</label>
-                <Select value={form.product} onChange={e => setForm({...form, product: e.target.value})}>
-                  {products.map(p => (
-                    <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={p.id} value={p.name}>{p.name}</option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                <label className="block text-xs text-theme-text-muted mb-1">Rate per Litre</label>
-                <Input type="number" step="0.01" value={form.ratePerLitre} onChange={e => setForm({...form, ratePerLitre: parseFloat(e.target.value)})} required />
-              </div>
-              <div>
-                <label className="block text-xs text-theme-text-muted mb-1">Start Reading</label>
-                <Input type="number" step="0.01" value={form.startReading} onChange={e => setForm({...form, startReading: parseFloat(e.target.value)})} required />
-              </div>
-              <div>
-                <label className="block text-xs text-theme-text-muted mb-1">Stop Reading</label>
-                <Input type="number" step="0.01" value={form.stopReading} onChange={e => setForm({...form, stopReading: parseFloat(e.target.value)})} required />
-              </div>
-              <div>
-                <label className="block text-xs text-theme-text-muted mb-1">Manual Cash Collected</label>
-                <Input type="number" step="0.01" value={form.manualCash} onChange={e => setForm({...form, manualCash: parseFloat(e.target.value)})} required />
-              </div>
-              <div className="flex items-end">
-                <Button type="submit" className="w-full">{editingId ? 'Update Reading' : 'Save Reading'}</Button>
+              <div className="flex justify-end mt-2">
+                <Button type="submit">{editingId ? 'Update Reading' : 'Save Reading'}</Button>
               </div>
             </form>
           </CardContent>
@@ -175,7 +191,7 @@ export default function PumpReadingsView() {
           </thead>
           <tbody>
             {filteredReadings.map(r => {
-              const volume = r.stopReading - r.startReading;
+              const volume = r.litresStop - r.litresStart;
               const expected = volume * r.ratePerLitre;
               const variance = r.manualCash - expected;
               return (
@@ -204,11 +220,6 @@ export default function PumpReadingsView() {
                 </tr>
               );
             })}
-            {filteredReadings.length === 0 && (
-              <tr className="modern-tr">
-                <Td colSpan={8} className="text-center py-8 text-slate-500">No readings found for {activeStation}.</Td>
-              </tr>
-            )}
           </tbody>
         </Table>
       </Card>

@@ -22,10 +22,12 @@ export default function DailyDataEntryView() {
   // Pump Readings State
   const [pumps, setPumps] = useState<Partial<PumpReading>[]>(() => {
     const initialStation = activeStation === 'Combined Total' ? STATIONS[0] : activeStation;
-    return products.filter(p => !p.name.toLowerCase().includes('oil')).map(p => ({
+    return products.filter(p => p.name.toLowerCase().includes('super') || p.name.toLowerCase().includes('diesel')).map(p => ({
       product: p.name,
-      startReading: 0,
-      stopReading: 0,
+      salesStart: 0,
+      salesStop: 0,
+      litresStart: 0,
+      litresStop: 0,
       ratePerLitre: parseFloat(localStorage.getItem(`rate_${initialStation}_${p.name}`) || '0'),
       manualCash: 0
     }));
@@ -36,13 +38,15 @@ export default function DailyDataEntryView() {
       .filter(pr => pr.station === station && pr.date < date)
       .sort((a, b) => ((b.createdAt || b.date) > (a.createdAt || a.date) ? -1 : 1));
       
-    setPumps(products.filter(p => !p.name.toLowerCase().includes('oil')).map(p => {
+    setPumps(products.filter(p => p.name.toLowerCase().includes('super') || p.name.toLowerCase().includes('diesel')).map(p => {
       const lastReading = previousReadings.find(pr => pr.product === p.name);
       const storedRate = parseFloat(localStorage.getItem(`rate_${station}_${p.name}`) || '0');
       return {
         product: p.name,
-        startReading: lastReading ? lastReading.stopReading : 0,
-        stopReading: 0,
+        salesStart: lastReading ? lastReading.salesStop : 0,
+        salesStop: 0,
+        litresStart: lastReading ? lastReading.litresStop : 0,
+        litresStop: 0,
         ratePerLitre: storedRate > 0 ? storedRate : (lastReading ? lastReading.ratePerLitre : 0),
         manualCash: 0
       };
@@ -87,7 +91,7 @@ export default function DailyDataEntryView() {
   const generateId = () => Math.random().toString(36).substr(2, 9);
 
   // Computations
-  const pumpSalesAmount = pumps.reduce((sum, p) => sum + ((p.stopReading || 0) - (p.startReading || 0)) * (p.ratePerLitre || 0), 0);
+  const pumpSalesAmount = pumps.reduce((sum, p) => sum + ((p.litresStop || 0) - (p.litresStart || 0)) * (p.ratePerLitre || 0), 0);
   const lpgSalesAmount = lpgSales.reduce((sum, s) => sum + (s.amount || 0), 0);
   const equipmentSalesAmount = equipmentSales.reduce((sum, s) => sum + (s.amount || 0), 0);
   const totalSales = pumpSalesAmount + lpgSalesAmount + equipmentSalesAmount;
@@ -102,13 +106,15 @@ export default function DailyDataEntryView() {
 
   const handleSaveAll = () => {
     // Save Pump Readings
-    const newPumpReadings: PumpReading[] = pumps.filter(p => p.stopReading! > 0 || p.startReading! > 0).map(p => ({
+    const newPumpReadings: PumpReading[] = pumps.filter(p => p.litresStop! > 0 || p.litresStart! > 0 || p.salesStop! > 0).map(p => ({
       id: generateId(),
       date,
       station,
       product: p.product!,
-      startReading: p.startReading || 0,
-      stopReading: p.stopReading || 0,
+      salesStart: p.salesStart || 0,
+      salesStop: p.salesStop || 0,
+      litresStart: p.litresStart || 0,
+      litresStop: p.litresStop || 0,
       ratePerLitre: p.ratePerLitre || 0,
       manualCash: p.manualCash || 0
     }));
@@ -208,8 +214,8 @@ export default function DailyDataEntryView() {
     // Reset Form
     setPumps(pumps.map(p => ({
       product: p.product,
-      startReading: p.stopReading! > 0 ? p.stopReading : p.startReading,
-      stopReading: 0,
+      litresStart: p.litresStop! > 0 ? p.litresStop : p.litresStart,
+      litresStop: 0,
       ratePerLitre: p.ratePerLitre,
       manualCash: 0
     })));
@@ -258,50 +264,90 @@ export default function DailyDataEntryView() {
           <CardTitle className="text-lg text-cyan-400">Pump Readings</CardTitle>
         </CardHeader>
         <CardContent className="p-6 pt-0 space-y-4">
-          {pumps.map((pump, idx) => (
-            <div key={idx} className="grid grid-cols-1 sm:grid-cols-5 gap-4 items-end border-b border-theme-border/50 pb-4">
-              <div>
-                <label className="text-xs font-medium text-theme-text-muted block mb-1">Product</label>
-                <Input value={pump.product || ''} disabled className="theme-bg-gradient" />
+          {pumps.map((pump, idx) => {
+            const salesAmount = (pump.salesStop || 0) - (pump.salesStart || 0);
+            const litresSold = (pump.litresStop || 0) - (pump.litresStart || 0);
+            const calculatedSales = litresSold * (pump.ratePerLitre || 0);
+            const variance = (pump.manualCash || 0) - calculatedSales;
+
+            return (
+            <div key={idx} className="border border-theme-border/50 rounded-lg p-4 space-y-4 bg-theme-bg/20">
+              <div className="font-semibold text-cyan-400 text-sm">{pump.product}</div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div>
+                  <label className="text-xs font-medium text-theme-text-muted block mb-1">Sales Start</label>
+                  <Input type="number" step="0.01" value={pump.salesStart === 0 ? '' : pump.salesStart} onChange={(e) => {
+                    const newPumps = [...pumps];
+                    newPumps[idx].salesStart = parseFloat(e.target.value) || 0;
+                    setPumps(newPumps);
+                  }} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-theme-text-muted block mb-1">Sales Stop</label>
+                  <Input type="number" step="0.01" value={pump.salesStop === 0 ? '' : pump.salesStop} onChange={(e) => {
+                    const newPumps = [...pumps];
+                    newPumps[idx].salesStop = parseFloat(e.target.value) || 0;
+                    setPumps(newPumps);
+                  }} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-theme-text-muted block mb-1">Sales Amount</label>
+                  <Input disabled value={salesAmount.toFixed(2)} className="bg-theme-bg/50" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-theme-text-muted block mb-1">Litres Start</label>
+                  <Input type="number" step="0.01" value={pump.litresStart === 0 ? '' : pump.litresStart} onChange={(e) => {
+                    const newPumps = [...pumps];
+                    newPumps[idx].litresStart = parseFloat(e.target.value) || 0;
+                    setPumps(newPumps);
+                  }} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-theme-text-muted block mb-1">Litres Stop</label>
+                  <Input type="number" step="0.01" value={pump.litresStop === 0 ? '' : pump.litresStop} onChange={(e) => {
+                    const newPumps = [...pumps];
+                    newPumps[idx].litresStop = parseFloat(e.target.value) || 0;
+                    setPumps(newPumps);
+                  }} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-theme-text-muted block mb-1">Litres Sold</label>
+                  <Input disabled value={litresSold.toFixed(2)} className="bg-theme-bg/50" />
+                </div>
               </div>
-              <div>
-                <label className="text-xs font-medium text-theme-text-muted block mb-1">Start Reading</label>
-                <Input type="number" step="0.01" value={pump.startReading || ''} onChange={(e) => {
-                  const newPumps = [...pumps];
-                  newPumps[idx].startReading = parseFloat(e.target.value);
-                  setPumps(newPumps);
-                }} />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-theme-text-muted block mb-1">Stop Reading</label>
-                <Input type="number" step="0.01" value={pump.stopReading || ''} onChange={(e) => {
-                  const newPumps = [...pumps];
-                  newPumps[idx].stopReading = parseFloat(e.target.value);
-                  setPumps(newPumps);
-                }} />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-theme-text-muted block mb-1">Rate (Ksh/L)</label>
-                <Input type="number" step="0.01" value={pump.ratePerLitre || ''} onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  const newPumps = [...pumps];
-                  newPumps[idx].ratePerLitre = val;
-                  setPumps(newPumps);
-                  if (!isNaN(val)) {
-                    localStorage.setItem(`rate_${station}_${pump.product}`, val.toString());
-                  }
-                }} />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-theme-text-muted block mb-1">Manual Cash (Optional)</label>
-                <Input type="number" step="0.01" value={pump.manualCash || ''} onChange={(e) => {
-                  const newPumps = [...pumps];
-                  newPumps[idx].manualCash = parseFloat(e.target.value);
-                  setPumps(newPumps);
-                }} />
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div>
+                  <label className="text-xs font-medium text-theme-text-muted block mb-1">Rate (Ksh/L)</label>
+                  <Input type="number" step="0.01" value={pump.ratePerLitre === 0 ? '' : pump.ratePerLitre} onChange={(e) => {
+                    const val = parseFloat(e.target.value) || 0;
+                    const newPumps = [...pumps];
+                    newPumps[idx].ratePerLitre = val;
+                    setPumps(newPumps);
+                    if (!isNaN(val)) {
+                      localStorage.setItem(`rate_${station}_${pump.product}`, val.toString());
+                    }
+                  }} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-theme-text-muted block mb-1">Calculated Sales</label>
+                  <Input disabled value={calculatedSales.toFixed(2)} className="bg-theme-bg/50 text-cyan-300 font-semibold" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-theme-text-muted block mb-1">Manual Cash (Opt)</label>
+                  <Input type="number" step="0.01" value={pump.manualCash === 0 ? '' : pump.manualCash} onChange={(e) => {
+                    const newPumps = [...pumps];
+                    newPumps[idx].manualCash = parseFloat(e.target.value) || 0;
+                    setPumps(newPumps);
+                  }} />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-theme-text-muted block mb-1">Variance</label>
+                  <Input disabled value={variance.toFixed(2)} className={`bg-theme-bg/50 font-semibold ${variance < 0 ? 'text-red-400' : 'text-emerald-400'}`} />
+                </div>
               </div>
             </div>
-          ))}
+          )})}
+
         </CardContent>
       </Card>
 

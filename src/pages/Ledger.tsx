@@ -337,9 +337,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
 
       {selectedCustomer && (() => {
         const custBalance = filteredEntries.length > 0 ? filteredEntries[filteredEntries.length - 1].runningBalance : (selectedCustomer?.openingBalanceType === 'advance' ? -(selectedCustomer.openingBalance || 0) : (selectedCustomer?.openingBalance || 0));
-        const custBalanceColor = custBalance !== 0 
-          ? 'text-pink-600 dark:text-pink-400' 
-          : 'text-gray-900 dark:text-blue-50';
+        const custBalanceColor = custBalance < 0 ? 'text-green-600 dark:text-green-400' : custBalance > 0 ? 'text-purple-600 dark:text-purple-400' : 'text-gray-900 dark:text-theme-text';
         return (
         <div className="grid grid-cols-2 gap-4">
           <div className="glass-panel border border-theme-border p-6 rounded-xl shadow-sm">
@@ -357,8 +355,8 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
 
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-blue-950 border border-theme-border p-6 rounded-xl shadow-sm flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-pink-500 dark:text-pink-400 mb-1">Total Outstanding Balance (All Entries)</p>
-          <h3 className={`text-3xl font-bold ${overallBalance !== 0 ? 'text-pink-600 dark:text-pink-400' : 'text-blue-900 dark:text-theme-text'}`}>
+          <p className="text-sm font-medium text-purple-500 dark:text-purple-400 mb-1">Total Outstanding Balance (All Entries)</p>
+          <h3 className={`text-3xl font-bold ${overallBalance < 0 ? 'text-green-600 dark:text-green-400' : overallBalance > 0 ? 'text-purple-600 dark:text-purple-400' : 'text-gray-900 dark:text-theme-text'}`}>
             {formatCurrency(overallBalance)}
           </h3>
         </div>

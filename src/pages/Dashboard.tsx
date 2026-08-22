@@ -96,7 +96,7 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
   // --- Base Metrics ---
   const activeCustomers = customers.filter(c => c.status === 'active').length;
   const outstandingBalance = customers.reduce((acc, c) => acc + (c.balance || 0), 0);
-  const outstandingBalanceColor = "text-pink-600 dark:text-pink-400";
+  const outstandingBalanceColor = outstandingBalance < 0 ? 'text-green-600 dark:text-green-400' : 'text-purple-600 dark:text-purple-400';
   
   const totalFleetExpenses = expenses.reduce((acc, curr) => acc + curr.amount, 0);
   const activeTrucksCount = new Set(expenses.map(e => e.carRegistration)).size;

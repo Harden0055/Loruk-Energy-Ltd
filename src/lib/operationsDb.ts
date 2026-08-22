@@ -8,7 +8,7 @@ import {
 } from '../types';
 
 export function useProducts() {
-  return useGenericCollection<ProductDef>('products', 'createdAt', 'asc');
+  return useGenericCollection<ProductDef>('products', 'sortOrder', 'asc');
 }
 import { 
   isQuotaExceeded, markQuotaExceeded, getLocalCollection, saveLocalCollection, 
@@ -928,3 +928,95 @@ export { deleteLpgPurchase as deleteLPGPurchase };
 export { updateLpgStock, updateFuelVolume } from './inventoryUpdate';
 
 
+
+
+export async function replaceProductsWithStandard(existingProducts: ProductDef[]) {
+  // Delete all existing
+  for (const p of existingProducts) {
+    if (p.id) {
+      await deleteDoc(doc(db, 'products', p.id));
+      await deleteLocalDoc('products', p.id);
+    }
+  }
+
+  const standardProducts = [
+    { id: 'super_premium', name: 'Super (Premium)', category: 'White Oils', sortOrder: 1 },
+    { id: 'diesel', name: 'Diesel', category: 'White Oils', sortOrder: 2 },
+    { id: 'engine_oil', name: 'Engine Oil', category: 'Lubricants', sortOrder: 3 },
+    { id: 'brake_fluid', name: 'Brake Fluid', category: 'Lubricants', sortOrder: 4 },
+    { id: 'lpg_13kg', name: '13KG LPG', category: 'LPG', sortOrder: 5 },
+    { id: 'lpg_6kg', name: '6KG LPG', category: 'LPG', sortOrder: 6 },
+    { id: 'empty_13kg', name: '13KG LPG - Empty', category: 'Empties', sortOrder: 7 },
+    { id: 'empty_6kg', name: '6KG LPG - Empty', category: 'Empties', sortOrder: 8 },
+    { id: 'acc_burner', name: 'Burner', category: 'Burners and Grills', sortOrder: 9 },
+    { id: 'acc_grill', name: 'Grill', category: 'Burners and Grills', sortOrder: 10 },
+  ];
+
+  for (const sp of standardProducts) {
+    const payload = { 
+      name: sp.name, 
+      category: sp.category,
+      sortOrder: sp.sortOrder,
+      createdAt: Date.now(),
+      createdBy: auth.currentUser?.email || auth.currentUser?.uid || 'System'
+    };
+    await setDoc(doc(db, 'products', sp.id), payload);
+    await addLocalDoc('products', { ...payload, id: sp.id });
+  }
+
+// Update past records to point to these strict names AND link productId
+  const nameToId = {
+    'Super (Premium)': 'super_premium',
+    'Super Petrol': 'super_premium',
+    'Diesel': 'diesel',
+    'Diesel Fuel': 'diesel',
+    'Engine Oil': 'engine_oil',
+    'Engine oil': 'engine_oil',
+    'Brake Fluid': 'brake_fluid',
+    'Brake fluid': 'brake_fluid',
+    '13KG LPG': 'lpg_13kg',
+    '6KG LPG': 'lpg_6kg',
+    '13KG LPG - Empty': 'empty_13kg',
+    '6KG LPG - Empty': 'empty_6kg',
+    'Burner': 'acc_burner',
+    'Grill': 'acc_grill'
+  };
+
+  const mappings = {
+    'Super Petrol': 'Super (Premium)',
+    'Diesel Fuel': 'Diesel',
+    'Engine oil': 'Engine Oil',
+    'Brake fluid': 'Brake Fluid'
+  };
+
+  try {
+    const collectionsToUpdate = [
+      { col: 'deliveries', field: 'productType' },
+      { col: 'fuel_rates', field: 'product' },
+      { col: 'pump_readings', field: 'product' }
+    ];
+
+    for (const { col, field } of collectionsToUpdate) {
+      const snap = await getDocs(collection(db, col));
+      for (const d of snap.docs) {
+        const val = d.data()[field];
+        const newName = mappings[val] || val;
+        const productId = nameToId[newName] || nameToId[val];
+        
+        const updates = {};
+        if (mappings[val]) {
+          updates[field] = mappings[val];
+        }
+        if (productId) {
+          updates['productId'] = productId;
+        }
+        
+        if (Object.keys(updates).length > 0) {
+          await setDoc(doc(db, col, d.id), updates, { merge: true });
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Error during product linking', err);
+  }
+}

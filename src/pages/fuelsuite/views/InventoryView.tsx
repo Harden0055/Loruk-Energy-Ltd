@@ -45,7 +45,7 @@ export default function InventoryView() {
     if (activeTab === 'out') {
       pumpReadings.forEach(p => {
         if ((activeStation === 'Combined Total' || p.station === activeStation) && (!filterDate || p.date <= filterDate)) {
-          const volume = p.stopReading - p.startReading;
+          const volume = p.litresStop - p.litresStart;
           if (volume > 0) {
             combined.push({
               id: p.id,
@@ -155,7 +155,7 @@ export default function InventoryView() {
 
     // Process Pump Readings for Fuel Out
     relevantPumps.forEach(pump => {
-      const sold = pump.stopReading - pump.startReading;
+      const sold = pump.litresStop - pump.litresStart;
       if (pump.product.toLowerCase().includes('diesel')) {
         summary['Diesel'].out += sold;
       } else if (pump.product.toLowerCase().includes('super')) {
