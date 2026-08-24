@@ -71,30 +71,33 @@ export default function LPGView() {
       (filterStation === 'Combined Total' || t.station === filterStation) &&
       (!filterDate || t.date === filterDate)
     );
-    const totalBought = statsData.filter(t => t.type === 'purchase').reduce((acc, t) => acc + t.quantity, 0);
-    const totalSold = statsData.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.quantity, 0);
-    const totalOpening = statsData.filter(t => t.type === 'opening').reduce((acc, t) => acc + t.quantity, 0);
-    const currentInv = totalOpening + totalBought - totalSold;
-    const totalSalesAmount = statsData.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.amount, 0);
-    const totalPurchasesAmount = statsData.filter(t => t.type === 'purchase').reduce((acc, t) => acc + t.amount, 0);
+
+    const isAcc = (item: string) => item.toLowerCase().includes('burner') || item.toLowerCase().includes('grill');
+
+    const lpgStats = statsData.filter(t => !isAcc(t.item));
+    const accStats = statsData.filter(t => isAcc(t.item));
+
+    const totalBoughtLpg = lpgStats.filter(t => t.type === 'purchase').reduce((acc, t) => acc + t.quantity, 0);
+    const totalSoldLpg = lpgStats.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.quantity, 0);
+    const totalOpeningLpg = lpgStats.filter(t => t.type === 'opening').reduce((acc, t) => acc + t.quantity, 0);
+    const currentInvLpg = totalOpeningLpg + totalBoughtLpg - totalSoldLpg;
+    const totalSalesAmountLpg = lpgStats.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.amount, 0);
+    const totalPurchasesAmountLpg = lpgStats.filter(t => t.type === 'purchase').reduce((acc, t) => acc + t.amount, 0);
+
+    const totalBoughtAcc = accStats.filter(t => t.type === 'purchase').reduce((acc, t) => acc + t.quantity, 0);
+    const totalSoldAcc = accStats.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.quantity, 0);
+    const totalOpeningAcc = accStats.filter(t => t.type === 'opening').reduce((acc, t) => acc + t.quantity, 0);
+    const currentInvAcc = totalOpeningAcc + totalBoughtAcc - totalSoldAcc;
+    const totalSalesAmountAcc = accStats.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.amount, 0);
+    const totalPurchasesAmountAcc = accStats.filter(t => t.type === 'purchase').reduce((acc, t) => acc + t.amount, 0);
 
     return {
-      totalOpening,
-      totalBought,
-      totalSold,
-      currentInv,
-      totalSalesAmount,
-      totalPurchasesAmount,
-      stats: [
-        { label: 'Opening', value: totalOpening },
-        { label: 'Purchased', value: totalBought },
-        { label: 'Sold', value: totalSold },
-        { label: 'Net', value: totalBought - totalSold },
-      ]
+      lpg: { totalOpening: totalOpeningLpg, totalBought: totalBoughtLpg, totalSold: totalSoldLpg, currentInv: currentInvLpg, totalSales: totalSalesAmountLpg, totalPurchases: totalPurchasesAmountLpg },
+      acc: { totalOpening: totalOpeningAcc, totalBought: totalBoughtAcc, totalSold: totalSoldAcc, currentInv: currentInvAcc, totalSales: totalSalesAmountAcc, totalPurchases: totalPurchasesAmountAcc }
     };
   }, [allLpgData, filterStation, filterDate]);
 
-  const { totalOpening, totalBought, totalSold, currentInv, totalSalesAmount, totalPurchasesAmount } = metrics;
+  const { lpg, acc } = metrics;
 
   const statsData = allLpgData;
 
@@ -155,7 +158,7 @@ export default function LPGView() {
               <Flame className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-slate-100">LPG Profit Profile</h2>
+              <h2 className="text-2xl font-bold text-slate-100">LPG & Accessories Profit Profile</h2>
               <p className="text-xs text-theme-text-muted">Net margins & volume trends for gas cylinders</p>
             </div>
           </div>
@@ -170,17 +173,17 @@ export default function LPGView() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="flex flex-col justify-center bg-cyan-500/10 border border-theme-border p-6 rounded-xl shadow-sm">
-            <span className="text-sm text-theme-text-muted font-medium">Total LPG Sales</span>
-            <span className="text-3xl font-bold text-cyan-400 mt-2">Ksh {totalSalesAmount.toLocaleString()}</span>
+            <span className="text-sm text-theme-text-muted font-medium">Total Sales</span>
+            <span className="text-3xl font-bold text-cyan-400 mt-2">Ksh {(lpg.totalSales + acc.totalSales).toLocaleString()}</span>
           </div>
           <div className="flex flex-col justify-center bg-orange-500/10 border border-orange-500/20 p-6 rounded-xl shadow-sm">
-            <span className="text-sm text-theme-text-muted font-medium">Total LPG Purchases</span>
-            <span className="text-3xl font-bold text-orange-400 mt-2">Ksh {totalPurchasesAmount.toLocaleString()}</span>
+            <span className="text-sm text-theme-text-muted font-medium">Total Purchases</span>
+            <span className="text-3xl font-bold text-orange-400 mt-2">Ksh {(lpg.totalPurchases + acc.totalPurchases).toLocaleString()}</span>
           </div>
           <div className="flex flex-col justify-center bg-emerald-500/10 border border-emerald-500/20 p-6 rounded-xl shadow-sm">
-            <span className="text-sm text-theme-text-muted font-medium">Net Profit (LPG)</span>
-            <span className={`text-3xl font-bold mt-2 ${totalSalesAmount - totalPurchasesAmount >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-              Ksh {(totalSalesAmount - totalPurchasesAmount).toLocaleString()}
+            <span className="text-sm text-theme-text-muted font-medium">Net Profit</span>
+            <span className={`text-3xl font-bold mt-2 ${(lpg.totalSales + acc.totalSales - lpg.totalPurchases - acc.totalPurchases) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+              Ksh {(lpg.totalSales + acc.totalSales - lpg.totalPurchases - acc.totalPurchases).toLocaleString()}
             </span>
           </div>
         </div>
@@ -232,7 +235,7 @@ export default function LPGView() {
                         </span>
                       </td>
                       <td className="modern-td">
-                        <ProductIconBadge name={t.item} category="LPG" size="sm" />
+                        <ProductIconBadge name={t.item} category={t.item.toLowerCase().includes('burner') || t.item.toLowerCase().includes('grill') ? 'Accessories' : 'LPG'} size="sm" />
                       </td>
                       <td className="modern-td font-mono font-semibold">Ksh {t.amount.toLocaleString()}</td>
                     </tr>
@@ -282,11 +285,37 @@ export default function LPGView() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MetricCard title="Opening Stock" value={`${totalOpening} Cylinders`} icon={Boxes} colorClass="bg-blue-500/10 text-blue-400" />
-        <MetricCard title="Total Bought" value={`${totalBought} Cylinders`} icon={ShoppingCart} colorClass="bg-[#122840] text-theme-text-muted" />
-        <MetricCard title="Total Sold" value={`${totalSold} Cylinders`} icon={CheckSquare} colorClass="bg-cyan-500/10 text-cyan-400" />
-        <MetricCard title="Current Inventory" value={`${currentInv} Cylinders`} icon={RefreshCcw} colorClass="bg-emerald-500/10 text-emerald-400" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="glass-panel p-6 rounded-xl border border-theme-border shadow-md bg-orange-500/5">
+          <h4 className="text-sm font-bold text-theme-text-muted mb-2 uppercase tracking-wider">Total LPG Stats</h4>
+          <p className="text-2xl font-bold text-orange-400">Sales: Ksh {lpg.totalSales.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-orange-600">Purchases: Ksh {lpg.totalPurchases.toLocaleString()}</p>
+        </div>
+        <div className="glass-panel p-6 rounded-xl border border-theme-border shadow-md bg-emerald-500/5">
+          <h4 className="text-sm font-bold text-theme-text-muted mb-2 uppercase tracking-wider">Total Accessories Stats</h4>
+          <p className="text-2xl font-bold text-emerald-400">Sales: Ksh {acc.totalSales.toLocaleString()}</p>
+          <p className="text-2xl font-bold text-emerald-600">Purchases: Ksh {acc.totalPurchases.toLocaleString()}</p>
+        </div>
+        <div className="glass-panel p-6 rounded-xl border border-theme-border shadow-md bg-green-500/5 flex flex-col justify-center">
+          <h4 className="text-sm font-bold text-theme-text-muted mb-2 uppercase tracking-wider">Total Profit</h4>
+          <p className="text-3xl font-bold text-green-500">Ksh {(lpg.totalSales - lpg.totalPurchases + acc.totalSales - acc.totalPurchases).toLocaleString()}</p>
+        </div>
+      </div>
+
+      <h3 className="text-lg font-bold text-white mb-4">LPG Inventory</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <MetricCard title="Opening Stock" value={`${lpg.totalOpening} Cyls`} icon={Boxes} colorClass="bg-blue-500/10 text-blue-400" />
+        <MetricCard title="Total Bought" value={`${lpg.totalBought} Cyls`} icon={ShoppingCart} colorClass="bg-[#122840] text-theme-text-muted" />
+        <MetricCard title="Total Sold" value={`${lpg.totalSold} Cyls`} icon={CheckSquare} colorClass="bg-cyan-500/10 text-cyan-400" />
+        <MetricCard title="Current Inventory" value={`${lpg.currentInv} Cyls`} icon={RefreshCcw} colorClass="bg-emerald-500/10 text-emerald-400" />
+      </div>
+
+      <h3 className="text-lg font-bold text-white mb-4">Accessories Inventory (Burner/Grill)</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <MetricCard title="Opening Stock" value={`${acc.totalOpening} Units`} icon={Boxes} colorClass="bg-blue-500/10 text-blue-400" />
+        <MetricCard title="Total Bought" value={`${acc.totalBought} Units`} icon={ShoppingCart} colorClass="bg-[#122840] text-theme-text-muted" />
+        <MetricCard title="Total Sold" value={`${acc.totalSold} Units`} icon={CheckSquare} colorClass="bg-cyan-500/10 text-cyan-400" />
+        <MetricCard title="Current Inventory" value={`${acc.currentInv} Units`} icon={RefreshCcw} colorClass="bg-emerald-500/10 text-emerald-400" />
       </div>
 
       <div className="flex justify-end pt-2 pb-2">
@@ -420,7 +449,7 @@ export default function LPGView() {
                 <Td>{t.date}</Td>
                 <Td><span className="text-xs text-theme-text-muted uppercase tracking-tight font-medium">{t.station}</span></Td>
                 <Td>
-                  <ProductIconBadge name={t.item} category="LPG" size="sm" />
+                  <ProductIconBadge name={t.item} category={t.item.toLowerCase().includes('burner') || t.item.toLowerCase().includes('grill') ? 'Accessories' : 'LPG'} size="sm" />
                 </Td>
                 <Td className="font-semibold font-mono">{t.quantity}</Td>
                 <Td className="text-[#00D4FF] font-semibold font-mono">KES {t.amount.toLocaleString()}</Td>

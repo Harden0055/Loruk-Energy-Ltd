@@ -850,7 +850,7 @@ export default function InventoryView() {
                           </span>
                         </Td>
                         <Td>
-                          <ProductIconBadge name={linked?.name || t.item} category={linked?.category} size="sm" />
+                          <ProductIconBadge name={linked?.name || t.item} category={linked?.name.toLowerCase().includes('burner') || linked?.name.toLowerCase().includes('grill') ? 'Accessories' : linked?.category} size="sm" />
                         </Td>
                         <Td className="text-right font-mono font-semibold text-slate-200">{t.quantity.toLocaleString()}</Td>
                         <Td className="text-right font-mono font-semibold text-purple-400">KES {t.amount.toLocaleString()}</Td>

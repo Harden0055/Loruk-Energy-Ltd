@@ -87,7 +87,7 @@ const Sidebar = ({ currentView, setCurrentView, onBackToMain, isOpen, setIsOpen 
   );
 };
 
-const MainContent = ({ currentView, onOpenSidebar, isProfileOpen, setIsProfileOpen, onPrint }: { currentView: ViewType, onOpenSidebar: () => void, isProfileOpen: boolean, setIsProfileOpen: (b: boolean) => void, onPrint: () => void }) => {
+const MainContent = ({ currentView, setCurrentView, onOpenSidebar, isProfileOpen, setIsProfileOpen, onPrint }: { currentView: ViewType, setCurrentView: (v: ViewType) => void, onOpenSidebar: () => void, isProfileOpen: boolean, setIsProfileOpen: (b: boolean) => void, onPrint: () => void }) => {
   const { activeStation, setActiveStation, stations } = useFuel();
   
   const stationsList = useMemo(() => {
@@ -162,7 +162,13 @@ const MainContent = ({ currentView, onOpenSidebar, isProfileOpen, setIsProfileOp
         {currentView === 'Reports' && <ReportsView />}
         {currentView === 'Daily Report' && <DailyReportView />}
       </div>
-      {isProfileOpen && <MiniDashboardProfile onClose={() => setIsProfileOpen(false)} />}
+      {isProfileOpen && <MiniDashboardProfile onClose={() => setIsProfileOpen(false)} onNavigate={(view) => {
+        if (view === 'WhiteOilsProfit') {
+          setCurrentView('White Oils');
+        }
+        setIsProfileOpen(false);
+      }} />}
+
     </div>
   );
 };
@@ -232,7 +238,7 @@ export default function FuelSuiteApp({ onBackToMain }: { onBackToMain: () => voi
       )}
 
       <Sidebar currentView={currentView} setCurrentView={setCurrentView} onBackToMain={onBackToMain} isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-      <MainContent currentView={currentView} onOpenSidebar={() => setIsSidebarOpen(true)} isProfileOpen={isProfileOpen} setIsProfileOpen={setIsProfileOpen} onPrint={handlePrint} />
+      <MainContent currentView={currentView} setCurrentView={setCurrentView} onOpenSidebar={() => setIsSidebarOpen(true)} isProfileOpen={isProfileOpen} setIsProfileOpen={setIsProfileOpen} onPrint={handlePrint} />
     </div>
   );
 }

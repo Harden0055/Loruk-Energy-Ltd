@@ -8,7 +8,8 @@ import {
   CashPosition, 
   Product, 
   Station, 
-  InventoryItem 
+  InventoryItem,
+  Customer
 } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button } from '../components';
 import { 
@@ -27,9 +28,15 @@ import {
   ArrowRight,
   Building2,
   ShieldCheck,
-  Check
+  Check,
+  User,
+  X
 } from 'lucide-react';
 import { sortProductsList } from './ProductsView';
+
+interface DailyInvoiceRow extends Partial<Invoice> {
+  type?: 'debt' | 'paid' | 'paid_full' | 'partial';
+}
 
 export default function DailyDataEntryView() {
   const { 
@@ -41,7 +48,7 @@ export default function DailyDataEntryView() {
     expenses, setExpenses,
     invoices, setInvoices,
     cashPositions, setCashPositions,
-    customers,
+    customers, setCustomers,
     stations,
     expenseTemplates
   } = useFuel();
@@ -121,7 +128,13 @@ export default function DailyDataEntryView() {
   // Expenses state
   const [expenseRows, setExpenseRows] = useState<Partial<Expense>[]>([]);
   // Invoices state
-  const [invoiceRows, setInvoiceRows] = useState<Partial<Invoice>[]>([]);
+  const [invoiceRows, setInvoiceRows] = useState<DailyInvoiceRow[]>([]);
+  // Quick Add Customer modal state
+  const [isQuickCustomerModalOpen, setIsQuickCustomerModalOpen] = useState(false);
+  const [newCustomerName, setNewCustomerName] = useState('');
+  const [newCustomerCode, setNewCustomerCode] = useState('');
+  const [newCustomerCreditLimit, setNewCustomerCreditLimit] = useState('');
+  const [newCustomerOpeningBalance, setNewCustomerOpeningBalance] = useState('');
   // Cash Position state
   const [mPesa, setMPesa] = useState<number>(0);
   const [manualCashOnHand, setManualCashOnHand] = useState<number>(0);
@@ -251,9 +264,25 @@ export default function DailyDataEntryView() {
     // 5. INVOICES
     const existingInvoices = invoices.filter(i => i.station === station && i.date === date);
     if (existingInvoices.length > 0) {
-      setInvoiceRows(existingInvoices.map(i => ({ id: i.id, customerName: i.customerName, totalAmount: i.totalAmount, paidAmount: i.paidAmount })));
+      setInvoiceRows(existingInvoices.map(i => {
+        let type: 'debt' | 'paid' | 'paid_full' | 'partial' = 'debt';
+        if ((i.totalAmount || 0) === 0 && (i.paidAmount || 0) > 0) {
+          type = 'paid';
+        } else if ((i.totalAmount || 0) > 0 && (i.paidAmount || 0) === (i.totalAmount || 0)) {
+          type = 'paid_full';
+        } else if ((i.totalAmount || 0) > 0 && (i.paidAmount || 0) > 0) {
+          type = 'partial';
+        }
+        return { 
+          id: i.id, 
+          customerName: i.customerName, 
+          type, 
+          totalAmount: i.totalAmount, 
+          paidAmount: i.paidAmount 
+        };
+      }));
     } else {
-      setInvoiceRows([{ customerName: '', totalAmount: 0, paidAmount: 0 }]);
+      setInvoiceRows([{ customerName: '', type: 'debt', totalAmount: 0, paidAmount: 0 }]);
     }
 
     // 6. CASH POSITION
@@ -270,6 +299,41 @@ export default function DailyDataEntryView() {
   }, [date, station, fuelProducts, lpgProducts, accessoryProducts]);
 
   const generateId = () => Math.random().toString(36).substr(2, 9);
+
+  // Quick add customer handler
+  const handleQuickAddCustomerSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCustomerName.trim()) return;
+
+    const assignedCode = newCustomerCode.trim() || `CUST-${String(customers.length + 1).padStart(3, '0')}`;
+    const newCust: Customer = {
+      id: generateId(),
+      station: station,
+      code: assignedCode,
+      name: newCustomerName.trim(),
+      creditLimit: parseFloat(newCustomerCreditLimit) || 0,
+      openingBalance: parseFloat(newCustomerOpeningBalance) || 0,
+    };
+
+    setCustomers(prev => [...prev, newCust]);
+
+    // Automatically set this newly created customer in the empty invoice row or append a new row
+    setInvoiceRows(prev => {
+      const emptyIdx = prev.findIndex(r => !r.customerName);
+      if (emptyIdx >= 0) {
+        const updated = [...prev];
+        updated[emptyIdx] = { ...updated[emptyIdx], customerName: newCust.name };
+        return updated;
+      }
+      return [...prev, { customerName: newCust.name, type: 'debt', totalAmount: 0, paidAmount: 0 }];
+    });
+
+    setIsQuickCustomerModalOpen(false);
+    setNewCustomerName('');
+    setNewCustomerCode('');
+    setNewCustomerCreditLimit('');
+    setNewCustomerOpeningBalance('');
+  };
 
   // Computations
   const pumpSalesAmount = useMemo(() => {
@@ -447,7 +511,7 @@ export default function DailyDataEntryView() {
 
     // 5. LINK & SAVE INVOICES (Feeds Invoices page & customer balance)
     const newInvoices: Invoice[] = invoiceRows
-      .filter(i => (i.customerName || '').trim().length > 0 && Number(i.totalAmount) > 0)
+      .filter(i => (i.customerName || '').trim().length > 0 && (Number(i.totalAmount) > 0 || Number(i.paidAmount) > 0))
       .map(i => ({
         id: i.id || generateId(),
         date,
@@ -462,7 +526,7 @@ export default function DailyDataEntryView() {
       return [...filtered, ...newInvoices];
     });
     if (newInvoices.length > 0) {
-      syncedModules.push(`Invoices (${newInvoices.length} invoices totaling KES ${invoicesTotal.toLocaleString()})`);
+      syncedModules.push(`Invoices & Debt Payments (${newInvoices.length} records: KES ${invoicesTotal.toLocaleString()} invoiced, KES ${paidInvoicesAmount.toLocaleString()} paid)`);
     }
 
     // 6. LINK & SAVE CASH POSITION (Feeds Cash Position page)
@@ -1232,83 +1296,180 @@ export default function DailyDataEntryView() {
         </CardContent>
       </Card>
 
-      {/* 5. INVOICES */}
+      {/* 5. INVOICES & DEBTS */}
       <div className="grid grid-cols-1 gap-6">
-        {/* INVOICES */}
         <Card className="glass-panel border-theme-border">
-          <CardHeader className="flex flex-row justify-between items-center">
+          <CardHeader className="flex flex-row justify-between items-center flex-wrap gap-3">
             <div className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-amber-400" />
-              <CardTitle className="text-lg text-amber-400">Invoices & Debts</CardTitle>
+              <div>
+                <CardTitle className="text-lg text-amber-400">Invoices & Debts</CardTitle>
+                <p className="text-xs text-theme-text-muted mt-0.5">Record customer credit/debt invoices and received debt payments.</p>
+              </div>
             </div>
-            <Button 
-              className="py-1 px-2.5 text-xs" 
-              variant="secondary" 
-              onClick={() => setInvoiceRows([...invoiceRows, { customerName: '', totalAmount: 0, paidAmount: 0 }])}
-            >
-              <Plus className="w-3.5 h-3.5 mr-1" /> Add Row
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                className="py-1 px-3 text-xs bg-blue-600/25 hover:bg-blue-600/35 text-blue-300 border border-blue-500/40 shadow-[0_0_12px_rgba(59,130,246,0.2)] flex items-center gap-1.5 font-bold transition-all" 
+                variant="secondary" 
+                title="Quick Add Customer"
+                onClick={() => {
+                  setNewCustomerName('');
+                  setNewCustomerCode(`CUST-${String(customers.length + 1).padStart(3, '0')}`);
+                  setNewCustomerCreditLimit('');
+                  setNewCustomerOpeningBalance('');
+                  setIsQuickCustomerModalOpen(true);
+                }}
+              >
+                <Plus className="w-3.5 h-3.5 text-blue-400 font-bold" />
+                <User className="w-3.5 h-3.5 text-blue-400" />
+                <span>Quick Add Customer</span>
+              </Button>
+              <Button 
+                className="py-1 px-2.5 text-xs" 
+                variant="secondary" 
+                onClick={() => setInvoiceRows([...invoiceRows, { customerName: '', type: 'debt', totalAmount: 0, paidAmount: 0 }])}
+              >
+                <Plus className="w-3.5 h-3.5 mr-1" /> Add Row
+              </Button>
+            </div>
           </CardHeader>
           <CardContent className="p-6 pt-0 space-y-3">
-            {invoiceRows.map((invoice, idx) => (
-              <div key={idx} className="flex gap-3 items-end flex-wrap sm:flex-nowrap p-2.5 rounded-lg bg-slate-900/40 border border-theme-border/40">
-                <div className="flex-1 min-w-[180px]">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Customer / Debtor</label>
-                  <Select 
-                    value={invoice.customerName || ''} 
-                    onChange={(e) => {
-                      const newRows = [...invoiceRows];
-                      newRows[idx].customerName = e.target.value;
-                      setInvoiceRows(newRows);
-                    }}
-                  >
-                    <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="">Select Customer...</option>
-                    {customers
-                      .filter(c => !c.station || c.station === station)
-                      .map(c => (
-                        <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={c.id} value={c.name}>
-                          {c.code ? `[${c.code}] ` : ''}{c.name}
-                        </option>
-                      ))}
-                  </Select>
+            {invoiceRows.map((invoice, idx) => {
+              const currentType = invoice.type || (
+                (invoice.totalAmount || 0) > 0 && (invoice.paidAmount || 0) === 0 ? 'debt' :
+                (invoice.totalAmount || 0) === 0 && (invoice.paidAmount || 0) > 0 ? 'paid' :
+                (invoice.totalAmount || 0) > 0 && (invoice.paidAmount || 0) === (invoice.totalAmount || 0) ? 'paid_full' :
+                (invoice.totalAmount || 0) > 0 && (invoice.paidAmount || 0) > 0 ? 'partial' : 'debt'
+              );
+
+              return (
+                <div key={idx} className="p-3.5 rounded-xl border border-theme-border/60 bg-slate-900/50 space-y-2 hover:border-theme-border transition-colors">
+                  <div className="flex gap-3 items-end flex-wrap xl:flex-nowrap">
+                    {/* Customer Select */}
+                    <div className="flex-1 min-w-[200px]">
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="text-[10px] uppercase font-bold text-slate-400 block">Customer / Debtor</label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewCustomerName('');
+                            setNewCustomerCode(`CUST-${String(customers.length + 1).padStart(3, '0')}`);
+                            setNewCustomerCreditLimit('');
+                            setNewCustomerOpeningBalance('');
+                            setIsQuickCustomerModalOpen(true);
+                          }}
+                          className="text-[10px] text-blue-400 hover:text-blue-300 flex items-center gap-0.5 font-semibold"
+                          title="Quick Register New Customer"
+                        >
+                          <Plus className="w-3 h-3" /> New Customer
+                        </button>
+                      </div>
+                      <Select 
+                        value={invoice.customerName || ''} 
+                        onChange={(e) => {
+                          const newRows = [...invoiceRows];
+                          newRows[idx].customerName = e.target.value;
+                          setInvoiceRows(newRows);
+                        }}
+                        className="text-xs bg-slate-950 text-slate-100 w-full"
+                      >
+                        <option className="bg-slate-950 text-slate-100" value="">Select Customer...</option>
+                        {customers
+                          .filter(c => !c.station || c.station === station)
+                          .map(c => (
+                            <option className="bg-slate-950 text-slate-100" key={c.id} value={c.name}>
+                              {c.code ? `[${c.code}] ` : ''}{c.name}
+                            </option>
+                          ))}
+                      </Select>
+                    </div>
+
+                    {/* Entry Type / Mode Dropdown */}
+                    <div className="w-full sm:w-56">
+                      <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Invoice / Debt Type</label>
+                      <Select 
+                        value={currentType} 
+                        onChange={(e) => {
+                          const val = e.target.value as 'debt' | 'paid' | 'paid_full' | 'partial';
+                          const newRows = [...invoiceRows];
+                          newRows[idx].type = val;
+                          if (val === 'debt') {
+                            newRows[idx].paidAmount = 0;
+                          } else if (val === 'paid') {
+                            // Pure Paid Invoice / Debt settlement
+                            newRows[idx].totalAmount = 0;
+                          } else if (val === 'paid_full') {
+                            newRows[idx].paidAmount = newRows[idx].totalAmount || 0;
+                          }
+                          setInvoiceRows(newRows);
+                        }}
+                        className="text-xs bg-slate-950 font-bold text-amber-300 w-full"
+                      >
+                        <option className="bg-slate-950 text-slate-100" value="debt">📄 Invoice (Debt / Credit)</option>
+                        <option className="bg-slate-950 text-slate-100" value="paid">💵 Paid Invoice (Debt Payment)</option>
+                        <option className="bg-slate-950 text-slate-100" value="paid_full">✅ Invoice Paid in Full</option>
+                        <option className="bg-slate-950 text-slate-100" value="partial">⏳ Invoice + Partial Deposit</option>
+                      </Select>
+                    </div>
+
+                    {/* Invoice Total (KES) */}
+                    <div className="w-full sm:w-44">
+                      <label className="text-[10px] uppercase font-bold text-amber-400 block mb-1">Invoice Total (KES)</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-amber-400/80 pointer-events-none">KES</span>
+                        <Input 
+                          type="number" 
+                          placeholder="0.00" 
+                          value={invoice.totalAmount === 0 ? '' : invoice.totalAmount} 
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            const newRows = [...invoiceRows];
+                            newRows[idx].totalAmount = val;
+                            if (newRows[idx].type === 'paid_full') {
+                              newRows[idx].paidAmount = val;
+                            }
+                            setInvoiceRows(newRows);
+                          }} 
+                          disabled={currentType === 'paid'}
+                          className={`text-sm font-mono font-bold text-slate-100 bg-slate-950 pl-12 pr-3 py-2 w-full border-amber-500/30 focus:border-amber-500 ${currentType === 'paid' ? 'opacity-40 cursor-not-allowed' : ''}`}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Paid / Deposit (KES) */}
+                    <div className="w-full sm:w-44">
+                      <label className="text-[10px] uppercase font-bold text-emerald-400 block mb-1">Paid / Deposit (KES)</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-emerald-400/80 pointer-events-none">KES</span>
+                        <Input 
+                          type="number" 
+                          placeholder="0.00" 
+                          value={invoice.paidAmount === 0 ? '' : invoice.paidAmount} 
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            const newRows = [...invoiceRows];
+                            newRows[idx].paidAmount = val;
+                            setInvoiceRows(newRows);
+                          }} 
+                          disabled={currentType === 'debt'}
+                          className={`text-sm font-mono font-bold text-slate-100 bg-slate-950 pl-12 pr-3 py-2 w-full border-emerald-500/30 focus:border-emerald-500 ${currentType === 'debt' ? 'opacity-40 cursor-not-allowed' : ''}`}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Delete button */}
+                    <Button 
+                      variant="danger" 
+                      className="p-2.5 text-red-400 hover:text-red-300 hover:bg-red-900/20 mb-0.5" 
+                      onClick={() => setInvoiceRows(invoiceRows.filter((_, i) => i !== idx))}
+                      title="Delete Invoice Row"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="w-32 sm:w-44">
-                  <label className="text-[10px] uppercase font-bold text-amber-400 block mb-1">Invoice Total (KES)</label>
-                  <Input 
-                    type="number" 
-                    placeholder="Total" 
-                    value={invoice.totalAmount === 0 ? '' : invoice.totalAmount} 
-                    onChange={(e) => {
-                      const newRows = [...invoiceRows];
-                      newRows[idx].totalAmount = parseFloat(e.target.value) || 0;
-                      setInvoiceRows(newRows);
-                    }} 
-                    className="font-mono font-bold text-slate-100"
-                  />
-                </div>
-                <div className="w-32 sm:w-44">
-                  <label className="text-[10px] uppercase font-bold text-emerald-400 block mb-1">Paid / Deposit (KES)</label>
-                  <Input 
-                    type="number" 
-                    placeholder="Paid" 
-                    value={invoice.paidAmount === 0 ? '' : invoice.paidAmount} 
-                    onChange={(e) => {
-                      const newRows = [...invoiceRows];
-                      newRows[idx].paidAmount = parseFloat(e.target.value) || 0;
-                      setInvoiceRows(newRows);
-                    }} 
-                    className="font-mono font-bold text-slate-100"
-                  />
-                </div>
-                <Button 
-                  variant="danger" 
-                  className="p-2 text-red-400 hover:text-red-300 hover:bg-red-900/20 mb-0.5" 
-                  onClick={() => setInvoiceRows(invoiceRows.filter((_, i) => i !== idx))}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
       </div>
@@ -1423,6 +1584,104 @@ export default function DailyDataEntryView() {
           <Save className="w-5 h-5 mr-2" /> Save & Sync Daily Entry
         </Button>
       </div>
+
+      {/* QUICK ADD CUSTOMER MODAL */}
+      {isQuickCustomerModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-slate-900 border border-theme-border rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-theme-border flex justify-between items-center bg-slate-950/60">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+                  <User className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-base">Quick Add Customer</h3>
+                  <p className="text-xs text-theme-text-muted">Register customer for {station}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsQuickCustomerModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleQuickAddCustomerSubmit} className="p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+                  Customer / Debtor Name <span className="text-red-400">*</span>
+                </label>
+                <Input 
+                  type="text" 
+                  placeholder="e.g. Safari Express, John Mwangi, Loruk Transporters"
+                  value={newCustomerName}
+                  onChange={(e) => setNewCustomerName(e.target.value)}
+                  autoFocus
+                  required
+                  className="bg-slate-950 text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+                    Customer Code
+                  </label>
+                  <Input 
+                    type="text" 
+                    placeholder="e.g. CUST-001"
+                    value={newCustomerCode}
+                    onChange={(e) => setNewCustomerCode(e.target.value)}
+                    className="bg-slate-950 text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+                    Credit Limit (KES)
+                  </label>
+                  <Input 
+                    type="number" 
+                    placeholder="0.00"
+                    value={newCustomerCreditLimit}
+                    onChange={(e) => setNewCustomerCreditLimit(e.target.value)}
+                    className="bg-slate-950 text-white font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+                  Opening Balance / Prior Debt (KES)
+                </label>
+                <Input 
+                  type="number" 
+                  placeholder="0.00"
+                  value={newCustomerOpeningBalance}
+                  onChange={(e) => setNewCustomerOpeningBalance(e.target.value)}
+                  className="bg-slate-950 text-white font-mono"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-theme-border">
+                <Button 
+                  type="button" 
+                  variant="secondary"
+                  onClick={() => setIsQuickCustomerModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-blue-600 hover:bg-blue-500 text-white flex items-center gap-1.5 font-bold"
+                >
+                  <Plus className="w-4 h-4" /> Save & Use Customer
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

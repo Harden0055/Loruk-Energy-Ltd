@@ -351,9 +351,6 @@ export default function ProductsView() {
         </div>
 
         <div className="flex gap-2 flex-wrap">
-          <Button onClick={standardizeProducts} variant="secondary" className="flex items-center gap-2 text-cyan-400 hover:text-cyan-300">
-            <RefreshCw className="w-4 h-4" /> Standardize Catalog
-          </Button>
           <Button onClick={() => { 
             setIsFormOpen(false);
             setIsBulkFormOpen(prev => !prev);
