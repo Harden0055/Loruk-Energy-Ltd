@@ -107,10 +107,18 @@ export default function InventoryView() {
     products 
   } = useFuel();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'in' | 'out' | 'opening'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'in' | 'out' | 'opening' | 'reconciliation'>('overview');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filterDate, setFilterDate] = useState<string>('');
+  const [reconciliationForm, setReconciliationForm] = useState({
+    date: new Date().toISOString().split('T')[0],
+    station: '',
+    item: '',
+    quantity: 0,
+    adjustmentType: 'add' as 'add' | 'subtract',
+    reason: ''
+  });
 
   // 1. LINK PRODUCTS FROM MASTER PRODUCT LIST (Sorted by itemCode/order)
   // No hardcoded products; this list drives the entire inventory view
@@ -521,6 +529,14 @@ export default function InventoryView() {
         >
           Sale (Out)
         </button>
+        <button
+          className={`pb-3 px-4 font-semibold text-sm transition-all duration-200 cursor-pointer ${
+            activeTab === 'reconciliation' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF] drop-shadow-[0_0_10px_rgba(0,212,255,0.25)]' : 'text-theme-text-muted hover:text-white'
+          }`}
+          onClick={() => { setActiveTab('reconciliation'); }}
+        >
+          Reconciliation
+        </button>
       </div>
 
       {/* OVERVIEW TAB: Strictly products from Product List in itemCode order */}
@@ -595,6 +611,66 @@ export default function InventoryView() {
               </tbody>
             </Table>
           </div>
+        </Card>
+      ) : activeTab === 'reconciliation' ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Inventory Reconciliation</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const qty = Number(reconciliationForm.quantity);
+              if (qty <= 0) return;
+              
+              setInventoryItems(prev => [...prev, {
+                id: Math.random().toString(36).substr(2, 9),
+                date: reconciliationForm.date,
+                station: reconciliationForm.station || (stations[0]?.name || 'Station 1'),
+                type: reconciliationForm.adjustmentType === 'add' ? 'in' : 'out',
+                item: reconciliationForm.item,
+                quantity: qty,
+                amount: 0,
+              }]);
+              alert('Reconciliation entry added.');
+              setReconciliationForm({...reconciliationForm, quantity: 0, reason: ''});
+            }} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-theme-text-muted mb-1">Date</label>
+                <Input type="date" value={reconciliationForm.date} onChange={e => setReconciliationForm({...reconciliationForm, date: e.target.value})} required />
+              </div>
+              <div>
+                <label className="block text-xs text-theme-text-muted mb-1">Station</label>
+                <Select value={reconciliationForm.station || (activeStation === 'Combined Total' ? stations[0]?.name : activeStation)} onChange={e => setReconciliationForm({...reconciliationForm, station: e.target.value})}>
+                  {stations.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                </Select>
+              </div>
+              <div>
+                <label className="block text-xs text-theme-text-muted mb-1">Product</label>
+                <Select value={reconciliationForm.item} onChange={e => setReconciliationForm({...reconciliationForm, item: e.target.value})} required>
+                  <option value="">Select Product</option>
+                  {activeProducts.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+                </Select>
+              </div>
+              <div>
+                <label className="block text-xs text-theme-text-muted mb-1">Adjustment</label>
+                <div className="flex gap-2">
+                  <Select value={reconciliationForm.adjustmentType} onChange={e => setReconciliationForm({...reconciliationForm, adjustmentType: e.target.value as any})} className="flex-1">
+                    <option value="add">Add to Stock</option>
+                    <option value="subtract">Subtract from Stock</option>
+                  </Select>
+                  <Input type="number" step="any" value={reconciliationForm.quantity || ''} onChange={e => setReconciliationForm({...reconciliationForm, quantity: parseFloat(e.target.value) || 0})} className="flex-1" required />
+                </div>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-xs text-theme-text-muted mb-1">Reason</label>
+                <Input value={reconciliationForm.reason} onChange={e => setReconciliationForm({...reconciliationForm, reason: e.target.value})} />
+              </div>
+              <div className="md:col-span-2">
+                <Button type="submit">Submit Reconciliation</Button>
+              </div>
+            </form>
+          </CardContent>
         </Card>
       ) : (
         <>

@@ -42,14 +42,14 @@ export default function DashboardView() {
   const invRevenue = filteredInv.filter(t => t.type === 'out').reduce((acc, t) => acc + t.amount, 0);
   const totalRevenue = fuelRevenue + lpgRevenue + invRevenue;
 
-  const fuelPct = totalRevenue > 0 ? Math.round((fuelRevenue / totalRevenue) * 100) : 0;
-  const lpgPct = totalRevenue > 0 ? Math.round((lpgRevenue / totalRevenue) * 100) : 0;
-  const invPct = totalRevenue > 0 ? Math.round((invRevenue / totalRevenue) * 100) : 0;
+  const fuelPct = totalRevenue > 0 ? parseFloat(((fuelRevenue / totalRevenue) * 100).toFixed(1)) : 0;
+  const lpgPct = totalRevenue > 0 ? parseFloat(((lpgRevenue / totalRevenue) * 100).toFixed(1)) : 0;
+  const invPct = totalRevenue > 0 ? parseFloat(((invRevenue / totalRevenue) * 100).toFixed(1)) : 0;
 
   const totalRevenuePieData = [
-    { name: 'Fuel', value: fuelRevenue || 1, fill: '#3B82F6' }, // Electric Blue
-    { name: 'LPG', value: lpgRevenue || 1, fill: '#00D4FF' }, // Neon Cyan
-    { name: 'Accessories', value: invRevenue || 1, fill: '#60A5FA' }, // Light Blue
+    { name: 'Fuel', value: fuelRevenue || 1, fill: '#3B82F6' }, // Blue
+    { name: 'LPG', value: lpgRevenue || 1, fill: '#00D4FF' }, // Cyan
+    { name: 'Accessories', value: invRevenue || 1, fill: '#10B981' }, // Emerald
   ];
 
   // 2. Categories (Radial)
@@ -266,7 +266,7 @@ export default function DashboardView() {
                 <span className="ml-auto text-white font-semibold">{lpgPct}%</span>
               </div>
               <div className="flex items-center gap-2.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-[#60A5FA] shadow-[0_0_8px_#60A5FA]" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#10B981] shadow-[0_0_8px_#10B981]" />
                 <span className="text-[#A1A1AA] font-medium">Accessories</span>
                 <span className="ml-auto text-white font-semibold">{invPct}%</span>
               </div>

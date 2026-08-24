@@ -736,7 +736,23 @@ export default function ExpensesView() {
                     </tr>
                   );
                 })}
-...
+
+
+                {filteredData.length === 0 && (
+                  <tr>
+                    <Td colSpan={8} className="text-center py-12">
+                      <div className="flex flex-col items-center justify-center text-slate-500">
+                        <ReceiptText className="w-10 h-10 mb-2 opacity-40 text-slate-400" />
+                        <p className="font-semibold text-slate-300">No matching expense records found</p>
+                        <p className="text-xs text-slate-500 mt-0.5">Click "Record Expense" to add station operational disbursements or recurring costs.</p>
+                      </div>
+                    </Td>
+                  </tr>
+                )}
+              </tbody>
+            </Table>
+          </Card>
+
       {/* Details Modal */}
       {isDetailsModalOpen.isOpen && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
@@ -771,21 +787,6 @@ export default function ExpensesView() {
           </Card>
         </div>
       )}
-
-                {filteredData.length === 0 && (
-                  <tr>
-                    <Td colSpan={8} className="text-center py-12">
-                      <div className="flex flex-col items-center justify-center text-slate-500">
-                        <ReceiptText className="w-10 h-10 mb-2 opacity-40 text-slate-400" />
-                        <p className="font-semibold text-slate-300">No matching expense records found</p>
-                        <p className="text-xs text-slate-500 mt-0.5">Click "Record Expense" to add station operational disbursements or recurring costs.</p>
-                      </div>
-                    </Td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
-          </Card>
         </div>
       )}
 

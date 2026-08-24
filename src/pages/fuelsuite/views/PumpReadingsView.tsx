@@ -74,10 +74,12 @@ export default function PumpReadingsView() {
 
   const metrics = useMemo(() => {
     const totalVolume = filteredReadings.reduce((sum, r) => sum + (r.litresStop - r.litresStart), 0);
+    const pmsVolume = filteredReadings.filter(r => r.product.toLowerCase().includes('super') || r.product.toLowerCase().includes('pms')).reduce((sum, r) => sum + (r.litresStop - r.litresStart), 0);
+    const agoVolume = filteredReadings.filter(r => r.product.toLowerCase().includes('diesel') || r.product.toLowerCase().includes('ago')).reduce((sum, r) => sum + (r.litresStop - r.litresStart), 0);
     const totalSalesAmount = filteredReadings.reduce((sum, r) => sum + ((r.salesStop || 0) - (r.salesStart || 0)), 0);
     const calculatedSales = filteredReadings.reduce((sum, r) => sum + (r.litresStop - r.litresStart) * r.ratePerLitre, 0);
     const netVariance = totalSalesAmount - calculatedSales;
-    return { totalVolume, totalSalesAmount, calculatedSales, netVariance };
+    return { totalVolume, pmsVolume, agoVolume, totalSalesAmount, calculatedSales, netVariance };
   }, [filteredReadings]);
 
   return (<div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
@@ -112,15 +114,11 @@ export default function PumpReadingsView() {
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <MetricCard title="Total Volume" value={`${metrics.totalVolume.toFixed(2)} L`} icon={Droplet} colorClass="bg-[#122840] text-theme-text-muted" />
+        <MetricCard title="PMS Volume" value={`${metrics.pmsVolume.toFixed(2)} L`} icon={Droplet} colorClass="bg-cyan-500/10 text-cyan-400" />
+        <MetricCard title="AGO Volume" value={`${metrics.agoVolume.toFixed(2)} L`} icon={Droplet} colorClass="bg-blue-500/10 text-blue-400" />
         <MetricCard title="Total Sales Amount" value={`KES ${Math.round(metrics.totalSalesAmount).toLocaleString()}`} icon={TrendingUp} colorClass="bg-cyan-500/10 text-cyan-400" />
-        <MetricCard 
-          title="Net Variance" 
-          value={`KES ${Math.round(metrics.netVariance) > 0 ? '+' : ''}${Math.round(metrics.netVariance).toLocaleString()}`} 
-          icon={TrendingUp} 
-          colorClass={Math.round(metrics.netVariance) < 0 ? 'bg-red-500/10 text-red-400' : 'bg-emerald-500/10 text-emerald-400'} 
-        />
       </div>
 
       {isFormOpen && (
