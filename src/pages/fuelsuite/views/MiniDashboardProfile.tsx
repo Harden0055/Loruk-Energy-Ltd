@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { useFuel } from '../context';
-import { X, User, BarChart2, TrendingUp, DollarSign, ArrowRight } from 'lucide-react';
+import { useFuel, calculatePumpMeterDelta } from '../context';
+import { X, User, BarChart2, TrendingUp, DollarSign, ArrowRight, Building2, Fuel, Flame, Box, ShieldCheck, Wallet } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 
 interface MiniDashboardProfileProps {
@@ -8,25 +8,25 @@ interface MiniDashboardProfileProps {
   onNavigate?: (view: string) => void;
 }
 
-const COLORS = ['#3B82F6', '#00D4FF', '#60A5FA', '#38BDF8', '#22C55E'];
+const COLORS = ['#06B6D4', '#3B82F6', '#F97316', '#10B981', '#A855F7'];
 
 export default function MiniDashboardProfile({ onClose, onNavigate }: MiniDashboardProfileProps) {
-  const { pumpReadings, lpgTransactions, inventoryItems, products, expenses, stations} = useFuel();
+  const { pumpReadings, lpgTransactions, inventoryItems, products, expenses, stations } = useFuel();
 
   const stationData = useMemo(() => {
-    return stations.map(station => { const name = station.name; return name; }).map(station => {
+    return stations.map(station => station.name).map(station => {
       const pReadings = pumpReadings.filter(r => r.station === station);
       
       const superReadings = pReadings.filter(r => r.product.toLowerCase().includes('super'));
-      const superLitres = superReadings.reduce((sum, r) => sum + (r.litresStop - r.litresStart), 0);
-      const superSales = superReadings.reduce((sum, r) => sum + ((r.salesStop || 0) - (r.salesStart || 0)), 0);
+      const superLitres = superReadings.reduce((sum, r) => sum + calculatePumpMeterDelta(r.litresStart, r.litresStop), 0);
+      const superSales = superReadings.reduce((sum, r) => sum + calculatePumpMeterDelta(r.salesStart, r.salesStop), 0);
       
       const dieselReadings = pReadings.filter(r => r.product.toLowerCase().includes('diesel'));
-      const dieselLitres = dieselReadings.reduce((sum, r) => sum + (r.litresStop - r.litresStart), 0);
-      const dieselSales = dieselReadings.reduce((sum, r) => sum + ((r.salesStop || 0) - (r.salesStart || 0)), 0);
+      const dieselLitres = dieselReadings.reduce((sum, r) => sum + calculatePumpMeterDelta(r.litresStart, r.litresStop), 0);
+      const dieselSales = dieselReadings.reduce((sum, r) => sum + calculatePumpMeterDelta(r.salesStart, r.salesStop), 0);
       
-      const fuelRevenue = pReadings.reduce((sum, r) => sum + ((r.salesStop || 0) - (r.salesStart || 0)), 0);
-      const fuelLitres = pReadings.reduce((sum, r) => sum + (r.litresStop - r.litresStart), 0);
+      const fuelRevenue = pReadings.reduce((sum, r) => sum + calculatePumpMeterDelta(r.salesStart, r.salesStop), 0);
+      const fuelLitres = pReadings.reduce((sum, r) => sum + calculatePumpMeterDelta(r.litresStart, r.litresStop), 0);
       
       const lTransactions = lpgTransactions.filter(t => t.station === station);
       const lpgSales = lTransactions.filter(t => t.type === 'sale').reduce((sum, t) => sum + t.amount, 0);
@@ -59,22 +59,22 @@ export default function MiniDashboardProfile({ onClose, onNavigate }: MiniDashbo
   }, [pumpReadings, lpgTransactions, inventoryItems, products, expenses, stations]);
 
   const productData = useMemo(() => {
-    const products: Record<string, { revenue: number, volume: number }> = {};
+    const productsMap: Record<string, { revenue: number, volume: number }> = {};
     
     pumpReadings.forEach(r => {
-      if (!products[r.product]) products[r.product] = { revenue: 0, volume: 0 };
-      products[r.product].revenue += ((r.salesStop || 0) - (r.salesStart || 0));
-      products[r.product].volume += (r.litresStop - r.litresStart);
+      if (!productsMap[r.product]) productsMap[r.product] = { revenue: 0, volume: 0 };
+      productsMap[r.product].revenue += calculatePumpMeterDelta(r.salesStart, r.salesStop);
+      productsMap[r.product].volume += calculatePumpMeterDelta(r.litresStart, r.litresStop);
     });
 
     lpgTransactions.filter(t => t.type === 'sale').forEach(t => {
       const prodName = t.item;
-      if (!products[prodName]) products[prodName] = { revenue: 0, volume: 0 };
-      products[prodName].revenue += t.amount;
-      products[prodName].volume += 1; 
+      if (!productsMap[prodName]) productsMap[prodName] = { revenue: 0, volume: 0 };
+      productsMap[prodName].revenue += t.amount;
+      productsMap[prodName].volume += 1; 
     });
 
-    return Object.entries(products).map(([name, data]) => ({
+    return Object.entries(productsMap).map(([name, data]) => ({
       name,
       revenue: data.revenue,
       volume: data.volume
@@ -86,29 +86,20 @@ export default function MiniDashboardProfile({ onClose, onNavigate }: MiniDashbo
   const overallNetProfit = overallTotalRevenue - overallTotalExpenses;
 
   return (
-    <div className="fixed inset-0 bg-[#00000095]  z-50 flex justify-end">
-      <div className="w-full max-w-2xl bg-[#0E0E11] h-full shadow-[0_0_50px_rgba(59,130,246,0.15)] flex flex-col border-l border-white/5 animate-in slide-in-from-right duration-300">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex justify-end">
+      <div className="w-full max-w-2xl bg-[#090A0F] h-full shadow-[0_0_50px_rgba(0,0,0,0.8)] flex flex-col border-l border-white/10 animate-in slide-in-from-right duration-300">
         
-        <svg className="absolute w-0 h-0" width="0" height="0">
-          <defs>
-            <linearGradient id="profilePurpleBlue" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#3B82F6" />
-              <stop offset="100%" stopColor="#00D4FF" />
-            </linearGradient>
-          </defs>
-        </svg>
-
-        <div className="p-6 border-b border-white/5 flex items-center justify-between bg-[#09090B]">
+        <div className="p-6 border-b border-white/10 flex items-center justify-between bg-[#0B0D14]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#3B82F6]/10 flex items-center justify-center border border-[#3B82F6]/35 shadow-[0_0_15px_rgba(59,130,246,0.2)]">
-              <User className="w-5 h-5 text-[#00D4FF]" />
+            <div className="w-10 h-10 rounded-xl bg-cyan-500/15 flex items-center justify-center border border-cyan-500/35 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+              <User className="w-5 h-5 text-cyan-400" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white tracking-tight">Profile & Summary Overview</h2>
-              <p className="text-[10px] text-[#A1A1AA] uppercase tracking-wider font-mono">Detailed station and product performance</p>
+              <h2 className="text-lg font-extrabold text-white tracking-tight">Station Performance Overview</h2>
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider font-mono">Consolidated station & product audit</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-[#A1A1AA] hover:bg-white/5 hover:text-white rounded-xl transition-all cursor-pointer">
+          <button onClick={onClose} className="p-2 text-slate-400 hover:bg-white/5 hover:text-white rounded-xl transition-all cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -116,108 +107,127 @@ export default function MiniDashboardProfile({ onClose, onNavigate }: MiniDashbo
         <div className="flex-1 overflow-y-auto p-6 space-y-6 hide-scrollbar">
           
           <div className="grid grid-cols-3 gap-4">
-            <div className="glass-panel p-4 rounded-xl flex flex-col justify-between h-28 hover:shadow-[0_0_15px_rgba(59,130,246,0.1)] transition-all">
-              <div className="flex items-center gap-1.5 text-[10px] text-[#A1A1AA] font-bold uppercase tracking-wider">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] shadow-[0_0_6px_#3B82F6]" />
-                Revenue
+            <div className="glass-panel p-4 rounded-xl flex flex-col justify-between h-28 border border-white/[0.08]">
+              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_#22D3EE]" />
+                Total Revenue
               </div>
-              <div className="text-base xl:text-lg font-bold text-white tracking-tight">Ksh {overallTotalRevenue.toLocaleString()}</div>
+              <div className="text-base xl:text-lg font-extrabold text-white tracking-tight font-mono">KES {overallTotalRevenue.toLocaleString()}</div>
             </div>
-            <div className="glass-panel p-4 rounded-xl flex flex-col justify-between h-28 hover:shadow-[0_0_15px_rgba(245,158,11,0.1)] transition-all">
-              <div className="flex items-center gap-1.5 text-[10px] text-[#A1A1AA] font-bold uppercase tracking-wider">
-                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_6px_#F59E0B]" />
+            <div className="glass-panel p-4 rounded-xl flex flex-col justify-between h-28 border border-white/[0.08]">
+              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                <div className="w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_6px_#FB7185]" />
                 Expenses
               </div>
-              <div className="text-base xl:text-lg font-bold text-white tracking-tight">Ksh {overallTotalExpenses.toLocaleString()}</div>
+              <div className="text-base xl:text-lg font-extrabold text-white tracking-tight font-mono">KES {overallTotalExpenses.toLocaleString()}</div>
             </div>
-            <div className="glass-panel p-4 rounded-xl flex flex-col justify-between h-28 hover:shadow-[0_0_15px_rgba(34,197,94,0.1)] transition-all">
-              <div className="flex items-center gap-1.5 text-[10px] text-[#A1A1AA] font-bold uppercase tracking-wider">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_6px_#22C55E]" />
+            <div className="glass-panel p-4 rounded-xl flex flex-col justify-between h-28 border border-white/[0.08]">
+              <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34D399]" />
                 Net Position
               </div>
-              <div className={`text-base xl:text-lg font-bold tracking-tight ${overallNetProfit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                Ksh {overallNetProfit.toLocaleString()}
+              <div className={`text-base xl:text-lg font-extrabold tracking-tight font-mono ${overallNetProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                KES {overallNetProfit.toLocaleString()}
               </div>
             </div>
           </div>
 
-          <div className="glass-panel p-4 rounded-xl space-y-3">
-            <h4 className="text-xs font-bold text-[#A1A1AA] uppercase mb-2">White Oils</h4>
-            <div className="grid grid-cols-2 gap-4">
-               <div>
-                  <p className="text-[10px] text-[#A1A1AA] uppercase">Super</p>
-                  <p className="text-xs text-white">{stationData.reduce((sum, s) => sum + s.superLitres, 0).toLocaleString()} L</p>
-                  <p className="text-xs text-cyan-400">Ksh {stationData.reduce((sum, s) => sum + s.superSales, 0).toLocaleString()}</p>
+          <div className="glass-panel p-5 rounded-2xl space-y-3.5 border border-white/[0.08]">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-bold text-slate-400 uppercase flex items-center gap-2">
+                <Fuel className="w-4 h-4 text-cyan-400" />
+                White Oils Volume & Value
+              </h4>
+            </div>
+            <div className="grid grid-cols-2 gap-4 pt-1">
+               <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                  <p className="text-[10px] text-cyan-400 font-bold uppercase">Super Petrol</p>
+                  <p className="text-xs font-bold text-white mt-1">{stationData.reduce((sum, s) => sum + s.superLitres, 0).toLocaleString()} L</p>
+                  <p className="text-xs font-mono font-bold text-cyan-400">KES {stationData.reduce((sum, s) => sum + s.superSales, 0).toLocaleString()}</p>
                </div>
-               <div>
-                  <p className="text-[10px] text-[#A1A1AA] uppercase">Diesel</p>
-                  <p className="text-xs text-white">{stationData.reduce((sum, s) => sum + s.dieselLitres, 0).toLocaleString()} L</p>
-                  <p className="text-xs text-cyan-400">Ksh {stationData.reduce((sum, s) => sum + s.dieselSales, 0).toLocaleString()}</p>
+               <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                  <p className="text-[10px] text-blue-400 font-bold uppercase">Automotive Diesel</p>
+                  <p className="text-xs font-bold text-white mt-1">{stationData.reduce((sum, s) => sum + s.dieselLitres, 0).toLocaleString()} L</p>
+                  <p className="text-xs font-mono font-bold text-blue-400">KES {stationData.reduce((sum, s) => sum + s.dieselSales, 0).toLocaleString()}</p>
                </div>
-               <div className="col-span-2 pt-2 border-t border-white/5">
-                  <p className="text-[10px] text-[#A1A1AA] uppercase">Combined Total</p>
-                  <p className="text-xs text-white font-bold">{stationData.reduce((sum, s) => sum + s.fuelLitres, 0).toLocaleString()} L / Ksh {stationData.reduce((sum, s) => sum + s.fuelRevenue, 0).toLocaleString()}</p>
+               <div className="col-span-2 p-3 rounded-xl bg-cyan-500/[0.04] border border-cyan-500/20 flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">Combined Station Volume</p>
+                    <p className="text-xs text-white font-extrabold font-mono mt-0.5">{stationData.reduce((sum, s) => sum + s.fuelLitres, 0).toLocaleString()} Litres</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">Total Value</p>
+                    <p className="text-xs text-cyan-400 font-extrabold font-mono mt-0.5">KES {stationData.reduce((sum, s) => sum + s.fuelRevenue, 0).toLocaleString()}</p>
+                  </div>
                </div>
             </div>
-            <button onClick={() => onNavigate('WhiteOilsProfit')} className="flex items-center gap-1 text-[10px] text-[#3B82F6] hover:text-[#00D4FF] font-bold uppercase tracking-wider mt-2">
-              View Profit Profile <ArrowRight className="w-3 h-3" />
-            </button>
+            {onNavigate && (
+              <button onClick={() => onNavigate('WhiteOilsProfit')} className="flex items-center gap-1.5 text-xs text-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-wider mt-2 cursor-pointer transition-colors">
+                View White Oils Detailed Log <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="glass-panel p-4 rounded-xl">
-              <h4 className="text-xs font-bold text-[#A1A1AA] uppercase mb-2">LPG</h4>
-              <p className="text-xs text-white">Sales: Ksh {stationData.reduce((sum, s) => sum + s.lpgSales, 0).toLocaleString()}</p>
-              <p className="text-xs text-[#A1A1AA]">Purchases: Ksh {stationData.reduce((sum, s) => sum + s.lpgPurchases, 0).toLocaleString()}</p>
+            <div className="glass-panel p-4 rounded-xl border border-white/[0.08]">
+              <div className="flex items-center gap-2 mb-2 text-xs font-bold text-orange-400 uppercase">
+                <Flame className="w-4 h-4 text-orange-400" />
+                LPG Operations
+              </div>
+              <p className="text-xs font-semibold text-white">Sales: <span className="font-mono text-orange-400">KES {stationData.reduce((sum, s) => sum + s.lpgSales, 0).toLocaleString()}</span></p>
+              <p className="text-xs font-semibold text-slate-400 mt-1">Purchases: <span className="font-mono">KES {stationData.reduce((sum, s) => sum + s.lpgPurchases, 0).toLocaleString()}</span></p>
             </div>
-            <div className="glass-panel p-4 rounded-xl">
-              <h4 className="text-xs font-bold text-[#A1A1AA] uppercase mb-2">Accessories</h4>
-              <p className="text-xs text-white">Sales: Ksh {stationData.reduce((sum, s) => sum + s.accSales, 0).toLocaleString()}</p>
-              <p className="text-xs text-[#A1A1AA]">Purchases: Ksh {stationData.reduce((sum, s) => sum + s.accPurchases, 0).toLocaleString()}</p>
+            <div className="glass-panel p-4 rounded-xl border border-white/[0.08]">
+              <div className="flex items-center gap-2 mb-2 text-xs font-bold text-emerald-400 uppercase">
+                <Box className="w-4 h-4 text-emerald-400" />
+                Accessories Stock
+              </div>
+              <p className="text-xs font-semibold text-white">Sales: <span className="font-mono text-emerald-400">KES {stationData.reduce((sum, s) => sum + s.accSales, 0).toLocaleString()}</span></p>
+              <p className="text-xs font-semibold text-slate-400 mt-1">Purchases: <span className="font-mono">KES {stationData.reduce((sum, s) => sum + s.accPurchases, 0).toLocaleString()}</span></p>
             </div>
           </div>
 
           {/* Station Performance Chart */}
-          <div className="glass-panel p-5 rounded-[20px]">
-            <h3 className="text-xs font-bold text-[#A1A1AA] uppercase tracking-wider mb-4 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] shadow-[0_0_6px_#3B82F6]" />
-              Station Revenue vs Expenses
+          <div className="glass-panel p-5 rounded-2xl border border-white/[0.08]">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_#22D3EE]" />
+              Station Revenue vs Expenses Comparison
             </h3>
             <div className="h-56 relative overflow-hidden">
-              <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
+              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                 <BarChart data={stationData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.03)" vertical={false} />
-                  <XAxis dataKey="name" stroke="#71717A" fontSize={10} fontWeight={600} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#71717A" fontSize={10} fontWeight={600} tickLine={false} axisLine={false} tickFormatter={v => `Ksh ${v/1000}k`} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.04)" vertical={false} />
+                  <XAxis dataKey="name" stroke="#94A3B8" fontSize={10} fontWeight={600} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#94A3B8" fontSize={10} fontWeight={600} tickLine={false} axisLine={false} tickFormatter={v => `KES ${v/1000}k`} />
                   <RechartsTooltip 
-                    contentStyle={{ backgroundColor: '#121216', borderColor: 'rgba(255,255,255,0.08)', color: '#FFFFFF', borderRadius: '12px' }}
+                    contentStyle={{ backgroundColor: '#0B0D14', borderColor: 'rgba(255,255,255,0.1)', color: '#FFFFFF', borderRadius: '12px' }}
                     itemStyle={{ color: '#FFFFFF' }}
-                    formatter={(value: number) => [`Ksh ${value.toLocaleString()}`, '']}
+                    formatter={(value: number) => [`KES ${value.toLocaleString()}`, '']}
                   />
                   <Legend />
-                  <Bar dataKey="totalRevenue" name="Revenue" fill="url(#profilePurpleBlue)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="expenses" name="Expenses" fill="#EF4444" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="totalRevenue" name="Revenue" fill="#06B6D4" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="expenses" name="Expenses" fill="#F43F5E" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Product Performance Chart */}
-          <div className="glass-panel p-5 rounded-[20px]">
-            <h3 className="text-xs font-bold text-[#A1A1AA] uppercase tracking-wider mb-4 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] shadow-[0_0_6px_#3B82F6]" />
-              Revenue by Product
+          <div className="glass-panel p-5 rounded-2xl border border-white/[0.08]">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-indigo-400 shadow-[0_0_6px_#818CF8]" />
+              Revenue Share by Product
             </h3>
             <div className="h-56 w-full relative overflow-hidden flex items-center justify-center">
               {productData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
+                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                   <PieChart>
                     <Pie
                       data={productData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
+                      innerRadius={55}
+                      outerRadius={75}
                       paddingAngle={5}
                       dataKey="revenue"
                       stroke="none"
@@ -227,14 +237,14 @@ export default function MiniDashboardProfile({ onClose, onNavigate }: MiniDashbo
                       ))}
                     </Pie>
                     <RechartsTooltip 
-                      contentStyle={{ backgroundColor: '#121216', borderColor: 'rgba(255,255,255,0.08)', color: '#FFFFFF', borderRadius: '12px' }}
-                      formatter={(value: number) => [`Ksh ${value.toLocaleString()}`, 'Revenue']}
+                      contentStyle={{ backgroundColor: '#0B0D14', borderColor: 'rgba(255,255,255,0.1)', color: '#FFFFFF', borderRadius: '12px' }}
+                      formatter={(value: number) => [`KES ${value.toLocaleString()}`, 'Revenue']}
                     />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-[#71717A] font-semibold text-xs">No product data available</div>
+                <div className="text-slate-500 font-medium text-xs">No product data available</div>
               )}
             </div>
           </div>

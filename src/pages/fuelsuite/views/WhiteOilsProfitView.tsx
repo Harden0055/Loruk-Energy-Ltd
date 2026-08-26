@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useFuel } from '../context';
+import { useFuel, calculatePumpMeterDelta } from '../context';
 import { X, TrendingUp, DollarSign, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components';
 
@@ -11,14 +11,14 @@ export default function WhiteOilsProfitView({ onBack }: WhiteOilsProfitViewProps
   const { pumpReadings, stations } = useFuel();
 
   const data = useMemo(() => {
-    const totalVolume = pumpReadings.reduce((sum, r) => sum + (r.litresStop - r.litresStart), 0);
-    const totalSales = pumpReadings.reduce((sum, r) => sum + ((r.salesStop || 0) - (r.salesStart || 0)), 0);
+    const totalVolume = pumpReadings.reduce((sum, r) => sum + calculatePumpMeterDelta(r.litresStart, r.litresStop), 0);
+    const totalSales = pumpReadings.reduce((sum, r) => sum + calculatePumpMeterDelta(r.salesStart, r.salesStop), 0);
     
     const products: Record<string, { volume: number, sales: number }> = {};
     pumpReadings.forEach(r => {
         if(!products[r.product]) products[r.product] = { volume: 0, sales: 0 };
-        products[r.product].volume += (r.litresStop - r.litresStart);
-        products[r.product].sales += ((r.salesStop || 0) - (r.salesStart || 0));
+        products[r.product].volume += calculatePumpMeterDelta(r.litresStart, r.litresStop);
+        products[r.product].sales += calculatePumpMeterDelta(r.salesStart, r.salesStop);
     });
 
     return { totalVolume, totalSales, productBreakdown: Object.entries(products) };

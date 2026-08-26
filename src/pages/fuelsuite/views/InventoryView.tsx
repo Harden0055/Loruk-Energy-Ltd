@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useFuel, InventoryItem, Product } from '../context';
+import { useFuel, InventoryItem, Product, calculatePumpMeterDelta } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td, MetricCard, ProductIconBadge } from '../components';
 import { Plus, Pencil, Trash2, X, AlertCircle, Box, PackagePlus, PackageMinus, Tag, Eraser, Boxes } from 'lucide-react';
 import { useConfirm } from '../useConfirm';
@@ -184,7 +184,7 @@ export default function InventoryView() {
 
     // Process Pump Readings
     relevantPumps.forEach(pump => {
-      const sold = (pump.litresStop || 0) - (pump.litresStart || 0);
+      const sold = calculatePumpMeterDelta(pump.litresStart, pump.litresStop);
       if (sold > 0) {
         const linked = findLinkedProduct(pump.product, activeProducts);
         if (linked && summary[linked.id]) {
@@ -295,7 +295,7 @@ export default function InventoryView() {
         ) {
           const linked = findLinkedProduct(p.product, activeProducts);
           if (linked) {
-            const volume = (p.litresStop || 0) - (p.litresStart || 0);
+            const volume = calculatePumpMeterDelta(p.litresStart, p.litresStop);
             if (volume > 0) {
               combined.push({
                 id: p.id,

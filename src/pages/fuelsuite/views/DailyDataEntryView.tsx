@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { 
   useFuel, 
   PumpReading, 
@@ -9,8 +9,14 @@ import {
   Product, 
   Station, 
   InventoryItem,
-  Customer
+  Customer,
+  ExpenseTemplate,
+  ExpenseFrequency,
+  ExpensePaymentMethod,
+  calculatePumpMeterDelta,
+  isMeterRollover
 } from '../context';
+import { generateDeterministicId, normalizeDate } from '../deduplication';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button } from '../components';
 import { 
   Plus, 
@@ -30,7 +36,15 @@ import {
   ShieldCheck,
   Check,
   User,
-  X
+  X,
+  Tag,
+  ReceiptText,
+  Clock,
+  Coins,
+  Loader2,
+  AlertTriangle,
+  RefreshCw,
+  ShieldAlert
 } from 'lucide-react';
 import { sortProductsList } from './ProductsView';
 
@@ -50,7 +64,10 @@ export default function DailyDataEntryView() {
     cashPositions, setCashPositions,
     customers, setCustomers,
     stations,
-    expenseTemplates
+    expenseTemplates,
+    setExpenseTemplates,
+    deduplicateData,
+    checkDuplicates
   } = useFuel();
 
   const availableStations = useMemo(() => {
@@ -65,6 +82,40 @@ export default function DailyDataEntryView() {
     activeStation === 'Combined Total' ? (availableStations[0]?.name || 'Loruk Ndalu Filling Station') : activeStation
   );
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [dedupeSuccessMsg, setDedupeSuccessMsg] = useState<string | null>(null);
+
+  // Check for duplicates on the active date & station
+  const dateDuplicates = useMemo(() => {
+    return checkDuplicates(date, station);
+  }, [checkDuplicates, date, station, pumpReadings, lpgTransactions, inventoryItems, expenses, invoices, cashPositions]);
+
+  // Check for all duplicates across entire system
+  const allSystemDuplicates = useMemo(() => {
+    return checkDuplicates();
+  }, [checkDuplicates, pumpReadings, lpgTransactions, inventoryItems, expenses, invoices, cashPositions]);
+
+  // Deduplicate current date & station
+  const handleCleanCurrentDateDuplicates = useCallback(() => {
+    const res = deduplicateData(date, station);
+    if (res.removedCount > 0) {
+      setDedupeSuccessMsg(`Successfully cleaned ${res.removedCount} duplicate record(s) for ${date} (${station}):\n• ${res.summary.join('\n• ')}`);
+    } else {
+      setDedupeSuccessMsg(`No duplicate records found for ${date}. All entries are unique.`);
+    }
+    setTimeout(() => setDedupeSuccessMsg(null), 6000);
+  }, [deduplicateData, date, station]);
+
+  // Deduplicate all records across the whole system
+  const handleCleanAllSystemDuplicates = useCallback(() => {
+    const res = deduplicateData();
+    if (res.removedCount > 0) {
+      setDedupeSuccessMsg(`System-wide cleanup complete: Removed ${res.removedCount} duplicate record(s) across all dates:\n• ${res.summary.join('\n• ')}`);
+    } else {
+      setDedupeSuccessMsg(`No duplicates found anywhere in the system. Database is clean.`);
+    }
+    setTimeout(() => setDedupeSuccessMsg(null), 6000);
+  }, [deduplicateData]);
 
   // Synchronize station if activeStation changes externally
   useEffect(() => {
@@ -75,6 +126,56 @@ export default function DailyDataEntryView() {
 
   // Master product groupings
   const sortedCatalog = useMemo(() => sortProductsList(products || []), [products]);
+
+  // Unified, deduplicated customer list from both `customers` database and historical `invoices`
+  const allCustomerOptions = useMemo(() => {
+    const customerMap = new Map<string, { id: string; name: string; code?: string; station?: string }>();
+
+    // 1. Add all registered customers from the Customers database (Invoices -> Customers ledger)
+    (customers || []).forEach(c => {
+      if (c && c.name && c.name.trim()) {
+        const trimmedName = c.name.trim();
+        const key = trimmedName.toLowerCase();
+        const existing = customerMap.get(key);
+        if (!existing) {
+          customerMap.set(key, {
+            id: c.id || trimmedName,
+            name: trimmedName,
+            code: c.code,
+            station: c.station,
+          });
+        } else {
+          if (!existing.code && c.code) existing.code = c.code;
+          if (!existing.station && c.station) existing.station = c.station;
+        }
+      }
+    });
+
+    // 2. Add any customer names found in recorded invoices so no customer is ever missed
+    (invoices || []).forEach(inv => {
+      if (inv && inv.customerName && inv.customerName.trim()) {
+        const trimmedName = inv.customerName.trim();
+        const key = trimmedName.toLowerCase();
+        if (!customerMap.has(key)) {
+          customerMap.set(key, {
+            id: inv.id || trimmedName,
+            name: trimmedName,
+            station: inv.station,
+          });
+        }
+      }
+    });
+
+    // Sort alphabetically by name (or code if both have codes)
+    return Array.from(customerMap.values()).sort((a, b) => {
+      const codeA = a.code || '';
+      const codeB = b.code || '';
+      if (codeA && codeB) {
+        return codeA.localeCompare(codeB, undefined, { numeric: true, sensitivity: 'base' });
+      }
+      return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+    });
+  }, [customers, invoices]);
 
   const fuelProducts = useMemo(() => {
     const list = sortedCatalog.filter(p => {
@@ -135,6 +236,18 @@ export default function DailyDataEntryView() {
   const [newCustomerCode, setNewCustomerCode] = useState('');
   const [newCustomerCreditLimit, setNewCustomerCreditLimit] = useState('');
   const [newCustomerOpeningBalance, setNewCustomerOpeningBalance] = useState('');
+
+  // Quick Add Expense Parameter modal state
+  const [isQuickExpenseModalOpen, setIsQuickExpenseModalOpen] = useState(false);
+  const [newExpenseCode, setNewExpenseCode] = useState('');
+  const [newExpenseName, setNewExpenseName] = useState('');
+  const [newExpenseCategory, setNewExpenseCategory] = useState('Operations & Fuel');
+  const [newExpenseDefaultAmount, setNewExpenseDefaultAmount] = useState('');
+  const [newExpenseFrequency, setNewExpenseFrequency] = useState<ExpenseFrequency>('Monthly');
+  const [newExpensePaymentMethod, setNewExpensePaymentMethod] = useState<ExpensePaymentMethod>('Cash');
+  const [newExpenseIsRecurring, setNewExpenseIsRecurring] = useState(true);
+  const [newExpenseNotes, setNewExpenseNotes] = useState('');
+
   // Cash Position state
   const [mPesa, setMPesa] = useState<number>(0);
   const [manualCashOnHand, setManualCashOnHand] = useState<number>(0);
@@ -335,10 +448,76 @@ export default function DailyDataEntryView() {
     setNewCustomerOpeningBalance('');
   };
 
+  // Quick add expense parameter modal opener & submit handlers
+  const handleOpenQuickExpenseModal = () => {
+    const nextCode = `EXP-${String(expenseTemplates.length + 1).padStart(3, '0')}`;
+    setNewExpenseCode(nextCode);
+    setNewExpenseName('');
+    setNewExpenseCategory('Operations & Fuel');
+    setNewExpenseDefaultAmount('');
+    setNewExpenseFrequency('Monthly');
+    setNewExpensePaymentMethod('Cash');
+    setNewExpenseIsRecurring(true);
+    setNewExpenseNotes('');
+    setIsQuickExpenseModalOpen(true);
+  };
+
+  const handleQuickAddExpenseSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newExpenseName.trim()) return;
+
+    const formattedCode = (newExpenseCode.trim() || `EXP-${String(expenseTemplates.length + 1).padStart(3, '0')}`).toUpperCase();
+    const defaultAmt = parseFloat(newExpenseDefaultAmount) || 0;
+
+    const newTemplate: ExpenseTemplate = {
+      id: generateId(),
+      code: formattedCode,
+      name: newExpenseName.trim(),
+      category: newExpenseCategory || 'Operations & Fuel',
+      defaultAmount: defaultAmt,
+      frequency: newExpenseFrequency,
+      isRecurring: newExpenseIsRecurring,
+      defaultPaymentMethod: newExpensePaymentMethod,
+      notes: newExpenseNotes.trim(),
+    };
+
+    // 1. Add to master expense templates (this makes it appear in Expenses banner/master catalog & dropdowns)
+    setExpenseTemplates(prev => {
+      // Check if code already exists to avoid duplication
+      const existing = prev.find(t => t.code === formattedCode);
+      if (existing) {
+        return prev.map(t => t.code === formattedCode ? { ...t, ...newTemplate } : t);
+      }
+      return [...prev, newTemplate];
+    });
+
+    // 2. Automatically populate this new expense into the daily entry rows
+    setExpenseRows(prev => {
+      const emptyIdx = prev.findIndex(r => !r.category && !r.amount);
+      const newRowData: Partial<Expense> = {
+        expenseCode: formattedCode,
+        category: newExpenseName.trim(),
+        amount: defaultAmt,
+        paymentMethod: newExpensePaymentMethod,
+        isRecurring: newExpenseIsRecurring,
+        frequency: newExpenseFrequency,
+      };
+
+      if (emptyIdx >= 0) {
+        const updated = [...prev];
+        updated[emptyIdx] = { ...updated[emptyIdx], ...newRowData };
+        return updated;
+      }
+      return [...prev, newRowData];
+    });
+
+    setIsQuickExpenseModalOpen(false);
+  };
+
   // Computations
   const pumpSalesAmount = useMemo(() => {
     return pumps.reduce((sum, p) => {
-      const sAmount = (Number(p.salesStop) || 0) - (Number(p.salesStart) || 0);
+      const sAmount = calculatePumpMeterDelta(p.salesStart, p.salesStop);
       return sum + sAmount;
     }, 0);
   }, [pumps]);
@@ -375,34 +554,62 @@ export default function DailyDataEntryView() {
     return invoiceRows.reduce((sum, i) => sum + (Number(i.paidAmount) || 0), 0);
   }, [invoiceRows]);
 
-  const expectedTotalCash = totalSales - totalCOGS - expensesAmount - invoicesTotal + paidInvoicesAmount;
+  // Uncollected credit sales issued today (reduces expected cash because fuel/goods were sold on credit)
+  const uncollectedCreditSalesToday = useMemo(() => {
+    return invoiceRows.reduce((sum, i) => {
+      const total = Number(i.totalAmount) || 0;
+      const paid = Number(i.paidAmount) || 0;
+      return sum + (total > paid ? (total - paid) : 0);
+    }, 0);
+  }, [invoiceRows]);
+
+  // Past debt payments received today in cash (increases expected cash because cash came in from an old debt)
+  const pastDebtPaymentsCollectedToday = useMemo(() => {
+    return invoiceRows.reduce((sum, i) => {
+      const total = Number(i.totalAmount) || 0;
+      const paid = Number(i.paidAmount) || 0;
+      if (i.type === 'paid' || total === 0) {
+        return sum + paid;
+      }
+      return sum;
+    }, 0);
+  }, [invoiceRows]);
+
+  const expectedTotalCash = totalSales - totalCOGS - expensesAmount - uncollectedCreditSalesToday + pastDebtPaymentsCollectedToday;
   const expectedCashOnHand = expectedTotalCash - (mPesa || 0);
   const variance = (manualCashOnHand || 0) - expectedCashOnHand;
 
   // MASTER SAVE FUNCTION - SYNC TO ALL 6 MODULES (Pump Readings, LPG, Inventory, Expenses, Invoices, Cash Position)
   const handleSaveAll = () => {
+    if (isSaving) return;
+    setIsSaving(true);
+
+    const normDate = normalizeDate(date);
     let syncedModules: string[] = [];
 
     // 1. LINK & SAVE PUMP READINGS (Also automatically feeds Inventory Fuel Out)
     const validPumpReadings: PumpReading[] = pumps
       .filter(p => (p.litresStop || 0) > 0 || (p.salesStop || 0) > 0 || (p.litresStart || 0) > 0)
-      .map(p => ({
-        id: p.id || generateId(),
-        date,
-        station,
-        product: p.product!,
-        salesStart: Number(p.salesStart) || 0,
-        salesStop: Number(p.salesStop) || 0,
-        litresStart: Number(p.litresStart) || 0,
-        litresStop: Number(p.litresStop) || 0,
-        ratePerLitre: Number(p.ratePerLitre) || 0
-      }));
+      .map(p => {
+        const safeProduct = (p.product || 'fuel').trim();
+        const detId = generateDeterministicId('pump', date, station, safeProduct);
+        return {
+          id: detId,
+          date,
+          station,
+          product: p.product!,
+          salesStart: Number(p.salesStart) || 0,
+          salesStop: Number(p.salesStop) || 0,
+          litresStart: Number(p.litresStart) || 0,
+          litresStop: Number(p.litresStop) || 0,
+          ratePerLitre: Number(p.ratePerLitre) || 0
+        };
+      });
 
     if (validPumpReadings.length > 0) {
       setPumpReadings(prev => {
-        // Replace existing readings for this date & station & product, keep others
-        const existingIds = new Set(validPumpReadings.map(v => `${v.date}_${v.station}_${v.product}`));
-        const filtered = prev.filter(r => !existingIds.has(`${r.date}_${r.station}_${r.product}`));
+        // Remove previous readings for this date & station, then append clean set
+        const filtered = prev.filter(r => !(normalizeDate(r.date) === normDate && r.station === station));
         return [...filtered, ...validPumpReadings];
       });
       syncedModules.push(`Pump Readings (${validPumpReadings.length} fuel pumps)`);
@@ -411,34 +618,42 @@ export default function DailyDataEntryView() {
     // 2. LINK & SAVE LPG TRANSACTIONS (Feeds LPG page & Inventory stock/cylinders)
     const newLpgSales: LPGTransaction[] = lpgSales
       .filter(s => (Number(s.quantity) > 0 || Number(s.amount) > 0 || Number(s.completeQuantity) > 0) && s.item)
-      .map(s => ({
-        id: s.id || generateId(),
-        date,
-        station,
-        type: 'sale',
-        item: s.item!,
-        quantity: Number(s.quantity) || 0,
-        completeQuantity: Number(s.completeQuantity) || 0,
-        amount: Number(s.amount) || 0
-      }));
+      .map((s, idx) => {
+        const safeItem = (s.item || 'lpg').trim();
+        const detId = generateDeterministicId('lpg_sale', date, station, safeItem, idx);
+        return {
+          id: detId,
+          date,
+          station,
+          type: 'sale',
+          item: s.item!,
+          quantity: Number(s.quantity) || 0,
+          completeQuantity: Number(s.completeQuantity) || 0,
+          amount: Number(s.amount) || 0
+        };
+      });
 
     const newLpgPurchases: LPGTransaction[] = lpgPurchases
       .filter(p => (Number(p.quantity) > 0 || Number(p.amount) > 0) && p.item)
-      .map(p => ({
-        id: p.id || generateId(),
-        date,
-        station,
-        type: 'purchase',
-        item: p.item!,
-        quantity: Number(p.quantity) || 0,
-        rate: Number(p.rate) || 0,
-        amount: Number(p.amount) || 0
-      }));
+      .map((p, idx) => {
+        const safeItem = (p.item || 'lpg').trim();
+        const detId = generateDeterministicId('lpg_purch', date, station, safeItem, idx);
+        return {
+          id: detId,
+          date,
+          station,
+          type: 'purchase',
+          item: p.item!,
+          quantity: Number(p.quantity) || 0,
+          rate: Number(p.rate) || 0,
+          amount: Number(p.amount) || 0
+        };
+      });
 
     const allNewLpg = [...newLpgSales, ...newLpgPurchases];
     setLpgTransactions(prev => {
       // Remove previous daily entry items for this date and station
-      const filtered = prev.filter(l => !(l.date === date && l.station === station));
+      const filtered = prev.filter(l => !(normalizeDate(l.date) === normDate && l.station === station));
       return [...filtered, ...allNewLpg];
     });
     if (allNewLpg.length > 0) {
@@ -448,34 +663,42 @@ export default function DailyDataEntryView() {
     // 3. LINK & SAVE ACCESSORIES / EQUIPMENT INVENTORY (Feeds Inventory Stock In / Out)
     const newEqSales: InventoryItem[] = equipmentSales
       .filter(s => (Number(s.quantity) > 0 || Number(s.amount) > 0) && s.item)
-      .map(s => ({
-        id: s.id || generateId(),
-        date,
-        station,
-        type: 'out',
-        item: s.item!,
-        quantity: Number(s.quantity) || 0,
-        amount: Number(s.amount) || 0
-      }));
+      .map((s, idx) => {
+        const safeItem = (s.item || 'acc').trim();
+        const detId = generateDeterministicId('eq_sale', date, station, safeItem, idx);
+        return {
+          id: detId,
+          date,
+          station,
+          type: 'out',
+          item: s.item!,
+          quantity: Number(s.quantity) || 0,
+          amount: Number(s.amount) || 0
+        };
+      });
 
     const newEqPurchases: InventoryItem[] = equipmentPurchases
       .filter(p => (Number(p.quantity) > 0 || Number(p.amount) > 0) && p.item)
-      .map(p => ({
-        id: p.id || generateId(),
-        date,
-        station,
-        type: 'in',
-        item: p.item!,
-        quantity: Number(p.quantity) || 0,
-        rate: Number(p.rate) || 0,
-        amount: Number(p.amount) || 0
-      }));
+      .map((p, idx) => {
+        const safeItem = (p.item || 'acc').trim();
+        const detId = generateDeterministicId('eq_purch', date, station, safeItem, idx);
+        return {
+          id: detId,
+          date,
+          station,
+          type: 'in',
+          item: p.item!,
+          quantity: Number(p.quantity) || 0,
+          rate: Number(p.rate) || 0,
+          amount: Number(p.amount) || 0
+        };
+      });
 
     const allNewInventory = [...newEqSales, ...newEqPurchases];
     setInventoryItems(prev => {
       // Remove previous equipment daily entries for this date & station
       const filtered = prev.filter(item => 
-        !(item.date === date && item.station === station && 
+        !(normalizeDate(item.date) === normDate && item.station === station && 
           !item.item.toLowerCase().includes('super') && 
           !item.item.toLowerCase().includes('diesel') && 
           !item.item.toLowerCase().includes('lpg'))
@@ -489,20 +712,24 @@ export default function DailyDataEntryView() {
     // 4. LINK & SAVE EXPENSES (Feeds Expenses page)
     const newExpenses: Expense[] = expenseRows
       .filter(e => ((e.category || '').trim().length > 0 || (e.expenseCode || '').trim().length > 0) && Number(e.amount) > 0)
-      .map(e => ({
-        id: e.id || generateId(),
-        date,
-        station,
-        expenseCode: e.expenseCode || 'EXP-MISC',
-        category: (e.category || e.expenseCode || 'General Operations').trim(),
-        amount: Number(e.amount) || 0,
-        paymentMethod: e.paymentMethod || 'Cash',
-        isRecurring: e.isRecurring ?? true,
-        frequency: e.frequency || 'Monthly'
-      }));
+      .map((e, idx) => {
+        const safeExpCode = (e.expenseCode || e.category || 'misc').trim();
+        const detId = generateDeterministicId('exp', date, station, safeExpCode, idx);
+        return {
+          id: detId,
+          date,
+          station,
+          expenseCode: e.expenseCode || 'EXP-MISC',
+          category: (e.category || e.expenseCode || 'General Operations').trim(),
+          amount: Number(e.amount) || 0,
+          paymentMethod: e.paymentMethod || 'Cash',
+          isRecurring: e.isRecurring ?? true,
+          frequency: e.frequency || 'Monthly'
+        };
+      });
 
     setExpenses(prev => {
-      const filtered = prev.filter(e => !(e.date === date && e.station === station));
+      const filtered = prev.filter(e => !(normalizeDate(e.date) === normDate && e.station === station));
       return [...filtered, ...newExpenses];
     });
     if (newExpenses.length > 0) {
@@ -512,17 +739,21 @@ export default function DailyDataEntryView() {
     // 5. LINK & SAVE INVOICES (Feeds Invoices page & customer balance)
     const newInvoices: Invoice[] = invoiceRows
       .filter(i => (i.customerName || '').trim().length > 0 && (Number(i.totalAmount) > 0 || Number(i.paidAmount) > 0))
-      .map(i => ({
-        id: i.id || generateId(),
-        date,
-        station,
-        customerName: i.customerName!.trim(),
-        totalAmount: Number(i.totalAmount) || 0,
-        paidAmount: Number(i.paidAmount) || 0
-      }));
+      .map((i, idx) => {
+        const safeCust = (i.customerName || 'customer').trim();
+        const detId = generateDeterministicId('inv', date, station, safeCust, idx);
+        return {
+          id: detId,
+          date,
+          station,
+          customerName: i.customerName!.trim(),
+          totalAmount: Number(i.totalAmount) || 0,
+          paidAmount: Number(i.paidAmount) || 0
+        };
+      });
 
     setInvoices(prev => {
-      const filtered = prev.filter(inv => !(inv.date === date && inv.station === station));
+      const filtered = prev.filter(inv => !(normalizeDate(inv.date || '') === normDate && inv.station === station));
       return [...filtered, ...newInvoices];
     });
     if (newInvoices.length > 0) {
@@ -531,8 +762,9 @@ export default function DailyDataEntryView() {
 
     // 6. LINK & SAVE CASH POSITION (Feeds Cash Position page)
     if (mPesa > 0 || manualCashOnHand > 0 || expectedTotalCash > 0) {
+      const detId = generateDeterministicId('cash', date, station, 'pos');
       const newCashPosition: CashPosition = {
-        id: generateId(),
+        id: detId,
         date,
         station,
         mPesa: Number(mPesa) || 0,
@@ -540,7 +772,7 @@ export default function DailyDataEntryView() {
       };
 
       setCashPositions(prev => {
-        const filtered = prev.filter(cp => !(cp.date === date && (cp.station === station || !cp.station)));
+        const filtered = prev.filter(cp => !(normalizeDate(cp.date) === normDate && (cp.station === station || !cp.station)));
         return [...filtered, newCashPosition];
       });
       syncedModules.push(`Cash Position (M-Pesa: KES ${mPesa.toLocaleString()}, Cash: KES ${manualCashOnHand.toLocaleString()})`);
@@ -554,6 +786,11 @@ export default function DailyDataEntryView() {
     setTimeout(() => {
       setSaveSuccessMsg(null);
     }, 6000);
+
+    // Release save lock after cooldown
+    setTimeout(() => {
+      setIsSaving(false);
+    }, 1200);
   };
 
   return (
@@ -571,13 +808,82 @@ export default function DailyDataEntryView() {
             Input all station data here. Everything links directly to Pump Readings, LPG, Inventory, Expenses, Invoices, and Cash Position.
           </p>
         </div>
-        <Button 
-          onClick={handleSaveAll} 
-          className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-slate-950 font-bold px-6 py-2.5 shadow-[0_0_20px_rgba(16,185,129,0.25)] transition-all transform active:scale-95"
-        >
-          <Save className="w-4 h-4" /> Save & Sync All Data
-        </Button>
+        
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          {allSystemDuplicates.totalDuplicates > 0 && (
+            <Button
+              onClick={handleCleanAllSystemDuplicates}
+              className="flex items-center gap-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-semibold px-3 py-2"
+              title="Remove all duplicate records across all dates"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Purge All Duplicates ({allSystemDuplicates.totalDuplicates})
+            </Button>
+          )}
+
+          <Button 
+            onClick={handleSaveAll} 
+            disabled={isSaving}
+            className={`flex items-center gap-2 font-bold px-6 py-2.5 shadow-[0_0_20px_rgba(16,185,129,0.25)] transition-all transform active:scale-95 ${
+              isSaving 
+                ? 'bg-slate-800 text-slate-400 border border-slate-700 cursor-not-allowed opacity-90' 
+                : 'bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-slate-950'
+            }`}
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-cyan-400" /> Saving & Syncing...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" /> Save & Sync All Data
+              </>
+            )}
+          </Button>
+        </div>
       </div>
+
+      {/* Duplicate Warning Alert for Selected Date */}
+      {dateDuplicates.totalDuplicates > 0 && (
+        <div className="bg-amber-950/40 border border-amber-500/50 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-lg animate-in slide-in-from-top duration-300">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center flex-shrink-0 text-amber-400 mt-0.5">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-amber-300 flex items-center gap-2">
+                Duplicate Records Detected for {date} ({station})
+              </h3>
+              <p className="text-xs text-amber-200/90 mt-1">
+                Found {dateDuplicates.totalDuplicates} duplicate entry/entries (
+                {dateDuplicates.breakdown.invoices > 0 && `${dateDuplicates.breakdown.invoices} Invoices, `}
+                {dateDuplicates.breakdown.pumpReadings > 0 && `${dateDuplicates.breakdown.pumpReadings} Pump Readings, `}
+                {dateDuplicates.breakdown.expenses > 0 && `${dateDuplicates.breakdown.expenses} Expenses, `}
+                {dateDuplicates.breakdown.lpgTransactions > 0 && `${dateDuplicates.breakdown.lpgTransactions} LPG, `}
+                {dateDuplicates.breakdown.inventoryItems > 0 && `${dateDuplicates.breakdown.inventoryItems} Inventory`}
+                ) caused by multiple saves. Clean them with one click below:
+              </p>
+            </div>
+          </div>
+          
+          <Button
+            onClick={handleCleanCurrentDateDuplicates}
+            className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-bold px-4 py-2 text-xs shadow-[0_0_15px_rgba(245,158,11,0.3)] whitespace-nowrap flex-shrink-0"
+          >
+            <RefreshCw className="w-3.5 h-3.5" /> Clean Duplicates for This Date ({dateDuplicates.totalDuplicates})
+          </Button>
+        </div>
+      )}
+
+      {/* Deduplication Success Message */}
+      {dedupeSuccessMsg && (
+        <div className="bg-emerald-950/40 border border-emerald-500/40 rounded-xl p-4 flex items-start gap-3 shadow-lg animate-in slide-in-from-top duration-300">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-bold text-emerald-300">Deduplication Complete</p>
+            <pre className="text-xs text-emerald-200 mt-1 font-sans whitespace-pre-wrap">{dedupeSuccessMsg}</pre>
+          </div>
+        </div>
+      )}
 
       {/* Success Notification Banner */}
       {saveSuccessMsg && (
@@ -691,23 +997,34 @@ export default function DailyDataEntryView() {
         </CardHeader>
         <CardContent className="p-6 pt-0 space-y-4">
           {pumps.map((pump, idx) => {
-            const salesAmount = (pump.salesStop || 0) - (pump.salesStart || 0);
-            const litresSold = (pump.litresStop || 0) - (pump.litresStart || 0);
+            const salesAmount = calculatePumpMeterDelta(pump.salesStart, pump.salesStop);
+            const litresSold = calculatePumpMeterDelta(pump.litresStart, pump.litresStop);
             const calculatedSales = litresSold * (pump.ratePerLitre || 0);
-            const variance = salesAmount - calculatedSales;
+            const hasStopEntered = (Number(pump.salesStop) > 0 || Number(pump.litresStop) > 0);
+            const variance = hasStopEntered ? (salesAmount - calculatedSales) : 0;
+            const salesRolledOver = isMeterRollover(pump.salesStart, pump.salesStop);
+            const litresRolledOver = isMeterRollover(pump.litresStart, pump.litresStop);
 
             return (
               <div key={idx} className="border border-theme-border/60 rounded-xl p-4 space-y-3 bg-slate-900/40">
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center flex-wrap gap-2">
                   <div className="font-bold text-cyan-300 text-sm flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
                     {pump.product}
                   </div>
-                  {litresSold > 0 && (
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                      {litresSold.toFixed(2)} Litres Sold
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {(salesRolledOver || litresRolledOver) && (
+                      <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1 shadow-sm">
+                        <span>🔄 1M Rollover</span>
+                        <span className="text-[10px] text-amber-400/80">((1,000,000 - Start) + Stop)</span>
+                      </span>
+                    )}
+                    {litresSold > 0 && (
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        {litresSold.toFixed(2)} Litres Sold
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -725,7 +1042,9 @@ export default function DailyDataEntryView() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-theme-text-muted block mb-1">Sales Stop</label>
+                    <label className="text-xs font-medium text-theme-text-muted block mb-1">
+                      Sales Stop {salesRolledOver && <span className="text-[10px] text-amber-400">(Rolled over)</span>}
+                    </label>
                     <Input 
                       type="number" 
                       step="0.01" 
@@ -755,7 +1074,9 @@ export default function DailyDataEntryView() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-theme-text-muted block mb-1">Litres Stop</label>
+                    <label className="text-xs font-medium text-theme-text-muted block mb-1">
+                      Litres Stop {litresRolledOver && <span className="text-[10px] text-amber-400">(Rolled over)</span>}
+                    </label>
                     <Input 
                       type="number" 
                       step="0.01" 
@@ -799,8 +1120,8 @@ export default function DailyDataEntryView() {
                     <label className="text-xs font-medium text-theme-text-muted block mb-1">Variance (Sales Amount - Calculated)</label>
                     <Input 
                       disabled 
-                      value={`${Math.round(variance) > 0 ? '+' : ''}${Math.round(variance).toLocaleString()}`} 
-                      className={`bg-slate-950 font-semibold font-mono ${Math.round(variance) < 0 ? 'text-red-400' : Math.round(variance) > 0 ? 'text-cyan-400' : 'text-emerald-400'}`} 
+                      value={!hasStopEntered ? 'KES 0' : `${Math.round(variance) > 0 ? '+' : ''}${Math.round(variance).toLocaleString()}`} 
+                      className={`bg-slate-950 font-semibold font-mono ${!hasStopEntered ? 'text-slate-400' : Math.round(variance) < 0 ? 'text-red-400' : Math.round(variance) > 0 ? 'text-cyan-400' : 'text-emerald-400'}`} 
                     />
                   </div>
                 </div>
@@ -1167,7 +1488,7 @@ export default function DailyDataEntryView() {
 
       {/* 4. EXPENSES (Full Width for comfortable viewing and wide amount inputs) */}
       <Card className="glass-panel border-theme-border">
-        <CardHeader className="flex flex-row justify-between items-center">
+        <CardHeader className="flex flex-row justify-between items-center flex-wrap gap-3">
           <div className="flex items-center gap-2">
             <Receipt className="w-5 h-5 text-red-400" />
             <div>
@@ -1175,23 +1496,33 @@ export default function DailyDataEntryView() {
               <p className="text-xs text-theme-text-muted mt-0.5">Recurring expenses default payment to Cash unless specified otherwise.</p>
             </div>
           </div>
-          <Button 
-            className="py-1 px-2.5 text-xs" 
-            variant="secondary" 
-            onClick={() => {
-              const defaultTpl = expenseTemplates[0];
-              setExpenseRows([...expenseRows, { 
-                expenseCode: defaultTpl?.code || 'EXP-GEN', 
-                category: defaultTpl?.name || 'Generator (Fuel & Service)', 
-                amount: 0,
-                paymentMethod: 'Cash',
-                isRecurring: true,
-                frequency: defaultTpl?.frequency || 'Monthly'
-              }]);
-            }}
-          >
-            <Plus className="w-3.5 h-3.5 mr-1" /> Add Expense Row
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button 
+              className="py-1 px-3 text-xs bg-red-500/10 hover:bg-red-500/20 text-red-300 border border-red-500/30 font-semibold flex items-center gap-1.5 shadow-sm active:scale-95 transition-all" 
+              variant="secondary" 
+              onClick={handleOpenQuickExpenseModal}
+              title="Create a new expense category/parameter captured under Expense banner page"
+            >
+              <Plus className="w-3.5 h-3.5 text-red-400" /> Add New Expense Type
+            </Button>
+            <Button 
+              className="py-1 px-2.5 text-xs" 
+              variant="secondary" 
+              onClick={() => {
+                const defaultTpl = expenseTemplates[0];
+                setExpenseRows([...expenseRows, { 
+                  expenseCode: defaultTpl?.code || 'EXP-GEN', 
+                  category: defaultTpl?.name || 'Generator (Fuel & Service)', 
+                  amount: 0,
+                  paymentMethod: 'Cash',
+                  isRecurring: true,
+                  frequency: defaultTpl?.frequency || 'Monthly'
+                }]);
+              }}
+            >
+              <Plus className="w-3.5 h-3.5 mr-1" /> Add Expense Row
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-6 pt-0 space-y-3">
           {expenseRows.map((expense, idx) => (
@@ -1199,11 +1530,25 @@ export default function DailyDataEntryView() {
               <div className="flex gap-3 items-end flex-wrap xl:flex-nowrap">
                 {/* Expense Code Parameter */}
                 <div className="w-full sm:w-56 xl:w-64">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Expense Code Parameter</label>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] uppercase font-bold text-slate-400 block">Expense Code Parameter</label>
+                    <button
+                      type="button"
+                      onClick={handleOpenQuickExpenseModal}
+                      className="text-[10px] text-red-400 hover:text-red-300 font-bold hover:underline flex items-center gap-0.5"
+                      title="Add a new expense category"
+                    >
+                      + New
+                    </button>
+                  </div>
                   <Select 
                     value={expense.expenseCode || expenseTemplates[0]?.code || 'EXP-GEN'} 
                     onChange={(e) => {
                       const code = e.target.value;
+                      if (code === '__NEW_EXPENSE__') {
+                        handleOpenQuickExpenseModal();
+                        return;
+                      }
                       const tpl = expenseTemplates.find(t => t.code === code);
                       const newRows = [...expenseRows];
                       newRows[idx].expenseCode = code;
@@ -1226,6 +1571,7 @@ export default function DailyDataEntryView() {
                       </option>
                     ))}
                     <option className="bg-slate-950 text-slate-100" value="CUSTOM">Custom Code / Expense</option>
+                    <option className="bg-red-950/80 text-red-300 font-bold" value="__NEW_EXPENSE__">➕ Define New Expense Type...</option>
                   </Select>
                 </div>
 
@@ -1373,14 +1719,18 @@ export default function DailyDataEntryView() {
                         }}
                         className="text-xs bg-slate-950 text-slate-100 w-full"
                       >
-                        <option className="bg-slate-950 text-slate-100" value="">Select Customer...</option>
-                        {customers
-                          .filter(c => !c.station || c.station === station)
-                          .map(c => (
-                            <option className="bg-slate-950 text-slate-100" key={c.id} value={c.name}>
-                              {c.code ? `[${c.code}] ` : ''}{c.name}
-                            </option>
-                          ))}
+                        <option className="bg-slate-950 text-slate-100" value="">Select Customer ({allCustomerOptions.length} available)...</option>
+                        {allCustomerOptions.map(c => (
+                          <option className="bg-slate-950 text-slate-100" key={c.id || c.name} value={c.name}>
+                            {c.code ? `[${c.code}] ` : ''}{c.name}{c.station && c.station !== station ? ` (${c.station})` : ''}
+                          </option>
+                        ))}
+                        {/* Fallback to preserve custom name if already selected but missing from options */}
+                        {invoice.customerName && !allCustomerOptions.some(c => c.name.toLowerCase() === invoice.customerName?.toLowerCase()) && (
+                          <option className="bg-slate-950 text-slate-100" value={invoice.customerName}>
+                            {invoice.customerName}
+                          </option>
+                        )}
                       </Select>
                     </div>
 
@@ -1500,12 +1850,12 @@ export default function DailyDataEntryView() {
               <p className="text-lg font-bold text-red-400 mt-1 font-mono">KES {Math.round(expensesAmount).toLocaleString()}</p>
             </div>
             <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-800">
-              <p className="text-xs text-theme-text-muted">Invoices Issued</p>
-              <p className="text-lg font-bold text-amber-400 mt-1 font-mono">KES {Math.round(invoicesTotal).toLocaleString()}</p>
+              <p className="text-xs text-theme-text-muted">Uncollected Credit (Debt)</p>
+              <p className="text-lg font-bold text-amber-400 mt-1 font-mono">KES {Math.round(uncollectedCreditSalesToday).toLocaleString()}</p>
             </div>
             <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-800">
-              <p className="text-xs text-theme-text-muted">Debt Paid Amount</p>
-              <p className="text-lg font-bold text-emerald-400 mt-1 font-mono">KES {Math.round(paidInvoicesAmount).toLocaleString()}</p>
+              <p className="text-xs text-theme-text-muted">Debt Paid Collected</p>
+              <p className="text-lg font-bold text-emerald-400 mt-1 font-mono">KES {Math.round(pastDebtPaymentsCollectedToday).toLocaleString()}</p>
             </div>
             <div className="col-span-2 sm:col-span-3 lg:col-span-5 bg-slate-950/80 p-4 rounded-xl border border-cyan-500/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <div>
@@ -1515,7 +1865,7 @@ export default function DailyDataEntryView() {
                 </p>
               </div>
               <div className="text-xs text-theme-text-muted">
-                Formula: (Total Sales - COGS - Expenses - Uncollected Invoices + Paid Debts)
+                Formula: (Total Sales - COGS - Expenses - Uncollected Invoices + Debt Collected)
               </div>
             </div>
           </div>
@@ -1676,6 +2026,178 @@ export default function DailyDataEntryView() {
                   className="bg-blue-600 hover:bg-blue-500 text-white flex items-center gap-1.5 font-bold"
                 >
                   <Plus className="w-4 h-4" /> Save & Use Customer
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* QUICK ADD EXPENSE PARAMETER / CATEGORY MODAL */}
+      {isQuickExpenseModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-lg bg-slate-900 border border-theme-border rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-theme-border flex justify-between items-center bg-slate-950/70">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400">
+                  <Receipt className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-base">New Expense Parameter</h3>
+                  <p className="text-xs text-theme-text-muted">Captured under Expense Page & available across all entries</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsQuickExpenseModalOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleQuickAddExpenseSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+              <div>
+                <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+                  Expense Name / Description <span className="text-red-400">*</span>
+                </label>
+                <Input 
+                  type="text" 
+                  placeholder="e.g. Station Water Bill, Generator Fuel, Casual Labour"
+                  value={newExpenseName}
+                  onChange={(e) => setNewExpenseName(e.target.value)}
+                  autoFocus
+                  required
+                  className="bg-slate-950 text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+                    Expense Code <span className="text-slate-400 font-normal">(e.g. EXP-010)</span>
+                  </label>
+                  <Input 
+                    type="text" 
+                    placeholder="e.g. EXP-010"
+                    value={newExpenseCode}
+                    onChange={(e) => setNewExpenseCode(e.target.value.toUpperCase())}
+                    required
+                    className="bg-slate-950 text-cyan-300 font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+                    Department / Category
+                  </label>
+                  <Select 
+                    value={newExpenseCategory}
+                    onChange={(e) => setNewExpenseCategory(e.target.value)}
+                    className="bg-slate-950 text-white w-full text-xs"
+                  >
+                    <option value="Operations & Fuel">Operations & Fuel</option>
+                    <option value="Station Maintenance">Station Maintenance & Repairs</option>
+                    <option value="Staff Welfare & Meals">Staff Welfare & Meals</option>
+                    <option value="Salaries & Wages">Salaries & Casual Wages</option>
+                    <option value="Ground Rent & Lease">Ground Rent & Lease</option>
+                    <option value="Power & Utilities">Power & Utilities (KPLC/Water)</option>
+                    <option value="Licensing & County">Licensing & Regulatory (EPRA/County)</option>
+                    <option value="Transport & Logistics">Transport & Logistics</option>
+                    <option value="Security Services">Security & Guards</option>
+                    <option value="Communications & IT">Communications & Internet</option>
+                    <option value="General & Admin">General & Administrative</option>
+                    <option value="Miscellaneous">Miscellaneous</option>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+                    Default / Target (KES)
+                  </label>
+                  <Input 
+                    type="number" 
+                    placeholder="0.00"
+                    value={newExpenseDefaultAmount}
+                    onChange={(e) => setNewExpenseDefaultAmount(e.target.value)}
+                    className="bg-slate-950 text-white font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+                    Frequency
+                  </label>
+                  <Select 
+                    value={newExpenseFrequency}
+                    onChange={(e) => setNewExpenseFrequency(e.target.value as ExpenseFrequency)}
+                    className="bg-slate-950 text-white w-full text-xs"
+                  >
+                    <option value="Daily">Daily</option>
+                    <option value="Weekly">Weekly</option>
+                    <option value="Monthly">Monthly</option>
+                    <option value="Quarterly">Quarterly</option>
+                    <option value="As Needed">As Needed</option>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+                    Payment Method
+                  </label>
+                  <Select 
+                    value={newExpensePaymentMethod}
+                    onChange={(e) => setNewExpensePaymentMethod(e.target.value as ExpensePaymentMethod)}
+                    className="bg-slate-950 text-white w-full text-xs"
+                  >
+                    <option value="Cash">Cash (Default)</option>
+                    <option value="M-Pesa">M-Pesa</option>
+                    <option value="Bank Transfer">Bank Transfer</option>
+                    <option value="Other">Other</option>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="p-3 bg-slate-950/60 rounded-xl border border-theme-border/60 flex items-start gap-2.5">
+                <input 
+                  type="checkbox" 
+                  id="newExpenseRecurring"
+                  checked={newExpenseIsRecurring}
+                  onChange={(e) => setNewExpenseIsRecurring(e.target.checked)}
+                  className="mt-0.5 rounded border-slate-700 text-red-500 focus:ring-red-500 bg-slate-900"
+                />
+                <label htmlFor="newExpenseRecurring" className="text-xs text-slate-300 cursor-pointer">
+                  <span className="font-semibold text-white block">Recurring Operational Cost</span>
+                  <span className="text-[11px] text-theme-text-muted">Display as active cost parameter in Expense Banner page and master budget tracking.</span>
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+                  Notes / Reference <span className="text-slate-400 font-normal">(Optional)</span>
+                </label>
+                <Input 
+                  type="text" 
+                  placeholder="e.g. Account number, payment cycle or vendor details"
+                  value={newExpenseNotes}
+                  onChange={(e) => setNewExpenseNotes(e.target.value)}
+                  className="bg-slate-950 text-white text-xs"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-theme-border">
+                <Button 
+                  type="button" 
+                  variant="secondary"
+                  onClick={() => setIsQuickExpenseModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-red-600 hover:bg-red-500 text-white flex items-center gap-1.5 font-bold shadow-lg shadow-red-600/20"
+                >
+                  <Plus className="w-4 h-4" /> Save & Use Expense Parameter
                 </Button>
               </div>
             </form>

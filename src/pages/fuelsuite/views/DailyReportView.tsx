@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { useFuel } from '../context';
+import { useFuel, calculatePumpMeterDelta } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input } from '../components';
+import { normalizeDate } from '../deduplication';
 import { format } from 'date-fns';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from 'recharts';
 import { X, Flame, Printer, ClipboardList } from 'lucide-react';
@@ -12,28 +13,30 @@ export default function DailyReportView() {
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [showLpgProfit, setShowLpgProfit] = useState(false);
 
-  // Filter data by selected date and station
+  const normSelectedDate = normalizeDate(selectedDate);
+
+  // Filter data by selected date and station with date normalization
   const dailyReadings = useMemo(() => pumpReadings.filter(
-    r => r.date === selectedDate && (activeStation === 'Combined Total' ? true : r.station === activeStation)
-  ), [pumpReadings, selectedDate, activeStation]);
+    r => normalizeDate(r.date) === normSelectedDate && (activeStation === 'Combined Total' ? true : r.station === activeStation)
+  ), [pumpReadings, normSelectedDate, activeStation]);
 
   const dailyLpgSales = useMemo(() => lpgTransactions.filter(
-    t => t.date === selectedDate && t.type === 'sale' && (activeStation === 'Combined Total' ? true : t.station === activeStation)
-  ), [lpgTransactions, selectedDate, activeStation]);
+    t => normalizeDate(t.date) === normSelectedDate && t.type === 'sale' && (activeStation === 'Combined Total' ? true : t.station === activeStation)
+  ), [lpgTransactions, normSelectedDate, activeStation]);
 
   const dailyLpgPurchases = useMemo(() => lpgTransactions.filter(
-    t => t.date === selectedDate && t.type === 'purchase' && (activeStation === 'Combined Total' ? true : t.station === activeStation)
-  ), [lpgTransactions, selectedDate, activeStation]);
+    t => normalizeDate(t.date) === normSelectedDate && t.type === 'purchase' && (activeStation === 'Combined Total' ? true : t.station === activeStation)
+  ), [lpgTransactions, normSelectedDate, activeStation]);
 
   const dailyExpenses = useMemo(() => expenses.filter(
-    e => e.date === selectedDate && (activeStation === 'Combined Total' ? true : e.station === activeStation)
-  ), [expenses, selectedDate, activeStation]);
+    e => normalizeDate(e.date) === normSelectedDate && (activeStation === 'Combined Total' ? true : e.station === activeStation)
+  ), [expenses, normSelectedDate, activeStation]);
 
   const dailyInvoices = useMemo(() => invoices.filter(
-    i => (activeStation === 'Combined Total' ? true : i.station === activeStation) && i.date === selectedDate
-  ), [invoices, activeStation, selectedDate]);
+    i => (activeStation === 'Combined Total' ? true : i.station === activeStation) && normalizeDate(i.date || '') === normSelectedDate
+  ), [invoices, activeStation, normSelectedDate]);
 
-  const unpaidDebts = dailyInvoices.filter(i => i.totalAmount - i.paidAmount > 0);
+  const unpaidDebts = dailyInvoices.filter(i => (Number(i.totalAmount) || 0) - (Number(i.paidAmount) || 0) > 0);
 
   // Group readings by product (Super, Diesel, etc.)
   const groupedReadings = useMemo(() => {
@@ -45,10 +48,9 @@ export default function DailyReportView() {
     }> = {};
 
     dailyReadings.forEach(r => {
-      const litres = r.litresStop - r.litresStart;
-      const sales = (r.salesStop !== undefined && r.salesStart !== undefined && r.salesStop > 0)
-        ? (r.salesStop - r.salesStart)
-        : (litres * r.ratePerLitre);
+      const litres = calculatePumpMeterDelta(r.litresStart, r.litresStop);
+      const sAmount = calculatePumpMeterDelta(r.salesStart, r.salesStop);
+      const sales = sAmount > 0 ? sAmount : (litres * r.ratePerLitre);
       
       if (!groups[r.product]) {
         groups[r.product] = {
@@ -69,46 +71,61 @@ export default function DailyReportView() {
     return groups;
   }, [dailyReadings]);
 
-  const totalGases = dailyLpgSales.reduce((sum, t) => sum + t.amount, 0);
+  const totalGases = dailyLpgSales.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
   const dailyAccessoriesSales = useMemo(() => inventoryItems.filter(
-    i => i.date === selectedDate && i.type === 'out' && (activeStation === 'Combined Total' ? true : i.station === activeStation) &&
+    i => normalizeDate(i.date) === normSelectedDate && i.type === 'out' && (activeStation === 'Combined Total' ? true : i.station === activeStation) &&
     !i.item.toLowerCase().includes('super') && 
     !i.item.toLowerCase().includes('diesel') && 
     !i.item.toLowerCase().includes('lpg') &&
     !i.item.toLowerCase().includes('cylinder')
-  ), [inventoryItems, selectedDate, activeStation]);
+  ), [inventoryItems, normSelectedDate, activeStation]);
 
   const dailyAccessoriesPurchases = useMemo(() => inventoryItems.filter(
-    i => i.date === selectedDate && i.type === 'in' && (activeStation === 'Combined Total' ? true : i.station === activeStation) &&
+    i => normalizeDate(i.date) === normSelectedDate && i.type === 'in' && (activeStation === 'Combined Total' ? true : i.station === activeStation) &&
     !i.item.toLowerCase().includes('super') && 
     !i.item.toLowerCase().includes('diesel') && 
     !i.item.toLowerCase().includes('lpg') &&
     !i.item.toLowerCase().includes('cylinder')
-  ), [inventoryItems, selectedDate, activeStation]);
+  ), [inventoryItems, normSelectedDate, activeStation]);
 
   const totalAccessoriesSales = dailyAccessoriesSales.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
   const totalAccessoriesPurchases = dailyAccessoriesPurchases.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
 
-  const totalGasesPurchases = dailyLpgPurchases.reduce((sum, t) => sum + t.amount, 0) + totalAccessoriesPurchases;
+  const totalGasesPurchases = dailyLpgPurchases.reduce((sum, t) => sum + (Number(t.amount) || 0), 0) + totalAccessoriesPurchases;
   const totalFuelSales = Object.values(groupedReadings).reduce((sum, g) => sum + g.totalSales, 0);
   const totalSales = totalFuelSales + totalGases + totalAccessoriesSales;
 
-  const todayInvoices = invoices.filter(i => i.date === selectedDate && (activeStation === 'Combined Total' ? true : i.station === activeStation));
-  const totalInvoicesAmount = todayInvoices.reduce((sum, i) => sum + i.totalAmount, 0);
-  const paidInvoicesAmount = todayInvoices.reduce((sum, i) => sum + i.paidAmount, 0);
-  const totalDebts = totalInvoicesAmount - paidInvoicesAmount;
+  // Invoices & Debt Cash Adjustments
+  const uncollectedCreditSalesToday = dailyInvoices.reduce((sum, i) => {
+    const total = Number(i.totalAmount) || 0;
+    const paid = Number(i.paidAmount) || 0;
+    return sum + (total > paid ? (total - paid) : 0);
+  }, 0);
 
-  const dailyCashPos = cashPositions.find(c => c.date === selectedDate);
-  const mPesaExpenses = dailyExpenses.filter(e => e.category.toLowerCase().includes('m-pesa') || e.category.toLowerCase().includes('mpesa') || e.category.toLowerCase().includes('m.pesa'));
-  const actualExpenses = dailyExpenses.filter(e => !(e.category.toLowerCase().includes('m-pesa') || e.category.toLowerCase().includes('mpesa') || e.category.toLowerCase().includes('m.pesa')));
+  const pastDebtPaymentsCollectedToday = dailyInvoices.reduce((sum, i) => {
+    const total = Number(i.totalAmount) || 0;
+    const paid = Number(i.paidAmount) || 0;
+    // Debt payment collected where total is 0 (paid invoice)
+    return sum + (total === 0 ? paid : 0);
+  }, 0);
 
-  const totalExpensesAmount = actualExpenses.reduce((sum, e) => sum + e.amount, 0);
-  const totalMPesaAmount = dailyCashPos?.mPesa ?? mPesaExpenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalInvoicesAmount = dailyInvoices.reduce((sum, i) => sum + (Number(i.totalAmount) || 0), 0);
+  const paidInvoicesAmount = dailyInvoices.reduce((sum, i) => sum + (Number(i.paidAmount) || 0), 0);
+  const totalDebts = uncollectedCreditSalesToday;
 
-  const expectedCashOnHand = totalSales - (totalDebts + totalExpensesAmount + totalGasesPurchases + totalMPesaAmount) + paidInvoicesAmount;
+  const dailyCashPos = cashPositions.find(c => normalizeDate(c.date) === normSelectedDate && (activeStation === 'Combined Total' || !c.station || c.station === activeStation));
+
+  const totalExpensesAmount = dailyExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const totalMPesaAmount = dailyCashPos?.mPesa ?? 0;
+
+  // Expected Total Cash = Total Sales - Cost of Goods/Refills - Expenses - Uncollected Credit Sales Today + Past Debt Payments Collected Today
+  const expectedTotalCash = totalSales - totalGasesPurchases - totalExpensesAmount - uncollectedCreditSalesToday + pastDebtPaymentsCollectedToday;
+  const expectedCashOnHand = expectedTotalCash - totalMPesaAmount;
   const cashAtHand = dailyCashPos?.cashOnHand ?? expectedCashOnHand;
   
-  const cashDifference = totalSales - totalDebts - totalExpensesAmount - totalGasesPurchases - totalMPesaAmount - cashAtHand + paidInvoicesAmount;
+  // Standard Cash Variance: Actual Cash counted - Expected Cash
+  // Positive = Excess / Surplus, Negative = Shortfall / Loss, 0 = Balanced
+  const cashDifference = cashAtHand - expectedCashOnHand;
 
   // Added fuel / Inventory balances could be fetched from InventoryItems
   const dailyFuelAdded = inventoryItems.filter(i => 
@@ -388,9 +405,9 @@ export default function DailyReportView() {
             
             <div>
               <h4 className="text-lg font-bold text-theme-text border-b border-theme-border pb-2 mb-3">Expenses</h4>
-              {actualExpenses.length > 0 ? (
+              {dailyExpenses.length > 0 ? (
                 <div className="space-y-2">
-                  {actualExpenses.map(exp => (
+                  {dailyExpenses.map(exp => (
                     <div key={exp.id} className="flex justify-between items-center text-sm">
                       <div className="flex items-center gap-2 truncate pr-2">
                         {exp.expenseCode && (

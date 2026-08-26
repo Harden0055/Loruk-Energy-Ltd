@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { useFuel, PumpReading, LPGTransaction, InventoryItem, Expense, Invoice, CashPosition } from '../context';
-import { Database, Search, Pencil, Trash2, Calendar, Building2, Filter, X, Check, AlertCircle } from 'lucide-react';
-import { Card, Table, Th, Td } from '../components';
+import { useFuel, PumpReading, LPGTransaction, InventoryItem, Expense, Invoice, CashPosition, calculatePumpMeterDelta } from '../context';
+import { Database, Search, Pencil, Trash2, Calendar, Building2, Filter, X, Check, AlertCircle, RefreshCw, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Card, Table, Th, Td, Button } from '../components';
 
 export default function MasterRecordsView() {
   const {
@@ -12,7 +12,8 @@ export default function MasterRecordsView() {
     inventoryItems, setInventoryItems,
     expenses, setExpenses,
     invoices, setInvoices,
-    cashPositions, setCashPositions
+    cashPositions, setCashPositions,
+    deduplicateData, checkDuplicates
   } = useFuel();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,6 +21,22 @@ export default function MasterRecordsView() {
   const [selectedDateFilter, setSelectedDateFilter] = useState<string>('');
   const [editingItem, setEditingItem] = useState<{ type: string; data: any } | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<{ type: string; id: string } | null>(null);
+  const [cleanupMessage, setCleanupMessage] = useState<string | null>(null);
+
+  // Check duplicate status
+  const systemDuplicates = useMemo(() => {
+    return checkDuplicates(selectedDateFilter || undefined, activeStation === 'Combined Total' ? undefined : activeStation);
+  }, [checkDuplicates, selectedDateFilter, activeStation, pumpReadings, lpgTransactions, inventoryItems, expenses, invoices, cashPositions]);
+
+  const handleRunDeduplication = () => {
+    const res = deduplicateData(selectedDateFilter || undefined, activeStation === 'Combined Total' ? undefined : activeStation);
+    if (res.removedCount > 0) {
+      setCleanupMessage(`Cleaned ${res.removedCount} duplicate record(s):\n• ${res.summary.join('\n• ')}`);
+    } else {
+      setCleanupMessage('No duplicate records found. All entries in the selected scope are unique.');
+    }
+    setTimeout(() => setCleanupMessage(null), 6000);
+  };
 
   // Combine all records into a unified list representation
   const allRecords = useMemo(() => {
@@ -35,8 +52,8 @@ export default function MasterRecordsView() {
     }> = [];
 
     pumpReadings.forEach(r => {
-      const volume = r.litresStop - r.litresStart;
-      const sales = (r.salesStop || 0) - (r.salesStart || 0);
+      const volume = calculatePumpMeterDelta(r.litresStart, r.litresStop);
+      const sales = calculatePumpMeterDelta(r.salesStart, r.salesStop);
       list.push({
         id: r.id,
         type: 'Pump Reading',
@@ -187,7 +204,60 @@ export default function MasterRecordsView() {
             </p>
           </div>
         </div>
+
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={handleRunDeduplication}
+            className={`flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl transition-all ${
+              systemDuplicates.totalDuplicates > 0
+                ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-bold shadow-[0_0_15px_rgba(245,158,11,0.3)]'
+                : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
+            }`}
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            {systemDuplicates.totalDuplicates > 0
+              ? `Clean All Duplicates (${systemDuplicates.totalDuplicates})`
+              : 'Scan & Clean Duplicates'}
+          </Button>
+        </div>
       </div>
+
+      {cleanupMessage && (
+        <div className="bg-emerald-950/40 border border-emerald-500/40 rounded-xl p-4 flex items-start gap-3 shadow-lg animate-in slide-in-from-top duration-300">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-bold text-emerald-300">Database Optimization Complete</p>
+            <pre className="text-xs text-emerald-200 mt-1 font-sans whitespace-pre-wrap">{cleanupMessage}</pre>
+          </div>
+        </div>
+      )}
+
+      {systemDuplicates.totalDuplicates > 0 && (
+        <div className="bg-amber-950/40 border border-amber-500/50 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
+            <div>
+              <h3 className="text-sm font-bold text-amber-300">
+                {systemDuplicates.totalDuplicates} Duplicate Record(s) Detected
+              </h3>
+              <p className="text-xs text-amber-200/90 mt-0.5">
+                {systemDuplicates.breakdown.invoices > 0 && `${systemDuplicates.breakdown.invoices} Invoices, `}
+                {systemDuplicates.breakdown.pumpReadings > 0 && `${systemDuplicates.breakdown.pumpReadings} Pump Readings, `}
+                {systemDuplicates.breakdown.expenses > 0 && `${systemDuplicates.breakdown.expenses} Expenses, `}
+                {systemDuplicates.breakdown.lpgTransactions > 0 && `${systemDuplicates.breakdown.lpgTransactions} LPG, `}
+                {systemDuplicates.breakdown.inventoryItems > 0 && `${systemDuplicates.breakdown.inventoryItems} Inventory`}
+                found across the selected filters.
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={handleRunDeduplication}
+            className="bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold px-4 py-2 whitespace-nowrap flex-shrink-0"
+          >
+            Clean Now
+          </Button>
+        </div>
+      )}
 
       {/* FILTERS & SEARCH BAR */}
       <div className="glass-panel p-4 rounded-2xl flex flex-col md:flex-row gap-4 justify-between items-center border border-theme-border">

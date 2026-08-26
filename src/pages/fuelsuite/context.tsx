@@ -1,6 +1,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
 import { collection, onSnapshot, setDoc, doc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { 
+  deduplicateCollections, 
+  detectDuplicates, 
+  DeduplicateOutput, 
+  DuplicateDetectionResult,
+  normalizeDate 
+} from './deduplication';
 
 export type Station = string;
 export interface StationData { id: string; name: string; }
@@ -104,6 +111,10 @@ export interface Customer {
   name: string;
   creditLimit: number;
   openingBalance: number;
+  phone?: string;
+  email?: string;
+  customerType?: string;
+  remarks?: string;
 }
 
 interface FuelContextType {
@@ -129,6 +140,8 @@ interface FuelContextType {
   setStations: React.Dispatch<React.SetStateAction<StationData[]>>;
   expenseTemplates: ExpenseTemplate[];
   setExpenseTemplates: React.Dispatch<React.SetStateAction<ExpenseTemplate[]>>;
+  deduplicateData: (targetDate?: string, targetStation?: string) => DeduplicateOutput;
+  checkDuplicates: (targetDate?: string, targetStation?: string) => DuplicateDetectionResult;
 }
 
 const FuelContext = createContext<FuelContextType | undefined>(undefined);
@@ -235,6 +248,39 @@ export const FuelProvider = ({ children }: { children: ReactNode }) => {
     { id: '12', code: 'EXP-MISC', name: 'Petty Cash / Miscellaneous', category: 'General & Admin', defaultAmount: 1000, frequency: 'As Needed', isRecurring: false, defaultPaymentMethod: 'Cash', notes: 'Stationery, minor emergency supplies and refreshments' },
   ]);
 
+  const checkDuplicates = useCallback((targetDate?: string, targetStation?: string): DuplicateDetectionResult => {
+    return detectDuplicates({
+      pumpReadings,
+      lpgTransactions,
+      inventoryItems,
+      expenses,
+      invoices,
+      cashPositions
+    }, targetDate, targetStation);
+  }, [pumpReadings, lpgTransactions, inventoryItems, expenses, invoices, cashPositions]);
+
+  const deduplicateData = useCallback((targetDate?: string, targetStation?: string): DeduplicateOutput => {
+    const result = deduplicateCollections({
+      pumpReadings,
+      lpgTransactions,
+      inventoryItems,
+      expenses,
+      invoices,
+      cashPositions
+    }, targetDate, targetStation);
+
+    if (result.removedCount > 0) {
+      if (result.breakdown.pumpReadings > 0) setPumpReadings(result.cleanedPumpReadings);
+      if (result.breakdown.lpgTransactions > 0) setLpgTransactions(result.cleanedLpgTransactions);
+      if (result.breakdown.inventoryItems > 0) setInventoryItems(result.cleanedInventoryItems);
+      if (result.breakdown.expenses > 0) setExpenses(result.cleanedExpenses);
+      if (result.breakdown.invoices > 0) setInvoices(result.cleanedInvoices);
+      if (result.breakdown.cashPositions > 0) setCashPositions(result.cleanedCashPositions);
+    }
+
+    return result;
+  }, [pumpReadings, lpgTransactions, inventoryItems, expenses, invoices, cashPositions, setPumpReadings, setLpgTransactions, setInventoryItems, setExpenses, setInvoices, setCashPositions]);
+
   return (
     <FuelContext.Provider value={{
       activeStation, setActiveStation,
@@ -247,6 +293,8 @@ export const FuelProvider = ({ children }: { children: ReactNode }) => {
       products, setProducts,
       customers, setCustomers, stations, setStations,
       expenseTemplates, setExpenseTemplates,
+      deduplicateData,
+      checkDuplicates,
     }}>
       {children}
     </FuelContext.Provider>
@@ -260,3 +308,35 @@ export const useFuel = () => {
   }
   return context;
 };
+
+/**
+ * Calculates dispenser meter differences, accounting for 1,000,000 meter rollover.
+ * When the dispenser meter reaches 1,000,000 it rolls over back to 0.
+ * - If stop is 0 / not entered yet, returns 0.
+ * - If stop >= start, returns stop - start.
+ * - If stop < start (and stop > 0), calculates (1,000,000 - start) + stop.
+ */
+export function calculatePumpMeterDelta(start?: number, stop?: number, maxMeter = 1000000): number {
+  const sStart = Number(start) || 0;
+  const sStop = Number(stop) || 0;
+  
+  if (sStop <= 0) return 0;
+  if (sStart <= 0) return sStop;
+  
+  if (sStop >= sStart) {
+    return sStop - sStart;
+  }
+  
+  // Meter rollover past 1,000,000
+  const startMod = sStart % maxMeter;
+  const stopMod = sStop % maxMeter;
+  const beforeMillion = maxMeter - startMod;
+  const afterZero = stopMod;
+  return beforeMillion + afterZero;
+}
+
+export function isMeterRollover(start?: number, stop?: number): boolean {
+  const sStart = Number(start) || 0;
+  const sStop = Number(stop) || 0;
+  return sStart > 0 && sStop > 0 && sStop < sStart;
+}

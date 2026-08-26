@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useFuel } from '../context';
+import { useFuel, calculatePumpMeterDelta } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, MetricCard } from '../components';
 import { FileDown, BarChart3, TrendingUp, DollarSign, ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import jsPDF from 'jspdf';
@@ -16,8 +16,8 @@ export default function ReportsView() {
   const filteredExpenses = expenses; // Assuming expenses apply globally or could be filtered similarly
 
   const fuelRevenue = filteredReadings.reduce((acc, r) => {
-    const sAmount = (r.salesStop || 0) - (r.salesStart || 0);
-    return acc + (sAmount > 0 ? sAmount : ((r.litresStop - r.litresStart) * r.ratePerLitre));
+    const sAmount = calculatePumpMeterDelta(r.salesStart, r.salesStop);
+    return acc + (sAmount > 0 ? sAmount : (calculatePumpMeterDelta(r.litresStart, r.litresStop) * r.ratePerLitre));
   }, 0);
   const lpgRevenue = lpgTransactions.filter(t => t.type === 'sale').reduce((acc, t) => acc + t.amount, 0);
   const accessoryRevenue = filteredInventory.filter(t => t.type === 'out' && 

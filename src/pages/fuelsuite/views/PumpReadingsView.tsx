@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useFuel, PumpReading , Station } from '../context';
+import { useFuel, PumpReading , Station, calculatePumpMeterDelta, isMeterRollover } from '../context';
 import { Card, CardContent, CardHeader, CardTitle, Input, Select, Button, Table, Th, Td , MetricCard, ProductIconBadge } from '../components';
 import { Plus, Pencil, Trash2, X, Droplet, TrendingUp, Banknote, Fuel } from 'lucide-react';
 import { useConfirm } from '../useConfirm';
@@ -73,11 +73,11 @@ export default function PumpReadingsView() {
   };
 
   const metrics = useMemo(() => {
-    const totalVolume = filteredReadings.reduce((sum, r) => sum + (r.litresStop - r.litresStart), 0);
-    const pmsVolume = filteredReadings.filter(r => r.product.toLowerCase().includes('super') || r.product.toLowerCase().includes('pms')).reduce((sum, r) => sum + (r.litresStop - r.litresStart), 0);
-    const agoVolume = filteredReadings.filter(r => r.product.toLowerCase().includes('diesel') || r.product.toLowerCase().includes('ago')).reduce((sum, r) => sum + (r.litresStop - r.litresStart), 0);
-    const totalSalesAmount = filteredReadings.reduce((sum, r) => sum + ((r.salesStop || 0) - (r.salesStart || 0)), 0);
-    const calculatedSales = filteredReadings.reduce((sum, r) => sum + (r.litresStop - r.litresStart) * r.ratePerLitre, 0);
+    const totalVolume = filteredReadings.reduce((sum, r) => sum + calculatePumpMeterDelta(r.litresStart, r.litresStop), 0);
+    const pmsVolume = filteredReadings.filter(r => r.product.toLowerCase().includes('super') || r.product.toLowerCase().includes('pms')).reduce((sum, r) => sum + calculatePumpMeterDelta(r.litresStart, r.litresStop), 0);
+    const agoVolume = filteredReadings.filter(r => r.product.toLowerCase().includes('diesel') || r.product.toLowerCase().includes('ago')).reduce((sum, r) => sum + calculatePumpMeterDelta(r.litresStart, r.litresStop), 0);
+    const totalSalesAmount = filteredReadings.reduce((sum, r) => sum + calculatePumpMeterDelta(r.salesStart, r.salesStop), 0);
+    const calculatedSales = filteredReadings.reduce((sum, r) => sum + calculatePumpMeterDelta(r.litresStart, r.litresStop) * r.ratePerLitre, 0);
     const netVariance = totalSalesAmount - calculatedSales;
     return { totalVolume, pmsVolume, agoVolume, totalSalesAmount, calculatedSales, netVariance };
   }, [filteredReadings]);
@@ -193,22 +193,31 @@ export default function PumpReadingsView() {
           </thead>
           <tbody>
             {filteredReadings.map(r => {
-              const volume = r.litresStop - r.litresStart;
-              const salesAmount = (r.salesStop || 0) - (r.salesStart || 0);
+              const volume = calculatePumpMeterDelta(r.litresStart, r.litresStop);
+              const salesAmount = calculatePumpMeterDelta(r.salesStart, r.salesStop);
               const calculated = volume * r.ratePerLitre;
-              const variance = salesAmount - calculated;
+              const hasStopEntered = (Number(r.salesStop) > 0 || Number(r.litresStop) > 0);
+              const variance = hasStopEntered ? (salesAmount - calculated) : 0;
+              const isRolledOver = isMeterRollover(r.salesStart, r.salesStop) || isMeterRollover(r.litresStart, r.litresStop);
               return (
                 <tr key={r.id} className="hover:theme-bg-gradient transition-colors">
                   <Td>{r.date}</Td>
                   <Td>{r.station}</Td>
                   <Td>
-                    <ProductIconBadge name={r.product} category="Fuel" size="sm" />
+                    <div className="flex items-center gap-2">
+                      <ProductIconBadge name={r.product} category="Fuel" size="sm" />
+                      {isRolledOver && (
+                        <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded font-bold" title="Meter rolled over past 1,000,000">
+                          1M 🔄
+                        </span>
+                      )}
+                    </div>
                   </Td>
                   <Td className="font-semibold font-mono">{volume.toFixed(2)}</Td>
                   <Td className="text-cyan-400 font-semibold font-mono">KES {Math.round(salesAmount).toLocaleString()}</Td>
                   <Td>
-                    <span className={`font-semibold font-mono ${Math.round(variance) === 0 ? 'text-theme-text-muted' : Math.round(variance) > 0 ? 'text-cyan-400' : 'text-red-400'}`}>
-                      {Math.round(variance) > 0 ? '+' : ''}{Math.round(variance).toLocaleString()}
+                    <span className={`font-semibold font-mono ${!hasStopEntered ? 'text-theme-text-muted' : Math.round(variance) === 0 ? 'text-theme-text-muted' : Math.round(variance) > 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                      {!hasStopEntered ? '-' : `${Math.round(variance) > 0 ? '+' : ''}${Math.round(variance).toLocaleString()}`}
                     </span>
                   </Td>
                   <Td>
