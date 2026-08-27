@@ -13,7 +13,8 @@ export default function MasterRecordsView() {
     expenses, setExpenses,
     invoices, setInvoices,
     cashPositions, setCashPositions,
-    deduplicateData, checkDuplicates
+    deduplicateData, checkDuplicates,
+    reassignRecordsDate
   } = useFuel();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,6 +23,10 @@ export default function MasterRecordsView() {
   const [editingItem, setEditingItem] = useState<{ type: string; data: any } | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<{ type: string; id: string } | null>(null);
   const [cleanupMessage, setCleanupMessage] = useState<string | null>(null);
+  const [showReassignModal, setShowReassignModal] = useState<boolean>(false);
+  const [reassignFromDate, setReassignFromDate] = useState<string>('2026-08-26');
+  const [reassignToDate, setReassignToDate] = useState<string>('2026-08-06');
+  const [reassignStation, setReassignStation] = useState<string>('');
 
   // Check duplicate status
   const systemDuplicates = useMemo(() => {
@@ -205,7 +210,16 @@ export default function MasterRecordsView() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            onClick={() => setShowReassignModal(true)}
+            className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl bg-cyan-950/80 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-500/30 transition-all cursor-pointer"
+            title="Batch shift or change dates for records entered on a specific day"
+          >
+            <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+            Shift / Reassign Date
+          </Button>
+
           <Button
             onClick={handleRunDeduplication}
             className={`flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl transition-all ${
@@ -667,6 +681,137 @@ export default function MasterRecordsView() {
                 className="px-4 py-2 bg-red-500 hover:bg-red-400 text-white font-semibold rounded-xl transition-colors text-sm"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* BATCH REASSIGN / SHIFT DATE MODAL */}
+      {showReassignModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4">
+          <div className="glass-panel p-6 sm:p-7 rounded-2xl max-w-lg w-full border border-cyan-500/30 space-y-5 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-theme-border pb-3.5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">Shift / Reassign Records Date</h3>
+                  <p className="text-xs text-slate-400">Move all records entered on one date to a different date</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowReassignModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Quick Preset */}
+              <div className="bg-cyan-950/40 border border-cyan-500/30 rounded-xl p-3.5 flex items-center justify-between">
+                <div>
+                  <span className="text-xs font-bold text-cyan-300 block">Quick Preset Fix</span>
+                  <span className="text-[11px] text-slate-300">Shift 26th August ➔ 06th August</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReassignFromDate('2026-08-26');
+                    setReassignToDate('2026-08-06');
+                  }}
+                  className="px-2.5 py-1 text-xs font-semibold bg-cyan-500 text-slate-950 rounded-lg hover:bg-cyan-400 transition-colors"
+                >
+                  Apply Preset
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold uppercase text-slate-300 block mb-1.5">
+                    Original Date (From)
+                  </label>
+                  <input
+                    type="date"
+                    value={reassignFromDate}
+                    onChange={(e) => setReassignFromDate(e.target.value)}
+                    className="w-full bg-slate-900 border border-theme-border rounded-xl px-3 py-2 text-sm text-white font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold uppercase text-slate-300 block mb-1.5">
+                    Target Date (To)
+                  </label>
+                  <input
+                    type="date"
+                    value={reassignToDate}
+                    onChange={(e) => setReassignToDate(e.target.value)}
+                    className="w-full bg-slate-900 border border-theme-border rounded-xl px-3 py-2 text-sm text-white font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold uppercase text-slate-300 block mb-1.5">
+                  Target Station
+                </label>
+                <select
+                  value={reassignStation}
+                  onChange={(e) => setReassignStation(e.target.value)}
+                  className="w-full bg-slate-900 border border-theme-border rounded-xl px-3 py-2 text-sm text-white"
+                >
+                  <option value="">All Stations (Global Shift)</option>
+                  {stations.map(s => (
+                    <option key={s.id} value={s.name}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Match preview */}
+              {(() => {
+                const normFrom = reassignFromDate;
+                const matchCount = allRecords.filter(r => {
+                  const dateMatch = r.date === normFrom || r.date?.includes(normFrom);
+                  const stMatch = !reassignStation || r.station === reassignStation;
+                  return dateMatch && stMatch;
+                }).length;
+
+                return (
+                  <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800 text-xs text-slate-300 flex items-center justify-between">
+                    <span>Records matching source date:</span>
+                    <span className={`font-bold px-2 py-0.5 rounded ${matchCount > 0 ? 'bg-cyan-500/20 text-cyan-300' : 'bg-slate-800 text-slate-400'}`}>
+                      {matchCount} record(s) found
+                    </span>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2 border-t border-theme-border">
+              <button
+                type="button"
+                onClick={() => setShowReassignModal(false)}
+                className="px-4 py-2 bg-white/5 hover:bg-white/10 text-slate-300 font-medium rounded-xl transition-colors text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const res = reassignRecordsDate(reassignFromDate, reassignToDate, reassignStation || undefined);
+                  if (res.movedCount > 0) {
+                    setCleanupMessage(`Successfully shifted ${res.movedCount} record(s) from ${reassignFromDate} to ${reassignToDate}:\n• ${res.details.join('\n• ')}`);
+                  } else {
+                    setCleanupMessage(`No records found matching date ${reassignFromDate}.`);
+                  }
+                  setShowReassignModal(false);
+                  setTimeout(() => setCleanupMessage(null), 6000);
+                }}
+                className="px-5 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-bold rounded-xl transition-all text-sm shadow-lg shadow-cyan-500/20"
+              >
+                Shift Records
               </button>
             </div>
           </div>

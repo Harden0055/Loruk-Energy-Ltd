@@ -91,6 +91,8 @@ export interface CashPosition {
   station?: Station;
   mPesa: number;
   cashOnHand: number;
+  losses?: number;
+  lossesNote?: string;
 }
 
 export type ProductCategory = 'Fuel' | 'LPG' | 'Accessories' | 'Lubricants' | 'Equipment' | 'Other' | string;
@@ -142,6 +144,7 @@ interface FuelContextType {
   setExpenseTemplates: React.Dispatch<React.SetStateAction<ExpenseTemplate[]>>;
   deduplicateData: (targetDate?: string, targetStation?: string) => DeduplicateOutput;
   checkDuplicates: (targetDate?: string, targetStation?: string) => DuplicateDetectionResult;
+  reassignRecordsDate: (fromDate: string, toDate: string, targetStation?: string) => { movedCount: number; details: string[] };
 }
 
 const FuelContext = createContext<FuelContextType | undefined>(undefined);
@@ -281,6 +284,117 @@ export const FuelProvider = ({ children }: { children: ReactNode }) => {
     return result;
   }, [pumpReadings, lpgTransactions, inventoryItems, expenses, invoices, cashPositions, setPumpReadings, setLpgTransactions, setInventoryItems, setExpenses, setInvoices, setCashPositions]);
 
+  const reassignRecordsDate = useCallback((fromDate: string, toDate: string, targetStation?: string) => {
+    const normFrom = normalizeDate(fromDate);
+    const normTo = normalizeDate(toDate);
+    if (!normFrom || !normTo || normFrom === normTo) return { movedCount: 0, details: [] };
+
+    let totalMoved = 0;
+    const details: string[] = [];
+
+    const stationMatch = (st?: string) => {
+      if (!targetStation || targetStation === 'Combined Total') return true;
+      return st === targetStation;
+    };
+
+    // Pump readings
+    const pumpHits = pumpReadings.filter(r => normalizeDate(r.date) === normFrom && stationMatch(r.station));
+    if (pumpHits.length > 0) {
+      setPumpReadings(prev => prev.map(r => {
+        if (normalizeDate(r.date) === normFrom && stationMatch(r.station)) {
+          return { ...r, date: normTo, id: r.id.replace(normFrom, normTo) };
+        }
+        return r;
+      }));
+      totalMoved += pumpHits.length;
+      details.push(`${pumpHits.length} Pump Reading(s)`);
+    }
+
+    // LPG
+    const lpgHits = lpgTransactions.filter(t => normalizeDate(t.date) === normFrom && stationMatch(t.station));
+    if (lpgHits.length > 0) {
+      setLpgTransactions(prev => prev.map(t => {
+        if (normalizeDate(t.date) === normFrom && stationMatch(t.station)) {
+          return { ...t, date: normTo, id: t.id.replace(normFrom, normTo) };
+        }
+        return t;
+      }));
+      totalMoved += lpgHits.length;
+      details.push(`${lpgHits.length} LPG Transaction(s)`);
+    }
+
+    // Inventory
+    const invItemHits = inventoryItems.filter(i => normalizeDate(i.date) === normFrom && stationMatch(i.station));
+    if (invItemHits.length > 0) {
+      setInventoryItems(prev => prev.map(i => {
+        if (normalizeDate(i.date) === normFrom && stationMatch(i.station)) {
+          return { ...i, date: normTo, id: i.id.replace(normFrom, normTo) };
+        }
+        return i;
+      }));
+      totalMoved += invItemHits.length;
+      details.push(`${invItemHits.length} Inventory Item(s)`);
+    }
+
+    // Expenses
+    const expHits = expenses.filter(e => normalizeDate(e.date) === normFrom && stationMatch(e.station));
+    if (expHits.length > 0) {
+      setExpenses(prev => prev.map(e => {
+        if (normalizeDate(e.date) === normFrom && stationMatch(e.station)) {
+          return { ...e, date: normTo, id: e.id.replace(normFrom, normTo) };
+        }
+        return e;
+      }));
+      totalMoved += expHits.length;
+      details.push(`${expHits.length} Expense(s)`);
+    }
+
+    // Invoices
+    const invoiceHits = invoices.filter(i => normalizeDate(i.date || '') === normFrom && stationMatch(i.station));
+    if (invoiceHits.length > 0) {
+      setInvoices(prev => prev.map(i => {
+        if (normalizeDate(i.date || '') === normFrom && stationMatch(i.station)) {
+          return { ...i, date: normTo, id: i.id.replace(normFrom, normTo) };
+        }
+        return i;
+      }));
+      totalMoved += invoiceHits.length;
+      details.push(`${invoiceHits.length} Invoice(s)`);
+    }
+
+    // Cash Positions
+    const cashHits = cashPositions.filter(cp => normalizeDate(cp.date) === normFrom && stationMatch(cp.station));
+    if (cashHits.length > 0) {
+      setCashPositions(prev => prev.map(cp => {
+        if (normalizeDate(cp.date) === normFrom && stationMatch(cp.station)) {
+          return { ...cp, date: normTo, id: cp.id.replace(normFrom, normTo) };
+        }
+        return cp;
+      }));
+      totalMoved += cashHits.length;
+      details.push(`${cashHits.length} Cash Position(s)`);
+    }
+
+    return { movedCount: totalMoved, details };
+  }, [pumpReadings, lpgTransactions, inventoryItems, expenses, invoices, cashPositions, setPumpReadings, setLpgTransactions, setInventoryItems, setExpenses, setInvoices, setCashPositions]);
+
+  // One-time auto migration: Reassign records mistakingly entered as 2026-08-26 to 2026-08-06
+  const migrationAttempted = useRef(false);
+  useEffect(() => {
+    if (migrationAttempted.current) return;
+    const has26 = expenses.some(e => normalizeDate(e.date) === '2026-08-26') ||
+                  invoices.some(i => normalizeDate(i.date || '') === '2026-08-26') ||
+                  inventoryItems.some(i => normalizeDate(i.date) === '2026-08-26') ||
+                  cashPositions.some(c => normalizeDate(c.date) === '2026-08-26') ||
+                  lpgTransactions.some(l => normalizeDate(l.date) === '2026-08-26') ||
+                  pumpReadings.some(r => normalizeDate(r.date) === '2026-08-26');
+
+    if (has26) {
+      migrationAttempted.current = true;
+      reassignRecordsDate('2026-08-26', '2026-08-06');
+    }
+  }, [expenses, invoices, inventoryItems, cashPositions, lpgTransactions, pumpReadings, reassignRecordsDate]);
+
   return (
     <FuelContext.Provider value={{
       activeStation, setActiveStation,
@@ -295,6 +409,7 @@ export const FuelProvider = ({ children }: { children: ReactNode }) => {
       expenseTemplates, setExpenseTemplates,
       deduplicateData,
       checkDuplicates,
+      reassignRecordsDate,
     }}>
       {children}
     </FuelContext.Provider>

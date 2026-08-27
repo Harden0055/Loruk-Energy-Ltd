@@ -974,9 +974,14 @@ export default function InvoicesView() {
                                 </div>
                                 <div>
                                   <div className="flex items-center gap-1.5">
-                                    <span className="font-bold text-white text-sm group-hover:text-emerald-400 transition-colors">
-                                      {c.name}
-                                    </span>
+                                    <button
+                                      onClick={() => setStatementCustomer(c)}
+                                      className="font-bold text-white text-sm group-hover:text-cyan-400 hover:underline transition-colors flex items-center gap-1.5 cursor-pointer text-left"
+                                      title="View Invoices & Payments Statement"
+                                    >
+                                      <span>{c.name}</span>
+                                      <ExternalLink className="w-3.5 h-3.5 text-cyan-400 opacity-60 group-hover:opacity-100" />
+                                    </button>
                                   </div>
                                   <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
                                     {c.code && <span className="font-mono text-slate-400">[{c.code}]</span>}
@@ -1136,9 +1141,14 @@ export default function InvoicesView() {
                             {(c.name || 'C').charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <h4 className="font-bold text-white text-base group-hover:text-emerald-400 transition-colors">
-                              {c.name}
-                            </h4>
+                            <button
+                              onClick={() => setStatementCustomer(c)}
+                              className="font-bold text-white text-base group-hover:text-cyan-400 hover:underline transition-colors text-left flex items-center gap-1.5 cursor-pointer"
+                              title="View Invoices & Payments Statement"
+                            >
+                              <span>{c.name}</span>
+                              <ExternalLink className="w-4 h-4 text-cyan-400 opacity-60 group-hover:opacity-100" />
+                            </button>
                             <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
                               {c.code && <span className="font-mono text-slate-400">[{c.code}]</span>}
                               <span>•</span>
@@ -1339,9 +1349,28 @@ export default function InvoicesView() {
                             <div className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs ring-1 ${avatarStyle}`}>
                               {(t.customerName || 'C').charAt(0).toUpperCase()}
                             </div>
-                            <span className="font-bold text-white text-xs group-hover:text-cyan-400 transition-colors">
-                              {t.customerName}
-                            </span>
+                            <button
+                              onClick={() => {
+                                let cust = customers.find(x => x.name?.toLowerCase() === t.customerName?.toLowerCase());
+                                if (!cust) {
+                                  cust = {
+                                    id: 'cust_temp_' + Math.random(),
+                                    code: '',
+                                    name: t.customerName || 'Customer',
+                                    station: t.station,
+                                    creditLimit: 0,
+                                    openingBalance: 0,
+                                    customerType: 'Retail'
+                                  };
+                                }
+                                setStatementCustomer(cust);
+                              }}
+                              className="font-bold text-white text-xs group-hover:text-cyan-400 hover:underline transition-colors text-left flex items-center gap-1.5 cursor-pointer"
+                              title="View Invoices & Payments Statement"
+                            >
+                              <span>{t.customerName}</span>
+                              <ExternalLink className="w-3 h-3 text-cyan-400 opacity-60 group-hover:opacity-100" />
+                            </button>
                           </div>
                         </td>
                         <td className="py-3.5 px-3 text-right font-mono text-xs font-semibold text-[#3B82F6]">

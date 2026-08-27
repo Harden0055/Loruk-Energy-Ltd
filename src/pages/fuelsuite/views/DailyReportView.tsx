@@ -1,17 +1,38 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useFuel, calculatePumpMeterDelta } from '../context';
-import { Card, CardContent, CardHeader, CardTitle, Input } from '../components';
+import { Card, CardContent, CardHeader, CardTitle, Input, Button } from '../components';
 import { normalizeDate } from '../deduplication';
 import { format } from 'date-fns';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from 'recharts';
-import { X, Flame, Printer, ClipboardList } from 'lucide-react';
+import { X, Flame, Printer, ClipboardList, ChevronLeft, ChevronRight, Calendar, Sparkles } from 'lucide-react';
+import { getLatestRecordedDate, addDays, formatFriendlyDate } from '../dateUtils';
 
 const COLORS = ['#06b6d4', '#f59e0b'];
 
 export default function DailyReportView() {
   const { activeStation, pumpReadings, lpgTransactions, expenses, invoices, inventoryItems, cashPositions } = useFuel();
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  
+  const latestReportDate = useMemo(() => {
+    return getLatestRecordedDate({
+      pumpReadings,
+      lpgTransactions,
+      inventoryItems,
+      expenses,
+      invoices,
+      cashPositions
+    }, activeStation);
+  }, [pumpReadings, lpgTransactions, inventoryItems, expenses, invoices, cashPositions, activeStation]);
+
+  const [selectedDate, setSelectedDate] = useState<string>(() => latestReportDate || new Date().toISOString().split('T')[0]);
+  const [userSelected, setUserSelected] = useState<boolean>(false);
   const [showLpgProfit, setShowLpgProfit] = useState(false);
+
+  // Synchronize with latest recorded date when available if user hasn't manually picked
+  useEffect(() => {
+    if (!userSelected && latestReportDate) {
+      setSelectedDate(latestReportDate);
+    }
+  }, [latestReportDate, userSelected]);
 
   const normSelectedDate = normalizeDate(selectedDate);
 
@@ -117,15 +138,18 @@ export default function DailyReportView() {
 
   const totalExpensesAmount = dailyExpenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
   const totalMPesaAmount = dailyCashPos?.mPesa ?? 0;
+  const recordedLosses = dailyCashPos?.losses ?? 0;
+  const lossesNote = dailyCashPos?.lossesNote ?? '';
 
   // Expected Total Cash = Total Sales - Cost of Goods/Refills - Expenses - Uncollected Credit Sales Today + Past Debt Payments Collected Today
   const expectedTotalCash = totalSales - totalGasesPurchases - totalExpensesAmount - uncollectedCreditSalesToday + pastDebtPaymentsCollectedToday;
   const expectedCashOnHand = expectedTotalCash - totalMPesaAmount;
-  const cashAtHand = dailyCashPos?.cashOnHand ?? expectedCashOnHand;
+  const grossCashAtHand = dailyCashPos?.cashOnHand ?? expectedCashOnHand;
+  const exactNetCashAtHand = grossCashAtHand - recordedLosses;
   
-  // Standard Cash Variance: Actual Cash counted - Expected Cash
+  // Standard Cash Variance: Exact Net Cash counted - Expected Cash
   // Positive = Excess / Surplus, Negative = Shortfall / Loss, 0 = Balanced
-  const cashDifference = cashAtHand - expectedCashOnHand;
+  const cashDifference = exactNetCashAtHand - expectedCashOnHand;
 
   // Added fuel / Inventory balances could be fetched from InventoryItems
   const dailyFuelAdded = inventoryItems.filter(i => 
@@ -261,14 +285,59 @@ export default function DailyReportView() {
             <p className="text-theme-text-muted mt-0.5 text-xs">Detailed end-of-day summary & cash reconciliation</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <label className="text-sm font-medium text-theme-text-muted">Date:</label>
-          <Input 
-            type="date" 
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="w-auto"
-          />
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-theme-border">
+            <Button 
+              type="button"
+              onClick={() => {
+                setSelectedDate(prev => addDays(prev, -1));
+                setUserSelected(true);
+              }}
+              className="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs"
+              title="Previous Day"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Input 
+              type="date" 
+              value={selectedDate}
+              onChange={(e) => {
+                setSelectedDate(e.target.value);
+                setUserSelected(true);
+              }}
+              className="w-auto bg-transparent border-0 text-slate-100 font-mono text-xs py-1 px-2 focus:ring-0"
+            />
+            <Button 
+              type="button"
+              onClick={() => {
+                setSelectedDate(prev => addDays(prev, 1));
+                setUserSelected(true);
+              }}
+              className="px-2 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs"
+              title="Next Day"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+
+          {latestReportDate && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedDate(latestReportDate);
+                setUserSelected(true);
+              }}
+              className={`text-xs px-2.5 py-2 rounded-xl transition-all border flex items-center gap-1 cursor-pointer ${
+                selectedDate === latestReportDate
+                  ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-bold'
+                  : 'bg-slate-900 text-slate-400 hover:text-slate-200 border-theme-border'
+              }`}
+              title="View latest recorded shift report"
+            >
+              <Calendar className="w-3.5 h-3.5" /> Latest: {formatFriendlyDate(latestReportDate)}
+            </button>
+          )}
+
           <button
             onClick={() => {
               try {
@@ -441,8 +510,29 @@ export default function DailyReportView() {
             </div>
             
             <div className="flex justify-between items-center text-xl font-bold bg-[#122840]/30 p-4 rounded-lg">
-              <span className="text-slate-100">Cash at hand</span>
-              <span className="text-cyan-400">Ksh {Math.round(cashAtHand).toLocaleString()}</span>
+              <div>
+                <span className="text-slate-100 block">Gross Cash at Hand</span>
+                <span className="text-xs text-slate-400 font-normal">Physical count in register</span>
+              </div>
+              <span className="text-cyan-400">Ksh {Math.round(grossCashAtHand).toLocaleString()}</span>
+            </div>
+
+            {recordedLosses > 0 && (
+              <div className="flex justify-between items-center text-lg font-bold bg-red-950/30 border border-red-800/40 p-4 rounded-lg">
+                <div>
+                  <span className="text-red-300 block">Operational Losses</span>
+                  {lossesNote && <span className="text-xs text-red-400/80 font-normal">{lossesNote}</span>}
+                </div>
+                <span className="text-red-400">- Ksh {Math.round(recordedLosses).toLocaleString()}</span>
+              </div>
+            )}
+
+            <div className="flex justify-between items-center text-xl font-bold bg-emerald-950/30 border border-emerald-800/40 p-4 rounded-lg">
+              <div>
+                <span className="text-emerald-300 block">Exact Cash at Hand (Net)</span>
+                <span className="text-xs text-emerald-400/80 font-normal">Physical Cash minus Losses</span>
+              </div>
+              <span className="text-emerald-400">Ksh {Math.round(exactNetCashAtHand).toLocaleString()}</span>
             </div>
 
             <div className={`flex justify-between items-center text-xl font-bold p-4 rounded-lg border ${
@@ -450,9 +540,12 @@ export default function DailyReportView() {
               Math.round(cashDifference) < 0 ? 'bg-red-500/20 border-red-500/40' : 
               'bg-slate-500/20 border-slate-500/40'
             }`}>
-              <span className="text-slate-100">
-                {Math.round(cashDifference) > 0 ? 'Excess' : Math.round(cashDifference) < 0 ? 'Short / Loss' : 'Balanced'}
-              </span>
+              <div>
+                <span className="text-slate-100 block">
+                  {Math.round(cashDifference) > 0 ? 'Excess' : Math.round(cashDifference) < 0 ? 'Short / Loss' : 'Balanced'}
+                </span>
+                <span className="text-xs text-slate-400 font-normal">Reconciliation vs Expected Cash</span>
+              </div>
               <span className={
                 Math.round(cashDifference) > 0 ? 'text-emerald-400' : 
                 Math.round(cashDifference) < 0 ? 'text-red-400' : 
@@ -464,7 +557,7 @@ export default function DailyReportView() {
           </div>
 
           {/* VISUAL CASH SPLIT */}
-          {(totalMPesaAmount > 0 || cashAtHand > 0) && (
+          {(totalMPesaAmount > 0 || exactNetCashAtHand > 0) && (
             <div className="pt-6 border-t border-theme-border">
               <h4 className="text-lg font-bold text-theme-text mb-4 text-center">Cash Position Split</h4>
               <div className="h-64 w-full relative overflow-hidden flex flex-col items-center justify-center">
@@ -473,7 +566,7 @@ export default function DailyReportView() {
                     <Pie
                       data={[
                         { name: 'M-Pesa', value: totalMPesaAmount },
-                        { name: 'Cash on Hand', value: cashAtHand > 0 ? cashAtHand : 0 },
+                        { name: 'Exact Cash on Hand', value: exactNetCashAtHand > 0 ? exactNetCashAtHand : 0 },
                       ]}
                       cx="50%"
                       cy="50%"
@@ -494,8 +587,8 @@ export default function DailyReportView() {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="text-center mt-2">
-                  <p className="text-sm text-theme-text-muted">Total Funds</p>
-                  <p className="text-xl font-bold text-theme-text">KES {(totalMPesaAmount + Math.max(0, cashAtHand)).toLocaleString()}</p>
+                  <p className="text-sm text-theme-text-muted">Total Available Funds</p>
+                  <p className="text-xl font-bold text-theme-text">KES {(totalMPesaAmount + Math.max(0, exactNetCashAtHand)).toLocaleString()}</p>
                 </div>
               </div>
             </div>

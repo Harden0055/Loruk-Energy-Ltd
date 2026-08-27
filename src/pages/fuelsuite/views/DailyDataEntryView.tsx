@@ -44,9 +44,20 @@ import {
   Loader2,
   AlertTriangle,
   RefreshCw,
-  ShieldAlert
+  ShieldAlert,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  RotateCcw,
+  Sparkle,
+  Eye,
+  AlertCircle,
+  TrendingDown,
+  CreditCard,
+  Printer
 } from 'lucide-react';
 import { sortProductsList } from './ProductsView';
+import { getLatestRecordedDate, getNextSequentialDate, addDays, formatFriendlyDate } from '../dateUtils';
 
 interface DailyInvoiceRow extends Partial<Invoice> {
   type?: 'debt' | 'paid' | 'paid_full' | 'partial';
@@ -77,13 +88,45 @@ export default function DailyDataEntryView() {
     ];
   }, [stations]);
 
-  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [station, setStation] = useState<Station>(
     activeStation === 'Combined Total' ? (availableStations[0]?.name || 'Loruk Ndalu Filling Station') : activeStation
   );
+
+  // Compute latest recorded date and auto-sequential date for the active station
+  const latestRecordedDate = useMemo(() => {
+    return getLatestRecordedDate({
+      pumpReadings,
+      lpgTransactions,
+      inventoryItems,
+      expenses,
+      invoices,
+      cashPositions
+    }, station);
+  }, [pumpReadings, lpgTransactions, inventoryItems, expenses, invoices, cashPositions, station]);
+
+  const autoSequentialDate = useMemo(() => {
+    return getNextSequentialDate({
+      pumpReadings,
+      lpgTransactions,
+      inventoryItems,
+      expenses,
+      invoices,
+      cashPositions
+    }, station);
+  }, [pumpReadings, lpgTransactions, inventoryItems, expenses, invoices, cashPositions, station]);
+
+  const [date, setDate] = useState<string>(() => autoSequentialDate);
+  const [userHasOverriddenDate, setUserHasOverriddenDate] = useState<boolean>(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [dedupeSuccessMsg, setDedupeSuccessMsg] = useState<string | null>(null);
+
+  // Automatically synchronize date with sequential following day unless manually edited by user
+  useEffect(() => {
+    if (!userHasOverriddenDate && autoSequentialDate) {
+      setDate(autoSequentialDate);
+    }
+  }, [autoSequentialDate, userHasOverriddenDate]);
 
   // Check for duplicates on the active date & station
   const dateDuplicates = useMemo(() => {
@@ -248,9 +291,71 @@ export default function DailyDataEntryView() {
   const [newExpenseIsRecurring, setNewExpenseIsRecurring] = useState(true);
   const [newExpenseNotes, setNewExpenseNotes] = useState('');
 
-  // Cash Position state
+  // Cash Position & Losses state
   const [mPesa, setMPesa] = useState<number>(0);
   const [manualCashOnHand, setManualCashOnHand] = useState<number>(0);
+  const [lossesAmount, setLossesAmount] = useState<number>(0);
+  const [lossesNote, setLossesNote] = useState<string>('');
+
+  // Selected customer preview modal state
+  const [previewCustomerName, setPreviewCustomerName] = useState<string | null>(null);
+
+  // Helper to compute live status and financial audit for any selected customer
+  const getCustomerStatus = useCallback((customerName?: string) => {
+    if (!customerName || !customerName.trim()) return null;
+    const cleanName = customerName.trim().toLowerCase();
+
+    // Match in customer database
+    const customerObj = customers.find(c => c.name?.trim().toLowerCase() === cleanName);
+    
+    // Match in all invoices
+    const custInvoices = invoices.filter(i => (i.customerName || '').trim().toLowerCase() === cleanName)
+      .sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+    const openingBalance = Number(customerObj?.openingBalance) || 0;
+    const creditLimit = Number(customerObj?.creditLimit) || 0;
+    
+    const totalInvoiced = custInvoices.reduce((sum, i) => sum + (Number(i.totalAmount) || 0), 0);
+    const totalPaid = custInvoices.reduce((sum, i) => sum + (Number(i.paidAmount) || 0), 0);
+    const netBalance = openingBalance + totalInvoiced - totalPaid;
+    
+    const availableCredit = creditLimit > 0 ? (creditLimit - netBalance) : null;
+    const isOverLimit = creditLimit > 0 && netBalance > creditLimit;
+    const utilizationPct = creditLimit > 0 ? Math.min(100, Math.max(0, Math.round((netBalance / creditLimit) * 100))) : 0;
+
+    let statusLabel = 'Cleared / Zero Debt';
+    let statusColor = 'text-emerald-400 bg-emerald-950/60 border-emerald-800/60';
+
+    if (isOverLimit) {
+      statusLabel = 'Credit Limit Exceeded';
+      statusColor = 'text-red-400 bg-red-950/60 border-red-800/60';
+    } else if (netBalance > 0) {
+      statusLabel = 'Outstanding Debt';
+      statusColor = 'text-amber-400 bg-amber-950/60 border-amber-800/60';
+    } else if (netBalance < 0) {
+      statusLabel = 'Credit / Overpaid';
+      statusColor = 'text-cyan-400 bg-cyan-950/60 border-cyan-800/60';
+    }
+
+    return {
+      customerObj,
+      customerName: customerObj?.name || customerName,
+      customerCode: customerObj?.code || 'N/A',
+      station: customerObj?.station || station,
+      openingBalance,
+      creditLimit,
+      availableCredit,
+      isOverLimit,
+      utilizationPct,
+      totalInvoiced,
+      totalPaid,
+      netBalance,
+      statusLabel,
+      statusColor,
+      invoiceCount: custInvoices.length,
+      recentInvoices: custInvoices.slice(0, 15),
+    };
+  }, [customers, invoices, station]);
 
   // Track currently loaded context to avoid infinite reloading
   const lastLoadedContext = useRef<string>('');
@@ -398,14 +503,18 @@ export default function DailyDataEntryView() {
       setInvoiceRows([{ customerName: '', type: 'debt', totalAmount: 0, paidAmount: 0 }]);
     }
 
-    // 6. CASH POSITION
+    // 6. CASH POSITION & LOSSES
     const existingCashPos = cashPositions.find(cp => (!cp.station || cp.station === station) && cp.date === date);
     if (existingCashPos) {
       setMPesa(existingCashPos.mPesa || 0);
       setManualCashOnHand(existingCashPos.cashOnHand || 0);
+      setLossesAmount(existingCashPos.losses || 0);
+      setLossesNote(existingCashPos.lossesNote || '');
     } else {
       setMPesa(0);
       setManualCashOnHand(0);
+      setLossesAmount(0);
+      setLossesNote('');
     }
 
     lastLoadedContext.current = contextKey;
@@ -577,7 +686,11 @@ export default function DailyDataEntryView() {
 
   const expectedTotalCash = totalSales - totalCOGS - expensesAmount - uncollectedCreditSalesToday + pastDebtPaymentsCollectedToday;
   const expectedCashOnHand = expectedTotalCash - (mPesa || 0);
-  const variance = (manualCashOnHand || 0) - expectedCashOnHand;
+  const losses = Number(lossesAmount) || 0;
+  // Exact Net Cash at Hand = Physical Cash Count minus Recorded Operational/Discrepancy Losses
+  const exactCashAtHand = (manualCashOnHand || 0) - losses;
+  // Reconciliation Variance compares Exact Net Physical Cash against Expected Cash on Hand
+  const variance = exactCashAtHand - expectedCashOnHand;
 
   // MASTER SAVE FUNCTION - SYNC TO ALL 6 MODULES (Pump Readings, LPG, Inventory, Expenses, Invoices, Cash Position)
   const handleSaveAll = () => {
@@ -760,22 +873,24 @@ export default function DailyDataEntryView() {
       syncedModules.push(`Invoices & Debt Payments (${newInvoices.length} records: KES ${invoicesTotal.toLocaleString()} invoiced, KES ${paidInvoicesAmount.toLocaleString()} paid)`);
     }
 
-    // 6. LINK & SAVE CASH POSITION (Feeds Cash Position page)
-    if (mPesa > 0 || manualCashOnHand > 0 || expectedTotalCash > 0) {
+    // 6. LINK & SAVE CASH POSITION & LOSSES (Feeds Cash Position page & reconciliation)
+    if (mPesa > 0 || manualCashOnHand > 0 || lossesAmount > 0 || expectedTotalCash > 0) {
       const detId = generateDeterministicId('cash', date, station, 'pos');
       const newCashPosition: CashPosition = {
         id: detId,
         date,
         station,
         mPesa: Number(mPesa) || 0,
-        cashOnHand: Number(manualCashOnHand) || 0
+        cashOnHand: Number(manualCashOnHand) || 0,
+        losses: Number(lossesAmount) || 0,
+        lossesNote: (lossesNote || '').trim()
       };
 
       setCashPositions(prev => {
         const filtered = prev.filter(cp => !(normalizeDate(cp.date) === normDate && (cp.station === station || !cp.station)));
         return [...filtered, newCashPosition];
       });
-      syncedModules.push(`Cash Position (M-Pesa: KES ${mPesa.toLocaleString()}, Cash: KES ${manualCashOnHand.toLocaleString()})`);
+      syncedModules.push(`Cash Position (M-Pesa: KES ${mPesa.toLocaleString()}, Cash: KES ${manualCashOnHand.toLocaleString()}${lossesAmount > 0 ? `, Losses: KES ${lossesAmount.toLocaleString()}` : ''})`);
     }
 
     const message = syncedModules.length > 0 
@@ -887,12 +1002,26 @@ export default function DailyDataEntryView() {
 
       {/* Success Notification Banner */}
       {saveSuccessMsg && (
-        <div className="bg-emerald-950/40 border border-emerald-500/40 rounded-xl p-4 flex items-start gap-3 shadow-lg animate-in slide-in-from-top duration-300">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
-          <div className="text-sm">
-            <p className="font-bold text-emerald-300">Daily Data Saved and Synchronized!</p>
-            <pre className="text-xs text-emerald-200 mt-1 font-sans whitespace-pre-wrap">{saveSuccessMsg}</pre>
+        <div className="bg-emerald-950/40 border border-emerald-500/40 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg animate-in slide-in-from-top duration-300">
+          <div className="flex items-start gap-3">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-bold text-emerald-300">Daily Data Saved and Synchronized!</p>
+              <pre className="text-xs text-emerald-200 mt-1 font-sans whitespace-pre-wrap">{saveSuccessMsg}</pre>
+            </div>
           </div>
+          <Button
+            type="button"
+            onClick={() => {
+              const nextDay = addDays(date, 1);
+              setDate(nextDay);
+              setUserHasOverriddenDate(false);
+              setSaveSuccessMsg(null);
+            }}
+            className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 text-xs shadow-[0_0_15px_rgba(16,185,129,0.3)] whitespace-nowrap flex-shrink-0"
+          >
+            Advance to Next Day ({formatFriendlyDate(addDays(date, 1))}) <ArrowRight className="w-3.5 h-3.5" />
+          </Button>
         </div>
       )}
 
@@ -946,16 +1075,120 @@ export default function DailyDataEntryView() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-theme-border/50">
             <div>
-              <label className="text-xs font-semibold text-theme-text-muted uppercase tracking-wider block mb-1.5">
-                Entry Date
-              </label>
-              <Input 
-                type="date" 
-                value={date} 
-                onChange={(e) => setDate(e.target.value)} 
-                className="bg-slate-900 border-theme-border text-slate-100"
-              />
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-theme-text-muted uppercase tracking-wider flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+                  Entry Date
+                </label>
+                {userHasOverriddenDate ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUserHasOverriddenDate(false);
+                      setDate(autoSequentialDate);
+                    }}
+                    className="text-[11px] font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer bg-amber-950/40 px-2 py-0.5 rounded border border-amber-500/30"
+                    title="Reset to sequential following day"
+                  >
+                    <RotateCcw className="w-3 h-3" /> Reset to Sequential ({formatFriendlyDate(autoSequentialDate)})
+                  </button>
+                ) : (
+                  <span className="text-[11px] font-medium text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40 flex items-center gap-1">
+                    <Sparkle className="w-3 h-3 text-cyan-300" /> Auto-Sequential Active
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setDate(prev => addDays(prev, -1));
+                    setUserHasOverriddenDate(true);
+                  }}
+                  className="px-2.5 py-2 bg-slate-900 hover:bg-slate-800 border border-theme-border text-slate-300 text-xs font-bold"
+                  title="Previous Day (-1 Day)"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+
+                <Input 
+                  type="date" 
+                  value={date} 
+                  onChange={(e) => {
+                    setDate(e.target.value);
+                    setUserHasOverriddenDate(true);
+                  }} 
+                  className="bg-slate-900 border-theme-border text-slate-100 font-mono text-sm flex-1"
+                />
+
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setDate(prev => addDays(prev, 1));
+                    setUserHasOverriddenDate(true);
+                  }}
+                  className="px-2.5 py-2 bg-slate-900 hover:bg-slate-800 border border-theme-border text-slate-300 text-xs font-bold"
+                  title="Next Day (+1 Day)"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+
+              {/* Quick Jump Buttons */}
+              <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                {latestRecordedDate && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDate(latestRecordedDate);
+                      setUserHasOverriddenDate(true);
+                    }}
+                    className={`text-[11px] px-2 py-1 rounded transition-colors border cursor-pointer ${
+                      date === latestRecordedDate
+                        ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-bold'
+                        : 'bg-slate-900/80 text-slate-400 hover:text-slate-200 border-slate-800'
+                    }`}
+                    title="View/Edit previous recorded shift"
+                  >
+                    📄 Last Shift: {formatFriendlyDate(latestRecordedDate)}
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDate(autoSequentialDate);
+                    setUserHasOverriddenDate(false);
+                  }}
+                  className={`text-[11px] px-2 py-1 rounded transition-colors border cursor-pointer ${
+                    !userHasOverriddenDate && date === autoSequentialDate
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 font-bold'
+                      : 'bg-slate-900/80 text-slate-400 hover:text-emerald-300 border-slate-800'
+                  }`}
+                  title="Auto Sequential Date (+1 Day after last entry)"
+                >
+                  ⚡ Next Sequential: {formatFriendlyDate(autoSequentialDate)}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const today = new Date().toISOString().split('T')[0];
+                    setDate(today);
+                    setUserHasOverriddenDate(true);
+                  }}
+                  className={`text-[11px] px-2 py-1 rounded transition-colors border cursor-pointer ${
+                    date === new Date().toISOString().split('T')[0]
+                      ? 'bg-blue-500/20 text-blue-300 border-blue-500/40 font-bold'
+                      : 'bg-slate-900/80 text-slate-400 hover:text-blue-300 border-slate-800'
+                  }`}
+                >
+                  Today
+                </button>
+              </div>
             </div>
+
             <div>
               <label className="text-xs font-semibold text-theme-text-muted uppercase tracking-wider block mb-1.5">
                 Selected Station Dropdown
@@ -971,6 +1204,9 @@ export default function DailyDataEntryView() {
                   </option>
                 ))}
               </Select>
+              <p className="text-[11px] text-slate-400 mt-1.5">
+                Selecting a station automatically calculates its last recorded closing meters & sequential date.
+              </p>
             </div>
           </div>
 
@@ -1688,13 +1924,27 @@ export default function DailyDataEntryView() {
                 (invoice.totalAmount || 0) > 0 && (invoice.paidAmount || 0) > 0 ? 'partial' : 'debt'
               );
 
+              const custStatus = invoice.customerName ? getCustomerStatus(invoice.customerName) : null;
+
               return (
-                <div key={idx} className="p-3.5 rounded-xl border border-theme-border/60 bg-slate-900/50 space-y-2 hover:border-theme-border transition-colors">
+                <div key={idx} className="p-3.5 rounded-xl border border-theme-border/60 bg-slate-900/50 space-y-2.5 hover:border-theme-border transition-colors">
                   <div className="flex gap-3 items-end flex-wrap xl:flex-nowrap">
                     {/* Customer Select */}
                     <div className="flex-1 min-w-[200px]">
                       <div className="flex justify-between items-center mb-1">
-                        <label className="text-[10px] uppercase font-bold text-slate-400 block">Customer / Debtor</label>
+                        <div className="flex items-center gap-1.5">
+                          <label className="text-[10px] uppercase font-bold text-slate-400 block">Customer / Debtor</label>
+                          {invoice.customerName && (
+                            <button
+                              type="button"
+                              onClick={() => setPreviewCustomerName(invoice.customerName!)}
+                              className="text-[10px] text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-0.5 ml-1 transition-colors"
+                              title="Open Customer 360° Financial Status Preview"
+                            >
+                              <Eye className="w-2.5 h-2.5" /> Preview Status
+                            </button>
+                          )}
+                        </div>
                         <button
                           type="button"
                           onClick={() => {
@@ -1817,6 +2067,52 @@ export default function DailyDataEntryView() {
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
+
+                  {/* Customer Status Mini-Preview Bar */}
+                  {custStatus && (
+                    <div className="pt-2 border-t border-slate-800/60 flex flex-wrap items-center justify-between gap-2 bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
+                      <div className="flex flex-wrap items-center gap-2.5 text-xs">
+                        <div className="flex items-center gap-1.5 font-bold text-slate-200">
+                          <div className="w-5 h-5 rounded bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-[10px] font-mono">
+                            {custStatus.customerCode !== 'N/A' ? (custStatus.customerCode.split('-')[1] || 'C') : 'C'}
+                          </div>
+                          <span>{custStatus.customerName}</span>
+                          {custStatus.customerCode !== 'N/A' && (
+                            <span className="text-[10px] font-mono text-slate-400 font-normal">[{custStatus.customerCode}]</span>
+                          )}
+                        </div>
+
+                        <span className={`px-2 py-0.5 rounded text-[11px] font-semibold border ${custStatus.statusColor}`}>
+                          {custStatus.statusLabel}: {custStatus.netBalance < 0 ? `(Overpaid KES ${Math.abs(Math.round(custStatus.netBalance)).toLocaleString()})` : `KES ${Math.round(custStatus.netBalance).toLocaleString()}`}
+                        </span>
+
+                        {custStatus.creditLimit > 0 && (
+                          <span className="hidden sm:inline text-[11px] text-slate-400">
+                            Limit: <strong className="text-slate-200 font-mono">KES {Math.round(custStatus.creditLimit).toLocaleString()}</strong>
+                            {custStatus.availableCredit !== null && (
+                              <span className={` ml-1 ${custStatus.availableCredit <= 0 ? 'text-red-400 font-bold' : 'text-emerald-400'}`}>
+                                ({Math.round(custStatus.availableCredit).toLocaleString()} avail)
+                              </span>
+                            )}
+                          </span>
+                        )}
+
+                        <span className="text-[11px] text-slate-500 hidden md:inline">
+                          • {custStatus.invoiceCount} previous record{custStatus.invoiceCount === 1 ? '' : 's'}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setPreviewCustomerName(custStatus.customerName)}
+                        className="px-2.5 py-1 rounded bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-500/30 hover:border-cyan-400 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm ml-auto"
+                        title="Click to view complete customer profile, status, credit balance & all past transactions"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-cyan-400" />
+                        <span>Preview Full Status & Statement</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -1824,15 +2120,15 @@ export default function DailyDataEntryView() {
         </Card>
       </div>
 
-      {/* 6. END OF DAY CASH POSITION SECTION */}
+      {/* 6. END OF DAY CASH POSITION & LOSSES SECTION */}
       <Card className="glass-panel border-theme-border">
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
             <Wallet className="w-5 h-5 text-cyan-400" />
-            <CardTitle className="text-lg text-cyan-400">End of Day Cash Position</CardTitle>
+            <CardTitle className="text-lg text-cyan-400">End of Day Cash Position & Reconciliation</CardTitle>
           </div>
           <span className="text-xs font-mono text-emerald-400/90 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800/40">
-            Real-time Reconciliation
+            Real-time Cash Audit
           </span>
         </CardHeader>
         <CardContent className="p-6 pt-0 space-y-6">
@@ -1865,23 +2161,27 @@ export default function DailyDataEntryView() {
                 </p>
               </div>
               <div className="text-xs text-theme-text-muted">
-                Formula: (Total Sales - COGS - Expenses - Uncollected Invoices + Debt Collected)
+                Formula: Total Sales - COGS - Expenses - Uncollected Invoices + Debt Collected
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* M-Pesa Input */}
             <div>
               <label className="text-xs font-semibold text-theme-text-muted block mb-1.5">
                 Amount Available in M-Pesa
               </label>
               <Input 
                 type="number" 
-                placeholder="KES" 
+                placeholder="KES 0.00" 
                 value={mPesa === 0 ? '' : mPesa} 
                 onChange={(e) => setMPesa(parseFloat(e.target.value) || 0)} 
+                className="bg-slate-950 font-mono font-bold"
               />
             </div>
+
+            {/* Expected Cash on Hand */}
             <div>
               <label className="text-xs font-semibold text-theme-text-muted block mb-1.5">
                 Auto-Calculated Expected Cash on Hand
@@ -1892,31 +2192,89 @@ export default function DailyDataEntryView() {
                 value={`KES ${Math.round(expectedCashOnHand).toLocaleString()}`} 
                 className="bg-slate-950 text-cyan-300 font-bold font-mono" 
               />
+              <span className="text-[10px] text-slate-500 mt-1 block">Expected Net Cash minus M-Pesa</span>
             </div>
+
+            {/* Gross Physical Cash Count */}
             <div>
               <label className="text-xs font-semibold text-theme-text-muted block mb-1.5">
                 Cash at Hand (Physical Count)
               </label>
               <Input 
                 type="number" 
-                placeholder="KES" 
+                placeholder="KES 0.00" 
                 value={manualCashOnHand === 0 ? '' : manualCashOnHand} 
                 onChange={(e) => setManualCashOnHand(parseFloat(e.target.value) || 0)} 
+                className="bg-slate-950 font-mono font-bold text-slate-100"
+              />
+              <span className="text-[10px] text-slate-500 mt-1 block">Physical notes & coins in register</span>
+            </div>
+
+            {/* Operating / Fuel Losses Input */}
+            <div>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="text-xs font-semibold text-red-400 flex items-center gap-1">
+                  <TrendingDown className="w-3.5 h-3.5 text-red-400" />
+                  <span>Amount of Losses (KES)</span>
+                </label>
+                <span className="text-[10px] text-red-400/80 font-mono">Subtracted from Cash</span>
+              </div>
+              <Input 
+                type="number" 
+                placeholder="KES 0.00" 
+                value={lossesAmount === 0 ? '' : lossesAmount} 
+                onChange={(e) => setLossesAmount(parseFloat(e.target.value) || 0)} 
+                className="bg-slate-950 font-mono font-bold text-red-300 border-red-500/30 focus:border-red-500"
+              />
+              <input
+                type="text"
+                placeholder="Losses explanation (e.g. calibration variance, cashier deficit, transit loss)"
+                value={lossesNote}
+                onChange={(e) => setLossesNote(e.target.value)}
+                className="w-full mt-1.5 text-xs px-2.5 py-1.5 bg-slate-950/80 border border-slate-800 rounded text-slate-300 placeholder:text-slate-600 focus:outline-none focus:border-red-500/50"
               />
             </div>
+
+            {/* Exact Cash at Hand (Physical Count - Losses) */}
+            <div className="bg-slate-950/90 p-3.5 rounded-xl border border-emerald-500/30 flex flex-col justify-between">
+              <div>
+                <span className="text-[11px] font-semibold uppercase text-emerald-400 block tracking-wider">
+                  Exact Cash at Hand (Net)
+                </span>
+                <p className="text-2xl font-bold text-emerald-300 mt-1 font-mono">
+                  KES {Math.round(exactCashAtHand).toLocaleString()}
+                </p>
+              </div>
+              <div className="text-[11px] text-slate-400 mt-2 pt-2 border-t border-slate-800/80 font-mono flex items-center justify-between">
+                <span>{Math.round(manualCashOnHand || 0).toLocaleString()} (Gross)</span>
+                <span className="text-red-400">- {Math.round(losses).toLocaleString()} (Loss)</span>
+                <span className="text-emerald-400 font-bold">= {Math.round(exactCashAtHand).toLocaleString()}</span>
+              </div>
+            </div>
+
+            {/* Reconciliation Variance */}
             <div>
               <label className="text-xs font-semibold text-theme-text-muted block mb-1.5">
                 Reconciliation Variance
               </label>
-              <div className={`p-2.5 rounded-lg font-bold text-base border font-mono flex items-center justify-between ${
+              <div className={`p-3 rounded-xl font-bold text-base border font-mono flex items-center justify-between ${
                 Math.round(variance) > 0 ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/40' : 
                 Math.round(variance) < 0 ? 'bg-red-950/40 text-red-400 border-red-500/40' : 
                 'bg-slate-900 text-slate-300 border-slate-700'
               }`}>
-                <span>KES {Math.round(Math.abs(variance)).toLocaleString()}</span>
-                <span className="text-xs px-2 py-0.5 rounded font-sans uppercase">
-                  {Math.round(variance) > 0 && 'Excess'}
-                  {Math.round(variance) < 0 && 'Shortfall / Less'}
+                <div>
+                  <span className="block text-lg">KES {Math.round(Math.abs(variance)).toLocaleString()}</span>
+                  <span className="text-[10px] font-sans font-normal opacity-80">
+                    (Exact Net Cash vs Expected)
+                  </span>
+                </div>
+                <span className={`text-xs px-2.5 py-1 rounded-md font-sans uppercase font-bold ${
+                  Math.round(variance) > 0 ? 'bg-emerald-900/60 text-emerald-300' :
+                  Math.round(variance) < 0 ? 'bg-red-900/60 text-red-300' :
+                  'bg-slate-800 text-slate-300'
+                }`}>
+                  {Math.round(variance) > 0 && 'Excess (+)'}
+                  {Math.round(variance) < 0 && 'Shortfall (-)'}
                   {Math.round(variance) === 0 && 'Balanced (0)'}
                 </span>
               </div>
@@ -2204,6 +2562,281 @@ export default function DailyDataEntryView() {
           </div>
         </div>
       )}
+
+      {/* 3. CUSTOMER 360° FINANCIAL STATUS & LEDGER PREVIEW MODAL */}
+      {previewCustomerName && (() => {
+        const custData = getCustomerStatus(previewCustomerName);
+        if (!custData) return null;
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="bg-slate-900 border border-theme-border rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+              {/* Modal Header */}
+              <div className="p-5 border-b border-theme-border bg-slate-950/80 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center font-bold text-base shadow-inner">
+                    <User className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-white text-lg">{custData.customerName}</h3>
+                      {custData.customerCode !== 'N/A' && (
+                        <span className="text-xs px-2 py-0.5 rounded font-mono font-bold bg-slate-800 text-cyan-300 border border-slate-700">
+                          {custData.customerCode}
+                        </span>
+                      )}
+                      <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold border ${custData.statusColor}`}>
+                        {custData.statusLabel}
+                      </span>
+                    </div>
+                    <p className="text-xs text-theme-text-muted mt-0.5">
+                      Station: <strong className="text-slate-300">{custData.station}</strong> • Full Financial Status & Transaction History
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button 
+                    type="button"
+                    onClick={() => window.print()}
+                    className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs flex items-center gap-1.5 transition-colors"
+                    title="Print Customer Statement"
+                  >
+                    <Printer className="w-4 h-4 text-cyan-400" />
+                    <span className="hidden sm:inline">Print Statement</span>
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setPreviewCustomerName(null)}
+                    className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors"
+                    title="Close Preview"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+                {/* 4-Grid Financial Status KPIs */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                  {/* Outstanding Balance / Net Debt */}
+                  <div className={`p-4 rounded-xl border ${
+                    custData.netBalance > 0 ? 'bg-amber-950/20 border-amber-500/30' :
+                    custData.netBalance < 0 ? 'bg-cyan-950/20 border-cyan-500/30' :
+                    'bg-emerald-950/20 border-emerald-500/30'
+                  }`}>
+                    <p className="text-[11px] font-semibold text-theme-text-muted uppercase tracking-wider">
+                      Current Net Debt / Balance
+                    </p>
+                    <p className={`text-2xl font-bold font-mono mt-1 ${
+                      custData.netBalance > 0 ? 'text-amber-400' :
+                      custData.netBalance < 0 ? 'text-cyan-400' :
+                      'text-emerald-400'
+                    }`}>
+                      KES {Math.abs(Math.round(custData.netBalance)).toLocaleString()}
+                    </p>
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      {custData.netBalance > 0 ? '⚠️ Total Outstanding Debt to be Paid' :
+                       custData.netBalance < 0 ? '💰 Account in Credit (Overpaid)' :
+                       '✅ Account Fully Settled (Zero Debt)'}
+                    </span>
+                  </div>
+
+                  {/* Credit Limit & Available Credit */}
+                  <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/60">
+                    <p className="text-[11px] font-semibold text-theme-text-muted uppercase tracking-wider">
+                      Assigned Credit Limit
+                    </p>
+                    <p className="text-2xl font-bold font-mono mt-1 text-slate-100">
+                      {custData.creditLimit > 0 ? `KES ${Math.round(custData.creditLimit).toLocaleString()}` : 'No Limit Set'}
+                    </p>
+                    {custData.creditLimit > 0 && (
+                      <div className="mt-2 space-y-1">
+                        <div className="flex justify-between text-[10px] font-mono">
+                          <span className="text-slate-400">Available:</span>
+                          <span className={custData.availableCredit !== null && custData.availableCredit <= 0 ? 'text-red-400 font-bold' : 'text-emerald-400 font-bold'}>
+                            KES {Math.round(custData.availableCredit || 0).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                          <div 
+                            className={`h-full transition-all ${
+                              custData.isOverLimit ? 'bg-red-500' :
+                              custData.utilizationPct > 80 ? 'bg-amber-500' :
+                              'bg-emerald-500'
+                            }`}
+                            style={{ width: `${custData.utilizationPct}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Lifetime Invoiced */}
+                  <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/60">
+                    <p className="text-[11px] font-semibold text-theme-text-muted uppercase tracking-wider">
+                      Lifetime Invoiced Total
+                    </p>
+                    <p className="text-2xl font-bold font-mono mt-1 text-blue-400">
+                      KES {Math.round(custData.totalInvoiced).toLocaleString()}
+                    </p>
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      Across {custData.invoiceCount} recorded transaction{custData.invoiceCount === 1 ? '' : 's'}
+                    </span>
+                  </div>
+
+                  {/* Lifetime Paid / Collected */}
+                  <div className="p-4 rounded-xl border border-slate-800 bg-slate-950/60">
+                    <p className="text-[11px] font-semibold text-theme-text-muted uppercase tracking-wider">
+                      Total Debt Paid to Date
+                    </p>
+                    <p className="text-2xl font-bold font-mono mt-1 text-emerald-400">
+                      KES {Math.round(custData.totalPaid).toLocaleString()}
+                    </p>
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      Opening Balance: KES {custData.openingBalance.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Customer Details Info Bar */}
+                {custData.customerObj && (
+                  <div className="p-3 bg-slate-950/70 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="text-slate-400">Station Branch:</span>
+                      <strong className="text-slate-200">{custData.customerObj.station || 'All Stations'}</strong>
+                    </div>
+                    {custData.customerObj.phone && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-400">Phone:</span>
+                        <strong className="text-slate-200 font-mono">{custData.customerObj.phone}</strong>
+                      </div>
+                    )}
+                    {custData.customerObj.email && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-400">Email:</span>
+                        <strong className="text-slate-200">{custData.customerObj.email}</strong>
+                      </div>
+                    )}
+                    {custData.customerObj.customerType && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-400">Type:</span>
+                        <span className="px-2 py-0.5 bg-slate-800 text-slate-300 rounded font-semibold text-[11px]">
+                          {custData.customerObj.customerType}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Complete Ledger & Statement Table */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-cyan-400" />
+                      <span>Previous Invoices & Payments Ledger</span>
+                    </h4>
+                    <span className="text-xs text-theme-text-muted">
+                      {custData.recentInvoices.length} historical record{custData.recentInvoices.length === 1 ? '' : 's'}
+                    </span>
+                  </div>
+
+                  {custData.recentInvoices.length === 0 ? (
+                    <div className="text-center py-8 border border-dashed border-slate-800 rounded-xl bg-slate-950/40">
+                      <Receipt className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                      <p className="text-sm text-slate-400 font-semibold">No previous invoices or payments recorded</p>
+                      <p className="text-xs text-slate-500 mt-1">Transactions recorded today will appear here and in the Invoices ledger.</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto rounded-xl border border-theme-border/70">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-950/90 text-theme-text-muted font-bold uppercase tracking-wider border-b border-theme-border text-[10px]">
+                          <tr>
+                            <th className="p-3">Date</th>
+                            <th className="p-3">Station</th>
+                            <th className="p-3">Invoice # / Ref</th>
+                            <th className="p-3 text-right">Invoiced (KES)</th>
+                            <th className="p-3 text-right">Paid (KES)</th>
+                            <th className="p-3 text-right">Invoice Debt (KES)</th>
+                            <th className="p-3 text-center">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-800/60 font-mono">
+                          {custData.recentInvoices.map((inv, iIdx) => {
+                            const invTotal = Number(inv.totalAmount) || 0;
+                            const invPaid = Number(inv.paidAmount) || 0;
+                            const remainingDebt = Math.max(0, invTotal - invPaid);
+                            const isPaidInFull = invTotal > 0 && invPaid >= invTotal;
+                            const isPurePayment = invTotal === 0 && invPaid > 0;
+                            const isPartial = invTotal > 0 && invPaid > 0 && invPaid < invTotal;
+                            const invoiceDisplayNumber = `INV-${String(inv.id || iIdx + 1).slice(0, 8).toUpperCase()}`;
+
+                            return (
+                              <tr key={inv.id || iIdx} className="hover:bg-slate-800/30 transition-colors">
+                                <td className="p-3 font-sans font-medium text-slate-300 whitespace-nowrap">
+                                  {inv.date ? formatFriendlyDate(inv.date) : 'N/A'}
+                                </td>
+                                <td className="p-3 font-sans text-slate-400 whitespace-nowrap">
+                                  {inv.station || 'Main'}
+                                </td>
+                                <td className="p-3 text-cyan-400 font-bold">
+                                  {invoiceDisplayNumber}
+                                </td>
+                                <td className="p-3 text-right text-slate-200 font-bold">
+                                  {invTotal > 0 ? `KES ${invTotal.toLocaleString()}` : '-'}
+                                </td>
+                                <td className="p-3 text-right text-emerald-400 font-bold">
+                                  {invPaid > 0 ? `KES ${invPaid.toLocaleString()}` : '-'}
+                                </td>
+                                <td className={`p-3 text-right font-bold ${remainingDebt > 0 ? 'text-amber-400' : 'text-slate-500'}`}>
+                                  {remainingDebt > 0 ? `KES ${remainingDebt.toLocaleString()}` : 'KES 0'}
+                                </td>
+                                <td className="p-3 text-center font-sans">
+                                  {isPaidInFull ? (
+                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-950/80 text-emerald-300 border border-emerald-800/60">
+                                      Paid in Full
+                                    </span>
+                                  ) : isPurePayment ? (
+                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-950/80 text-blue-300 border border-blue-800/60">
+                                      Debt Paid
+                                    </span>
+                                  ) : isPartial ? (
+                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-950/80 text-amber-300 border border-amber-800/60">
+                                      Partial Deposit
+                                    </span>
+                                  ) : (
+                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-950/80 text-red-300 border border-red-800/60">
+                                      Unpaid Debt
+                                    </span>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-4 border-t border-theme-border bg-slate-950/80 flex items-center justify-between">
+                <div className="text-xs text-slate-400">
+                  Total Customer Ledger Balance: <strong className={custData.netBalance > 0 ? 'text-amber-400 font-mono text-sm' : 'text-emerald-400 font-mono text-sm'}>KES {Math.round(custData.netBalance).toLocaleString()}</strong>
+                </div>
+                <Button 
+                  type="button" 
+                  variant="secondary"
+                  onClick={() => setPreviewCustomerName(null)}
+                >
+                  Close Preview
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
