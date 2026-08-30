@@ -113,6 +113,7 @@ export interface FleetExpense {
   date: number;
   createdBy: string;
   litres?: number;
+  rate?: number;
   station: string;
 }
 

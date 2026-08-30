@@ -92,12 +92,12 @@ export default function AIAssistant() {
           <div key={msg.id} className={`flex gap-4 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             {msg.role === 'assistant' && (
               <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-white/5 flex items-center justify-center shrink-0">
-                <Bot className="w-5 h-5 text-cyan-500 dark:text-blue-400" />
+                <Bot className="w-5 h-5 text-blue-500 dark:text-blue-400" />
               </div>
             )}
             <div className={`max-w-[75%] rounded-2xl px-5 py-3 ${
               msg.role === 'user' 
-                ? 'bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-br-none' 
+                ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-br-none' 
                 : 'glass-panel text-gray-800 dark:text-gray-200 rounded-bl-none'
             }`}>
               {msg.role === 'user' ? (
@@ -118,10 +118,10 @@ export default function AIAssistant() {
         {isLoading && (
           <div className="flex gap-4 justify-start animate-fade-in">
             <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-white/5 flex items-center justify-center shrink-0">
-              <Bot className="w-5 h-5 text-cyan-500 dark:text-blue-400" />
+              <Bot className="w-5 h-5 text-blue-500 dark:text-blue-400" />
             </div>
             <div className="max-w-[75%] rounded-2xl px-5 py-3 glass-panel text-gray-800 dark:text-gray-200 rounded-bl-none flex items-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin text-cyan-500 dark:text-blue-400" />
+              <Loader2 className="w-4 h-4 animate-spin text-blue-500 dark:text-blue-400" />
               <span className="text-sm">Thinking...</span>
             </div>
           </div>
@@ -136,7 +136,7 @@ export default function AIAssistant() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="Ask AI anything..."
-            className="flex-1 px-4 py-2.5 glass-input rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all dark:text-white"
+            className="flex-1 px-4 py-2.5 glass-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all dark:text-white"
             disabled={isLoading}
           />
           <button

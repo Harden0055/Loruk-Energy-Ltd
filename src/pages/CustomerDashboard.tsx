@@ -763,44 +763,45 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       <div className="glass-panel border border-theme-border rounded-xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-colors">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <span className="font-mono text-sm uppercase tracking-widest bg-blue-100 text-blue-800 dark:bg-white/5 dark:text-theme-text-muted px-2.5 py-1 rounded-md font-bold border border-theme-border">
+            <span className="font-mono text-xs uppercase tracking-widest bg-blue-500/10 text-blue-400 px-3 py-1 rounded-lg font-bold border border-blue-500/25 shadow-sm">
               {customer.customerId}
             </span>
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border ${
               customer.status === 'active' 
-                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/45 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900 shadow-[inset_0_0_8px_rgba(16,185,129,0.6)]' 
-                : 'bg-red-100 text-red-800 dark:bg-red-950/45 dark:text-red-400 border border-red-200 dark:border-red-900'
+                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]' 
+                : 'bg-rose-500/15 text-rose-400 border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.15)]'
             }`}>
+              <span className={`w-2 h-2 rounded-full ${customer.status === 'active' ? 'bg-emerald-400 shadow-[0_0_8px_#34D399]' : 'bg-rose-400 shadow-[0_0_8px_#F87171]'}`} />
               {customer.status === 'active' ? 'Active Account' : 'Credit Risk'}
             </span>
           </div>
-          <h2 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">{customer.name}</h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-            Account activated: <span className="text-gray-700 dark:text-gray-300">{format(customer.createdAt || Date.now(), 'PPP')}</span>
+          <h2 className="text-2xl sm:text-3xl font-black text-theme-text tracking-tight">{customer.name}</h2>
+          <p className="text-xs sm:text-sm text-theme-text-muted font-medium">
+            Account activated: <span className="text-theme-text font-semibold">{format(customer.createdAt || Date.now(), 'PPP')}</span>
           </p>
         </div>
 
         {/* Action triggers */}
-        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto p-2 bg-gradient-to-r from-blue-900/20 to-cyan-900/10 border border-blue-800/30 rounded-xl shadow-inner">
+        <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto p-2 bg-theme-panel border border-theme-border rounded-xl shadow-inner">
           <button
             onClick={() => setActiveModal('delivery')}
-            className="w-full sm:w-auto px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full sm:w-auto px-4 py-2.5 bg-blue-500/15 hover:bg-blue-500/25 text-blue-400 border border-blue-500/30 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-[0_0_15px_rgba(59,130,246,0.15)]"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 text-blue-400" />
             Log Delivery
           </button>
           <button
             onClick={() => setActiveModal('payment')}
-            className="w-full sm:w-auto px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full sm:w-auto px-4 py-2.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.15)]"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-4 h-4 text-emerald-400" />
             Record Payment
           </button>
           <button
             onClick={() => setActiveModal('adjustment')}
-            className="w-full sm:w-auto px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full sm:w-auto px-4 py-2.5 bg-purple-500/15 hover:bg-purple-500/25 text-purple-400 border border-purple-500/30 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-[0_0_15px_rgba(168,85,247,0.15)]"
           >
-            <ArrowUpDown className="w-4 h-4" />
+            <ArrowUpDown className="w-4 h-4 text-purple-400" />
             Adjust Balance
           </button>
         </div>
@@ -809,57 +810,123 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       {/* Stats Cards Dashboard */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Outstanding Balance */}
-        <div className="glass-panel border border-theme-border rounded-xl p-5 shadow-sm transition-colors">
+        <div className={`glass-panel rounded-xl p-5 shadow-sm transition-all duration-300 border ${
+          calculatedBalance < 0 
+            ? 'border-emerald-500/40 bg-emerald-500/[0.04] shadow-[0_0_20px_rgba(16,185,129,0.1)]' 
+            : isCreditRisk 
+              ? 'border-rose-500/50 bg-rose-500/[0.05] shadow-[0_0_20px_rgba(244,63,94,0.15)]' 
+              : calculatedBalance > 0
+                ? 'border-amber-500/40 bg-amber-500/[0.03] shadow-[0_0_20px_rgba(245,158,11,0.1)]'
+                : 'border-theme-border bg-theme-panel'
+        }`}>
           <div className="flex justify-between items-start">
-            <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Outstanding Balance</p>
-            <button
-               onClick={verifyBalance}
-               className="text-xs text-pink-500 font-bold hover:underline"
-            >
-              Verify
-            </button>
-            <div className="p-2 rounded-lg glow-blue-wrapper">
-              <DollarSign className="w-5 h-5 glow-blue-icon" />
+            <div className="flex items-center gap-2">
+              <p className="text-xs font-extrabold text-theme-text-muted uppercase tracking-wider">Outstanding Balance</p>
+              <button
+                 onClick={verifyBalance}
+                 className="text-[10px] text-pink-400 hover:text-pink-300 font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-pink-500/10 border border-pink-500/25 cursor-pointer"
+                 title="Verify Balance Calculation"
+              >
+                Verify
+              </button>
+            </div>
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center border shadow-sm ${
+              calculatedBalance < 0 
+                ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.25)]' 
+                : isCreditRisk 
+                  ? 'bg-rose-500/15 border-rose-500/30 text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.25)]' 
+                  : calculatedBalance > 0
+                    ? 'bg-amber-500/15 border-amber-500/30 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.25)]'
+                    : 'bg-blue-500/15 border-blue-500/30 text-blue-400'
+            }`}>
+              <DollarSign className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-4">
-            <h3 className={`text-2xl font-black font-mono tracking-tight leading-none ${calculatedBalance < 0 ? 'text-green-600 dark:text-green-400' : calculatedBalance > 0 ? 'text-purple-600 dark:text-purple-400' : 'text-gray-900 dark:text-white'}`}>
-              {formatCurrency(Math.abs(calculatedBalance))}
-            </h3>
-            {calculatedBalance < 0 ? (
-               <p className="text-xs text-green-600 dark:text-green-400 font-bold mt-2 flex items-center gap-1.5 uppercase tracking-wide">
-                <CheckCircle className="w-3.5 h-3.5" /> Advance Balance Credit
-              </p>
-            ) : isCreditRisk ? (
-              <p className="text-xs text-red-600 dark:text-red-400 font-bold mt-2 flex items-center gap-1.5 uppercase tracking-wide">
-                <ShieldAlert className="w-3.5 h-3.5 animate-bounce" /> Credit Limit Alert!
-              </p>
-            ) : (
-              <p className="text-xs text-purple-600 dark:text-purple-400 font-bold mt-2 flex items-center gap-1.5 uppercase tracking-wide">Active customer outstanding balance.</p>
-            )}
+            <div className="flex items-baseline flex-wrap">
+              <span className={`text-base font-bold mr-1.5 ${
+                calculatedBalance < 0 
+                  ? 'text-emerald-400/80' 
+                  : isCreditRisk 
+                    ? 'text-rose-400/80' 
+                    : calculatedBalance > 0 
+                      ? 'text-amber-400/80' 
+                      : 'text-theme-text-muted'
+              }`}>Ksh</span>
+              <h3 className={`text-2xl sm:text-3xl font-black font-mono tracking-tight leading-none ${
+                calculatedBalance < 0 
+                  ? 'text-emerald-400 text-glow-green' 
+                  : isCreditRisk 
+                    ? 'text-rose-400' 
+                    : calculatedBalance > 0 
+                      ? 'text-amber-400' 
+                      : 'text-theme-text'
+              }`}>
+                {Math.abs(calculatedBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </h3>
+            </div>
+            <div className="mt-3">
+              {calculatedBalance < 0 ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm">
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>ADVANCE BALANCE CREDIT</span>
+                </span>
+              ) : isCreditRisk ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 animate-pulse shadow-sm">
+                  <ShieldAlert className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                  <span>CREDIT LIMIT ALERT</span>
+                </span>
+              ) : calculatedBalance > 0 ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 shadow-sm">
+                  <span>RECEIVABLE BALANCE OWED</span>
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-500/15 text-slate-300 border border-slate-500/30 shadow-sm">
+                  <CheckCircle className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <span>SETTLED / NIL BALANCE</span>
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Card 2: Credit Limit & remaining space */}
-        <div className="glass-panel border border-theme-border rounded-xl p-5 shadow-sm transition-colors">
+        <div className="glass-panel rounded-xl p-5 shadow-sm transition-all duration-300 border border-sky-500/30 bg-sky-500/[0.03] shadow-[0_0_20px_rgba(56,189,248,0.1)]">
           <div className="flex justify-between items-start">
-            <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Credit Allocation</p>
-            <div className="p-2 rounded-lg glow-blue-wrapper">
-              <FileText className="w-5 h-5 glow-blue-icon" />
+            <p className="text-xs font-extrabold text-theme-text-muted uppercase tracking-wider">Credit Allocation</p>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center border bg-sky-500/15 border-sky-500/30 text-sky-400 shadow-[0_0_15px_rgba(56,189,248,0.25)]">
+              <FileText className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-4">
-            <h3 className="text-2xl font-black font-mono text-gray-900 dark:text-white tracking-tight leading-none">
-              {formatCurrency(customer.creditLimit)}
-            </h3>
-            <div className="mt-2.5 space-y-1">
-              <div className="flex justify-between text-xs font-semibold text-gray-500 dark:text-gray-400">
-                <span>Remaining credit power</span>
-                <span className="font-mono text-gray-800 dark:text-white">{formatCurrency(remainingCredit)}</span>
+            <div className="flex items-baseline flex-wrap">
+              <span className="text-base font-bold text-sky-400/80 mr-1.5">Ksh</span>
+              <h3 className="text-2xl sm:text-3xl font-black font-mono text-sky-400 tracking-tight leading-none">
+                {(customer.creditLimit || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </h3>
+            </div>
+            <div className="mt-3 space-y-1.5">
+              <div className="flex justify-between items-center text-xs font-semibold">
+                <span className="text-theme-text-muted">Remaining credit power</span>
+                <span className={`font-mono font-bold px-2 py-0.5 rounded text-xs border ${
+                  remainingCredit > (customer.creditLimit || 1) * 0.5
+                    ? 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30'
+                    : remainingCredit > (customer.creditLimit || 1) * 0.2
+                      ? 'text-amber-400 bg-amber-500/15 border-amber-500/30'
+                      : 'text-rose-400 bg-rose-500/15 border-rose-500/30'
+                }`}>
+                  Ksh {remainingCredit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
               </div>
-              <div className="h-1.5 glass-panel rounded-full overflow-hidden">
+              <div className="h-2 bg-theme-panel rounded-full overflow-hidden border border-theme-border/60">
                 <div 
-                  className={`h-full rounded-full transition-all duration-500 ${isCreditRisk ? 'bg-red-500' : 'bg-blue-500'}`} 
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    isCreditRisk 
+                      ? 'bg-gradient-to-r from-rose-600 to-red-500 shadow-[0_0_10px_rgba(244,63,94,0.4)]' 
+                      : remainingCredit > (customer.creditLimit || 1) * 0.5
+                        ? 'bg-gradient-to-r from-sky-500 to-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                        : 'bg-gradient-to-r from-sky-500 to-amber-400'
+                  }`} 
                   style={{ width: `${Math.min(100, Math.max(0, (remainingCredit / (customer.creditLimit || 1)) * 100))}%` }}
                 />
               </div>
@@ -867,39 +934,51 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           </div>
         </div>
 
-        {/* Card 3: Total Purchases */}
-        <div className="glass-panel border border-theme-border rounded-xl p-5 shadow-sm transition-colors">
+        {/* Card 3: Total Purchases / Deliveries */}
+        <div className="glass-panel rounded-xl p-5 shadow-sm transition-all duration-300 border border-blue-500/30 bg-blue-500/[0.03] shadow-[0_0_20px_rgba(59,130,246,0.1)]">
           <div className="flex justify-between items-start">
-            <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Deliveries</p>
-            <div className="p-2 rounded-lg glow-blue-wrapper">
-              <Truck className="w-5 h-5 glow-blue-icon" />
+            <p className="text-xs font-extrabold text-theme-text-muted uppercase tracking-wider">Total Deliveries</p>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center border bg-blue-500/15 border-blue-500/30 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.25)]">
+              <Truck className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-4">
-            <h3 className="text-2xl font-black font-mono text-blue-600 dark:text-blue-400 tracking-tight leading-none">
-              {formatCurrency(totalSalesValue)}
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium">
-              Dispensed total <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{totalFuelLitres.toLocaleString()} Litres</span>.
-            </p>
+            <div className="flex items-baseline flex-wrap">
+              <span className="text-base font-bold text-blue-400/80 mr-1.5">Ksh</span>
+              <h3 className="text-2xl sm:text-3xl font-black font-mono text-blue-400 tracking-tight leading-none">
+                {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </h3>
+            </div>
+            <div className="mt-3 flex items-center gap-1.5 text-xs text-theme-text-muted font-medium flex-wrap">
+              <span>Dispensed total</span>
+              <span className="font-mono font-bold text-cyan-300 bg-cyan-500/15 border border-cyan-500/30 px-2 py-0.5 rounded-md text-xs shadow-sm">
+                {totalFuelLitres.toLocaleString()} Litres
+              </span>
+            </div>
           </div>
         </div>
 
         {/* Card 4: Total Payments Received */}
-        <div className="glass-panel border border-theme-border rounded-xl p-5 shadow-sm transition-colors">
+        <div className="glass-panel rounded-xl p-5 shadow-sm transition-all duration-300 border border-emerald-500/30 bg-emerald-500/[0.03] shadow-[0_0_20px_rgba(16,185,129,0.1)]">
           <div className="flex justify-between items-start">
-            <p className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Received Payments</p>
-            <div className="p-2 rounded-lg glow-blue-wrapper">
-              <CheckCircle className="w-5 h-5 glow-blue-icon" />
+            <p className="text-xs font-extrabold text-theme-text-muted uppercase tracking-wider">Total Received Payments</p>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center border bg-emerald-500/15 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.25)]">
+              <CheckCircle className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-4">
-            <h3 className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400 tracking-tight leading-none">
-              {formatCurrency(totalPaymentsValue)}
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-medium">
-              Combined statements with <span className="font-bold text-theme-text-muted">{customerPayments.length} receipts</span>.
-            </p>
+            <div className="flex items-baseline flex-wrap">
+              <span className="text-base font-bold text-emerald-400/80 mr-1.5">Ksh</span>
+              <h3 className="text-2xl sm:text-3xl font-black font-mono text-emerald-400 text-glow-green tracking-tight leading-none">
+                {totalPaymentsValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </h3>
+            </div>
+            <div className="mt-3 flex items-center gap-1.5 text-xs text-theme-text-muted font-medium flex-wrap">
+              <span>Combined statements with</span>
+              <span className="font-mono font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md text-xs shadow-sm">
+                {customerPayments.length} receipts
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -910,38 +989,46 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         <div className="lg:col-span-2 glass-panel border border-theme-border rounded-xl p-6 shadow-sm transition-colors">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h3 className="text-lg font-black text-gray-950 dark:text-blue-50 tracking-tight">Statement Ledger Trend Line</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Time-series tracking of outstanding balance evolution</p>
+              <h3 className="text-lg font-black text-theme-text tracking-tight">Statement Ledger Trend Line</h3>
+              <p className="text-xs text-theme-text-muted">Time-series tracking of outstanding balance evolution</p>
             </div>
-            <div className="flex items-center gap-2 bg-blue-50 dark:bg-white/5 px-3 py-1.5 rounded-lg border border-theme-border">
-              <TrendingUp className="w-4 h-4 text-cyan-500 dark:text-cyan-400" />
-              <span className="text-xs font-bold text-blue-800 dark:text-cyan-300 uppercase">Balance Scale</span>
+            <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/25 px-3 py-1.5 rounded-lg shadow-sm">
+              <TrendingUp className="w-4 h-4 text-blue-400" />
+              <span className="text-xs font-bold text-blue-300 uppercase tracking-wider">Balance Scale</span>
             </div>
           </div>
           
-          <div className="h-72 w-full relative overflow-hidden" >
+          <div className="h-72 w-full relative overflow-hidden">
             {chartData.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-sm text-gray-400 bg-gray-50/50 dark:bg-white/5 rounded-lg border border-dashed border-theme-border">
+              <div className="h-full flex items-center justify-center text-sm text-theme-text-muted bg-white/[0.02] rounded-xl border border-dashed border-theme-border">
                 Not enough transactions to map chart data
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
+              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                 <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="balanceGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25}/>
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#38BDF8" stopOpacity={0.35}/>
+                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" className="dark:hidden" />
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1e293b" className="hidden dark:block" />
-                  <XAxis dataKey="name" fontSize={11} stroke="#9CA3AF" tickLine={false} />
-                  <YAxis fontSize={11} stroke="#9CA3AF" tickFormatter={(v) => `K${v/1000}k`} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.07)" />
+                  <XAxis dataKey="name" fontSize={11} stroke="#94A3B8" tickLine={false} />
+                  <YAxis fontSize={11} stroke="#94A3B8" tickFormatter={(v) => `K${Math.round(v/1000)}k`} tickLine={false} />
                   <Tooltip 
-                    formatter={(val: any) => [`KES ${Number(val).toLocaleString()}`, 'Ledger Balance']}
-                    contentStyle={{ borderRadius: '8px', zIndex: 100 }}
+                    formatter={(val: any) => [`KES ${Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 'Ledger Balance']}
+                    contentStyle={{ 
+                      backgroundColor: 'rgba(15, 23, 42, 0.95)', 
+                      borderColor: 'rgba(56, 189, 248, 0.3)',
+                      borderRadius: '12px', 
+                      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)',
+                      color: '#F8FAFC',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      zIndex: 100 
+                    }}
                   />
-                  <Area type="monotone" dataKey="Running Balance" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={1} fill="url(#balanceGrad)" />
+                  <Area type="monotone" dataKey="Running Balance" stroke="#38BDF8" strokeWidth={2.5} fillOpacity={1} fill="url(#balanceGrad)" />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -949,102 +1036,121 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         </div>
 
         {/* Chart 2: Transaction Volume Distribution */}
-        <div className="glass-panel border border-theme-border rounded-xl p-6 shadow-sm transition-colors">
-          <div className="mb-6">
-            <h3 className="text-lg font-black text-gray-950 dark:text-blue-50 tracking-tight">Recent Activity Distribution</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Magnitude comparing customer payments to fuel orders</p>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex justify-between items-center p-3 glass-panel rounded-xl border border-theme-border">
-              <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">Opening Balance Context</span>
-              <span className="text-sm font-mono font-bold text-theme-text">
-                {customer.openingBalanceType === 'advance' ? '-' : ''}{formatCurrency(customer.openingBalance || 0)}
-              </span>
+        <div className="glass-panel border border-theme-border rounded-xl p-6 shadow-sm transition-colors flex flex-col justify-between">
+          <div>
+            <div className="mb-5">
+              <h3 className="text-lg font-black text-theme-text tracking-tight">Recent Activity Distribution</h3>
+              <p className="text-xs text-theme-text-muted">Magnitude comparing customer payments to fuel orders</p>
             </div>
-            
-            <div className="pt-2">
-              <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-3 tracking-wider">Summary Indicators</p>
-              <div className="space-y-3.5">
-                <div>
-                  <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">
-                    <span>Average Delivery Size</span>
-                    <span className="font-mono text-blue-600 dark:text-blue-400">
-                      {customerDeliveries.length ? formatCurrency(totalSalesValue / customerDeliveries.length) : 'N/A'}
-                    </span>
+
+            <div className="space-y-4">
+              <div className="flex justify-between items-center p-3.5 glass-panel rounded-xl border border-theme-border bg-white/[0.02]">
+                <span className="text-xs font-bold text-theme-text-muted uppercase tracking-wider">Opening Balance Context</span>
+                <span className={`text-xs sm:text-sm font-mono font-bold px-2.5 py-1 rounded-lg border ${
+                  customer.openingBalanceType === 'advance'
+                    ? 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30'
+                    : 'text-amber-400 bg-amber-500/15 border-amber-500/30'
+                }`}>
+                  {customer.openingBalanceType === 'advance' ? '-' : '+'}Ksh {(customer.openingBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+              
+              <div className="pt-2">
+                <p className="text-[11px] font-extrabold text-theme-text-muted uppercase mb-3 tracking-wider">Summary Indicators</p>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-xs font-semibold mb-1.5">
+                      <span className="text-theme-text-muted">Average Delivery Size</span>
+                      <span className="font-mono font-bold text-sky-400">
+                        {customerDeliveries.length ? `Ksh ${(totalSalesValue / customerDeliveries.length).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="h-2 bg-theme-panel rounded-full overflow-hidden border border-theme-border/60">
+                      <div className="h-full bg-gradient-to-r from-blue-600 via-sky-500 to-cyan-400 rounded-full shadow-[0_0_10px_rgba(56,189,248,0.3)]" style={{ width: '65%' }} />
+                    </div>
                   </div>
-                  <div className="h-1.5 glass-panel rounded-full">
-                    <div className="h-full bg-blue-500 rounded-full" style={{ width: '65%' }} />
+
+                  <div>
+                    <div className="flex justify-between text-xs font-semibold mb-1.5">
+                      <span className="text-theme-text-muted">Average Payment Size</span>
+                      <span className="font-mono font-bold text-emerald-400">
+                        {customerPayments.length ? `Ksh ${(totalPaymentsValue / customerPayments.length).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="h-2 bg-theme-panel rounded-full overflow-hidden border border-theme-border/60">
+                      <div className="h-full bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-400 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.3)]" style={{ width: '45%' }} />
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">
-                    <span>Average Payment Size</span>
-                    <span className="font-mono text-emerald-600 dark:text-emerald-400">
-                      {customerPayments.length ? formatCurrency(totalPaymentsValue / customerPayments.length) : 'N/A'}
-                    </span>
-                  </div>
-                  <div className="h-1.5 glass-panel rounded-full">
-                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: '45%' }} />
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">
-                    <span>Total Activity Index</span>
-                    <span className="font-semibold text-theme-text-muted">
+
+                  <div className="flex justify-between items-center pt-1">
+                    <span className="text-xs font-semibold text-theme-text-muted">Total Activity Index</span>
+                    <span className="font-mono font-bold text-xs text-purple-300 bg-purple-500/15 border border-purple-500/30 px-2.5 py-1 rounded-lg">
                       {timelineEvents.length} items logged
                     </span>
                   </div>
                 </div>
               </div>
             </div>
-            
-            <div className="pt-4 border-t border-theme-border text-center">
-              <p className="text-xs text-cyan-500 dark:text-blue-400 font-bold hover:underline cursor-pointer flex justify-center items-center gap-1" onClick={handleExportStatement}>
-                <Calendar className="w-3.5 h-3.5" /> Open printable timeline report
-              </p>
-            </div>
+          </div>
+          
+          <div className="pt-4 mt-4 border-t border-theme-border text-center">
+            <button 
+              type="button"
+              className="text-xs text-blue-400 hover:text-blue-300 font-bold hover:underline cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/25 transition-all" 
+              onClick={handleExportStatement}
+            >
+              <Calendar className="w-3.5 h-3.5 text-blue-400" />
+              <span>Open printable timeline report</span>
+            </button>
           </div>
         </div>
       </div>
 
       {/* Filter Options & Transaction Log */}
       <div className="glass-panel border border-theme-border rounded-xl overflow-hidden shadow-sm transition-colors">
-        <div className="p-6 border-b border-theme-border dark:bg-transparent">
+        <div className="p-6 border-b border-theme-border">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h3 className="text-lg font-black text-gray-950 dark:text-blue-50 tracking-tight">Audit Statement & Transaction Timeline</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Detailed list of every payment, fuel delivery, and ledger override</p>
+              <h3 className="text-lg font-black text-theme-text tracking-tight">Audit Statement & Transaction Timeline</h3>
+              <p className="text-xs text-theme-text-muted">Detailed list of every payment, fuel delivery, and ledger override</p>
             </div>
 
             {/* Quick type filter */}
-            <div className="flex flex-wrap gap-1 bg-black/5 dark:bg-white/5 border border-theme-border p-1 rounded-lg">
-              {(['all', 'delivery', 'payment', 'adjustment'] as const).map(f => (
-                <button
-                   key={f}
-                   onClick={() => setFilterType(f)}
-                   className={`px-3 py-1 text-xs font-bold rounded-md uppercase transition-colors cursor-pointer ${
-                     filterType === f 
-                       ? 'bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] shadow-sm'
-                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-blue-200'
-                   }`}
-                >
-                  {f === 'all' ? 'All Logs' : f}
-                </button>
-              ))}
+            <div className="flex flex-wrap gap-1.5 bg-theme-panel border border-theme-border p-1 rounded-xl">
+              {(['all', 'delivery', 'payment', 'adjustment'] as const).map(f => {
+                const isActive = filterType === f;
+                let activeStyle = 'bg-blue-500/15 text-blue-400 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]';
+                if (f === 'delivery') activeStyle = 'bg-sky-500/15 text-sky-400 border-sky-500/30 shadow-[0_0_15px_rgba(56,189,248,0.15)]';
+                if (f === 'payment') activeStyle = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]';
+                if (f === 'adjustment') activeStyle = 'bg-purple-500/15 text-purple-400 border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.15)]';
+
+                return (
+                  <button
+                     key={f}
+                     onClick={() => setFilterType(f)}
+                     className={`px-3 py-1.5 text-xs font-bold rounded-lg uppercase tracking-wider transition-all cursor-pointer border ${
+                       isActive 
+                         ? `${activeStyle} font-extrabold`
+                         : 'border-transparent text-theme-text-muted hover:text-theme-text hover:bg-white/5'
+                     }`}
+                  >
+                    {f === 'all' ? 'All Logs' : f}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* Advanced filters: search, date range */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 py-2 border-t border-gray-202/60 border-theme-border">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 py-2 border-t border-theme-border">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500 dark:text-blue-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-400" />
               <input 
                 type="text"
                 placeholder="Search description, author..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border focus:border-theme-border dark:focus:border-theme-border rounded-lg text-sm text-gray-950 dark:text-blue-50 focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-blue-400/75"
+                className="w-full pl-9 pr-3 py-2 bg-white/[0.03] border border-theme-border rounded-xl text-xs sm:text-sm text-theme-text focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-theme-text-muted"
               />
             </div>
             
@@ -1053,11 +1159,11 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 type="date"
                 value={startDate}
                 onChange={e => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border focus:border-theme-border dark:focus:border-theme-border rounded-lg text-sm text-gray-950 dark:text-blue-50 focus:outline-none placeholder:text-blue-400/75"
+                className="w-full px-3 py-2 bg-white/[0.03] border border-theme-border rounded-xl text-xs sm:text-sm text-theme-text focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="Start Date"
                 title="Start Date"
               />
-              <span className="absolute right-3 top-2.5 text-[9px] uppercase font-mono tracking-widest text-blue-500 dark:text-blue-400 pointer-events-none font-bold">Start</span>
+              <span className="absolute right-3 top-2.5 text-[9px] uppercase font-mono tracking-widest text-blue-400 pointer-events-none font-bold">Start</span>
             </div>
 
             <div className="relative">
@@ -1065,85 +1171,100 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 type="date"
                 value={endDate}
                 onChange={e => setEndDate(e.target.value)}
-                className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border focus:border-theme-border dark:focus:border-theme-border rounded-lg text-sm text-gray-950 dark:text-blue-50 focus:outline-none placeholder:text-blue-400/75"
+                className="w-full px-3 py-2 bg-white/[0.03] border border-theme-border rounded-xl text-xs sm:text-sm text-theme-text focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="End Date"
                 title="End Date"
               />
-              <span className="absolute right-3 top-2.5 text-[9px] uppercase font-mono tracking-widest text-blue-500 dark:text-blue-400 pointer-events-none font-bold">End</span>
+              <span className="absolute right-3 top-2.5 text-[9px] uppercase font-mono tracking-widest text-blue-400 pointer-events-none font-bold">End</span>
             </div>
           </div>
         </div>
 
         <div className="overflow-x-auto">
           <table className="modern-table">
-            <thead className="dark:bg-transparent border-b border-theme-border transition-colors">
+            <thead className="border-b border-theme-border">
               <tr className="modern-tr">
                 <th className="modern-th">Date & Time</th>
                 <th className="modern-th">Activity</th>
                 <th className="modern-th">Description</th>
-                <th className="modern-th">Amount</th>
-                <th className="modern-th">Closing Balance</th>
+                <th className="modern-th text-right">Amount</th>
+                <th className="modern-th text-right">Closing Balance</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-blue-900">
+            <tbody className="divide-y divide-theme-border">
               {timelineEvents.length === 0 ? (
                 <tr className="modern-tr">
-                  <td colSpan={5} className="border border-theme-border px-6 py-12 text-center text-gray-500 dark:text-gray-405 text-base font-medium">
+                  <td colSpan={5} className="px-6 py-12 text-center text-theme-text-muted text-sm font-medium">
                     No matching activity logs registered for this filter set.
                   </td>
                 </tr>
               ) : (
-                timelineEvents.map(e => (
-                  <tr key={e.id} className="hover:bg-white/5 dark:hover:bg-blue-900/40 transition-colors">
-                    <td className="modern-td">
-                      {format(e.date, 'dd-MMM-yyyy HH:mm')}
-                    </td>
-                    <td className="modern-td">
-                      <div className="flex items-center gap-2.5">
-                        <div 
-                          className={`p-1.5 rounded-md cursor-pointer transition-transform hover:scale-110 ${e.type === "payment" ? "bg-emerald-500/10 border border-emerald-500/25 shadow-[0_0_15px_rgba(16,185,129,0.15)]" : "glow-blue-wrapper"}`} 
-                          onClick={() => {
-                            if (e.type === 'adjustment') {
-                              setEditingAdjustment({ ...e, originalType: e.title.includes('Credit') ? 'credit' : 'debit' });
-                              setAdjustType(e.title.includes('Credit') ? 'credit' : 'debit');
-                              setAdjustAmount(e.amount.toString());
-                              setAdjustDate(format(e.date, 'yyyy-MM-dd'));
-                              setAdjustReason(e.description);
-                              setActiveModal('edit_adjustment');
-                            }
-                          }}
-                        >
-                          {e.type === 'adjustment' ? <ArrowUpDown className="w-4 h-4 glow-blue-icon" /> : null}
-                          {e.type === 'delivery' ? <Truck className="w-4 h-4 glow-blue-icon" /> : null}
-                          {e.type === 'payment' ? <DollarSign className="w-4 h-4 text-emerald-400 stroke-emerald-400 filter drop-shadow-[0_0_6px_rgba(16,185,129,0.8)]" /> : null}
+                timelineEvents.map(e => {
+                  const isPurpleAmount = e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit'));
+                  return (
+                    <tr key={e.id} className="hover:bg-white/[0.04] transition-colors">
+                      <td className="modern-td font-mono text-xs text-theme-text-muted">
+                        {format(e.date, 'dd-MMM-yyyy HH:mm')}
+                      </td>
+                      <td className="modern-td">
+                        <div className="flex items-center gap-2.5">
+                          <div 
+                            className={`p-1.5 rounded-lg cursor-pointer transition-transform hover:scale-110 border ${
+                              e.type === 'payment'
+                                ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]'
+                                : e.type === 'delivery'
+                                  ? 'bg-blue-500/15 border-blue-500/30 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]'
+                                  : e.title.includes('Credit')
+                                    ? 'bg-teal-500/15 border-teal-500/30 text-teal-400 shadow-[0_0_15px_rgba(20,184,166,0.2)]'
+                                    : 'bg-rose-500/15 border-rose-500/30 text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.2)]'
+                            }`} 
+                            onClick={() => {
+                              if (e.type === 'adjustment') {
+                                setEditingAdjustment({ ...e, originalType: e.title.includes('Credit') ? 'credit' : 'debit' });
+                                setAdjustType(e.title.includes('Credit') ? 'credit' : 'debit');
+                                setAdjustAmount(e.amount.toString());
+                                setAdjustDate(format(e.date, 'yyyy-MM-dd'));
+                                setAdjustReason(e.description);
+                                setActiveModal('edit_adjustment');
+                              }
+                            }}
+                            title={e.type === 'adjustment' ? "Click to edit override" : undefined}
+                          >
+                            {e.type === 'adjustment' ? <ArrowUpDown className="w-4 h-4" /> : null}
+                            {e.type === 'delivery' ? <Truck className="w-4 h-4" /> : null}
+                            {e.type === 'payment' ? <DollarSign className="w-4 h-4" /> : null}
+                          </div>
+                          <span className="text-sm font-bold text-theme-text">
+                            {e.title}
+                          </span>
                         </div>
-                        <span className="text-base font-bold text-theme-text">
-                          {e.title}
+                      </td>
+                      <td className="px-4 sm:px-6 py-3.5 text-xs sm:text-sm font-medium text-theme-text-muted truncate max-w-[150px] sm:max-w-[240px]" title={e.description}>
+                        {e.description}
+                      </td>
+                      <td className="px-4 sm:px-6 py-3.5 text-right font-mono font-bold text-sm whitespace-nowrap">
+                        <span className={isPurpleAmount ? 'text-purple-400' : 'text-emerald-400'}>
+                          {isPurpleAmount ? '+' : '-'}Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
-                      </div>
-                    </td>
-                    <td className="border border-theme-border px-4 sm:px-6 py-4 text-base font-medium text-gray-600 dark:text-gray-300 truncate max-w-[120px] sm:max-w-[200px]" title={e.description}>
-                      {e.description}
-                    </td>
-                    <td className={`border border-theme-border px-4 sm:px-6 py-4 text-right font-mono font-bold text-base whitespace-nowrap ${
-                      e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit'))
-                        ? 'text-purple-600 dark:text-purple-400'
-                        : 'text-green-600 dark:text-green-400 font-medium'
-                    }`}>
-                      {e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit')) ? '+' : '-'}
-                      {formatCurrency(e.amount)}
-                    </td>
-                    <td className={`border border-theme-border px-4 sm:px-6 py-4 text-right font-mono font-bold text-base whitespace-nowrap ${
-                      e.balanceAfter > 0
-                        ? 'text-purple-600 dark:text-purple-400'
-                        : e.balanceAfter < 0
-                          ? 'text-green-600 dark:text-green-400'
-                          : 'text-gray-600 dark:text-gray-300'
-                    }`}>
-                      {formatCurrency(Math.abs(e.balanceAfter))}
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="px-4 sm:px-6 py-3.5 text-right font-mono font-bold text-sm whitespace-nowrap">
+                        {e.balanceAfter > 0 ? (
+                          <span className="text-purple-400">
+                            Ksh {e.balanceAfter.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        ) : e.balanceAfter < 0 ? (
+                          <span className="text-emerald-400">
+                            -Ksh {Math.abs(e.balanceAfter).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        ) : (
+                          <span className="text-theme-text-muted font-bold">
+                            Ksh 0.00
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -1159,7 +1280,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <div>
                   <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Edit Ledger Override</h3>
                 </div>
-                <button type="button" onClick={() => { setActiveModal(null); setEditingAdjustment(null); }} className="p-1 px-2 text-blue-400 hover:text-cyan-500 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
+                <button type="button" onClick={() => { setActiveModal(null); setEditingAdjustment(null); }} className="p-1 px-2 text-blue-400 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
               </div>
               <div className="p-6 space-y-4">
                  <div>
@@ -1207,9 +1328,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:bg-white/5 flex justify-between items-center">
                 <div>
                   <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Log Fuel Delivery</h3>
-                  <p className="text-xs text-cyan-400 dark:text-theme-text-muted font-medium pb-1">For {customer.name}</p>
+                  <p className="text-xs text-blue-400 dark:text-theme-text-muted font-medium pb-1">For {customer.name}</p>
                 </div>
-                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-blue-400 hover:text-cyan-500 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
+                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-blue-400 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
               </div>
               <div className="p-6 space-y-4">
                 <div>
@@ -1348,14 +1469,14 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <button
                   type="button"
                   onClick={() => setActiveModal(null)}
-                  className="px-4 py-2 font-semibold text-cyan-400 dark:text-theme-text-muted hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
+                  className="px-4 py-2 font-semibold text-blue-400 dark:text-theme-text-muted hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={modalLoading}
-                  className="px-5 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg text-sm font-bold shadow-md shadow-blue-500/20 disabled:opacity-50 transition-colors"
+                  className="px-5 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg text-sm font-bold shadow-md shadow-blue-500/20 disabled:opacity-50 transition-colors"
                 >
                   Save Delivery
                 </button>
@@ -1372,9 +1493,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:bg-white/5 flex justify-between items-center">
                 <div>
                   <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Record Payment</h3>
-                  <p className="text-xs text-cyan-400 dark:text-theme-text-muted font-medium pb-1">For {customer.name}</p>
+                  <p className="text-xs text-blue-400 dark:text-theme-text-muted font-medium pb-1">For {customer.name}</p>
                 </div>
-                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-blue-400 hover:text-cyan-500 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
+                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-blue-400 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
               </div>
               <div className="p-6 space-y-4">
                 <div>
@@ -1404,7 +1525,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <button
                   type="button"
                   onClick={() => setActiveModal(null)}
-                  className="px-4 py-2 font-semibold text-cyan-400 dark:text-theme-text-muted hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
+                  className="px-4 py-2 font-semibold text-blue-400 dark:text-theme-text-muted hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
                 >
                   Cancel
                 </button>
@@ -1428,9 +1549,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:bg-white/5 flex justify-between items-center">
                 <div>
                   <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Log Adjustment</h3>
-                  <p className="text-xs text-cyan-400 dark:text-theme-text-muted font-medium pb-1">Manual Ledger Adjustment overriding standard log flows</p>
+                  <p className="text-xs text-blue-400 dark:text-theme-text-muted font-medium pb-1">Manual Ledger Adjustment overriding standard log flows</p>
                 </div>
-                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-blue-400 hover:text-cyan-500 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
+                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-blue-400 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
               </div>
               <div className="p-6 space-y-4">
                 <div>
@@ -1498,7 +1619,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <button
                   type="button"
                   onClick={() => setActiveModal(null)}
-                  className="px-4 py-2 font-semibold text-cyan-400 dark:text-theme-text-muted hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
+                  className="px-4 py-2 font-semibold text-blue-400 dark:text-theme-text-muted hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
                 >
                   Cancel
                 </button>

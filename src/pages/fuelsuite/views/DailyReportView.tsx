@@ -193,9 +193,9 @@ export default function DailyReportView() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="flex flex-col justify-center bg-cyan-500/10 border border-theme-border p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col justify-center bg-blue-500/10 border border-theme-border p-6 rounded-xl shadow-sm">
             <span className="text-sm text-theme-text-muted font-medium">Total LPG Sales</span>
-            <span className="text-3xl font-bold text-cyan-400 mt-2">Ksh {allLpgSalesAmount.toLocaleString()}</span>
+            <span className="text-3xl font-bold text-blue-400 mt-2">Ksh {allLpgSalesAmount.toLocaleString()}</span>
           </div>
           <div className="flex flex-col justify-center bg-orange-500/10 border border-orange-500/20 p-6 rounded-xl shadow-sm">
             <span className="text-sm text-theme-text-muted font-medium">Total LPG Purchases</span>
@@ -251,7 +251,7 @@ export default function DailyReportView() {
                     <tr key={t.id} className="border-b border-theme-border/50 hover:bg-[#122840]/50 transition-colors">
                       <td className="modern-td">{t.date}</td>
                       <td className="modern-td">
-                        <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${t.type === 'sale' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-orange-500/20 text-orange-400'}`}>
+                        <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${t.type === 'sale' ? 'bg-blue-500/20 text-blue-400' : 'bg-orange-500/20 text-orange-400'}`}>
                           {t.type}
                         </span>
                       </td>
@@ -277,7 +277,7 @@ export default function DailyReportView() {
     <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
+          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
             <ClipboardList className="w-6 h-6" />
           </div>
           <div>
@@ -329,7 +329,7 @@ export default function DailyReportView() {
               }}
               className={`text-xs px-2.5 py-2 rounded-xl transition-all border flex items-center gap-1 cursor-pointer ${
                 selectedDate === latestReportDate
-                  ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-bold'
+                  ? 'bg-blue-500/20 text-blue-300 border-blue-500/40 font-bold'
                   : 'bg-slate-900 text-slate-400 hover:text-slate-200 border-theme-border'
               }`}
               title="View latest recorded shift report"
@@ -354,7 +354,7 @@ export default function DailyReportView() {
                 window.open(window.location.href, '_blank');
               }
             }}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 rounded-lg transition-colors text-sm font-medium print:hidden cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg transition-colors text-sm font-medium print:hidden cursor-pointer"
           >
             <Printer className="w-4 h-4" />
             Print PDF
@@ -365,7 +365,7 @@ export default function DailyReportView() {
       <Card className="max-w-3xl mx-auto glass-panel border-theme-border shadow-xl">
         <CardHeader className="border-b border-theme-border pb-6 flex flex-row items-center justify-between">
           <div>
-            <CardTitle className="text-xl text-cyan-400 uppercase tracking-wider">{activeStation}</CardTitle>
+            <CardTitle className="text-xl text-blue-400 uppercase tracking-wider">{activeStation}</CardTitle>
             <p className="text-sm text-theme-text-muted mt-1">Daily Summary Report</p>
           </div>
           <div className="text-right">
@@ -388,7 +388,7 @@ export default function DailyReportView() {
                 <span>Sales Stop (Litres)</span>
                 <span>{data.litresStop.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
               </div>
-              <div className="flex justify-between items-center pt-2 border-t border-theme-border/50 text-cyan-400 font-bold">
+              <div className="flex justify-between items-center pt-2 border-t border-theme-border/50 text-blue-400 font-bold">
                 <span>Total Litres: {data.totalLitres.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
                 <span>Ksh {Math.round(data.totalSales).toLocaleString()}</span>
               </div>
@@ -443,7 +443,7 @@ export default function DailyReportView() {
             <div className="flex justify-end pt-2 border-b border-theme-border pb-6">
               <button 
                 onClick={() => setShowLpgProfit(true)}
-                className="text-cyan-400 hover:text-cyan-300 underline underline-offset-4 text-sm font-medium transition-colors"
+                className="text-blue-400 hover:text-blue-300 underline underline-offset-4 text-sm font-medium transition-colors"
               >
                 View LPG Profit Profile
               </button>
@@ -514,7 +514,7 @@ export default function DailyReportView() {
                 <span className="text-slate-100 block">Gross Cash at Hand</span>
                 <span className="text-xs text-slate-400 font-normal">Physical count in register</span>
               </div>
-              <span className="text-cyan-400">Ksh {Math.round(grossCashAtHand).toLocaleString()}</span>
+              <span className="text-blue-400">Ksh {Math.round(grossCashAtHand).toLocaleString()}</span>
             </div>
 
             {recordedLosses > 0 && (

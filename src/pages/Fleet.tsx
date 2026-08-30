@@ -17,7 +17,15 @@ const FALLBACK_REGISTRATIONS = ['KDE 179Y', 'KDL 019S', 'KCY 842Y', 'KCF 119R', 
 const FALLBACK_STATIONS = ['Loruk - Ndalu', 'Loruk - Junction', 'Gel - Bungoma', 'Gel - Kapenguria', 'Kengas', 'Luqman'];
 type Station = string;
 
-export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToTruck?: (reg: string) => void, onNavigate?: (page: string) => void }) {
+export default function Fleet({ 
+  onNavigateToTruck, 
+  onNavigate,
+  onNavigateToStation 
+}: { 
+  onNavigateToTruck?: (reg: string) => void;
+  onNavigate?: (page: string) => void;
+  onNavigateToStation?: (id: string, name: string) => void;
+}) {
   const { user } = useAuth();
   const { expenses, loading } = useFleetExpenses();
   const { trucks } = useTrucks();
@@ -82,7 +90,58 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
   }, [STATIONS, station]);
   const [amount, setAmount] = useState('');
   const [litres, setLitres] = useState('');
+  const [rate, setRate] = useState('');
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+
+  const roundVal = (num: number) => {
+    if (isNaN(num) || !isFinite(num)) return '';
+    return (Math.round(num * 100) / 100).toString();
+  };
+
+  const handleLitresChange = (val: string) => {
+    setLitres(val);
+    const l = parseFloat(val);
+    const r = parseFloat(rate);
+    const a = parseFloat(amount);
+
+    if (!isNaN(l) && l > 0) {
+      if (!isNaN(r) && r > 0) {
+        setAmount(roundVal(l * r));
+      } else if (!isNaN(a) && a > 0) {
+        setRate(roundVal(a / l));
+      }
+    }
+  };
+
+  const handleRateChange = (val: string) => {
+    setRate(val);
+    const r = parseFloat(val);
+    const l = parseFloat(litres);
+    const a = parseFloat(amount);
+
+    if (!isNaN(r) && r > 0) {
+      if (!isNaN(l) && l > 0) {
+        setAmount(roundVal(l * r));
+      } else if (!isNaN(a) && a > 0) {
+        setLitres(roundVal(a / r));
+      }
+    }
+  };
+
+  const handleAmountChange = (val: string) => {
+    setAmount(val);
+    const a = parseFloat(val);
+    const l = parseFloat(litres);
+    const r = parseFloat(rate);
+
+    if (!isNaN(a) && a > 0) {
+      if (!isNaN(l) && l > 0) {
+        setRate(roundVal(a / l));
+      } else if (!isNaN(r) && r > 0) {
+        setLitres(roundVal(a / r));
+      }
+    }
+  };
   
   const [deleteDialog, setDeleteDialog] = useState<{isOpen: boolean, id: string | null}>({ isOpen: false, id: null });
   const lastActivity = useMemo(() => {
@@ -138,15 +197,27 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
     if (!amount || isNaN(Number(amount))) return;
     try {
       const data: any = {
-        carRegistration: carReg, station, amount: Number(amount), date: new Date(date).getTime(), createdBy: user?.email || 'Unknown'
+        carRegistration: carReg, 
+        station, 
+        amount: Number(amount), 
+        date: new Date(date).getTime(), 
+        createdBy: user?.email || 'Unknown'
       };
-      if (litres) data.litres = Number(litres);
+      if (litres && !isNaN(Number(litres))) data.litres = Number(litres);
+      if (rate && !isNaN(Number(rate))) {
+        data.rate = Number(rate);
+      } else if (litres && Number(litres) > 0 && amount && Number(amount) > 0) {
+        data.rate = Number((Number(amount) / Number(litres)).toFixed(2));
+      }
       
       if (editingExpenseId) await updateFleetExpense(editingExpenseId, data);
       else await createFleetExpense(data);
       setIsAdding(false);
       setEditingExpenseId(null);
-      setAmount(''); setLitres(''); setDate(format(new Date(), 'yyyy-MM-dd'));
+      setAmount(''); 
+      setLitres(''); 
+      setRate('');
+      setDate(format(new Date(), 'yyyy-MM-dd'));
     } catch (e) {
       console.error(e);
       alert('Failed to save expense: ' + (e instanceof Error ? e.message : String(e)));
@@ -290,6 +361,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                 setEditingExpenseId(null);
                 setAmount(''); 
                 setLitres(''); 
+                setRate('');
                 setDate(format(new Date(), 'yyyy-MM-dd'));
                 setCarReg(CAR_REGISTRATIONS[0]);
                 setStation(STATIONS[0]);
@@ -306,17 +378,44 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
       </div>
       {isAdding && (
         <div id="add-expense-form-container" className="glass-panel p-6 border border-theme-border rounded-xl shadow-sm">
-          <h3 className="text-lg font-bold text-theme-text mb-4">{editingExpenseId ? 'Edit' : 'Add'} Expense</h3>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
-            <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" />
-            <select value={carReg} onChange={(e) => setCarReg(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">{CAR_REGISTRATIONS.map(r => <option key={r} value={r} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{r}</option>)}</select>
-            <select value={station} onChange={(e) => setStation(e.target.value as Station)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">{STATION_OPTIONS.map(s => <option key={s.value} value={s.value} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{s.label}</option>)}</select>
-            <input type="number" min="0" step="0.1" value={litres} onChange={(e) => setLitres(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" placeholder="Litres (L)" />
-            <input type="number" required min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" placeholder="Amount (KES)" />
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-theme-text">{editingExpenseId ? 'Edit' : 'Add'} Expense</h3>
+            <span className="text-xs text-blue-400 font-medium bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded-md">
+              ⚡ Rate × Litres = Amount auto-calculation
+            </span>
+          </div>
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3 items-end">
+            <div>
+              <label className="block text-xs font-semibold text-gray-400 mb-1">Date</label>
+              <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-400 mb-1">Vehicle</label>
+              <select value={carReg} onChange={(e) => setCarReg(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm">{CAR_REGISTRATIONS.map(r => <option key={r} value={r} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{r}</option>)}</select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-400 mb-1">Station</label>
+              <select value={station} onChange={(e) => setStation(e.target.value as Station)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm">{STATION_OPTIONS.map(s => <option key={s.value} value={s.value} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{s.label}</option>)}</select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-400 mb-1">Litres (L)</label>
+              <input type="number" min="0" step="0.01" value={litres} onChange={(e) => handleLitresChange(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm font-mono" placeholder="Litres (L)" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-blue-400 mb-1 flex items-center justify-between">
+                <span>Rate (KES/L)</span>
+                <span className="text-[10px] text-gray-400 font-normal">Auto</span>
+              </label>
+              <input type="number" min="0" step="0.01" value={rate} onChange={(e) => handleRateChange(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-blue-500/40 rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm font-mono placeholder:text-gray-500" placeholder="Rate (KES/L)" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-400 mb-1">Amount (KES)</label>
+              <input type="number" required min="0" step="0.01" value={amount} onChange={(e) => handleAmountChange(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm font-mono" placeholder="Amount (KES)" />
+            </div>
             <div className="flex gap-2 w-full">
               <button 
                 type="submit" 
-                className="flex-1 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer"
+                className="flex-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] px-4 py-2.5 rounded-lg font-semibold transition-colors cursor-pointer text-sm"
               >
                 {editingExpenseId ? 'Update' : 'Save'}
               </button>
@@ -327,9 +426,10 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                   setEditingExpenseId(null);
                   setAmount(''); 
                   setLitres(''); 
+                  setRate('');
                   setDate(format(new Date(), 'yyyy-MM-dd'));
                 }}
-                className="px-3 py-2 bg-gray-100 hover:bg-white/10 dark:bg-white/5 dark:hover:bg-blue-900/50 text-gray-700 dark:text-gray-300 border border-theme-border rounded-lg font-medium transition-colors cursor-pointer"
+                className="px-3.5 py-2.5 bg-gray-100 hover:bg-white/10 dark:bg-white/5 dark:hover:bg-blue-900/50 text-gray-700 dark:text-gray-300 border border-theme-border rounded-lg font-semibold transition-colors cursor-pointer text-sm"
               >
                 Cancel
               </button>
@@ -349,9 +449,9 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
           }).sort((a, b) => b.totalConsumption - a.totalConsumption);
           
           const textColors = [
-            'text-cyan-500 dark:text-blue-400',
+            'text-blue-500 dark:text-blue-400',
             'text-emerald-600 dark:text-emerald-400',
-            'text-cyan-600 dark:text-cyan-400',
+            'text-blue-600 dark:text-blue-400',
             'text-orange-600 dark:text-orange-400',
             'text-yellow-600 dark:text-yellow-400',
           ];
@@ -413,7 +513,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
           </div>
           {/* Consumption Summary */}
           <div className="w-full bg-blue-50 dark:bg-white/5 p-4 rounded-lg flex flex-col justify-center border border-theme-border">
-             <p className="text-sm font-medium text-cyan-500 dark:text-blue-400 mb-1">Filtered Consumption</p>
+             <p className="text-sm font-medium text-blue-500 dark:text-blue-400 mb-1">Filtered Consumption</p>
              <h3 className="text-2xl font-bold text-blue-900 dark:text-theme-text">
                {formatCurrency(filteredExpenses.reduce((acc, e) => acc + e.amount, 0))}
              </h3>
@@ -463,17 +563,22 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
             {filteredExpenses.map(e => (
               <tr key={e.id} className="hover:bg-white/5 dark:hover:bg-blue-900/50 transition-colors duration-300">
                 <td className="modern-td">{format(e.date, 'MMM d, yyyy')}</td>
-                <td className="px-4 py-3 font-semibold text-cyan-500 dark:text-blue-400 cursor-pointer hover:underline glow-blue-text" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
+                <td className="px-4 py-3 font-semibold text-blue-500 dark:text-blue-400 cursor-pointer hover:underline glow-blue-text" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
                 <td className="modern-td">
                   {e.station && (
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                      e.station === 'Gel - Bungoma' ? 'bg-pink-100 dark:bg-pink-900/50 text-pink-800 dark:text-pink-200' 
-                      : e.station === 'Gel - Kapenguria' ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200' 
-                      : e.station === 'Kengas' ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200'
-                      : ''
-                    }`}>
-                      {STATION_OPTIONS.find(opt => opt.value === e.station)?.label || e.station}
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onNavigateToStation?.(e.station, e.station)}
+                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold hover:opacity-80 transition-opacity cursor-pointer ${
+                        e.station === 'Gel - Bungoma' ? 'bg-pink-100 dark:bg-pink-900/50 text-pink-800 dark:text-pink-200' 
+                        : e.station === 'Gel - Kapenguria' ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200' 
+                        : e.station === 'Kengas' ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200'
+                        : 'bg-blue-500/10 text-blue-400 border border-blue-500/25'
+                      }`}
+                      title={`Open ${e.station} Dashboard`}
+                    >
+                      <span>{STATION_OPTIONS.find(opt => opt.value === e.station)?.label || e.station}</span>
+                    </button>
                   )}
                 </td>
                 <td className="modern-td">{e.litres ? `${e.litres.toLocaleString()} L` : '-'}</td>
@@ -491,6 +596,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                           setStation(STATIONS[0]);
                         }
                         setLitres(e.litres != null ? e.litres.toString() : '');
+                        setRate(e.rate != null ? e.rate.toString() : (e.litres && e.amount && e.litres > 0 ? (e.amount / e.litres).toFixed(2) : ''));
                         
                         let dateObj = new Date();
                         if (e.date) {
@@ -507,7 +613,7 @@ export default function Fleet({ onNavigateToTruck, onNavigate }: { onNavigateToT
                           document.getElementById('add-expense-form-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }, 50);
                       }} 
-                      className="p-1 text-cyan-500 hover:text-blue-800 transition-colors cursor-pointer" 
+                      className="p-1 text-blue-500 hover:text-blue-800 transition-colors cursor-pointer" 
                       title="Edit Expense"
                     >
                       <Pencil className="w-4 h-4" />

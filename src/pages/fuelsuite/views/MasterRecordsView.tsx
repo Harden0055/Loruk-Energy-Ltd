@@ -1,6 +1,36 @@
 import React, { useState, useMemo } from 'react';
-import { useFuel, PumpReading, LPGTransaction, InventoryItem, Expense, Invoice, CashPosition, calculatePumpMeterDelta } from '../context';
-import { Database, Search, Pencil, Trash2, Calendar, Building2, Filter, X, Check, AlertCircle, RefreshCw, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { 
+  useFuel, 
+  PumpReading, 
+  LPGTransaction, 
+  InventoryItem, 
+  Expense, 
+  Invoice, 
+  CashPosition, 
+  Customer,
+  calculatePumpMeterDelta 
+} from '../context';
+import { 
+  Database, 
+  Search, 
+  Pencil, 
+  Trash2, 
+  Calendar, 
+  Building2, 
+  Filter, 
+  X, 
+  Check, 
+  AlertCircle, 
+  RefreshCw, 
+  AlertTriangle, 
+  CheckCircle2,
+  Users,
+  FileText,
+  Layers,
+  Sparkles,
+  ChevronDown,
+  ChevronUp
+} from 'lucide-react';
 import { Card, Table, Th, Td, Button } from '../components';
 
 export default function MasterRecordsView() {
@@ -13,16 +43,20 @@ export default function MasterRecordsView() {
     expenses, setExpenses,
     invoices, setInvoices,
     cashPositions, setCashPositions,
+    customers, setCustomers,
     deduplicateData, checkDuplicates,
+    mergeDuplicateCustomers,
     reassignRecordsDate
   } = useFuel();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [selectedDateFilter, setSelectedDateFilter] = useState<string>('');
+  const [startDateFilter, setStartDateFilter] = useState<string>('');
+  const [endDateFilter, setEndDateFilter] = useState<string>('');
   const [editingItem, setEditingItem] = useState<{ type: string; data: any } | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<{ type: string; id: string } | null>(null);
   const [cleanupMessage, setCleanupMessage] = useState<string | null>(null);
+  const [showDuplicateDetails, setShowDuplicateDetails] = useState<boolean>(false);
   const [showReassignModal, setShowReassignModal] = useState<boolean>(false);
   const [reassignFromDate, setReassignFromDate] = useState<string>('2026-08-26');
   const [reassignToDate, setReassignToDate] = useState<string>('2026-08-06');
@@ -30,24 +64,52 @@ export default function MasterRecordsView() {
 
   // Check duplicate status
   const systemDuplicates = useMemo(() => {
-    return checkDuplicates(selectedDateFilter || undefined, activeStation === 'Combined Total' ? undefined : activeStation);
-  }, [checkDuplicates, selectedDateFilter, activeStation, pumpReadings, lpgTransactions, inventoryItems, expenses, invoices, cashPositions]);
+    return checkDuplicates(
+      startDateFilter || undefined, 
+      activeStation === 'Combined Total' ? undefined : activeStation,
+      endDateFilter || undefined
+    );
+  }, [checkDuplicates, startDateFilter, endDateFilter, activeStation, pumpReadings, lpgTransactions, inventoryItems, expenses, invoices, cashPositions, customers]);
 
   const handleRunDeduplication = () => {
-    const res = deduplicateData(selectedDateFilter || undefined, activeStation === 'Combined Total' ? undefined : activeStation);
+    const res = deduplicateData(
+      startDateFilter || undefined, 
+      activeStation === 'Combined Total' ? undefined : activeStation,
+      endDateFilter || undefined
+    );
     if (res.removedCount > 0) {
       setCleanupMessage(`Cleaned ${res.removedCount} duplicate record(s):\n• ${res.summary.join('\n• ')}`);
     } else {
       setCleanupMessage('No duplicate records found. All entries in the selected scope are unique.');
     }
-    setTimeout(() => setCleanupMessage(null), 6000);
+    setTimeout(() => setCleanupMessage(null), 8000);
+  };
+
+  const handleMergeCustomers = () => {
+    const res = mergeDuplicateCustomers();
+    if (res.mergedCount > 0) {
+      setCleanupMessage(`Successfully consolidated duplicate customer profiles:\n• ${res.details.join('\n• ')}`);
+    } else {
+      setCleanupMessage('All customer profiles are already unique. No duplicate profiles found.');
+    }
+    setTimeout(() => setCleanupMessage(null), 8000);
+  };
+
+  const handleApplyAug1To10Preset = () => {
+    setStartDateFilter('2026-08-01');
+    setEndDateFilter('2026-08-10');
+  };
+
+  const handleClearDateFilters = () => {
+    setStartDateFilter('');
+    setEndDateFilter('');
   };
 
   // Combine all records into a unified list representation
   const allRecords = useMemo(() => {
     const list: Array<{
       id: string;
-      type: 'Pump Reading' | 'LPG Transaction' | 'Inventory' | 'Expense' | 'Invoice' | 'Cash Position';
+      type: 'Pump Reading' | 'LPG Transaction' | 'Inventory' | 'Expense' | 'Invoice' | 'Cash Position' | 'Customer';
       date: string;
       station: string;
       title: string;
@@ -117,7 +179,7 @@ export default function MasterRecordsView() {
         date: inv.date || new Date().toISOString().split('T')[0],
         station: inv.station,
         title: `Invoice: ${inv.customerName}`,
-        details: `Total: ${inv.totalAmount} | Paid: ${inv.paidAmount}`,
+        details: `Total: ${inv.totalAmount} | Paid: ${inv.paidAmount} | Balance: ${inv.totalAmount - inv.paidAmount}`,
         amountOrValue: inv.totalAmount,
         raw: inv
       });
@@ -136,14 +198,36 @@ export default function MasterRecordsView() {
       });
     });
 
+    customers.forEach(c => {
+      list.push({
+        id: c.id,
+        type: 'Customer',
+        date: 'Master Record',
+        station: c.station || 'All Stations',
+        title: `Customer: ${c.name} (${c.code})`,
+        details: `Limit: ${c.creditLimit} | Opening: ${c.openingBalance} | Phone: ${c.phone || 'N/A'}`,
+        amountOrValue: c.openingBalance,
+        raw: c
+      });
+    });
+
     return list.sort((a, b) => b.date.localeCompare(a.date));
-  }, [pumpReadings, lpgTransactions, inventoryItems, expenses, invoices, cashPositions]);
+  }, [pumpReadings, lpgTransactions, inventoryItems, expenses, invoices, cashPositions, customers]);
 
   const filteredRecords = useMemo(() => {
     return allRecords.filter(rec => {
       const matchStation = activeStation === 'Combined Total' || rec.station === activeStation;
       const matchCategory = selectedCategory === 'All' || rec.type === selectedCategory;
-      const matchDate = !selectedDateFilter || rec.date === selectedDateFilter;
+      
+      let matchDate = true;
+      if (rec.type !== 'Customer') {
+        if (startDateFilter && endDateFilter) {
+          matchDate = rec.date >= startDateFilter && rec.date <= endDateFilter;
+        } else if (startDateFilter) {
+          matchDate = rec.date === startDateFilter;
+        }
+      }
+
       const matchSearch = !searchQuery || 
         rec.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         rec.station.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -152,7 +236,7 @@ export default function MasterRecordsView() {
 
       return matchStation && matchCategory && matchDate && matchSearch;
     });
-  }, [allRecords, activeStation, selectedCategory, selectedDateFilter, searchQuery]);
+  }, [allRecords, activeStation, selectedCategory, startDateFilter, endDateFilter, searchQuery]);
 
   const handleDeleteRecord = (type: string, id: string) => {
     if (type === 'Pump Reading') {
@@ -167,6 +251,8 @@ export default function MasterRecordsView() {
       setInvoices(prev => prev.filter(i => i.id !== id));
     } else if (type === 'Cash Position') {
       setCashPositions(prev => prev.filter(cp => cp.id !== id));
+    } else if (type === 'Customer') {
+      setCustomers(prev => prev.filter(c => c.id !== id));
     }
     setConfirmDeleteId(null);
   };
@@ -188,6 +274,8 @@ export default function MasterRecordsView() {
       setInvoices(prev => prev.map(inv => inv.id === data.id ? data : inv));
     } else if (type === 'Cash Position') {
       setCashPositions(prev => prev.map(cp => cp.id === data.id ? data : cp));
+    } else if (type === 'Customer') {
+      setCustomers(prev => prev.map(c => c.id === data.id ? data : c));
     }
 
     setEditingItem(null);
@@ -197,27 +285,36 @@ export default function MasterRecordsView() {
     <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
+          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
             <Database className="w-6 h-6" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
-              Master Records Manager
+              Master Records & Data Auditor
             </h1>
             <p className="text-theme-text-muted mt-0.5 text-xs">
-              Centralized audit log of all synced entries across pump readings, LPG, inventory, expenses, invoices, and cash positions.
+              Audit log of customers, invoices, paid invoices, pump meters, LPG, inventory, expenses, and cash reconciliations.
             </p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <Button
+            onClick={handleMergeCustomers}
+            className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl bg-purple-950/80 hover:bg-purple-900/80 text-purple-300 border border-purple-500/30 transition-all cursor-pointer shadow-lg shadow-purple-950/30"
+            title="Consolidate duplicate customer profiles, merge balances and link invoices"
+          >
+            <Users className="w-3.5 h-3.5 text-purple-400" />
+            Audit & Merge Duplicate Customers
+          </Button>
+
+          <Button
             onClick={() => setShowReassignModal(true)}
-            className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl bg-cyan-950/80 hover:bg-cyan-900/80 text-cyan-300 border border-cyan-500/30 transition-all cursor-pointer"
+            className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl bg-blue-950/80 hover:bg-blue-900/80 text-blue-300 border border-blue-500/30 transition-all cursor-pointer"
             title="Batch shift or change dates for records entered on a specific day"
           >
-            <Calendar className="w-3.5 h-3.5 text-cyan-400" />
-            Shift / Reassign Date
+            <Calendar className="w-3.5 h-3.5 text-blue-400" />
+            Shift Date
           </Button>
 
           <Button
@@ -246,60 +343,152 @@ export default function MasterRecordsView() {
         </div>
       )}
 
-      {systemDuplicates.totalDuplicates > 0 && (
-        <div className="bg-amber-950/40 border border-amber-500/50 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
-            <div>
-              <h3 className="text-sm font-bold text-amber-300">
-                {systemDuplicates.totalDuplicates} Duplicate Record(s) Detected
-              </h3>
-              <p className="text-xs text-amber-200/90 mt-0.5">
-                {systemDuplicates.breakdown.invoices > 0 && `${systemDuplicates.breakdown.invoices} Invoices, `}
-                {systemDuplicates.breakdown.pumpReadings > 0 && `${systemDuplicates.breakdown.pumpReadings} Pump Readings, `}
-                {systemDuplicates.breakdown.expenses > 0 && `${systemDuplicates.breakdown.expenses} Expenses, `}
-                {systemDuplicates.breakdown.lpgTransactions > 0 && `${systemDuplicates.breakdown.lpgTransactions} LPG, `}
-                {systemDuplicates.breakdown.inventoryItems > 0 && `${systemDuplicates.breakdown.inventoryItems} Inventory`}
-                found across the selected filters.
-              </p>
+      {/* QUICK AUDIT PRESETS & STATS BAR */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div 
+          onClick={handleApplyAug1To10Preset}
+          className="p-3.5 rounded-2xl bg-blue-950/30 border border-blue-500/30 hover:border-blue-400 cursor-pointer transition-all flex items-center justify-between group"
+        >
+          <div>
+            <div className="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Report Focus Preset</div>
+            <div className="text-sm font-bold text-white group-hover:text-blue-300 transition-colors">Aug 01 to Aug 10, 2026</div>
+            <div className="text-[11px] text-slate-400 mt-0.5">Filter Invoices & Customers</div>
+          </div>
+          <Sparkles className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform" />
+        </div>
+
+        <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-theme-border flex items-center justify-between">
+          <div>
+            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Customers Registered</div>
+            <div className="text-lg font-bold text-white">{customers.length}</div>
+            <div className="text-[11px] text-purple-400 mt-0.5">
+              {systemDuplicates.breakdown.customers > 0 ? `${systemDuplicates.breakdown.customers} duplicate(s) detected` : 'All Unique'}
             </div>
           </div>
-          <Button
-            onClick={handleRunDeduplication}
-            className="bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold px-4 py-2 whitespace-nowrap flex-shrink-0"
-          >
-            Clean Now
-          </Button>
+          <Users className="w-5 h-5 text-purple-400" />
+        </div>
+
+        <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-theme-border flex items-center justify-between">
+          <div>
+            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Invoices in Scope</div>
+            <div className="text-lg font-bold text-white">{invoices.length}</div>
+            <div className="text-[11px] text-emerald-400 mt-0.5">
+              {systemDuplicates.breakdown.invoices > 0 ? `${systemDuplicates.breakdown.invoices} duplicate invoice(s)` : 'Clean Records'}
+            </div>
+          </div>
+          <FileText className="w-5 h-5 text-emerald-400" />
+        </div>
+
+        <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-theme-border flex items-center justify-between">
+          <div>
+            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Duplicates</div>
+            <div className="text-lg font-bold text-amber-400">{systemDuplicates.totalDuplicates}</div>
+            <div className="text-[11px] text-amber-300/80 mt-0.5">
+              Across all collections
+            </div>
+          </div>
+          <AlertTriangle className="w-5 h-5 text-amber-400" />
+        </div>
+      </div>
+
+      {/* DUPLICATE AUDIT ALERT BANNER */}
+      {systemDuplicates.totalDuplicates > 0 && (
+        <div className="bg-amber-950/40 border border-amber-500/50 rounded-2xl p-4 space-y-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
+              <div>
+                <h3 className="text-sm font-bold text-amber-300">
+                  {systemDuplicates.totalDuplicates} Duplicate Record(s) Detected
+                </h3>
+                <p className="text-xs text-amber-200/90 mt-0.5">
+                  {systemDuplicates.breakdown.customers > 0 && <span className="font-semibold text-purple-300">{systemDuplicates.breakdown.customers} Duplicate Customers, </span>}
+                  {systemDuplicates.breakdown.invoices > 0 && <span className="font-semibold text-emerald-300">{systemDuplicates.breakdown.invoices} Invoices (inc. paid amounts), </span>}
+                  {systemDuplicates.breakdown.pumpReadings > 0 && `${systemDuplicates.breakdown.pumpReadings} Pump Readings, `}
+                  {systemDuplicates.breakdown.expenses > 0 && `${systemDuplicates.breakdown.expenses} Expenses, `}
+                  {systemDuplicates.breakdown.lpgTransactions > 0 && `${systemDuplicates.breakdown.lpgTransactions} LPG, `}
+                  {systemDuplicates.breakdown.inventoryItems > 0 && `${systemDuplicates.breakdown.inventoryItems} Inventory, `}
+                  {systemDuplicates.breakdown.cashPositions > 0 && `${systemDuplicates.breakdown.cashPositions} Cash Positions`}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Button
+                onClick={() => setShowDuplicateDetails(!showDuplicateDetails)}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold px-3 py-2 border border-slate-700 flex items-center gap-1.5"
+              >
+                {showDuplicateDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                {showDuplicateDetails ? 'Hide Details' : 'View Audit List'}
+              </Button>
+              <Button
+                onClick={handleRunDeduplication}
+                className="bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold px-4 py-2 whitespace-nowrap flex-shrink-0"
+              >
+                Remove Duplicates Now
+              </Button>
+            </div>
+          </div>
+
+          {/* DUPLICATE AUDIT BREAKDOWN DRAWER */}
+          {showDuplicateDetails && systemDuplicates.duplicateDetails.length > 0 && (
+            <div className="pt-3 border-t border-amber-500/20">
+              <div className="text-xs font-bold text-amber-300 uppercase tracking-wider mb-2">Detected Duplicate Entries:</div>
+              <div className="max-h-48 overflow-y-auto space-y-1.5 pr-2">
+                {systemDuplicates.duplicateDetails.map((item, idx) => (
+                  <div key={idx} className="flex items-center justify-between text-xs p-2 rounded-lg bg-black/40 border border-amber-500/20">
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        item.type === 'Customer' ? 'bg-purple-500/20 text-purple-300' :
+                        item.type === 'Invoice' ? 'bg-emerald-500/20 text-emerald-300' :
+                        'bg-blue-500/20 text-blue-300'
+                      }`}>
+                        {item.type}
+                      </span>
+                      <span className="text-slate-200 font-medium">{item.description}</span>
+                      {item.date && <span className="text-slate-400 font-mono text-[11px]">({item.date})</span>}
+                    </div>
+                    {item.station && (
+                      <span className="text-slate-400 text-[11px] font-mono">
+                        {item.station}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* FILTERS & SEARCH BAR */}
-      <div className="glass-panel p-4 rounded-2xl flex flex-col md:flex-row gap-4 justify-between items-center border border-theme-border">
-        <div className="relative w-full md:w-80">
+      <div className="glass-panel p-4 rounded-2xl flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center border border-theme-border">
+        <div className="relative w-full lg:w-80">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-theme-text-muted" />
           <input
             type="text"
-            placeholder="Search records, stations, items..."
+            placeholder="Search records, customers, invoices..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-900/50 border border-theme-border rounded-xl pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors"
+            className="w-full bg-slate-900/50 border border-theme-border rounded-xl pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-theme-text-muted" />
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="bg-slate-900/50 border border-theme-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500"
+              className="bg-slate-900/50 border border-theme-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500"
             >
               <option value="All">All Categories</option>
+              <option value="Customer">Customers</option>
+              <option value="Invoice">Invoices & Paid Invoices</option>
               <option value="Pump Reading">Pump Readings</option>
               <option value="LPG Transaction">LPG Transactions</option>
               <option value="Inventory">Inventory / Accessories</option>
               <option value="Expense">Expenses</option>
-              <option value="Invoice">Invoices</option>
               <option value="Cash Position">Cash Positions</option>
             </select>
           </div>
@@ -308,16 +497,27 @@ export default function MasterRecordsView() {
             <Calendar className="w-4 h-4 text-theme-text-muted" />
             <input
               type="date"
-              value={selectedDateFilter}
-              onChange={(e) => setSelectedDateFilter(e.target.value)}
-              className="bg-slate-900/50 border border-theme-border rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500"
+              placeholder="From Date"
+              value={startDateFilter}
+              onChange={(e) => setStartDateFilter(e.target.value)}
+              className="bg-slate-900/50 border border-theme-border rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+              title="Start Date (e.g. 2026-08-01)"
             />
-            {selectedDateFilter && (
+            <span className="text-xs text-slate-400">to</span>
+            <input
+              type="date"
+              placeholder="To Date"
+              value={endDateFilter}
+              onChange={(e) => setEndDateFilter(e.target.value)}
+              className="bg-slate-900/50 border border-theme-border rounded-xl px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500"
+              title="End Date (e.g. 2026-08-10)"
+            />
+            {(startDateFilter || endDateFilter) && (
               <button 
-                onClick={() => setSelectedDateFilter('')}
-                className="text-xs text-cyan-400 hover:underline"
+                onClick={handleClearDateFilters}
+                className="text-xs text-blue-400 hover:underline px-1"
               >
-                Clear Date
+                Clear
               </button>
             )}
           </div>
@@ -345,32 +545,33 @@ export default function MasterRecordsView() {
                   <Td>{rec.date}</Td>
                   <Td>
                     <span className="flex items-center gap-1.5 text-xs font-medium text-slate-300">
-                      <Building2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                      <Building2 className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                       {rec.station}
                     </span>
                   </Td>
                   <Td>
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
-                      rec.type === 'Pump Reading' ? 'bg-blue-500/10 text-cyan-400 border border-blue-500/30' :
-                      rec.type === 'LPG Transaction' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/30' :
-                      rec.type === 'Inventory' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/30' :
-                      rec.type === 'Expense' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30' :
+                      rec.type === 'Customer' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/30' :
                       rec.type === 'Invoice' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' :
-                      'bg-cyan-500/10 text-cyan-300 border border-cyan-500/30'
+                      rec.type === 'Pump Reading' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30' :
+                      rec.type === 'LPG Transaction' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/30' :
+                      rec.type === 'Inventory' ? 'bg-fuchsia-500/10 text-fuchsia-400 border border-fuchsia-500/30' :
+                      rec.type === 'Expense' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30' :
+                      'bg-blue-500/10 text-blue-300 border border-blue-500/30'
                     }`}>
                       {rec.type}
                     </span>
                   </Td>
                   <Td className="font-medium text-white">{rec.title}</Td>
                   <Td className="text-theme-text-muted text-xs font-mono">{rec.details}</Td>
-                  <Td className="font-mono font-semibold text-cyan-400">
+                  <Td className="font-mono font-semibold text-blue-400">
                     KES {Math.round(rec.amountOrValue).toLocaleString()}
                   </Td>
                   <Td>
                     <div className="flex items-center gap-3">
                       <button
                         onClick={() => setEditingItem({ type: rec.type, data: { ...rec.raw } })}
-                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-cyan-400 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-blue-400 transition-colors cursor-pointer"
                         title="Edit Record"
                       >
                         <Pencil className="w-4 h-4" />
@@ -403,7 +604,7 @@ export default function MasterRecordsView() {
           <div className="glass-panel p-6 rounded-2xl max-w-lg w-full border border-theme-border space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center border-b border-theme-border pb-3">
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Pencil className="w-4 h-4 text-cyan-400" />
+                <Pencil className="w-4 h-4 text-blue-400" />
                 Edit {editingItem.type}
               </h3>
               <button 
@@ -415,16 +616,18 @@ export default function MasterRecordsView() {
             </div>
 
             <form onSubmit={handleSaveEdit} className="space-y-4">
-              <div>
-                <label className="text-xs uppercase font-bold text-slate-400 block mb-1">Date</label>
-                <input
-                  type="date"
-                  value={editingItem.data.date || new Date().toISOString().split('T')[0]}
-                  onChange={(e) => setEditingItem({ ...editingItem, data: { ...editingItem.data, date: e.target.value } })}
-                  className="w-full bg-slate-900 border border-theme-border rounded-xl px-3 py-2 text-sm text-white"
-                  required
-                />
-              </div>
+              {editingItem.type !== 'Customer' && (
+                <div>
+                  <label className="text-xs uppercase font-bold text-slate-400 block mb-1">Date</label>
+                  <input
+                    type="date"
+                    value={editingItem.data.date || new Date().toISOString().split('T')[0]}
+                    onChange={(e) => setEditingItem({ ...editingItem, data: { ...editingItem.data, date: e.target.value } })}
+                    className="w-full bg-slate-900 border border-theme-border rounded-xl px-3 py-2 text-sm text-white"
+                    required
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="text-xs uppercase font-bold text-slate-400 block mb-1">Station</label>
@@ -438,6 +641,62 @@ export default function MasterRecordsView() {
                   ))}
                 </select>
               </div>
+
+              {/* Customer */}
+              {editingItem.type === 'Customer' && (
+                <>
+                  <div>
+                    <label className="text-xs uppercase font-bold text-slate-400 block mb-1">Customer Name</label>
+                    <input
+                      type="text"
+                      value={editingItem.data.name || ''}
+                      onChange={(e) => setEditingItem({ ...editingItem, data: { ...editingItem.data, name: e.target.value } })}
+                      className="w-full bg-slate-900 border border-theme-border rounded-xl px-3 py-2 text-sm text-white"
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs uppercase font-bold text-slate-400 block mb-1">Customer Code</label>
+                      <input
+                        type="text"
+                        value={editingItem.data.code || ''}
+                        onChange={(e) => setEditingItem({ ...editingItem, data: { ...editingItem.data, code: e.target.value } })}
+                        className="w-full bg-slate-900 border border-theme-border rounded-xl px-3 py-2 text-sm text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs uppercase font-bold text-slate-400 block mb-1">Phone</label>
+                      <input
+                        type="text"
+                        value={editingItem.data.phone || ''}
+                        onChange={(e) => setEditingItem({ ...editingItem, data: { ...editingItem.data, phone: e.target.value } })}
+                        className="w-full bg-slate-900 border border-theme-border rounded-xl px-3 py-2 text-sm text-white"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs uppercase font-bold text-slate-400 block mb-1">Credit Limit</label>
+                      <input
+                        type="number"
+                        value={editingItem.data.creditLimit || 0}
+                        onChange={(e) => setEditingItem({ ...editingItem, data: { ...editingItem.data, creditLimit: parseFloat(e.target.value) || 0 } })}
+                        className="w-full bg-slate-900 border border-theme-border rounded-xl px-3 py-2 text-sm text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs uppercase font-bold text-slate-400 block mb-1">Opening Balance</label>
+                      <input
+                        type="number"
+                        value={editingItem.data.openingBalance || 0}
+                        onChange={(e) => setEditingItem({ ...editingItem, data: { ...editingItem.data, openingBalance: parseFloat(e.target.value) || 0 } })}
+                        className="w-full bg-slate-900 border border-theme-border rounded-xl px-3 py-2 text-sm text-white"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* Dynamic fields based on type */}
               {editingItem.type === 'Pump Reading' && (
@@ -648,7 +907,7 @@ export default function MasterRecordsView() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold rounded-xl transition-colors text-sm shadow-lg shadow-cyan-500/20"
+                  className="px-4 py-2 bg-blue-500 hover:bg-blue-400 text-slate-950 font-semibold rounded-xl transition-colors text-sm shadow-lg shadow-blue-500/20"
                 >
                   Save Changes
                 </button>
@@ -690,10 +949,10 @@ export default function MasterRecordsView() {
       {/* BATCH REASSIGN / SHIFT DATE MODAL */}
       {showReassignModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4">
-          <div className="glass-panel p-6 sm:p-7 rounded-2xl max-w-lg w-full border border-cyan-500/30 space-y-5 shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="glass-panel p-6 sm:p-7 rounded-2xl max-w-lg w-full border border-blue-500/30 space-y-5 shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between border-b border-theme-border pb-3.5">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
                   <Calendar className="w-5 h-5" />
                 </div>
                 <div>
@@ -711,9 +970,9 @@ export default function MasterRecordsView() {
 
             <div className="space-y-4">
               {/* Quick Preset */}
-              <div className="bg-cyan-950/40 border border-cyan-500/30 rounded-xl p-3.5 flex items-center justify-between">
+              <div className="bg-blue-950/40 border border-blue-500/30 rounded-xl p-3.5 flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-bold text-cyan-300 block">Quick Preset Fix</span>
+                  <span className="text-xs font-bold text-blue-300 block">Quick Preset Fix</span>
                   <span className="text-[11px] text-slate-300">Shift 26th August ➔ 06th August</span>
                 </div>
                 <button
@@ -722,7 +981,7 @@ export default function MasterRecordsView() {
                     setReassignFromDate('2026-08-26');
                     setReassignToDate('2026-08-06');
                   }}
-                  className="px-2.5 py-1 text-xs font-semibold bg-cyan-500 text-slate-950 rounded-lg hover:bg-cyan-400 transition-colors"
+                  className="px-2.5 py-1 text-xs font-semibold bg-blue-500 text-slate-950 rounded-lg hover:bg-blue-400 transition-colors"
                 >
                   Apply Preset
                 </button>
@@ -781,7 +1040,7 @@ export default function MasterRecordsView() {
                 return (
                   <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800 text-xs text-slate-300 flex items-center justify-between">
                     <span>Records matching source date:</span>
-                    <span className={`font-bold px-2 py-0.5 rounded ${matchCount > 0 ? 'bg-cyan-500/20 text-cyan-300' : 'bg-slate-800 text-slate-400'}`}>
+                    <span className={`font-bold px-2 py-0.5 rounded ${matchCount > 0 ? 'bg-blue-500/20 text-blue-300' : 'bg-slate-800 text-slate-400'}`}>
                       {matchCount} record(s) found
                     </span>
                   </div>
@@ -809,7 +1068,7 @@ export default function MasterRecordsView() {
                   setShowReassignModal(false);
                   setTimeout(() => setCleanupMessage(null), 6000);
                 }}
-                className="px-5 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 font-bold rounded-xl transition-all text-sm shadow-lg shadow-cyan-500/20"
+                className="px-5 py-2 bg-gradient-to-r from-blue-500 to-blue-500 hover:from-blue-400 hover:to-blue-400 text-slate-950 font-bold rounded-xl transition-all text-sm shadow-lg shadow-blue-500/20"
               >
                 Shift Records
               </button>

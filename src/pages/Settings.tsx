@@ -4,7 +4,8 @@ import { useTheme } from '../lib/theme';
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword, updateProfile } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { exportDataToJson } from '../lib/export';
-import { Lock, Shield, Eye, EyeOff, Save, Key, AlertTriangle, CheckCircle, Moon, Sun, UserCheck, Download } from 'lucide-react';
+import ThemeToggle from '../components/ThemeToggle';
+import { Lock, Shield, Eye, EyeOff, Save, Key, AlertTriangle, CheckCircle, Moon, Sun, UserCheck, Download, Palette, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useCustomers, deleteSeedData, restoreLostCustomers, clearDeliveriesAndPayments } from '../lib/db';
 
@@ -167,7 +168,7 @@ export default function Settings() {
       <div className="glass-panel border border-theme-border rounded-xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-theme-text flex items-center gap-2">
-            <Shield className="w-5 h-5 text-cyan-500 dark:text-blue-400" />
+            <Shield className="w-5 h-5 text-blue-500 dark:text-blue-400" />
             Security & Account Preferences
           </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
@@ -178,6 +179,24 @@ export default function Settings() {
           <span className="text-xs text-gray-400">Secure connection via Firestore & Firebase Auth</span>
         </div>
       </div>
+
+      {/* Theme & Visual Appearance Customization Section */}
+      <section className="glass-panel border border-theme-border rounded-xl shadow-sm p-6 space-y-5" id="theme-customization-section">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-theme-border pb-4">
+          <div>
+            <h3 className="text-lg font-bold text-theme-text flex items-center gap-2">
+              <Palette className="w-5 h-5 text-blue-400" />
+              Interface Theme & Surface Styling
+            </h3>
+            <p className="text-xs text-theme-text-muted mt-1">
+              Select your favorite aesthetic color combination and toggle between solid matte and luminous solid-to-gradient surfaces.
+            </p>
+          </div>
+          <ThemeToggle variant="button" />
+        </div>
+
+        <ThemeToggle variant="cards" />
+      </section>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Left Column: Settings Navigation Details */}
@@ -199,23 +218,6 @@ export default function Settings() {
                   {isEmailUser ? 'Email & Password' : 'Google Auth Account'}
                 </span>
               </div>
-            </div>
-          </div>
-
-          <div className="glass-panel border border-theme-border rounded-xl p-5 space-y-4">
-            <h3 className="font-semibold text-theme-text text-sm uppercase tracking-wider">Interface Preferences</h3>
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-sm font-medium text-theme-text-muted block">Theme mode</span>
-                <span className="text-xs text-gray-400">Switch current visual appearance</span>
-              </div>
-              <button
-                onClick={toggleTheme}
-                className="p-2.5 rounded-lg border border-theme-border glass-panel hover:bg-white/10 dark:hover:bg-blue-900/40 text-theme-text transition-colors flex items-center justify-center"
-                aria-label="Toggle Theme"
-              >
-                {theme === 'dark' ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-indigo-700" />}
-              </button>
             </div>
           </div>
         </div>
@@ -252,7 +254,7 @@ export default function Settings() {
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full px-4 py-2.5 glass-panel border border-theme-border rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                  className="w-full px-4 py-2.5 glass-panel border border-theme-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
                   placeholder="Enter full name"
                 />
               </div>
@@ -261,7 +263,7 @@ export default function Settings() {
                 <button
                   type="submit"
                   disabled={profileLoading}
-                  className="px-5 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                  className="px-5 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                 >
                   <Save className="w-4 h-4" />
                   {profileLoading ? 'Saving...' : 'Save Changes'}
@@ -308,7 +310,7 @@ export default function Settings() {
                         type={showCurrent ? 'text' : 'password'}
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
-                        className="w-full pl-4 pr-11 py-2.5 glass-panel border border-theme-border rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                        className="w-full pl-4 pr-11 py-2.5 glass-panel border border-theme-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
                         placeholder="Enter current password"
                         required
                         autoComplete="current-password"
@@ -334,7 +336,7 @@ export default function Settings() {
                         type={showNew ? 'text' : 'password'}
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
-                        className="w-full pl-4 pr-11 py-2.5 glass-panel border border-theme-border rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                        className="w-full pl-4 pr-11 py-2.5 glass-panel border border-theme-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
                         placeholder="Create strong password"
                         required
                         autoComplete="new-password"
@@ -360,7 +362,7 @@ export default function Settings() {
                         type={showConfirm ? 'text' : 'password'}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="w-full pl-4 pr-11 py-2.5 glass-panel border border-theme-border rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                        className="w-full pl-4 pr-11 py-2.5 glass-panel border border-theme-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
                         placeholder="Re-enter new password"
                         required
                         autoComplete="new-password"
@@ -379,7 +381,7 @@ export default function Settings() {
                     <button
                       type="submit"
                       disabled={passwordLoading}
-                      className="px-5 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+                      className="px-5 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg font-semibold transition-all shadow-sm flex items-center gap-2 cursor-pointer"
                     >
                       <Lock className="w-4 h-4" />
                       {passwordLoading ? 'Updating...' : 'Update Password securely'}
@@ -390,7 +392,7 @@ export default function Settings() {
             ) : (
               <div className="p-5 glass-panel border border-theme-border rounded-xl space-y-3">
                 <div className="flex gap-3">
-                  <div className="p-2 bg-blue-50 dark:bg-white/5 rounded-lg text-cyan-500 dark:text-blue-400 shrink-0">
+                  <div className="p-2 bg-blue-50 dark:bg-white/5 rounded-lg text-blue-500 dark:text-blue-400 shrink-0">
                     <Shield className="w-5 h-5" />
                   </div>
                   <div>
@@ -400,7 +402,7 @@ export default function Settings() {
                     </p>
                   </div>
                 </div>
-                <div className="text-xs text-cyan-500 dark:text-blue-400 font-medium pl-10">
+                <div className="text-xs text-blue-500 dark:text-blue-400 font-medium pl-10">
                   No static password reset/update is needed inside the Loruk Energy distribution platform.
                 </div>
               </div>
@@ -445,7 +447,7 @@ export default function Settings() {
                     <button
                       type="button"
                       onClick={() => setShowRestoreConfirm(true)}
-                      className="px-4 py-2 font-semibold text-xs tracking-wide uppercase bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      className="px-4 py-2 font-semibold text-xs tracking-wide uppercase bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                     >
                       Emergency Restore 
                     </button>
@@ -501,7 +503,7 @@ export default function Settings() {
               onClick={async () => {
                 await exportDataToJson();
               }}
-              className="px-4 py-2 font-semibold text-xs tracking-wide uppercase bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2 font-semibold text-xs tracking-wide uppercase bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
             >
               <Download className="w-4 h-4" />
               Backup Data (JSON)

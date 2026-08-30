@@ -14,6 +14,7 @@ import Trucks from './pages/Trucks';
 import Customers from './pages/Customers';
 import Reports from './pages/Reports';
 import CustomerDashboard from './pages/CustomerDashboard';
+import StationDashboard from './pages/StationDashboard';
 import Settings from './pages/Settings';
 import Stations from './pages/Stations';
 import Products from './pages/Products';
@@ -22,16 +23,19 @@ import FuelSuiteApp from './pages/fuelsuite/FuelSuiteApp';
 import { FuelProvider } from './pages/fuelsuite/context';
 import MiniDashboardProfile from './pages/fuelsuite/views/MiniDashboardProfile';
 import FireLEIcon from './components/FireLEIcon';
-import { Fuel, LogIn, RefreshCcw, Printer, Menu, AlertTriangle, User } from 'lucide-react';
+import ThemeToggle from './components/ThemeToggle';
+import { Fuel, LogIn, RefreshCcw, Printer, Menu, AlertTriangle, User, PanelLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { useProducts, addProduct } from './lib/operationsDb';
 
-type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'trucks' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'settings' | 'stations' | 'products' | 'assistant' | 'fuelsuite';
+type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'trucks' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'stationDashboard' | 'settings' | 'stations' | 'products' | 'assistant' | 'fuelsuite';
 
 function AuthenticatedApp() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [selectedTruckReg, setSelectedTruckReg] = useState<string | null>(null);
+  const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
+  const [selectedStationName, setSelectedStationName] = useState<string | null>(null);
   const [selectedStation, setSelectedStation] = useState<'Ndalu' | 'Junction' | 'Combined'>('Combined');
   const { lastSync } = useSync();
   const [quotaExceeded, setQuotaExceeded] = useState(false); // Changed to avoid quota issues for now
@@ -40,6 +44,34 @@ function AuthenticatedApp() {
   const [showPrintWarning, setShowPrintWarning] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('loruk_main_sidebar_hidden') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleSidebarCollapsed = () => {
+    setIsSidebarCollapsed(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('loruk_main_sidebar_hidden', String(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        toggleSidebarCollapsed();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const { data: products, loading: productsLoading } = useProducts();
 
@@ -57,20 +89,24 @@ function AuthenticatedApp() {
     }
   }, [products?.length, productsLoading]);
 
-  const navigateTo = (page: Page, params?: { customerId?: string | null, truckReg?: string | null }) => {
+  const navigateTo = (page: Page, params?: { customerId?: string | null, truckReg?: string | null, stationId?: string | null, stationName?: string | null }) => {
     const customerId = params?.customerId !== undefined ? params.customerId : (page === 'customerDashboard' ? selectedCustomerId : null);
     const truckReg = params?.truckReg !== undefined ? params.truckReg : (page === 'truckDashboard' ? selectedTruckReg : null);
+    const stationId = params?.stationId !== undefined ? params.stationId : (page === 'stationDashboard' ? selectedStationId : null);
+    const stationName = params?.stationName !== undefined ? params.stationName : (page === 'stationDashboard' ? selectedStationName : null);
     
     setCurrentPage(page);
     setSelectedCustomerId(customerId);
     setSelectedTruckReg(truckReg);
+    setSelectedStationId(stationId);
+    setSelectedStationName(stationName);
     
-    window.history.pushState({ page, customerId, truckReg }, '');
+    window.history.pushState({ page, customerId, truckReg, stationId, stationName }, '');
     setIsMobileMenuOpen(false);
   };
 
   useEffect(() => {
-    window.history.replaceState({ page: 'dashboard', customerId: null, truckReg: null }, '');
+    window.history.replaceState({ page: 'dashboard', customerId: null, truckReg: null, stationId: null, stationName: null }, '');
 
     const handlePopState = (event: PopStateEvent) => {
       const state = event.state;
@@ -78,10 +114,14 @@ function AuthenticatedApp() {
         setCurrentPage(state.page);
         setSelectedCustomerId(state.customerId || null);
         setSelectedTruckReg(state.truckReg || null);
+        setSelectedStationId(state.stationId || null);
+        setSelectedStationName(state.stationName || null);
       } else {
         setCurrentPage('dashboard');
         setSelectedCustomerId(null);
         setSelectedTruckReg(null);
+        setSelectedStationId(null);
+        setSelectedStationName(null);
       }
     };
 
@@ -90,7 +130,14 @@ function AuthenticatedApp() {
   }, []);
 
   if (currentPage === 'fuelsuite') {
-    return <FuelSuiteApp onBackToMain={() => navigateTo('dashboard')} />;
+    return (
+      <FuelSuiteApp 
+        onBackToMain={() => navigateTo('dashboard')} 
+        onNavigateToStation={(id, name) => {
+          navigateTo('stationDashboard', { stationId: id, stationName: name });
+        }}
+      />
+    );
   }
 
   return (
@@ -126,7 +173,7 @@ function AuthenticatedApp() {
                   window.open(window.location.href, '_blank');
                   setShowPrintWarning(false);
                 }}
-                className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg transition-colors"
+                className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg transition-colors"
               >
                 Open in New Tab
               </button>
@@ -135,30 +182,68 @@ function AuthenticatedApp() {
         </div>
       )}
 
-      <div className={`fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 lg:relative lg:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <Sidebar currentPage={currentPage} onNavigate={(p) => {
-          navigateTo(p as Page);
-        }} />
+      {/* Mobile Backdrop */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      <div className={`fixed inset-y-0 left-0 z-50 transform transition-all duration-300 ease-in-out lg:relative lg:translate-x-0 ${
+        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+      } ${
+        isSidebarCollapsed ? 'lg:w-0 lg:p-0 lg:border-r-0 lg:opacity-0 lg:pointer-events-none lg:overflow-hidden' : 'lg:w-64'
+      }`}>
+        <Sidebar 
+          currentPage={currentPage} 
+          onNavigate={(p) => {
+            navigateTo(p as Page);
+            setIsMobileMenuOpen(false);
+          }}
+          onClose={() => setIsMobileMenuOpen(false)}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={toggleSidebarCollapsed}
+        />
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden w-full">
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center px-4 md:px-8 py-4 md:py-6 bg-transparent border-b border-theme-border/30 transition-all gap-4">
           <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
             <div className="flex items-center gap-3">
+              {/* Mobile Menu Button */}
               <button 
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="lg:hidden p-2 -ml-2 text-[#A1A1AA] hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
+                className="lg:hidden p-2 -ml-2 text-theme-text-muted hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
+                title="Open Menu"
               >
                 <Menu className="w-6 h-6" />
               </button>
+
+              {/* Desktop Sidebar Toggle Button */}
+              <button
+                onClick={toggleSidebarCollapsed}
+                className={`hidden lg:flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer text-xs font-semibold ${
+                  isSidebarCollapsed 
+                    ? 'bg-blue-500/15 border-blue-500/30 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:bg-blue-500/25' 
+                    : 'bg-white/[0.04] border-theme-border text-theme-text-muted hover:text-white hover:bg-white/[0.08]'
+                }`}
+                title={isSidebarCollapsed ? "Show Sidebar (Ctrl+B)" : "Hide Sidebar (Ctrl+B)"}
+              >
+                <PanelLeft className="w-4 h-4 text-theme-primary" />
+                <span className="hidden xl:inline">{isSidebarCollapsed ? "Show Sidebar" : "Hide Sidebar"}</span>
+              </button>
+
               <h1 className={`text-2xl md:text-3xl font-bold capitalize tracking-tight ${
                 currentPage === 'payments'
                   ? 'bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent font-extrabold'
                   : currentPage === 'customers' || currentPage === 'customerDashboard'
-                    ? 'bg-gradient-to-r from-sky-400 to-cyan-400 bg-clip-text text-transparent font-extrabold'
-                    : 'text-white text-gradient'
+                    ? 'bg-gradient-to-r from-sky-400 to-blue-400 bg-clip-text text-transparent font-extrabold'
+                    : currentPage === 'stationDashboard'
+                      ? 'bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent font-extrabold'
+                      : 'text-white text-gradient'
               }`}>
-                {currentPage === 'customerDashboard' ? 'Customer Profile' : currentPage === 'truckDashboard' && selectedTruckReg ? `Dashboard: ${selectedTruckReg}` : currentPage.replace(/([A-Z])/g, ' $1').trim()}
+                {currentPage === 'customerDashboard' ? 'Customer Profile' : currentPage === 'truckDashboard' && selectedTruckReg ? `Dashboard: ${selectedTruckReg}` : currentPage === 'stationDashboard' ? (selectedStationName ? `Station Dashboard: ${selectedStationName}` : 'Station Dashboard') : currentPage.replace(/([A-Z])/g, ' $1').trim()}
               </h1>
             </div>
           </div>
@@ -168,19 +253,19 @@ function AuthenticatedApp() {
             <div className="flex items-center gap-1.5 bg-[#121216]/80 p-1 rounded-xl border border-theme-border/50">
               <button 
                 onClick={() => setSelectedStation('Combined')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Combined' ? 'bg-blue-500/10 text-cyan-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Combined' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
               >
                 Combined Total
               </button>
               <button 
                 onClick={() => setSelectedStation('Ndalu')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Ndalu' ? 'bg-blue-500/10 text-cyan-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Ndalu' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
               >
                 Ndalu Station
               </button>
               <button 
                 onClick={() => setSelectedStation('Junction')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Junction' ? 'bg-blue-500/10 text-cyan-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Junction' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
               >
                 Junction Station
               </button>
@@ -188,6 +273,7 @@ function AuthenticatedApp() {
           )}
 
           <div className="flex items-center gap-3 shrink-0 print-hide">
+            <ThemeToggle variant="button" />
             <button 
               onClick={() => setIsProfileOpen(true)}
               className="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl bg-[#8B3DFF]/10 text-[#B15DFF] hover:bg-[#8B3DFF]/20 transition-all duration-300 border border-[#8B3DFF]/30 shadow-[0_0_15px_rgba(139,61,255,0.15)] cursor-pointer"
@@ -228,6 +314,9 @@ function AuthenticatedApp() {
                 onNavigateToTruck={(reg) => {
                   navigateTo('truckDashboard', { truckReg: reg });
                 }}
+                onNavigateToStation={(id, name) => {
+                  navigateTo('stationDashboard', { stationId: id, stationName: name });
+                }}
               />
             )}
             {currentPage === 'deliveries' && (
@@ -251,9 +340,37 @@ function AuthenticatedApp() {
                 }}
               />
             )}
-            {currentPage === 'fleet' && <Fleet onNavigate={(p) => navigateTo(p as Page)} onNavigateToTruck={(reg) => { navigateTo('truckDashboard', { truckReg: reg }); }} />}
+            {currentPage === 'fleet' && (
+              <Fleet 
+                onNavigate={(p) => navigateTo(p as Page)} 
+                onNavigateToTruck={(reg) => { navigateTo('truckDashboard', { truckReg: reg }); }} 
+                onNavigateToStation={(id, name) => {
+                  navigateTo('stationDashboard', { stationId: id, stationName: name });
+                }}
+              />
+            )}
             {currentPage === 'trucks' && <Trucks onNavigateToTruck={(reg) => { navigateTo('truckDashboard', { truckReg: reg }); }} />}
-            {currentPage === 'truckDashboard' && <TruckDashboard truckReg={selectedTruckReg} onNavigateToTruck={(reg) => { navigateTo('truckDashboard', { truckReg: reg }); }} onBack={() => window.history.back()} />}
+            {currentPage === 'truckDashboard' && (
+              <TruckDashboard 
+                truckReg={selectedTruckReg} 
+                onNavigateToTruck={(reg) => { navigateTo('truckDashboard', { truckReg: reg }); }} 
+                onNavigateToStation={(id, name) => {
+                  navigateTo('stationDashboard', { stationId: id, stationName: name });
+                }}
+                onBack={() => window.history.back()} 
+              />
+            )}
+            {currentPage === 'stationDashboard' && (
+              <StationDashboard 
+                stationId={selectedStationId}
+                stationName={selectedStationName}
+                onNavigateToStation={(id, name) => {
+                  navigateTo('stationDashboard', { stationId: id, stationName: name });
+                }}
+                onBack={() => window.history.back()}
+                onNavigateToPage={(p) => navigateTo(p as Page)}
+              />
+            )}
             {currentPage === 'customers' && (
               <Customers 
                 onViewCustomer={(id) => {
@@ -266,8 +383,6 @@ function AuthenticatedApp() {
               <CustomerDashboard 
                 customerId={selectedCustomerId || ''} 
                 onBack={() => {
-                  // Standard back behavior: if there's history, we go back, but we can just navigate to customers for explicit back button.
-                  // For the browser back button, it's handled by popstate. For the UI back button, let's navigate to customers.
                   window.history.back();
                 }} 
               />
@@ -275,12 +390,26 @@ function AuthenticatedApp() {
             {currentPage === 'reports' && <Reports />}
             {currentPage === 'assistant' && <AIAssistant />}
             {currentPage === 'settings' && <Settings />}
-            {currentPage === 'stations' && <Stations />}
+            {currentPage === 'stations' && (
+              <Stations 
+                onNavigateToStation={(id, name) => {
+                  navigateTo('stationDashboard', { stationId: id, stationName: name });
+                }}
+              />
+            )}
             {currentPage === 'products' && <Products />}
           </ErrorBoundary>
         </main>
       </div>
-      {isProfileOpen && <MiniDashboardProfile onClose={() => setIsProfileOpen(false)} />}
+      {isProfileOpen && (
+        <MiniDashboardProfile 
+          onClose={() => setIsProfileOpen(false)} 
+          onNavigateToStation={(id, name) => {
+            setIsProfileOpen(false);
+            navigateTo('stationDashboard', { stationId: id, stationName: name });
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -356,7 +485,7 @@ function Main() {
           </p>
 
           {isLogin && !isForgotPassword && (
-            <div className="text-xs text-cyan-500 dark:text-blue-400 text-center mb-6 bg-blue-500/5 p-3 rounded-lg border border-theme-border leading-relaxed">
+            <div className="text-xs text-blue-500 dark:text-blue-400 text-center mb-6 bg-blue-500/5 p-3 rounded-lg border border-theme-border leading-relaxed">
               💡 <strong>First Time?</strong> If you have not created an email/password account yet, click <strong>Sign up</strong> at the bottom to register your email <strong>enockloriso@gmail.com</strong>.
             </div>
           )}
@@ -439,7 +568,7 @@ function Main() {
                   type="email" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2 glass-input rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all dark:text-white"
+                  className="w-full px-4 py-2 glass-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all dark:text-white"
                   placeholder="Enter your email"
                   required
                 />
@@ -453,7 +582,7 @@ function Main() {
                       <button 
                         type="button" 
                         onClick={() => { setIsForgotPassword(true); setError(''); setMessage(''); }} 
-                        className="text-sm text-cyan-500 dark:text-blue-400 font-semibold hover:underline"
+                        className="text-sm text-blue-500 dark:text-blue-400 font-semibold hover:underline"
                       >
                         Forgot password?
                       </button>
@@ -463,7 +592,7 @@ function Main() {
                     type="password" 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-2 glass-input rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all dark:text-white"
+                    className="w-full px-4 py-2 glass-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all dark:text-white"
                     placeholder="Enter your password"
                     required
                   />
@@ -477,7 +606,7 @@ function Main() {
                     type="password" 
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-4 py-2 glass-input rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none transition-all dark:text-white"
+                    className="w-full px-4 py-2 glass-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all dark:text-white"
                     placeholder="Confirm your password"
                     required
                   />
@@ -487,7 +616,7 @@ function Main() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 px-4 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg font-semibold transition-all shadow-md shadow-blue-900/20"
+                className="w-full py-2.5 px-4 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg font-semibold transition-all shadow-md shadow-blue-900/20"
               >
                 {loading ? 'Processing...' : (isForgotPassword ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Sign Up'))}
               </button>
@@ -516,7 +645,7 @@ function Main() {
                 setError(msg);
               }
             }}
-            className="w-full py-2.5 px-4 glass-input hover:bg-white/5 dark:hover:bg-cyan-900/30 text-gray-700 dark:text-cyan-400 glow-cyan-text rounded-lg flex items-center justify-center gap-2 font-semibold transition-all shadow-sm"
+            className="w-full py-2.5 px-4 glass-input hover:bg-white/5 dark:hover:bg-blue-900/30 text-gray-700 dark:text-blue-400 glow-blue-text rounded-lg flex items-center justify-center gap-2 font-semibold transition-all shadow-sm"
           >
             <LogIn className="w-5 h-5" />
             Continue with Google
@@ -526,7 +655,7 @@ function Main() {
             {isForgotPassword ? (
               <button 
                 onClick={() => { setIsForgotPassword(false); setError(''); setMessage(''); }} 
-                className="text-cyan-500 dark:text-blue-400 font-semibold hover:underline"
+                className="text-blue-500 dark:text-blue-400 font-semibold hover:underline"
               >
                 Back to Sign In
               </button>
@@ -539,7 +668,7 @@ function Main() {
                     setError('');
                     setMessage('');
                   }} 
-                  className="text-cyan-500 dark:text-blue-400 font-semibold hover:underline"
+                  className="text-blue-500 dark:text-blue-400 font-semibold hover:underline"
                 >
                   {isLogin ? 'Sign up' : 'Sign in'}
                 </button>

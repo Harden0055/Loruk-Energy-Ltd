@@ -28,7 +28,7 @@ export const getExpenseBadgeMeta = (category?: string, code?: string) => {
     return { icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/30', badge: 'bg-blue-950/60 text-blue-300 border-blue-800/60' };
   }
   if (text.includes('water') || text.includes('sanitat') || text.includes('sewer')) {
-    return { icon: Droplet, color: 'text-cyan-400', bg: 'bg-cyan-500/10 border-cyan-500/30', badge: 'bg-cyan-950/60 text-cyan-300 border-cyan-800/60' };
+    return { icon: Droplet, color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/30', badge: 'bg-blue-950/60 text-blue-300 border-blue-800/60' };
   }
   if (text.includes('sec') || text.includes('guard') || text.includes('patrol')) {
     return { icon: Shield, color: 'text-indigo-400', bg: 'bg-indigo-500/10 border-indigo-500/30', badge: 'bg-indigo-950/60 text-indigo-300 border-indigo-800/60' };
@@ -286,7 +286,7 @@ export default function ExpensesView() {
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-slate-100">Expenses & Recurring Costs</h1>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/30">
                 {activeStation === 'Combined Total' ? 'All Stations' : activeStation}
               </span>
             </div>
@@ -320,7 +320,7 @@ export default function ExpensesView() {
           onClick={() => setActiveTab('log')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-xs transition-all cursor-pointer ${
             activeTab === 'log'
-              ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.2)]'
+              ? 'bg-blue-500/15 text-blue-300 border border-blue-500/30 shadow-[0_0_15px_rgba(6,182,212,0.2)]'
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
           }`}
         >
@@ -371,7 +371,7 @@ export default function ExpensesView() {
           title="Cash Disbursed" 
           value={`KES ${metrics.cash.toLocaleString()}`} 
           icon={Banknote} 
-          colorClass="bg-cyan-500/10 text-cyan-400" 
+          colorClass="bg-blue-500/10 text-blue-400" 
         />
         <MetricCard 
           title="Recurring Costs" 
@@ -383,7 +383,7 @@ export default function ExpensesView() {
 
       {/* EXPENSE LOGGING FORM */}
       {isFormOpen && (
-        <Card className="border-cyan-500/30 bg-gradient-to-br from-slate-900/90 via-[#0d1e33]/90 to-slate-950/90 shadow-2xl">
+        <Card className="border-blue-500/30 bg-gradient-to-br from-slate-900/90 via-[#0d1e33]/90 to-slate-950/90 shadow-2xl">
           <CardHeader className="border-b border-theme-border/40 pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -411,8 +411,8 @@ export default function ExpensesView() {
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* Quick Template Preset Bar */}
               <div>
-                <label className="block text-xs font-semibold text-cyan-300 uppercase tracking-wider mb-2 flex items-center gap-2">
-                  <Bookmark className="w-3.5 h-3.5 text-cyan-400" />
+                <label className="block text-xs font-semibold text-blue-300 uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <Bookmark className="w-3.5 h-3.5 text-blue-400" />
                   Quick Load Recurring Expense Parameter
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -427,7 +427,7 @@ export default function ExpensesView() {
                         onClick={() => handleSelectTemplatePreset(tpl.code)}
                         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all cursor-pointer ${
                           isSelected
-                            ? 'bg-cyan-500/20 text-cyan-300 border-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.3)] ring-1 ring-cyan-400'
+                            ? 'bg-blue-500/20 text-blue-300 border-blue-400 shadow-[0_0_12px_rgba(6,182,212,0.3)] ring-1 ring-blue-400'
                             : 'bg-slate-900/60 border-slate-700/60 text-slate-300 hover:bg-slate-800 hover:border-slate-600'
                         }`}
                       >
@@ -473,14 +473,14 @@ export default function ExpensesView() {
 
                 <div>
                   <label className="block text-xs font-semibold text-theme-text-muted mb-1.5">
-                    Expense Code <span className="text-cyan-400">*</span>
+                    Expense Code <span className="text-blue-400">*</span>
                   </label>
                   <Input 
                     type="text" 
                     value={form.expenseCode || ''} 
                     onChange={e => setForm({ ...form, expenseCode: e.target.value.toUpperCase() })} 
                     placeholder="e.g. EXP-GEN, EXP-LUNCH, EXP-ELEC" 
-                    className="font-mono font-bold uppercase tracking-wider text-cyan-300"
+                    className="font-mono font-bold uppercase tracking-wider text-blue-300"
                     required 
                   />
                 </div>
@@ -715,7 +715,7 @@ export default function ExpensesView() {
                             ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/25'
                             : (t.paymentMethod || '').toLowerCase().includes('bank')
                             ? 'bg-blue-500/10 text-blue-300 border-blue-500/25'
-                            : 'bg-cyan-500/10 text-cyan-300 border-cyan-500/25'
+                            : 'bg-blue-500/10 text-blue-300 border-blue-500/25'
                         }`}>
                           {t.paymentMethod || 'Cash'}
                         </span>
@@ -834,7 +834,7 @@ export default function ExpensesView() {
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-mono font-bold text-sm text-cyan-300">{tpl.code}</span>
+                            <span className="font-mono font-bold text-sm text-blue-300">{tpl.code}</span>
                             {tpl.isRecurring && (
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/25">
                                 {tpl.frequency}
@@ -900,7 +900,7 @@ export default function ExpensesView() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="p-6 space-y-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
                   <RefreshCw className="w-5 h-5" />
                 </div>
                 <div>
@@ -934,7 +934,7 @@ export default function ExpensesView() {
                   </div>
                   <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
                     <div 
-                      className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full transition-all duration-500"
+                      className="h-full bg-gradient-to-r from-blue-500 to-blue-500 rounded-full transition-all duration-500"
                       style={{ width: `${metrics.total > 0 ? Math.min(100, ((metrics.total - metrics.recurringTotal) / metrics.total) * 100) : 0}%` }}
                     />
                   </div>
@@ -956,9 +956,9 @@ export default function ExpensesView() {
               <div className="space-y-2 pt-2 text-xs">
                 <div className="flex justify-between py-1.5 border-b border-theme-border/40">
                   <span className="text-slate-400 flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-cyan-400"></span> Cash On Hand:
+                    <span className="w-2 h-2 rounded-full bg-blue-400"></span> Cash On Hand:
                   </span>
-                  <span className="font-mono font-bold text-cyan-400">KES {metrics.cash.toLocaleString()}</span>
+                  <span className="font-mono font-bold text-blue-400">KES {metrics.cash.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-theme-border/40">
                   <span className="text-slate-400 flex items-center gap-1.5">

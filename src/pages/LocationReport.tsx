@@ -92,7 +92,7 @@ export default function LocationReport({ location }: LocationReportProps) {
           </div>
         </div>
         
-        <button type="submit" className="w-full px-6 py-3 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg font-semibold transition-all">Submit Report</button>
+        <button type="submit" className="w-full px-6 py-3 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg font-semibold transition-all">Submit Report</button>
       </form>
     </div>
   );

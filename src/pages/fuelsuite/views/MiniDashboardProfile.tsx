@@ -1,16 +1,17 @@
 import React, { useMemo } from 'react';
 import { useFuel, calculatePumpMeterDelta } from '../context';
-import { X, User, BarChart2, TrendingUp, DollarSign, ArrowRight, Building2, Fuel, Flame, Box, ShieldCheck, Wallet } from 'lucide-react';
+import { X, User, BarChart2, TrendingUp, DollarSign, ArrowRight, Building2, Fuel, Flame, Box, ShieldCheck, Wallet, ExternalLink } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell } from 'recharts';
 
 interface MiniDashboardProfileProps {
   onClose: () => void;
   onNavigate?: (view: string) => void;
+  onNavigateToStation?: (id: string, name: string) => void;
 }
 
 const COLORS = ['#06B6D4', '#3B82F6', '#F97316', '#10B981', '#A855F7'];
 
-export default function MiniDashboardProfile({ onClose, onNavigate }: MiniDashboardProfileProps) {
+export default function MiniDashboardProfile({ onClose, onNavigate, onNavigateToStation }: MiniDashboardProfileProps) {
   const { pumpReadings, lpgTransactions, inventoryItems, products, expenses, stations } = useFuel();
 
   const stationData = useMemo(() => {
@@ -91,8 +92,8 @@ export default function MiniDashboardProfile({ onClose, onNavigate }: MiniDashbo
         
         <div className="p-6 border-b border-white/10 flex items-center justify-between bg-[#0B0D14]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-cyan-500/15 flex items-center justify-center border border-cyan-500/35 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
-              <User className="w-5 h-5 text-cyan-400" />
+            <div className="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center border border-blue-500/35 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+              <User className="w-5 h-5 text-blue-400" />
             </div>
             <div>
               <h2 className="text-lg font-extrabold text-white tracking-tight">Station Performance Overview</h2>
@@ -109,7 +110,7 @@ export default function MiniDashboardProfile({ onClose, onNavigate }: MiniDashbo
           <div className="grid grid-cols-3 gap-4">
             <div className="glass-panel p-4 rounded-xl flex flex-col justify-between h-28 border border-white/[0.08]">
               <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_#22D3EE]" />
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_6px_#22D3EE]" />
                 Total Revenue
               </div>
               <div className="text-base xl:text-lg font-extrabold text-white tracking-tight font-mono">KES {overallTotalRevenue.toLocaleString()}</div>
@@ -135,34 +136,34 @@ export default function MiniDashboardProfile({ onClose, onNavigate }: MiniDashbo
           <div className="glass-panel p-5 rounded-2xl space-y-3.5 border border-white/[0.08]">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-bold text-slate-400 uppercase flex items-center gap-2">
-                <Fuel className="w-4 h-4 text-cyan-400" />
+                <Fuel className="w-4 h-4 text-blue-400" />
                 White Oils Volume & Value
               </h4>
             </div>
             <div className="grid grid-cols-2 gap-4 pt-1">
                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
-                  <p className="text-[10px] text-cyan-400 font-bold uppercase">Super Petrol</p>
+                  <p className="text-[10px] text-blue-400 font-bold uppercase">Super Petrol</p>
                   <p className="text-xs font-bold text-white mt-1">{stationData.reduce((sum, s) => sum + s.superLitres, 0).toLocaleString()} L</p>
-                  <p className="text-xs font-mono font-bold text-cyan-400">KES {stationData.reduce((sum, s) => sum + s.superSales, 0).toLocaleString()}</p>
+                  <p className="text-xs font-mono font-bold text-blue-400">KES {stationData.reduce((sum, s) => sum + s.superSales, 0).toLocaleString()}</p>
                </div>
                <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05]">
                   <p className="text-[10px] text-blue-400 font-bold uppercase">Automotive Diesel</p>
                   <p className="text-xs font-bold text-white mt-1">{stationData.reduce((sum, s) => sum + s.dieselLitres, 0).toLocaleString()} L</p>
                   <p className="text-xs font-mono font-bold text-blue-400">KES {stationData.reduce((sum, s) => sum + s.dieselSales, 0).toLocaleString()}</p>
                </div>
-               <div className="col-span-2 p-3 rounded-xl bg-cyan-500/[0.04] border border-cyan-500/20 flex items-center justify-between">
+               <div className="col-span-2 p-3 rounded-xl bg-blue-500/[0.04] border border-blue-500/20 flex items-center justify-between">
                   <div>
                     <p className="text-[10px] text-slate-400 font-bold uppercase">Combined Station Volume</p>
                     <p className="text-xs text-white font-extrabold font-mono mt-0.5">{stationData.reduce((sum, s) => sum + s.fuelLitres, 0).toLocaleString()} Litres</p>
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] text-slate-400 font-bold uppercase">Total Value</p>
-                    <p className="text-xs text-cyan-400 font-extrabold font-mono mt-0.5">KES {stationData.reduce((sum, s) => sum + s.fuelRevenue, 0).toLocaleString()}</p>
+                    <p className="text-xs text-blue-400 font-extrabold font-mono mt-0.5">KES {stationData.reduce((sum, s) => sum + s.fuelRevenue, 0).toLocaleString()}</p>
                   </div>
                </div>
             </div>
             {onNavigate && (
-              <button onClick={() => onNavigate('WhiteOilsProfit')} className="flex items-center gap-1.5 text-xs text-cyan-400 hover:text-cyan-300 font-bold uppercase tracking-wider mt-2 cursor-pointer transition-colors">
+              <button onClick={() => onNavigate('WhiteOilsProfit')} className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 font-bold uppercase tracking-wider mt-2 cursor-pointer transition-colors">
                 View White Oils Detailed Log <ArrowRight className="w-3.5 h-3.5" />
               </button>
             )}
@@ -190,7 +191,7 @@ export default function MiniDashboardProfile({ onClose, onNavigate }: MiniDashbo
           {/* Station Performance Chart */}
           <div className="glass-panel p-5 rounded-2xl border border-white/[0.08]">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_#22D3EE]" />
+              <span className="w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_6px_#22D3EE]" />
               Station Revenue vs Expenses Comparison
             </h3>
             <div className="h-56 relative overflow-hidden">
@@ -210,6 +211,28 @@ export default function MiniDashboardProfile({ onClose, onNavigate }: MiniDashbo
                 </BarChart>
               </ResponsiveContainer>
             </div>
+            {onNavigateToStation && stationData.length > 0 && (
+              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between flex-wrap gap-2">
+                <span className="text-[10px] text-slate-400 font-semibold uppercase">Open Station Dashboards:</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {stationData.map(s => (
+                    <button
+                      key={s.name}
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        onNavigateToStation(s.name, s.name);
+                      }}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 transition-all cursor-pointer"
+                    >
+                      <Building2 className="w-3 h-3" />
+                      <span>{s.name}</span>
+                      <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Product Performance Chart */}

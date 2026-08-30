@@ -16,12 +16,13 @@ import {
   Activity, 
   Target, 
   Layers,
-  ArrowUpRight
+  ArrowUpRight,
+  ExternalLink
 } from 'lucide-react';
 
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
-export default function DashboardView() {
+export default function DashboardView({ onNavigateToStation }: { onNavigateToStation?: (id: string, name: string) => void }) {
   const { activeStation, pumpReadings, expenses, lpgTransactions, inventoryItems, invoices } = useFuel();
   const [filterYear] = useState<string>('All');
   
@@ -229,7 +230,7 @@ export default function DashboardView() {
           <div className="flex items-start justify-between">
             <div>
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22D3EE]" />
+                <span className="w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_8px_#22D3EE]" />
                 Revenue Breakdown
               </h3>
               <p className="text-[11px] text-slate-500 mt-0.5">Stream distribution</p>
@@ -270,9 +271,9 @@ export default function DashboardView() {
             
             <div className="w-1/2 pl-4 flex flex-col justify-center space-y-3 text-xs">
               <div className="flex items-center gap-2.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#22D3EE]" />
+                <div className="w-2.5 h-2.5 rounded-full bg-blue-400 shadow-[0_0_8px_#22D3EE]" />
                 <span className="text-slate-300 font-medium">Fuel Sales</span>
-                <span className="ml-auto text-cyan-400 font-bold font-mono">{fuelPct}%</span>
+                <span className="ml-auto text-blue-400 font-bold font-mono">{fuelPct}%</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <div className="w-2.5 h-2.5 rounded-full bg-orange-400 shadow-[0_0_8px_#FB923C]" />
@@ -349,7 +350,7 @@ export default function DashboardView() {
         {/* Middle Left: Distribution Pie */}
         <div className="col-span-12 lg:col-span-3 glass-panel rounded-2xl p-6 flex flex-col justify-between">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22D3EE]" />
+            <span className="w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_8px_#22D3EE]" />
             Location Share
           </h3>
           <div className="flex-1 min-h-[190px] relative">
@@ -373,12 +374,19 @@ export default function DashboardView() {
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className="flex justify-center gap-3 mt-3 flex-wrap">
+          <div className="flex justify-center gap-2 mt-3 flex-wrap">
              {distributionPieData.map((d) => (
-               <div key={d.name} className="flex items-center gap-1.5 text-[10px] text-slate-300 font-semibold">
+               <button
+                 key={d.name}
+                 type="button"
+                 onClick={() => onNavigateToStation?.(d.name, d.name)}
+                 className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/[0.04] hover:bg-blue-500/15 border border-white/[0.08] hover:border-blue-500/30 text-[10px] text-slate-300 hover:text-blue-300 font-semibold transition-all cursor-pointer group"
+                 title={`Open ${d.name} Dashboard`}
+               >
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: d.fill }} />
-                  {d.name.split(' ')[0]}
-               </div>
+                  <span>{d.name}</span>
+                  <ExternalLink className="w-2.5 h-2.5 opacity-50 group-hover:opacity-100" />
+               </button>
              ))}
           </div>
         </div>
@@ -411,7 +419,7 @@ export default function DashboardView() {
           <div className="flex justify-between items-center mb-3">
             <div>
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22D3EE]" />
+                <span className="w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_8px_#22D3EE]" />
                 Revenue vs Expenses
               </h3>
               <p className="text-[11px] text-slate-500 mt-0.5">Cash collection against cost outflows</p>
@@ -476,15 +484,15 @@ export default function DashboardView() {
           <div className="flex justify-between items-center mb-2">
             <div>
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#22D3EE]" />
+                <span className="w-2 h-2 rounded-full bg-blue-400 shadow-[0_0_8px_#22D3EE]" />
                 Revenue Target Forecast
               </h3>
               <p className="text-[11px] text-slate-500 mt-0.5">Actual pace compared against forecast target</p>
             </div>
             <div className="flex gap-4 text-right">
               <div>
-                <div className="flex items-center gap-1 text-[9px] text-cyan-400 font-bold uppercase tracking-wider justify-end">
-                  <div className="w-2 h-2 rounded-full bg-cyan-400" /> Actual
+                <div className="flex items-center gap-1 text-[9px] text-blue-400 font-bold uppercase tracking-wider justify-end">
+                  <div className="w-2 h-2 rounded-full bg-blue-400" /> Actual
                 </div>
                 <span className="text-white font-extrabold text-xs font-mono">KES {totalActual.toLocaleString(undefined, {maximumFractionDigits: 0})}</span>
               </div>

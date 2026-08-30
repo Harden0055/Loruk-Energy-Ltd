@@ -138,7 +138,7 @@ export default function Trucks({ onNavigateToTruck }: TrucksProps) {
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4" id="trucks-overview-cards">
         <div className="glass-panel p-5 rounded-xl border border-theme-border shadow-xs flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-50 dark:bg-white/5 rounded-lg flex items-center justify-center text-cyan-400">
+          <div className="w-12 h-12 bg-blue-50 dark:bg-white/5 rounded-lg flex items-center justify-center text-blue-400">
             <TruckIcon className="w-6 h-6" />
           </div>
           <div>
@@ -195,7 +195,7 @@ export default function Trucks({ onNavigateToTruck }: TrucksProps) {
 
         <button
           onClick={handleAddClick}
-          className="flex items-center justify-center gap-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer"
+          className="flex items-center justify-center gap-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Add Truck
@@ -252,7 +252,7 @@ export default function Trucks({ onNavigateToTruck }: TrucksProps) {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => onNavigateToTruck(truck.registration)}
-                          className="p-1.5 text-gray-400 hover:text-cyan-400 hover:bg-white/10 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                          className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-white/10 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
                           title="View Dashboard"
                         >
                           <LineChart className="w-4 h-4" />
@@ -341,7 +341,7 @@ export default function Trucks({ onNavigateToTruck }: TrucksProps) {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] text-sm font-semibold rounded-lg transition-colors flex items-center justify-center min-w-[80px] disabled:opacity-50 cursor-pointer"
+                  className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] text-sm font-semibold rounded-lg transition-colors flex items-center justify-center min-w-[80px] disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? 'Saving...' : 'Save'}
                 </button>

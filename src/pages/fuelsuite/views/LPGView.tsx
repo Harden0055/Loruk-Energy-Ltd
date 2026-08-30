@@ -172,9 +172,9 @@ export default function LPGView() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="flex flex-col justify-center bg-cyan-500/10 border border-theme-border p-6 rounded-xl shadow-sm">
+          <div className="flex flex-col justify-center bg-blue-500/10 border border-theme-border p-6 rounded-xl shadow-sm">
             <span className="text-sm text-theme-text-muted font-medium">Total Sales</span>
-            <span className="text-3xl font-bold text-cyan-400 mt-2">Ksh {(lpg.totalSales + acc.totalSales).toLocaleString()}</span>
+            <span className="text-3xl font-bold text-blue-400 mt-2">Ksh {(lpg.totalSales + acc.totalSales).toLocaleString()}</span>
           </div>
           <div className="flex flex-col justify-center bg-orange-500/10 border border-orange-500/20 p-6 rounded-xl shadow-sm">
             <span className="text-sm text-theme-text-muted font-medium">Total Purchases</span>
@@ -230,7 +230,7 @@ export default function LPGView() {
                     <tr key={t.id} className="border-b border-theme-border/50 hover:bg-[#122840]/50 transition-colors">
                       <td className="modern-td">{t.date}</td>
                       <td className="modern-td">
-                        <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${t.type === 'sale' ? 'bg-cyan-500/20 text-cyan-400' : 'bg-orange-500/20 text-orange-400'}`}>
+                        <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${t.type === 'sale' ? 'bg-blue-500/20 text-blue-400' : 'bg-orange-500/20 text-orange-400'}`}>
                           {t.type}
                         </span>
                       </td>
@@ -306,7 +306,7 @@ export default function LPGView() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <MetricCard title="Opening Stock" value={`${lpg.totalOpening} Cyls`} icon={Boxes} colorClass="bg-blue-500/10 text-blue-400" />
         <MetricCard title="Total Bought" value={`${lpg.totalBought} Cyls`} icon={ShoppingCart} colorClass="bg-[#122840] text-theme-text-muted" />
-        <MetricCard title="Total Sold" value={`${lpg.totalSold} Cyls`} icon={CheckSquare} colorClass="bg-cyan-500/10 text-cyan-400" />
+        <MetricCard title="Total Sold" value={`${lpg.totalSold} Cyls`} icon={CheckSquare} colorClass="bg-blue-500/10 text-blue-400" />
         <MetricCard title="Current Inventory" value={`${lpg.currentInv} Cyls`} icon={RefreshCcw} colorClass="bg-emerald-500/10 text-emerald-400" />
       </div>
 
@@ -314,12 +314,12 @@ export default function LPGView() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <MetricCard title="Opening Stock" value={`${acc.totalOpening} Units`} icon={Boxes} colorClass="bg-blue-500/10 text-blue-400" />
         <MetricCard title="Total Bought" value={`${acc.totalBought} Units`} icon={ShoppingCart} colorClass="bg-[#122840] text-theme-text-muted" />
-        <MetricCard title="Total Sold" value={`${acc.totalSold} Units`} icon={CheckSquare} colorClass="bg-cyan-500/10 text-cyan-400" />
+        <MetricCard title="Total Sold" value={`${acc.totalSold} Units`} icon={CheckSquare} colorClass="bg-blue-500/10 text-blue-400" />
         <MetricCard title="Current Inventory" value={`${acc.currentInv} Units`} icon={RefreshCcw} colorClass="bg-emerald-500/10 text-emerald-400" />
       </div>
 
       <div className="flex justify-end pt-2 pb-2">
-        <button onClick={() => setShowLpgProfit(true)} className="text-cyan-400 hover:text-cyan-300 underline underline-offset-4 text-sm font-medium transition-colors cursor-pointer flex items-center gap-1.5">
+        <button onClick={() => setShowLpgProfit(true)} className="text-blue-400 hover:text-blue-300 underline underline-offset-4 text-sm font-medium transition-colors cursor-pointer flex items-center gap-1.5">
           <Flame className="w-4 h-4 text-orange-400" /> View LPG Profit Profile
         </button>
       </div>

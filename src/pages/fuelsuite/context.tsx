@@ -4,6 +4,7 @@ import { db } from '../../lib/firebase';
 import { 
   deduplicateCollections, 
   detectDuplicates, 
+  mergeCustomers,
   DeduplicateOutput, 
   DuplicateDetectionResult,
   normalizeDate 
@@ -142,8 +143,9 @@ interface FuelContextType {
   setStations: React.Dispatch<React.SetStateAction<StationData[]>>;
   expenseTemplates: ExpenseTemplate[];
   setExpenseTemplates: React.Dispatch<React.SetStateAction<ExpenseTemplate[]>>;
-  deduplicateData: (targetDate?: string, targetStation?: string) => DeduplicateOutput;
-  checkDuplicates: (targetDate?: string, targetStation?: string) => DuplicateDetectionResult;
+  deduplicateData: (targetDate?: string, targetStation?: string, endDate?: string) => DeduplicateOutput;
+  checkDuplicates: (targetDate?: string, targetStation?: string, endDate?: string) => DuplicateDetectionResult;
+  mergeDuplicateCustomers: () => { mergedCount: number; details: string[] };
   reassignRecordsDate: (fromDate: string, toDate: string, targetStation?: string) => { movedCount: number; details: string[] };
 }
 
@@ -251,28 +253,31 @@ export const FuelProvider = ({ children }: { children: ReactNode }) => {
     { id: '12', code: 'EXP-MISC', name: 'Petty Cash / Miscellaneous', category: 'General & Admin', defaultAmount: 1000, frequency: 'As Needed', isRecurring: false, defaultPaymentMethod: 'Cash', notes: 'Stationery, minor emergency supplies and refreshments' },
   ]);
 
-  const checkDuplicates = useCallback((targetDate?: string, targetStation?: string): DuplicateDetectionResult => {
+  const checkDuplicates = useCallback((targetDate?: string, targetStation?: string, endDate?: string): DuplicateDetectionResult => {
     return detectDuplicates({
       pumpReadings,
       lpgTransactions,
       inventoryItems,
       expenses,
       invoices,
-      cashPositions
-    }, targetDate, targetStation);
-  }, [pumpReadings, lpgTransactions, inventoryItems, expenses, invoices, cashPositions]);
+      cashPositions,
+      customers
+    }, targetDate, targetStation, endDate);
+  }, [pumpReadings, lpgTransactions, inventoryItems, expenses, invoices, cashPositions, customers]);
 
-  const deduplicateData = useCallback((targetDate?: string, targetStation?: string): DeduplicateOutput => {
+  const deduplicateData = useCallback((targetDate?: string, targetStation?: string, endDate?: string): DeduplicateOutput => {
     const result = deduplicateCollections({
       pumpReadings,
       lpgTransactions,
       inventoryItems,
       expenses,
       invoices,
-      cashPositions
-    }, targetDate, targetStation);
+      cashPositions,
+      customers
+    }, targetDate, targetStation, endDate);
 
     if (result.removedCount > 0) {
+      if (result.breakdown.customers > 0) setCustomers(result.cleanedCustomers);
       if (result.breakdown.pumpReadings > 0) setPumpReadings(result.cleanedPumpReadings);
       if (result.breakdown.lpgTransactions > 0) setLpgTransactions(result.cleanedLpgTransactions);
       if (result.breakdown.inventoryItems > 0) setInventoryItems(result.cleanedInventoryItems);
@@ -282,7 +287,19 @@ export const FuelProvider = ({ children }: { children: ReactNode }) => {
     }
 
     return result;
-  }, [pumpReadings, lpgTransactions, inventoryItems, expenses, invoices, cashPositions, setPumpReadings, setLpgTransactions, setInventoryItems, setExpenses, setInvoices, setCashPositions]);
+  }, [pumpReadings, lpgTransactions, inventoryItems, expenses, invoices, cashPositions, customers, setCustomers, setPumpReadings, setLpgTransactions, setInventoryItems, setExpenses, setInvoices, setCashPositions]);
+
+  const mergeDuplicateCustomers = useCallback(() => {
+    const result = mergeCustomers(customers, invoices);
+    if (result.mergedCount > 0) {
+      setCustomers(result.mergedCustomers);
+      setInvoices(result.updatedInvoices);
+    }
+    return {
+      mergedCount: result.mergedCount,
+      details: result.details
+    };
+  }, [customers, invoices, setCustomers, setInvoices]);
 
   const reassignRecordsDate = useCallback((fromDate: string, toDate: string, targetStation?: string) => {
     const normFrom = normalizeDate(fromDate);
@@ -409,6 +426,7 @@ export const FuelProvider = ({ children }: { children: ReactNode }) => {
       expenseTemplates, setExpenseTemplates,
       deduplicateData,
       checkDuplicates,
+      mergeDuplicateCustomers,
       reassignRecordsDate,
     }}>
       {children}

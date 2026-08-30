@@ -19,7 +19,9 @@ import {
   Wrench, 
   Droplet,
   Package,
-  Layers as LayersIcon
+  Layers as LayersIcon,
+  ExternalLink,
+  BarChart3
 } from 'lucide-react';
 import { useConfirm } from '../useConfirm';
 
@@ -35,7 +37,7 @@ export const sortProductsList = (list: Product[]): Product[] => {
 };
 
 export const CATEGORY_OPTIONS: { label: string; value: ProductCategory; icon: React.ComponentType<{ className?: string }>; color: string }[] = [
-  { label: 'Fuel', value: 'Fuel', icon: Fuel, color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30' },
+  { label: 'Fuel', value: 'Fuel', icon: Fuel, color: 'bg-blue-500/10 text-blue-400 border-blue-500/30' },
   { label: 'LPG', value: 'LPG', icon: Flame, color: 'bg-orange-500/10 text-orange-400 border-orange-500/30' },
   { label: 'Accessories', value: 'Accessories', icon: Box, color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' },
   { label: 'Lubricants', value: 'Lubricants', icon: Droplet, color: 'bg-amber-500/10 text-amber-400 border-amber-500/30' },
@@ -80,7 +82,7 @@ export const autoDetectCategoryAndUOM = (name: string): { category: ProductCateg
   return { category: 'Accessories', uom: 'Piece', suggestedSkuPrefix: 'ITEM' };
 };
 
-export default function ProductsView() {
+export default function ProductsView({ onNavigateToStation }: { onNavigateToStation?: (id: string, name: string) => void }) {
   const { confirm: confirmDelete, dialog: confirmDialog } = useConfirm();
   const { products, setProducts, stations, setStations } = useFuel();
   
@@ -368,7 +370,7 @@ export default function ProductsView() {
               });
               setIsFormOpen(true);
             }
-          }} className="flex items-center gap-2 bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold">
+          }} className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-slate-950 font-bold">
             {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Item</>}
           </Button>
         </div>
@@ -376,10 +378,10 @@ export default function ProductsView() {
 
       {/* Add / Edit Item Form */}
       {isFormOpen && (
-        <Card className="border-cyan-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950/30 shadow-2xl animate-in slide-in-from-top duration-300">
+        <Card className="border-blue-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950/30 shadow-2xl animate-in slide-in-from-top duration-300">
           <CardHeader className="border-b border-theme-border/60 pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-cyan-400 flex items-center gap-2">
+              <CardTitle className="text-blue-400 flex items-center gap-2">
                 <Tag className="w-5 h-5" />
                 {editingId ? 'Edit Catalog Item' : 'Add New Catalog Item'}
               </CardTitle>
@@ -396,7 +398,7 @@ export default function ProductsView() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* 1. Item Name */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-cyan-400 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-blue-400 uppercase tracking-wider">
                     1. Item Name *
                   </label>
                   <Input 
@@ -413,7 +415,7 @@ export default function ProductsView() {
 
                 {/* 2. Item Code / SKU */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-cyan-400 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-blue-400 uppercase tracking-wider">
                     2. Item Code / SKU
                   </label>
                   <Input 
@@ -428,7 +430,7 @@ export default function ProductsView() {
 
                 {/* 3. Item Group / Category */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-cyan-400 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-blue-400 uppercase tracking-wider">
                     3. Item Group / Category
                   </label>
                   <Select 
@@ -447,7 +449,7 @@ export default function ProductsView() {
 
                 {/* 4. Unit of Measure (UOM) */}
                 <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-cyan-400 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-blue-400 uppercase tracking-wider">
                     4. Unit of Measure (UOM)
                   </label>
                   <Select 
@@ -470,7 +472,7 @@ export default function ProductsView() {
                 <div className="flex items-center gap-2">
                   <span className="text-slate-400">Preview:</span>
                   <span className="font-bold text-white text-sm">{form.name || '(Enter Name)'}</span>
-                  <span className="font-mono px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold border border-cyan-500/30">
+                  <span className="font-mono px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30">
                     {form.itemCode || 'CODE-AUTO'}
                   </span>
                   <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 font-medium">
@@ -484,7 +486,7 @@ export default function ProductsView() {
                   <Button type="button" variant="secondary" onClick={resetForm} className="text-xs">
                     Cancel
                   </Button>
-                  <Button type="submit" className="bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold text-xs px-5">
+                  <Button type="submit" className="bg-blue-500 hover:bg-blue-600 text-slate-950 font-bold text-xs px-5">
                     {editingId ? 'Update Item' : 'Save Item to Catalog'}
                   </Button>
                 </div>
@@ -495,13 +497,13 @@ export default function ProductsView() {
       )}
 
       {isBulkFormOpen && (
-        <Card className="border-cyan-500/30">
+        <Card className="border-blue-500/30">
           <CardHeader>
-            <CardTitle className="text-cyan-400 flex items-center gap-2">
+            <CardTitle className="text-blue-400 flex items-center gap-2">
               <Layers className="w-5 h-5" /> Bulk Add Items
             </CardTitle>
             <p className="text-xs text-theme-text-muted">
-              Enter one product per line or comma-separated. You can also supply <code className="text-cyan-300 font-mono">Item Name | SKU | Category | UOM</code>.
+              Enter one product per line or comma-separated. You can also supply <code className="text-blue-300 font-mono">Item Name | SKU | Category | UOM</code>.
             </p>
           </CardHeader>
           <CardContent>
@@ -513,12 +515,12 @@ export default function ProductsView() {
                   onChange={e => setBulkInput(e.target.value)} 
                   placeholder="Diesel | AGO-001 | Fuel | Litre&#10;Super Petrol | PMS-002 | Fuel | Litre&#10;6Kg LPG | LPG-003 | LPG | Cylinder&#10;15W40 Engine Oil | LUB-001 | Lubricants | Litre&#10;Burner | ACC-001 | Accessories | Piece" 
                   required
-                  className="w-full h-32 px-3.5 py-2.5 bg-[#09090B] border border-theme-border rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-shadow resize-y font-mono"
+                  className="w-full h-32 px-3.5 py-2.5 bg-[#09090B] border border-theme-border rounded-lg text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow resize-y font-mono"
                 />
               </div>
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="secondary" onClick={() => setIsBulkFormOpen(false)}>Cancel</Button>
-                <Button type="submit" className="bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold">Bulk Save Items</Button>
+                <Button type="submit" className="bg-blue-500 hover:bg-blue-600 text-slate-950 font-bold">Bulk Save Items</Button>
               </div>
             </form>
           </CardContent>
@@ -530,9 +532,9 @@ export default function ProductsView() {
         <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3">
           <div>
             <div className="flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-cyan-400" />
-              <CardTitle className="text-lg text-cyan-400">Stations Configuration</CardTitle>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-semibold">
+              <Building2 className="w-5 h-5 text-blue-400" />
+              <CardTitle className="text-lg text-blue-400">Stations Configuration</CardTitle>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-semibold">
                 {stations.length} Station{stations.length === 1 ? '' : 's'} Active
               </span>
             </div>
@@ -558,7 +560,7 @@ export default function ProductsView() {
               placeholder="Enter new station name (e.g. Loruk Ndalu Filling Station)" 
               className="flex-1 bg-slate-900 border-theme-border text-slate-100 placeholder-slate-500"
             />
-            <Button type="submit" className="flex items-center justify-center gap-2 px-5 py-2 whitespace-nowrap bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold">
+            <Button type="submit" className="flex items-center justify-center gap-2 px-5 py-2 whitespace-nowrap bg-blue-500 hover:bg-blue-600 text-slate-950 font-bold">
               <Plus className="w-4 h-4" /> Add Station
             </Button>
           </form>
@@ -575,7 +577,7 @@ export default function ProductsView() {
               <tbody>
                 {stations.map((s, idx) => (
                   <tr key={s.id} className="hover:bg-slate-800/30 transition-colors border-b border-theme-border/40 last:border-0">
-                    <Td className="text-center text-xs font-mono text-cyan-400/80 font-bold">{idx + 1}</Td>
+                    <Td className="text-center text-xs font-mono text-blue-400/80 font-bold">{idx + 1}</Td>
                     <Td>
                       {editingStationId === s.id ? (
                         <div className="flex items-center gap-2 max-w-md">
@@ -609,18 +611,41 @@ export default function ProductsView() {
                       ) : (
                         <div className="flex items-center gap-2.5">
                           <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
-                          <span className="font-semibold text-slate-100 text-sm">{s.name}</span>
+                          {onNavigateToStation ? (
+                            <button
+                              type="button"
+                              onClick={() => onNavigateToStation(s.id, s.name)}
+                              className="font-semibold text-blue-400 hover:text-blue-300 hover:underline text-sm inline-flex items-center gap-1.5 cursor-pointer text-left focus:outline-none"
+                              title={`Open ${s.name} Dashboard`}
+                            >
+                              <span>{s.name}</span>
+                              <ExternalLink className="w-3 h-3 opacity-60" />
+                            </button>
+                          ) : (
+                            <span className="font-semibold text-slate-100 text-sm">{s.name}</span>
+                          )}
                         </div>
                       )}
                     </Td>
                     <Td className="text-right">
-                      <div className="flex items-center justify-end gap-1">
+                      <div className="flex items-center justify-end gap-1.5">
+                        {onNavigateToStation && (
+                          <button
+                            type="button"
+                            onClick={() => onNavigateToStation(s.id, s.name)}
+                            className="flex items-center gap-1 px-2 py-1 text-xs font-bold text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg transition-colors cursor-pointer"
+                            title="Open Station Dashboard"
+                          >
+                            <BarChart3 className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Dashboard</span>
+                          </button>
+                        )}
                         <button 
                           onClick={() => {
                             setEditingStationId(s.id);
                             setEditingStationName(s.name);
                           }} 
-                          className="text-slate-400 hover:text-cyan-400 p-2 rounded hover:bg-white/5 transition-colors cursor-pointer" 
+                          className="text-slate-400 hover:text-blue-400 p-2 rounded hover:bg-white/5 transition-colors cursor-pointer" 
                           title="Rename Station"
                         >
                           <Pencil className="w-4 h-4" />
@@ -645,7 +670,7 @@ export default function ProductsView() {
                         <Button 
                           onClick={handleRestoreDefaultStations} 
                           variant="secondary" 
-                          className="text-xs text-cyan-400 border-cyan-500/30 mt-1"
+                          className="text-xs text-blue-400 border-blue-500/30 mt-1"
                         >
                           <Sparkles className="w-3.5 h-3.5 mr-1" /> Add Loruk Ndalu & Loruk Junction Stations
                         </Button>
@@ -664,8 +689,8 @@ export default function ProductsView() {
         <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4">
           <div>
             <div className="flex items-center gap-2">
-              <Tag className="w-5 h-5 text-cyan-400" />
-              <CardTitle className="text-lg text-cyan-400">Master Product Catalog ({sortedProducts.length})</CardTitle>
+              <Tag className="w-5 h-5 text-blue-400" />
+              <CardTitle className="text-lg text-blue-400">Master Product Catalog ({sortedProducts.length})</CardTitle>
             </div>
             <p className="text-xs text-theme-text-muted mt-1">
               Products configured here define item codes, categories, units of measure, and inventory tracking order.
@@ -686,7 +711,7 @@ export default function ProductsView() {
                 onClick={() => setSelectedCategoryFilter('ALL')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
                   selectedCategoryFilter === 'ALL'
-                    ? 'bg-cyan-500 text-slate-950'
+                    ? 'bg-blue-500 text-slate-950'
                     : 'bg-slate-800 text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -702,7 +727,7 @@ export default function ProductsView() {
                     onClick={() => setSelectedCategoryFilter(cat.value)}
                     className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
                       selectedCategoryFilter === cat.value
-                        ? 'bg-cyan-500 text-slate-950'
+                        ? 'bg-blue-500 text-slate-950'
                         : 'bg-slate-800 text-slate-400 hover:text-slate-200'
                     }`}
                   >
@@ -733,7 +758,7 @@ export default function ProductsView() {
 
                 return (
                   <tr key={p.id} className="hover:bg-slate-800/30 transition-colors border-b border-theme-border/40 last:border-0">
-                    <Td className="text-center text-xs font-mono text-cyan-400/80 font-bold">{idx + 1}</Td>
+                    <Td className="text-center text-xs font-mono text-blue-400/80 font-bold">{idx + 1}</Td>
                     <Td>
                       <div className="flex items-center gap-2.5">
                         <div className={`p-1.5 rounded-lg border ${catOption.color}`}>
@@ -745,7 +770,7 @@ export default function ProductsView() {
                       </div>
                     </Td>
                     <Td>
-                      <span className="px-2.5 py-1 rounded text-xs font-mono font-bold bg-cyan-500/10 text-cyan-300 border border-cyan-500/25">
+                      <span className="px-2.5 py-1 rounded text-xs font-mono font-bold bg-blue-500/10 text-blue-300 border border-blue-500/25">
                         {p.itemCode || '-'}
                       </span>
                     </Td>
@@ -764,7 +789,7 @@ export default function ProductsView() {
                       <div className="flex gap-2 justify-end">
                         <button 
                           onClick={() => handleEdit(p)} 
-                          className="text-slate-400 hover:text-cyan-400 p-1.5 rounded hover:bg-white/5 transition-colors cursor-pointer" 
+                          className="text-slate-400 hover:text-blue-400 p-1.5 rounded hover:bg-white/5 transition-colors cursor-pointer" 
                           title="Edit Item"
                         >
                           <Pencil className="w-4 h-4" />

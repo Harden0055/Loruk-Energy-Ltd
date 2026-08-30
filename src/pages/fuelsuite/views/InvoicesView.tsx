@@ -13,7 +13,7 @@ import { useConfirm } from '../useConfirm';
 const AVATAR_COLORS = [
   'bg-emerald-600/90 text-emerald-100 ring-emerald-500/30',
   'bg-purple-600/90 text-purple-100 ring-purple-500/30',
-  'bg-cyan-600/90 text-cyan-100 ring-cyan-500/30',
+  'bg-blue-600/90 text-blue-100 ring-blue-500/30',
   'bg-pink-600/90 text-pink-100 ring-pink-500/30',
   'bg-amber-600/90 text-amber-100 ring-amber-500/30',
   'bg-blue-600/90 text-blue-100 ring-blue-500/30',
@@ -522,7 +522,7 @@ export default function InvoicesView() {
             <p className="text-xl font-bold text-[#00D4FF] font-mono mt-1">KES {Math.round(metrics.totalInvoiced).toLocaleString()}</p>
             <p className="text-[11px] text-slate-500 mt-0.5">Gross credit sales recorded</p>
           </div>
-          <div className="w-11 h-11 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+          <div className="w-11 h-11 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
             <FileText className="w-5 h-5" />
           </div>
         </div>
@@ -723,10 +723,10 @@ export default function InvoicesView() {
 
       {/* Invoice Form Modal/Drawer */}
       {isInvoiceFormOpen && (
-        <div className="bg-slate-900/90 border border-cyan-500/40 rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="bg-slate-900/90 border border-blue-500/40 rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 duration-200">
           <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <FileText className="w-5 h-5 text-cyan-400" />
+              <FileText className="w-5 h-5 text-blue-400" />
               {editingInvoiceId ? 'Edit Sales Invoice' : 'New Sales Invoice'}
             </h3>
             <button onClick={resetInvoiceForm} className="text-slate-400 hover:text-white">
@@ -804,7 +804,7 @@ export default function InvoicesView() {
               <Button type="button" variant="secondary" onClick={resetInvoiceForm}>Cancel</Button>
               <button
                 type="submit"
-                className="px-5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-sm shadow-lg shadow-cyan-500/20"
+                className="px-5 py-2 rounded-xl bg-blue-500 hover:bg-blue-400 text-slate-950 font-bold text-sm shadow-lg shadow-blue-500/20"
               >
                 {editingInvoiceId ? 'Update Invoice' : 'Save Invoice'}
               </button>
@@ -976,11 +976,11 @@ export default function InvoicesView() {
                                   <div className="flex items-center gap-1.5">
                                     <button
                                       onClick={() => setStatementCustomer(c)}
-                                      className="font-bold text-white text-sm group-hover:text-cyan-400 hover:underline transition-colors flex items-center gap-1.5 cursor-pointer text-left"
+                                      className="font-bold text-white text-sm group-hover:text-blue-400 hover:underline transition-colors flex items-center gap-1.5 cursor-pointer text-left"
                                       title="View Invoices & Payments Statement"
                                     >
                                       <span>{c.name}</span>
-                                      <ExternalLink className="w-3.5 h-3.5 text-cyan-400 opacity-60 group-hover:opacity-100" />
+                                      <ExternalLink className="w-3.5 h-3.5 text-blue-400 opacity-60 group-hover:opacity-100" />
                                     </button>
                                   </div>
                                   <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-0.5">
@@ -1074,7 +1074,7 @@ export default function InvoicesView() {
                                 <button
                                   onClick={() => setStatementCustomer(c)}
                                   title="View Customer Invoices Statement"
-                                  className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-cyan-400 transition-colors cursor-pointer"
+                                  className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-blue-400 transition-colors cursor-pointer"
                                 >
                                   <FileText className="w-3.5 h-3.5" />
                                 </button>
@@ -1132,7 +1132,7 @@ export default function InvoicesView() {
                   return (
                     <div
                       key={c.id}
-                      className="bg-slate-900/70 p-5 rounded-2xl border border-slate-800 hover:border-slate-700 transition-all duration-200 space-y-4 shadow-lg hover:shadow-cyan-500/5 relative group"
+                      className="bg-slate-900/70 p-5 rounded-2xl border border-slate-800 hover:border-slate-700 transition-all duration-200 space-y-4 shadow-lg hover:shadow-blue-500/5 relative group"
                     >
                       {/* Card Header */}
                       <div className="flex items-start justify-between gap-3">
@@ -1143,11 +1143,11 @@ export default function InvoicesView() {
                           <div>
                             <button
                               onClick={() => setStatementCustomer(c)}
-                              className="font-bold text-white text-base group-hover:text-cyan-400 hover:underline transition-colors text-left flex items-center gap-1.5 cursor-pointer"
+                              className="font-bold text-white text-base group-hover:text-blue-400 hover:underline transition-colors text-left flex items-center gap-1.5 cursor-pointer"
                               title="View Invoices & Payments Statement"
                             >
                               <span>{c.name}</span>
-                              <ExternalLink className="w-4 h-4 text-cyan-400 opacity-60 group-hover:opacity-100" />
+                              <ExternalLink className="w-4 h-4 text-blue-400 opacity-60 group-hover:opacity-100" />
                             </button>
                             <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
                               {c.code && <span className="font-mono text-slate-400">[{c.code}]</span>}
@@ -1174,7 +1174,7 @@ export default function InvoicesView() {
                         </div>
                         <div>
                           <p className="text-[10px] text-slate-500 uppercase font-semibold">Invoiced</p>
-                          <p className="text-xs font-mono text-cyan-400 font-bold mt-0.5">
+                          <p className="text-xs font-mono text-blue-400 font-bold mt-0.5">
                             KES {totalInvoiced.toLocaleString()}
                           </p>
                         </div>
@@ -1211,7 +1211,7 @@ export default function InvoicesView() {
                           <button
                             onClick={() => setStatementCustomer(c)}
                             title="Statement"
-                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 transition-colors"
+                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-blue-400 transition-colors"
                           >
                             <FileText className="w-3.5 h-3.5" />
                           </button>
@@ -1365,11 +1365,11 @@ export default function InvoicesView() {
                                 }
                                 setStatementCustomer(cust);
                               }}
-                              className="font-bold text-white text-xs group-hover:text-cyan-400 hover:underline transition-colors text-left flex items-center gap-1.5 cursor-pointer"
+                              className="font-bold text-white text-xs group-hover:text-blue-400 hover:underline transition-colors text-left flex items-center gap-1.5 cursor-pointer"
                               title="View Invoices & Payments Statement"
                             >
                               <span>{t.customerName}</span>
-                              <ExternalLink className="w-3 h-3 text-cyan-400 opacity-60 group-hover:opacity-100" />
+                              <ExternalLink className="w-3 h-3 text-blue-400 opacity-60 group-hover:opacity-100" />
                             </button>
                           </div>
                         </td>

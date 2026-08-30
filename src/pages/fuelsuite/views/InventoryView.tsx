@@ -427,7 +427,7 @@ export default function InventoryView() {
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-slate-100">Inventory Management</h1>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/30">
                 {activeStation === 'Combined Total' ? 'All Stations' : activeStation}
               </span>
             </div>
@@ -491,7 +491,7 @@ export default function InventoryView() {
           title="Current Stock Balance" 
           value={metrics.totalBal.toLocaleString()} 
           icon={Box} 
-          colorClass="bg-cyan-500/10 text-cyan-400" 
+          colorClass="bg-blue-500/10 text-blue-400" 
         />
       </div>
 
@@ -578,7 +578,7 @@ export default function InventoryView() {
                         <ProductIconBadge name={p.name} category={cat} size="sm" />
                       </Td>
                       <Td>
-                        <span className="px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/25">
+                        <span className="px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-blue-500/10 text-blue-400 border border-blue-500/25">
                           {p.itemCode || '-'}
                         </span>
                       </Td>
@@ -588,15 +588,15 @@ export default function InventoryView() {
                         </span>
                       </Td>
                       <Td>
-                        <span className="px-2 py-0.5 rounded text-[11px] font-mono text-cyan-300 bg-cyan-950/40 border border-cyan-800/40">
+                        <span className="px-2 py-0.5 rounded text-[11px] font-mono text-blue-300 bg-blue-950/40 border border-blue-800/40">
                           {uom}
                         </span>
                       </Td>
                       <Td className="text-right font-mono text-slate-300">{item.opening.toLocaleString()} <span className="text-[10px] text-slate-500">{uom}</span></Td>
                       <Td className="text-right font-mono text-emerald-400">+{item.in.toLocaleString()}</Td>
                       <Td className="text-right font-mono text-purple-400">-{item.out.toLocaleString()}</Td>
-                      <Td className="text-right font-mono font-bold text-cyan-300">
-                        {item.balance.toLocaleString()} <span className="text-[10px] text-cyan-400/70 font-normal">{uom}</span>
+                      <Td className="text-right font-mono font-bold text-blue-300">
+                        {item.balance.toLocaleString()} <span className="text-[10px] text-blue-400/70 font-normal">{uom}</span>
                       </Td>
                     </tr>
                   );
@@ -845,7 +845,7 @@ export default function InventoryView() {
                           </span>
                         </Td>
                         <Td>
-                          <span className="px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/25">
+                          <span className="px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-blue-500/10 text-blue-400 border border-blue-500/25">
                             {linked?.itemCode || t.itemCode || '-'}
                           </span>
                         </Td>
@@ -859,7 +859,7 @@ export default function InventoryView() {
                             <div className="flex gap-3 justify-end items-center">
                               <button 
                                 onClick={() => handleEdit(t)} 
-                                className="text-theme-text-muted hover:text-cyan-400 transition-colors cursor-pointer"
+                                className="text-theme-text-muted hover:text-blue-400 transition-colors cursor-pointer"
                                 title="Edit"
                               >
                                 <Pencil className="w-4 h-4" />

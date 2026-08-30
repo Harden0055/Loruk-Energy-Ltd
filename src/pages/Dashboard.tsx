@@ -1,15 +1,25 @@
 import { useCustomers, useFleetExpenses, fetchSeedData, deleteSeedData } from '../lib/db';
 import { formatCurrency, formatLitres } from '../lib/utils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { Users, TrendingUp, AlertCircle, Truck, Fuel, Activity, DollarSign, Plus, X, CarFront, ShieldCheck } from 'lucide-react';
+import { Users, TrendingUp, AlertCircle, Truck, Fuel, Activity, DollarSign, Plus, X, CarFront, ShieldCheck, Building2, ExternalLink } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSync } from '../lib/sync';
+import { useTheme } from '../lib/theme';
 import { format } from 'date-fns';
 
-const COLORS = ['#00D4FF', '#3b82f6', '#0ea5e9', '#60a5fa', '#1e40af'];
-
-export default function Dashboard({ selectedStation, onNavigateToCustomer, onNavigateToTruck }: { selectedStation: 'Ndalu' | 'Junction' | 'Combined', onNavigateToCustomer?: (id: string) => void, onNavigateToTruck?: (reg: string) => void }) {
+export default function Dashboard({ 
+  selectedStation, 
+  onNavigateToCustomer, 
+  onNavigateToTruck,
+  onNavigateToStation 
+}: { 
+  selectedStation: 'Ndalu' | 'Junction' | 'Combined';
+  onNavigateToCustomer?: (id: string) => void;
+  onNavigateToTruck?: (reg: string) => void;
+  onNavigateToStation?: (id: string, name: string) => void;
+}) {
   const { updateLastSync } = useSync();
+  const { activeConfig } = useTheme();
   const { customers, loading: custLoad } = useCustomers();
   const { expenses, loading: expLoad } = useFleetExpenses();
 
@@ -186,16 +196,19 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <MetricCard title="Total Outstanding Balances" value={formatCurrency(outstandingBalance)} icon={DollarSign} color={outstandingBalanceColor} />
         <MetricCard title="Total Fleet Fueling" value={formatCurrency(totalFleetExpenses)} icon={TrendingUp} color="text-orange-500 dark:text-orange-400" />
-        <MetricCard title="Average Expense per Truck" value={formatCurrency(avgExpensePerTruck)} icon={CarFront} color="text-cyan-500 dark:text-blue-400" />
+        <MetricCard title="Average Expense per Truck" value={formatCurrency(avgExpensePerTruck)} icon={CarFront} color="text-blue-500 dark:text-blue-400" />
         <MetricCard title="Active Customers" value={activeCustomers.toString()} icon={Users} color="text-emerald-600 dark:text-emerald-400" />
-        <MetricCard title="Active Trucks" value={activeTrucksCount.toString()} icon={Truck} color="text-cyan-600 dark:text-cyan-400 glow-cyan-text" />
+        <MetricCard title="Active Trucks" value={activeTrucksCount.toString()} icon={Truck} color="text-blue-600 dark:text-blue-400 glow-blue-text" />
       </div>
 
       {/* Customer Debt Overview */}
       <div className="glass-panel p-6 rounded-[20px] flex flex-col transition-all duration-300">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-[#A1A1AA] uppercase tracking-wider flex items-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#00D4FF] shadow-[0_0_8px_#00D4FF]" />
+            <span 
+              className="w-2 h-2 rounded-full shadow-sm"
+              style={{ backgroundColor: activeConfig.primaryColor, boxShadow: `0 0 8px ${activeConfig.primaryColor}` }}
+            />
             Top Customer Balances
           </h2>
         </div>
@@ -207,10 +220,10 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
               <YAxis dataKey="name" type="category" tick={<CustomerTick />} stroke="#71717A" tickLine={false} axisLine={false} width={160} />
               <Tooltip 
                 contentStyle={{ backgroundColor: 'rgba(10, 10, 14, 0.98)', color: '#FFFFFF', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '12px' }} 
-                cursor={{fill: 'rgba(0, 212, 255, 0.08)', opacity: 0.2}} 
+                cursor={{fill: `${activeConfig.primaryColor}15`, opacity: 0.2}} 
                 formatter={(value: number) => [`${value >= 0 ? 'Debt: ' : 'Advance: '}${formatCurrency(Math.abs(value))}`, 'Balance']}
               />
-              <Bar dataKey="Debt" fill="#00D4FF" radius={0} barSize={10} />
+              <Bar dataKey="Debt" fill={activeConfig.primaryColor} radius={[0, 4, 4, 0]} barSize={10} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -221,7 +234,10 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
         <div className="glass-panel p-6 rounded-[20px] flex flex-col transition-all duration-300 lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-[#A1A1AA] uppercase tracking-wider flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] shadow-[0_0_8px_#3B82F6]" />
+              <span 
+                className="w-2 h-2 rounded-full shadow-sm"
+                style={{ backgroundColor: activeConfig.secondaryColor, boxShadow: `0 0 8px ${activeConfig.secondaryColor}` }}
+              />
               Fleet Fueling Trend
             </h2>
           </div>
@@ -233,15 +249,24 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
                 <AreaChart data={fleetTrend}>
                   <defs>
                     <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                      <stop offset="5%" stopColor={activeConfig.primaryColor} stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor={activeConfig.secondaryColor} stopOpacity={0.0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.03)" vertical={false} />
                   <XAxis dataKey="date" stroke="#71717A" tickLine={false} axisLine={false} />
                   <YAxis stroke="#71717A" tickLine={false} axisLine={false} width={40} />
                   <Tooltip contentStyle={{ backgroundColor: 'rgba(10, 10, 14, 0.98)', color: '#FFFFFF', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '12px' }} />
-                  <Area type="monotone" dataKey="Amount" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorAmount)" dot={{ stroke: '#3B82F6', strokeWidth: 2, r: 4, fill: '#111115' }} activeDot={{ r: 6, strokeWidth: 0, fill: '#3B82F6' }} />
+                  <Area 
+                    type="monotone" 
+                    dataKey="Amount" 
+                    stroke={activeConfig.primaryColor} 
+                    strokeWidth={3} 
+                    fillOpacity={1} 
+                    fill="url(#colorAmount)" 
+                    dot={{ stroke: activeConfig.primaryColor, strokeWidth: 2, r: 4, fill: '#111115' }} 
+                    activeDot={{ r: 6, strokeWidth: 0, fill: activeConfig.sparkColor }} 
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -252,7 +277,10 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
         <div className="glass-panel p-6 rounded-[20px] flex flex-col transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-semibold text-[#A1A1AA] uppercase tracking-wider flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] shadow-[0_0_8px_#3B82F6]" />
+              <span 
+                className="w-2 h-2 rounded-full shadow-sm"
+                style={{ backgroundColor: activeConfig.tertiaryColor, boxShadow: `0 0 8px ${activeConfig.tertiaryColor}` }}
+              />
               Fleet Fueling Comparison
             </h2>
           </div>
@@ -267,10 +295,10 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
                    <YAxis dataKey="carRegistration" type="category" tick={<TruckTick />} stroke="#71717A" tickLine={false} axisLine={false} width={80} />
                    <Tooltip 
                      contentStyle={{ backgroundColor: 'rgba(10, 10, 14, 0.98)', color: '#FFFFFF', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '12px' }} 
-                     cursor={{fill: 'rgba(59, 130, 246, 0.08)', opacity: 0.2}} 
+                     cursor={{fill: `${activeConfig.secondaryColor}15`, opacity: 0.2}} 
                      formatter={(value: number) => [formatCurrency(value), 'Total Amount']}
                    />
-                   <Bar dataKey="totalAmount" fill="#3B82F6" radius={0} barSize={10} name="Total Amount" />
+                   <Bar dataKey="totalAmount" fill={activeConfig.secondaryColor} radius={[0, 4, 4, 0]} barSize={10} name="Total Amount" />
                  </BarChart>
                </ResponsiveContainer>
              )}
@@ -328,7 +356,7 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
               <tbody className="divide-y divide-gray-100 dark:divide-blue-900">
                 {activities.length === 0 ? (
                   <tr className="modern-tr">
-                    <td colSpan={6} className="border border-theme-border py-8 text-center text-sm text-gray-400">
+                    <td colSpan={6} className="modern-td py-8 text-center text-sm text-gray-400">
                       No recent activities recorded yet.
                     </td>
                   </tr>
@@ -351,16 +379,29 @@ export default function Dashboard({ selectedStation, onNavigateToCustomer, onNav
                             </div>
                           </div>
                         </td>
-                        <td className="border border-theme-border py-3 px-4 cursor-pointer hover:bg-white/10 dark:hover:bg-blue-800" onClick={() => onNavigateToTruck?.(act.carRegistration)}>
-                          <div className="font-bold text-cyan-500 dark:text-blue-400 hover:underline glow-blue-text">{act.carRegistration}</div>
+                        <td className="modern-td cursor-pointer hover:bg-white/10 dark:hover:bg-blue-800" onClick={() => onNavigateToTruck?.(act.carRegistration)}>
+                          <div className="font-bold text-blue-500 dark:text-blue-400 hover:underline glow-blue-text">{act.carRegistration}</div>
                         </td>
                         <td className="modern-td">
-                          {act.station}
+                          {act.station ? (
+                            <button
+                              type="button"
+                              onClick={() => onNavigateToStation?.(act.station, act.station)}
+                              className="inline-flex items-center gap-1 font-bold text-blue-400 hover:text-blue-300 hover:underline cursor-pointer focus:outline-none transition-colors"
+                              title={`Open ${act.station} Dashboard`}
+                            >
+                              <Building2 className="w-3.5 h-3.5 text-blue-400/80" />
+                              <span>{act.station}</span>
+                              <ExternalLink className="w-3 h-3 opacity-60" />
+                            </button>
+                          ) : (
+                            <span className="text-theme-text-muted">N/A</span>
+                          )}
                         </td>
                         <td className="modern-td">
                           {formatCurrency(act.amount)}
                         </td>
-                        <td className="border border-theme-border py-3 px-4 text-xs font-mono font-medium text-gray-500 dark:text-gray-400 select-all max-w-[120px] truncate" title={act.createdBy}>
+                        <td className="modern-td text-xs font-mono font-medium text-gray-500 dark:text-gray-400 select-all max-w-[120px] truncate" title={act.createdBy}>
                           {act.createdBy || 'System'}
                         </td>
                         <td className="modern-td">

@@ -85,7 +85,7 @@ export default function PumpReadingsView() {
   return (<div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
+          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
             <Fuel className="w-6 h-6" />
           </div>
           <div>
@@ -116,9 +116,9 @@ export default function PumpReadingsView() {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <MetricCard title="Total Volume" value={`${metrics.totalVolume.toFixed(2)} L`} icon={Droplet} colorClass="bg-[#122840] text-theme-text-muted" />
-        <MetricCard title="PMS Volume" value={`${metrics.pmsVolume.toFixed(2)} L`} icon={Droplet} colorClass="bg-cyan-500/10 text-cyan-400" />
+        <MetricCard title="PMS Volume" value={`${metrics.pmsVolume.toFixed(2)} L`} icon={Droplet} colorClass="bg-blue-500/10 text-blue-400" />
         <MetricCard title="AGO Volume" value={`${metrics.agoVolume.toFixed(2)} L`} icon={Droplet} colorClass="bg-blue-500/10 text-blue-400" />
-        <MetricCard title="Total Sales Amount" value={`KES ${Math.round(metrics.totalSalesAmount).toLocaleString()}`} icon={TrendingUp} colorClass="bg-cyan-500/10 text-cyan-400" />
+        <MetricCard title="Total Sales Amount" value={`KES ${Math.round(metrics.totalSalesAmount).toLocaleString()}`} icon={TrendingUp} colorClass="bg-blue-500/10 text-blue-400" />
       </div>
 
       {isFormOpen && (
@@ -214,9 +214,9 @@ export default function PumpReadingsView() {
                     </div>
                   </Td>
                   <Td className="font-semibold font-mono">{volume.toFixed(2)}</Td>
-                  <Td className="text-cyan-400 font-semibold font-mono">KES {Math.round(salesAmount).toLocaleString()}</Td>
+                  <Td className="text-blue-400 font-semibold font-mono">KES {Math.round(salesAmount).toLocaleString()}</Td>
                   <Td>
-                    <span className={`font-semibold font-mono ${!hasStopEntered ? 'text-theme-text-muted' : Math.round(variance) === 0 ? 'text-theme-text-muted' : Math.round(variance) > 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                    <span className={`font-semibold font-mono ${!hasStopEntered ? 'text-theme-text-muted' : Math.round(variance) === 0 ? 'text-theme-text-muted' : Math.round(variance) > 0 ? 'text-blue-400' : 'text-red-400'}`}>
                       {!hasStopEntered ? '-' : `${Math.round(variance) > 0 ? '+' : ''}${Math.round(variance).toLocaleString()}`}
                     </span>
                   </Td>

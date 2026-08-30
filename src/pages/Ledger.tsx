@@ -415,7 +415,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-blue-950 border border-theme-border p-6 rounded-xl shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold text-cyan-400 dark:text-blue-400 mb-1">Filtered Debits (Deliveries)</p>
+            <p className="text-sm font-semibold text-blue-400 dark:text-blue-400 mb-1">Filtered Debits (Deliveries)</p>
             <h3 className="text-2xl font-bold text-blue-900 dark:text-theme-text">{formatCurrency(totalDebits)}</h3>
           </div>
           <div className="w-12 h-12 glass-panel rounded-full shadow-sm flex items-center justify-center">
@@ -424,7 +424,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
         </div>
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-blue-950 border border-theme-border p-6 rounded-xl shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold text-cyan-400 dark:text-blue-400 mb-1">Filtered Credits (Payments)</p>
+            <p className="text-sm font-semibold text-blue-400 dark:text-blue-400 mb-1">Filtered Credits (Payments)</p>
             <h3 className="text-2xl font-bold text-blue-900 dark:text-theme-text">{formatCurrency(totalCredits)}</h3>
           </div>
           <div className="w-12 h-12 glass-panel rounded-full shadow-sm flex items-center justify-center">
@@ -433,14 +433,14 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
         </div>
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-blue-950 border border-theme-border p-6 rounded-xl shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-cyan-400 dark:text-blue-400 mb-1">Net Change</p>
+            <p className="text-sm font-medium text-blue-400 dark:text-blue-400 mb-1">Net Change</p>
             <h3 className={`text-2xl font-bold ${totalDebits - totalCredits > 0 ? 'text-blue-900 dark:text-theme-text' : 'text-emerald-600 dark:text-emerald-400'}`}>
               {formatCurrency(Math.abs(totalDebits - totalCredits))}
               <span className="text-sm font-normal ml-1 text-gray-500 dark:text-gray-300">{totalDebits - totalCredits > 0 ? 'Due' : 'Credit'}</span>
             </h3>
           </div>
           <div className="w-12 h-12 glass-panel rounded-full shadow-sm flex items-center justify-center">
-            <Coins className="w-6 h-6 text-cyan-500 dark:text-blue-400" />
+            <Coins className="w-6 h-6 text-blue-500 dark:text-blue-400" />
           </div>
         </div>
       </div>
@@ -555,7 +555,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
                   </td>
                   <td className="modern-td">{e.debit > 0 ? formatCurrency(e.debit) : '-'}</td>
                   <td className="modern-td">{e.credit > 0 ? formatCurrency(e.credit) : '-'}</td>
-                  <td className={`px-4 py-3 text-base font-mono font-medium text-right ${e.runningBalance > 0 ? 'text-red-600 dark:text-red-400' : e.runningBalance < 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-cyan-500 dark:text-blue-400'}`}>{formatCurrency(e.runningBalance)}</td>
+                  <td className={`px-4 py-3 text-base font-mono font-medium text-right ${e.runningBalance > 0 ? 'text-red-600 dark:text-red-400' : e.runningBalance < 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-500 dark:text-blue-400'}`}>{formatCurrency(e.runningBalance)}</td>
                   <td className="modern-td">
                     <button 
                       onClick={() => setDeletingEntry(e)}

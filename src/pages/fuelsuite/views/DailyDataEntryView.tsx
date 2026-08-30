@@ -334,7 +334,7 @@ export default function DailyDataEntryView() {
       statusColor = 'text-amber-400 bg-amber-950/60 border-amber-800/60';
     } else if (netBalance < 0) {
       statusLabel = 'Credit / Overpaid';
-      statusColor = 'text-cyan-400 bg-cyan-950/60 border-cyan-800/60';
+      statusColor = 'text-blue-400 bg-blue-950/60 border-blue-800/60';
     }
 
     return {
@@ -915,7 +915,7 @@ export default function DailyDataEntryView() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-slate-100">Daily Data Entry</h1>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/30">
               Live Interlink Mode
             </span>
           </div>
@@ -941,12 +941,12 @@ export default function DailyDataEntryView() {
             className={`flex items-center gap-2 font-bold px-6 py-2.5 shadow-[0_0_20px_rgba(16,185,129,0.25)] transition-all transform active:scale-95 ${
               isSaving 
                 ? 'bg-slate-800 text-slate-400 border border-slate-700 cursor-not-allowed opacity-90' 
-                : 'bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-slate-950'
+                : 'bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-slate-950'
             }`}
           >
             {isSaving ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-cyan-400" /> Saving & Syncing...
+                <Loader2 className="w-4 h-4 animate-spin text-blue-400" /> Saving & Syncing...
               </>
             ) : (
               <>
@@ -1029,8 +1029,8 @@ export default function DailyDataEntryView() {
       <Card className="glass-panel border-theme-border shadow-xl">
         <CardContent className="p-6 space-y-5">
           <div>
-            <label className="text-xs font-bold text-cyan-400 uppercase tracking-wider block mb-2.5 flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-cyan-400" />
+            <label className="text-xs font-bold text-blue-400 uppercase tracking-wider block mb-2.5 flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-blue-400" />
               1. Choose Station To Allocate Data
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -1043,18 +1043,18 @@ export default function DailyDataEntryView() {
                     onClick={() => setStation(s.name)}
                     className={`flex items-center justify-between p-3.5 rounded-xl border transition-all text-left cursor-pointer ${
                       isSelected
-                        ? 'bg-gradient-to-r from-cyan-950/80 to-blue-950/80 border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.25)] ring-1 ring-cyan-400'
+                        ? 'bg-gradient-to-r from-blue-950/80 to-blue-950/80 border-blue-400 shadow-[0_0_15px_rgba(6,182,212,0.25)] ring-1 ring-blue-400'
                         : 'bg-slate-900/60 border-theme-border/60 hover:bg-slate-900 hover:border-slate-700'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
-                        isSelected ? 'bg-cyan-500 text-slate-950' : 'bg-slate-800 text-slate-400'
+                        isSelected ? 'bg-blue-500 text-slate-950' : 'bg-slate-800 text-slate-400'
                       }`}>
                         <Building2 className="w-4 h-4" />
                       </div>
                       <div>
-                        <div className={`text-sm font-bold ${isSelected ? 'text-cyan-300' : 'text-slate-200'}`}>
+                        <div className={`text-sm font-bold ${isSelected ? 'text-blue-300' : 'text-slate-200'}`}>
                           {s.name}
                         </div>
                         <div className="text-[11px] text-slate-400">
@@ -1063,7 +1063,7 @@ export default function DailyDataEntryView() {
                       </div>
                     </div>
                     {isSelected && (
-                      <div className="flex items-center gap-1 text-xs font-bold text-cyan-400 bg-cyan-950/60 px-2 py-1 rounded border border-cyan-800/60">
+                      <div className="flex items-center gap-1 text-xs font-bold text-blue-400 bg-blue-950/60 px-2 py-1 rounded border border-blue-800/60">
                         <Check className="w-3.5 h-3.5" /> Active
                       </div>
                     )}
@@ -1077,7 +1077,7 @@ export default function DailyDataEntryView() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-semibold text-theme-text-muted uppercase tracking-wider flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-cyan-400" />
+                  <Calendar className="w-3.5 h-3.5 text-blue-400" />
                   Entry Date
                 </label>
                 {userHasOverriddenDate ? (
@@ -1093,8 +1093,8 @@ export default function DailyDataEntryView() {
                     <RotateCcw className="w-3 h-3" /> Reset to Sequential ({formatFriendlyDate(autoSequentialDate)})
                   </button>
                 ) : (
-                  <span className="text-[11px] font-medium text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40 flex items-center gap-1">
-                    <Sparkle className="w-3 h-3 text-cyan-300" /> Auto-Sequential Active
+                  <span className="text-[11px] font-medium text-blue-400 bg-blue-950/60 px-2 py-0.5 rounded border border-blue-800/40 flex items-center gap-1">
+                    <Sparkle className="w-3 h-3 text-blue-300" /> Auto-Sequential Active
                   </span>
                 )}
               </div>
@@ -1146,7 +1146,7 @@ export default function DailyDataEntryView() {
                     }}
                     className={`text-[11px] px-2 py-1 rounded transition-colors border cursor-pointer ${
                       date === latestRecordedDate
-                        ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-bold'
+                        ? 'bg-blue-500/20 text-blue-300 border-blue-500/40 font-bold'
                         : 'bg-slate-900/80 text-slate-400 hover:text-slate-200 border-slate-800'
                     }`}
                     title="View/Edit previous recorded shift"
@@ -1211,10 +1211,10 @@ export default function DailyDataEntryView() {
           </div>
 
           {/* Station Data Isolation Notice Banner */}
-          <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg bg-cyan-950/30 border border-cyan-500/20 text-xs text-cyan-200">
-            <ShieldCheck className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+          <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-lg bg-blue-950/30 border border-blue-500/20 text-xs text-blue-200">
+            <ShieldCheck className="w-4 h-4 text-blue-400 flex-shrink-0" />
             <span>
-              <strong>Station Isolation Active:</strong> Currently editing & recording exclusively for <strong className="text-cyan-300 underline">{station}</strong> on <strong className="text-cyan-300">{date}</strong>. Other stations will not be overwritten or mixed.
+              <strong>Station Isolation Active:</strong> Currently editing & recording exclusively for <strong className="text-blue-300 underline">{station}</strong> on <strong className="text-blue-300">{date}</strong>. Other stations will not be overwritten or mixed.
             </span>
           </div>
         </CardContent>
@@ -1224,10 +1224,10 @@ export default function DailyDataEntryView() {
       <Card className="glass-panel border-theme-border">
         <CardHeader className="flex flex-row items-center justify-between pb-3">
           <div className="flex items-center gap-2">
-            <Fuel className="w-5 h-5 text-cyan-400" />
-            <CardTitle className="text-lg text-cyan-400">Pump Readings</CardTitle>
+            <Fuel className="w-5 h-5 text-blue-400" />
+            <CardTitle className="text-lg text-blue-400">Pump Readings</CardTitle>
           </div>
-          <span className="text-xs font-mono text-cyan-400/80 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/40">
+          <span className="text-xs font-mono text-blue-400/80 bg-blue-950/40 px-2 py-0.5 rounded border border-blue-800/40">
             Auto-linked to Fuel Out & Inventory
           </span>
         </CardHeader>
@@ -1244,8 +1244,8 @@ export default function DailyDataEntryView() {
             return (
               <div key={idx} className="border border-theme-border/60 rounded-xl p-4 space-y-3 bg-slate-900/40">
                 <div className="flex justify-between items-center flex-wrap gap-2">
-                  <div className="font-bold text-cyan-300 text-sm flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-cyan-400"></span>
+                  <div className="font-bold text-blue-300 text-sm flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-400"></span>
                     {pump.product}
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
@@ -1294,7 +1294,7 @@ export default function DailyDataEntryView() {
                   </div>
                   <div>
                     <label className="text-xs font-medium text-theme-text-muted block mb-1">Sales Amount</label>
-                    <Input disabled value={Math.round(salesAmount).toLocaleString()} className="bg-slate-950 font-mono text-cyan-300 font-bold" />
+                    <Input disabled value={Math.round(salesAmount).toLocaleString()} className="bg-slate-950 font-mono text-blue-300 font-bold" />
                   </div>
                   <div>
                     <label className="text-xs font-medium text-theme-text-muted block mb-1">Litres Start</label>
@@ -1326,7 +1326,7 @@ export default function DailyDataEntryView() {
                   </div>
                   <div>
                     <label className="text-xs font-medium text-theme-text-muted block mb-1">Litres Sold</label>
-                    <Input disabled value={litresSold.toFixed(2)} className="bg-slate-950 font-mono text-cyan-300 font-bold" />
+                    <Input disabled value={litresSold.toFixed(2)} className="bg-slate-950 font-mono text-blue-300 font-bold" />
                   </div>
                 </div>
 
@@ -1350,14 +1350,14 @@ export default function DailyDataEntryView() {
                   </div>
                   <div>
                     <label className="text-xs font-medium text-theme-text-muted block mb-1">Calculated Sales</label>
-                    <Input disabled value={`KES ${Math.round(calculatedSales).toLocaleString()}`} className="bg-slate-950 text-cyan-300 font-semibold font-mono" />
+                    <Input disabled value={`KES ${Math.round(calculatedSales).toLocaleString()}`} className="bg-slate-950 text-blue-300 font-semibold font-mono" />
                   </div>
                   <div>
                     <label className="text-xs font-medium text-theme-text-muted block mb-1">Variance (Sales Amount - Calculated)</label>
                     <Input 
                       disabled 
                       value={!hasStopEntered ? 'KES 0' : `${Math.round(variance) > 0 ? '+' : ''}${Math.round(variance).toLocaleString()}`} 
-                      className={`bg-slate-950 font-semibold font-mono ${!hasStopEntered ? 'text-slate-400' : Math.round(variance) < 0 ? 'text-red-400' : Math.round(variance) > 0 ? 'text-cyan-400' : 'text-emerald-400'}`} 
+                      className={`bg-slate-950 font-semibold font-mono ${!hasStopEntered ? 'text-slate-400' : Math.round(variance) < 0 ? 'text-red-400' : Math.round(variance) > 0 ? 'text-blue-400' : 'text-emerald-400'}`} 
                     />
                   </div>
                 </div>
@@ -1799,7 +1799,7 @@ export default function DailyDataEntryView() {
                       }
                       setExpenseRows(newRows);
                     }}
-                    className="text-xs bg-slate-950 font-mono font-bold text-cyan-300 w-full"
+                    className="text-xs bg-slate-950 font-mono font-bold text-blue-300 w-full"
                   >
                     {expenseTemplates.map(t => (
                       <option className="bg-slate-950 text-slate-100" key={t.id} value={t.code}>
@@ -1938,7 +1938,7 @@ export default function DailyDataEntryView() {
                             <button
                               type="button"
                               onClick={() => setPreviewCustomerName(invoice.customerName!)}
-                              className="text-[10px] text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-0.5 ml-1 transition-colors"
+                              className="text-[10px] text-blue-400 hover:text-blue-300 font-bold flex items-center gap-0.5 ml-1 transition-colors"
                               title="Open Customer 360° Financial Status Preview"
                             >
                               <Eye className="w-2.5 h-2.5" /> Preview Status
@@ -2073,7 +2073,7 @@ export default function DailyDataEntryView() {
                     <div className="pt-2 border-t border-slate-800/60 flex flex-wrap items-center justify-between gap-2 bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
                       <div className="flex flex-wrap items-center gap-2.5 text-xs">
                         <div className="flex items-center gap-1.5 font-bold text-slate-200">
-                          <div className="w-5 h-5 rounded bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-[10px] font-mono">
+                          <div className="w-5 h-5 rounded bg-blue-500/20 text-blue-400 flex items-center justify-center text-[10px] font-mono">
                             {custStatus.customerCode !== 'N/A' ? (custStatus.customerCode.split('-')[1] || 'C') : 'C'}
                           </div>
                           <span>{custStatus.customerName}</span>
@@ -2105,10 +2105,10 @@ export default function DailyDataEntryView() {
                       <button
                         type="button"
                         onClick={() => setPreviewCustomerName(custStatus.customerName)}
-                        className="px-2.5 py-1 rounded bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-500/30 hover:border-cyan-400 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm ml-auto"
+                        className="px-2.5 py-1 rounded bg-blue-950 hover:bg-blue-900 text-blue-300 border border-blue-500/30 hover:border-blue-400 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm ml-auto"
                         title="Click to view complete customer profile, status, credit balance & all past transactions"
                       >
-                        <Eye className="w-3.5 h-3.5 text-cyan-400" />
+                        <Eye className="w-3.5 h-3.5 text-blue-400" />
                         <span>Preview Full Status & Statement</span>
                       </button>
                     </div>
@@ -2124,8 +2124,8 @@ export default function DailyDataEntryView() {
       <Card className="glass-panel border-theme-border">
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
-            <Wallet className="w-5 h-5 text-cyan-400" />
-            <CardTitle className="text-lg text-cyan-400">End of Day Cash Position & Reconciliation</CardTitle>
+            <Wallet className="w-5 h-5 text-blue-400" />
+            <CardTitle className="text-lg text-blue-400">End of Day Cash Position & Reconciliation</CardTitle>
           </div>
           <span className="text-xs font-mono text-emerald-400/90 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-800/40">
             Real-time Cash Audit
@@ -2153,9 +2153,9 @@ export default function DailyDataEntryView() {
               <p className="text-xs text-theme-text-muted">Debt Paid Collected</p>
               <p className="text-lg font-bold text-emerald-400 mt-1 font-mono">KES {Math.round(pastDebtPaymentsCollectedToday).toLocaleString()}</p>
             </div>
-            <div className="col-span-2 sm:col-span-3 lg:col-span-5 bg-slate-950/80 p-4 rounded-xl border border-cyan-500/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div className="col-span-2 sm:col-span-3 lg:col-span-5 bg-slate-950/80 p-4 rounded-xl border border-blue-500/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <div>
-                <p className="text-xs text-cyan-400 font-semibold uppercase tracking-wider">All Money Received (Expected Net Cash)</p>
+                <p className="text-xs text-blue-400 font-semibold uppercase tracking-wider">All Money Received (Expected Net Cash)</p>
                 <p className="text-2xl font-bold text-emerald-400 mt-0.5 font-mono">
                   KES {Math.round(expectedTotalCash).toLocaleString()}
                 </p>
@@ -2190,7 +2190,7 @@ export default function DailyDataEntryView() {
                 type="text" 
                 disabled 
                 value={`KES ${Math.round(expectedCashOnHand).toLocaleString()}`} 
-                className="bg-slate-950 text-cyan-300 font-bold font-mono" 
+                className="bg-slate-950 text-blue-300 font-bold font-mono" 
               />
               <span className="text-[10px] text-slate-500 mt-1 block">Expected Net Cash minus M-Pesa</span>
             </div>
@@ -2287,7 +2287,7 @@ export default function DailyDataEntryView() {
       <div className="flex justify-end pt-4">
         <Button 
           onClick={handleSaveAll} 
-          className="px-10 py-4 text-base font-bold bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-slate-950 shadow-[0_0_25px_rgba(16,185,129,0.3)] transition-all transform active:scale-95"
+          className="px-10 py-4 text-base font-bold bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600 text-slate-950 shadow-[0_0_25px_rgba(16,185,129,0.3)] transition-all transform active:scale-95"
         >
           <Save className="w-5 h-5 mr-2" /> Save & Sync Daily Entry
         </Button>
@@ -2440,7 +2440,7 @@ export default function DailyDataEntryView() {
                     value={newExpenseCode}
                     onChange={(e) => setNewExpenseCode(e.target.value.toUpperCase())}
                     required
-                    className="bg-slate-950 text-cyan-300 font-mono font-bold"
+                    className="bg-slate-950 text-blue-300 font-mono font-bold"
                   />
                 </div>
                 <div>
@@ -2574,14 +2574,14 @@ export default function DailyDataEntryView() {
               {/* Modal Header */}
               <div className="p-5 border-b border-theme-border bg-slate-950/80 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center font-bold text-base shadow-inner">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-base shadow-inner">
                     <User className="w-5 h-5" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <h3 className="font-bold text-white text-lg">{custData.customerName}</h3>
                       {custData.customerCode !== 'N/A' && (
-                        <span className="text-xs px-2 py-0.5 rounded font-mono font-bold bg-slate-800 text-cyan-300 border border-slate-700">
+                        <span className="text-xs px-2 py-0.5 rounded font-mono font-bold bg-slate-800 text-blue-300 border border-slate-700">
                           {custData.customerCode}
                         </span>
                       )}
@@ -2601,7 +2601,7 @@ export default function DailyDataEntryView() {
                     className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs flex items-center gap-1.5 transition-colors"
                     title="Print Customer Statement"
                   >
-                    <Printer className="w-4 h-4 text-cyan-400" />
+                    <Printer className="w-4 h-4 text-blue-400" />
                     <span className="hidden sm:inline">Print Statement</span>
                   </button>
                   <button 
@@ -2622,7 +2622,7 @@ export default function DailyDataEntryView() {
                   {/* Outstanding Balance / Net Debt */}
                   <div className={`p-4 rounded-xl border ${
                     custData.netBalance > 0 ? 'bg-amber-950/20 border-amber-500/30' :
-                    custData.netBalance < 0 ? 'bg-cyan-950/20 border-cyan-500/30' :
+                    custData.netBalance < 0 ? 'bg-blue-950/20 border-blue-500/30' :
                     'bg-emerald-950/20 border-emerald-500/30'
                   }`}>
                     <p className="text-[11px] font-semibold text-theme-text-muted uppercase tracking-wider">
@@ -2630,7 +2630,7 @@ export default function DailyDataEntryView() {
                     </p>
                     <p className={`text-2xl font-bold font-mono mt-1 ${
                       custData.netBalance > 0 ? 'text-amber-400' :
-                      custData.netBalance < 0 ? 'text-cyan-400' :
+                      custData.netBalance < 0 ? 'text-blue-400' :
                       'text-emerald-400'
                     }`}>
                       KES {Math.abs(Math.round(custData.netBalance)).toLocaleString()}
@@ -2733,7 +2733,7 @@ export default function DailyDataEntryView() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-cyan-400" />
+                      <FileText className="w-4 h-4 text-blue-400" />
                       <span>Previous Invoices & Payments Ledger</span>
                     </h4>
                     <span className="text-xs text-theme-text-muted">
@@ -2779,7 +2779,7 @@ export default function DailyDataEntryView() {
                                 <td className="p-3 font-sans text-slate-400 whitespace-nowrap">
                                   {inv.station || 'Main'}
                                 </td>
-                                <td className="p-3 text-cyan-400 font-bold">
+                                <td className="p-3 text-blue-400 font-bold">
                                   {invoiceDisplayNumber}
                                 </td>
                                 <td className="p-3 text-right text-slate-200 font-bold">

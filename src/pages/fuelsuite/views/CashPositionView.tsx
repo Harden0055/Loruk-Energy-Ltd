@@ -118,7 +118,7 @@ export default function CashPositionView() {
           title="Exact Net Cash on Hand" 
           value={`KES ${metrics.exactNetCash.toLocaleString()}`} 
           icon={Banknote} 
-          colorClass="bg-cyan-500/15 text-cyan-400 border border-cyan-500/30" 
+          colorClass="bg-blue-500/15 text-blue-400 border border-blue-500/30" 
         />
         <MetricCard 
           title="Total Losses Deducted" 
@@ -172,9 +172,9 @@ export default function CashPositionView() {
 
         <div className="lg:col-span-2 space-y-6">
           {isFormOpen && (
-            <Card className="border-cyan-500/40 shadow-[0_0_30px_rgba(6,182,212,0.1)]">
+            <Card className="border-blue-500/40 shadow-[0_0_30px_rgba(6,182,212,0.1)]">
               <CardHeader>
-                <CardTitle className="text-cyan-400">{editingId ? 'Edit Cash Position' : 'Log Cash Position'}</CardTitle>
+                <CardTitle className="text-blue-400">{editingId ? 'Edit Cash Position' : 'Log Cash Position'}</CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -188,7 +188,7 @@ export default function CashPositionView() {
                       <Input type="number" step="0.01" value={form.mPesa} onChange={e => setForm({...form, mPesa: parseFloat(e.target.value) || 0})} required />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-cyan-400 uppercase tracking-wider mb-1.5">Gross Cash Count (KES)</label>
+                      <label className="block text-xs font-bold text-blue-400 uppercase tracking-wider mb-1.5">Gross Cash Count (KES)</label>
                       <Input type="number" step="0.01" value={form.cashOnHand} onChange={e => setForm({...form, cashOnHand: parseFloat(e.target.value) || 0})} required />
                     </div>
                     <div>
@@ -264,16 +264,16 @@ export default function CashPositionView() {
                           <span className="text-slate-600">-</span>
                         )}
                       </Td>
-                      <Td className="text-cyan-400 font-bold font-mono">KES {netCash.toLocaleString()}</Td>
+                      <Td className="text-blue-400 font-bold font-mono">KES {netCash.toLocaleString()}</Td>
                       <Td className="text-white font-extrabold font-mono">KES {total.toLocaleString()}</Td>
                       <Td>
                         <div className="flex gap-2">
                           <button 
                             onClick={() => handleEdit(t)} 
-                            className="p-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-colors cursor-pointer border border-cyan-500/20" 
+                            className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors cursor-pointer border border-blue-500/20" 
                             title="Edit"
                           >
-                            <Pencil className="w-3.5 h-3.5 text-cyan-400" />
+                            <Pencil className="w-3.5 h-3.5 text-blue-400" />
                           </button>
                           <button 
                             onClick={() => handleDelete(t.id)} 

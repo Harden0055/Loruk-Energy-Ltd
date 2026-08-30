@@ -120,7 +120,7 @@ export default function ReportsView() {
     <div className="p-8 pb-32 space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
+          <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_20px_rgba(6,182,212,0.25)]">
             <BarChart3 className="w-6 h-6" />
           </div>
           <div>
@@ -131,7 +131,7 @@ export default function ReportsView() {
         <button
           onClick={handleDownloadPDF}
           disabled={isGenerating}
-          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 rounded-lg font-bold transition-all hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] active:scale-95 disabled:opacity-50 cursor-pointer"
+          className="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg font-bold transition-all hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] active:scale-95 disabled:opacity-50 cursor-pointer"
         >
           <FileDown className="w-5 h-5" />
           {isGenerating ? 'Generating...' : 'Export P&L PDF'}
@@ -143,7 +143,7 @@ export default function ReportsView() {
           title="Total Revenue" 
           value={`KES ${Math.round(totalRevenue).toLocaleString()}`} 
           icon={ArrowUpRight} 
-          colorClass="bg-cyan-500/10 text-cyan-400" 
+          colorClass="bg-blue-500/10 text-blue-400" 
         />
         <MetricCard 
           title="Gross Profit" 
@@ -169,7 +169,7 @@ export default function ReportsView() {
             <tbody>
               {/* REVENUE */}
               <tr className="modern-tr">
-                <td className="px-6 py-4 font-bold text-cyan-400" colSpan={2}>REVENUE</td>
+                <td className="px-6 py-4 font-bold text-blue-400" colSpan={2}>REVENUE</td>
               </tr>
               <tr className="modern-tr">
                 <td className="modern-td">Fuel Sales</td>
@@ -185,7 +185,7 @@ export default function ReportsView() {
               </tr>
               <tr className="modern-tr">
                 <td className="modern-td">Total Revenue</td>
-                <td className="modern-td font-semibold text-cyan-400">{Math.round(totalRevenue).toLocaleString()}</td>
+                <td className="modern-td font-semibold text-blue-400">{Math.round(totalRevenue).toLocaleString()}</td>
               </tr>
 
               {/* COGS */}

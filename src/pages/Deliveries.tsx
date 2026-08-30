@@ -57,7 +57,7 @@ function DeleteDeliveryConfirmModal({
               </div>
               <div className="flex justify-between items-center py-1">
                 <span className="text-gray-500 dark:text-gray-400">Total Amount:</span> 
-                <span className="text-cyan-500 dark:text-blue-400 font-mono font-bold">{formatCurrency(delivery.totalAmount)}</span>
+                <span className="text-blue-500 dark:text-blue-400 font-mono font-bold">{formatCurrency(delivery.totalAmount)}</span>
               </div>
             </div>
 
@@ -567,7 +567,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
             onClick={() => setShowFilters(!showFilters)}
             className={`px-4 py-2.5 rounded-lg border text-base font-medium flex items-center justify-center gap-2 transition-all cursor-pointer ${
               showFilters 
-                ? 'bg-blue-50 dark:bg-white/5 border-theme-border text-cyan-500 dark:text-blue-400 font-bold'
+                ? 'bg-blue-50 dark:bg-white/5 border-theme-border text-blue-500 dark:text-blue-400 font-bold'
                 : 'glass-panel border-theme-border text-gray-700 dark:text-gray-300 hover:bg-white/5 dark:hover:bg-blue-900'
             }`}
           >
@@ -578,7 +578,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
             )}
           </button>
         </div>
-        <div className="flex items-center gap-3 w-full lg:w-auto p-2 bg-gradient-to-r from-blue-900/20 to-cyan-900/10 border border-blue-800/30 rounded-xl shadow-inner">
+        <div className="flex items-center gap-3 w-full lg:w-auto p-2 bg-gradient-to-r from-blue-900/20 to-blue-900/10 border border-blue-800/30 rounded-xl shadow-inner">
           {selectedIds.length > 0 && (
             <button
               onClick={() => setShowBulkDeleteModal(true)}
@@ -597,7 +597,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
           </button>
           <button 
             onClick={() => setShowAIModal(true)}
-            className="w-full sm:w-auto bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors"
+            className="w-full sm:w-auto bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors"
           >
             <Bot className="w-4 h-4" />
             AI Auto-Fill
@@ -634,7 +634,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                 setSortBy('date-desc');
                 setSearch('');
               }}
-              className="text-xs font-semibold text-gray-500 hover:text-cyan-500 dark:text-gray-400 dark:hover:text-blue-400 flex items-center gap-1 transition-colors cursor-pointer"
+              className="text-xs font-semibold text-gray-500 hover:text-blue-500 dark:text-gray-400 dark:hover:text-blue-400 flex items-center gap-1 transition-colors cursor-pointer"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               Reset All Filters
@@ -794,7 +794,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
         <div className="glass-panel border border-theme-border rounded-xl p-5 shadow-sm transition-colors flex items-start justify-between">
           <div className="space-y-1.5 overflow-hidden">
             <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider block truncate overflow-ellipsis">Total Delivered Value</span>
-            <div className="text-2xl font-extrabold font-mono text-cyan-500 dark:text-blue-400 truncate">
+            <div className="text-2xl font-extrabold font-mono text-blue-500 dark:text-blue-400 truncate">
               {formatCurrency(stats.totalValue)}
             </div>
             <p className="text-2xs text-gray-400 dark:text-gray-500 truncate">Based on {filtered.length} filtered records</p>
@@ -830,7 +830,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
             <div className="grid grid-cols-2 text-[10px] font-bold gap-x-2 gap-y-0.5">
               <span className="text-amber-500 dark:text-amber-400 truncate">DSL: {formatLitres(stats.dieselVolume)} L</span>
               <span className="text-emerald-500 dark:text-emerald-400 truncate">SUP: {formatLitres(stats.superVolume)} L</span>
-              <span className="text-cyan-500 dark:text-cyan-400 truncate">BRK: {formatLitres(stats.brakeFluidVolume)} L</span>
+              <span className="text-blue-500 dark:text-blue-400 truncate">BRK: {formatLitres(stats.brakeFluidVolume)} L</span>
               <span className="text-purple-500 dark:text-purple-400 truncate">OIL: {formatLitres(stats.engineOilVolume)} L</span>
             </div>
             <div className="h-1.5 w-full glass-panel rounded-full overflow-hidden flex shrink-0">
@@ -843,7 +843,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                 style={{ width: `${stats.totalVolume > 0 ? (stats.superVolume / stats.totalVolume) * 100 : 25}%` }}
               />
               <div 
-                className="bg-cyan-500 h-full transition-all duration-500" 
+                className="bg-blue-500 h-full transition-all duration-500" 
                 style={{ width: `${stats.totalVolume > 0 ? (stats.brakeFluidVolume / stats.totalVolume) * 100 : 25}%` }}
               />
               <div 
@@ -891,7 +891,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                         setSelectedIds([]);
                       }
                     }}
-                    className="w-4 h-4 text-cyan-500 border-theme-border rounded focus:ring-blue-500 dark:bg-white/5 border-theme-border cursor-pointer"
+                    className="w-4 h-4 text-blue-500 border-theme-border rounded focus:ring-blue-500 dark:bg-white/5 border-theme-border cursor-pointer"
                   />
                 </th>
                 <th className="modern-th">Date</th>
@@ -951,7 +951,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                             setSelectedIds(prev => prev.filter(id => id !== d.id));
                           }
                         }}
-                        className="w-4 h-4 text-cyan-500 border-theme-border rounded focus:ring-blue-500 dark:bg-white/5 border-theme-border cursor-pointer"
+                        className="w-4 h-4 text-blue-500 border-theme-border rounded focus:ring-blue-500 dark:bg-white/5 border-theme-border cursor-pointer"
                       />
                     </td>
                     <td className="modern-td">
@@ -1014,7 +1014,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                           (d.productType || '').toLowerCase().includes('diesel') 
                             ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400' 
                             : (d.productType || '').toLowerCase().includes('brake')
-                            ? 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-800 dark:text-cyan-400'
+                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400'
                             : (d.productType || '').toLowerCase().includes('oil')
                             ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400'
                             : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400'
@@ -1085,7 +1085,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                           <button
                             onClick={() => startInlineEdit(d)}
                             disabled={editingId !== null}
-                            className="p-2 text-gray-400 dark:text-blue-500 hover:text-cyan-500 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50 transition-colors rounded-md inline-flex items-center justify-center cursor-pointer"
+                            className="p-2 text-gray-400 dark:text-blue-500 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50 transition-colors rounded-md inline-flex items-center justify-center cursor-pointer"
                             title="Edit Inline"
                           >
                             <Edit2 className="w-5 h-5" />
@@ -1393,7 +1393,7 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
         <form onSubmit={handleSubmit}>
           <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:bg-white/5 flex justify-between items-center">
             <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Record Fuel Delivery</h3>
-            <button type="button" onClick={onClose} className="text-blue-400 hover:text-cyan-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"><X className="w-5 h-5"/></button>
+            <button type="button" onClick={onClose} className="text-blue-400 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"><X className="w-5 h-5"/></button>
           </div>
           <div className="p-6 space-y-4">
             <div>
@@ -1530,8 +1530,8 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
             )}
           </div>
           <div className="px-6 py-4 bg-blue-100/50 dark:bg-white/5 border-t border-theme-border flex justify-end gap-3">
-             <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-cyan-400 hover:text-blue-900 dark:text-theme-text-muted dark:hover:text-blue-100 transition-colors">Cancel</button>
-             <button type="submit" disabled={loading} className="px-5 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg text-base font-semibold transition-colors">Record Delivery</button>
+             <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-blue-400 hover:text-blue-900 dark:text-theme-text-muted dark:hover:text-blue-100 transition-colors">Cancel</button>
+             <button type="submit" disabled={loading} className="px-5 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg text-base font-semibold transition-colors">Record Delivery</button>
           </div>
         </form>
       </div>

@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useStations, addStation, updateStation, deleteStation } from '../lib/operationsDb';
-import { Search, Plus, Trash2, Pencil, MapPin, AlertTriangle, X, Building2, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { Search, Plus, Trash2, Pencil, MapPin, AlertTriangle, X, Building2, CheckCircle2, ShieldAlert, ExternalLink, BarChart3 } from 'lucide-react';
 import { StationInfo } from '../types';
 
-export default function Stations() {
+interface StationsProps {
+  onNavigateToStation?: (id: string, name: string) => void;
+}
+
+export default function Stations({ onNavigateToStation }: StationsProps) {
   const { stations, loading } = useStations();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
@@ -141,7 +145,7 @@ export default function Stations() {
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4" id="stations-overview-cards">
         <div className="glass-panel p-5 rounded-xl border border-gray-150 border-theme-border shadow-xs flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-50 dark:bg-white/5 rounded-lg flex items-center justify-center text-cyan-500">
+          <div className="w-12 h-12 bg-blue-50 dark:bg-white/5 rounded-lg flex items-center justify-center text-blue-500">
             <Building2 className="w-6 h-6" />
           </div>
           <div>
@@ -198,7 +202,7 @@ export default function Stations() {
 
         <button
           onClick={handleAddClick}
-          className="flex items-center justify-center gap-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-xs cursor-pointer"
+          className="flex items-center justify-center gap-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-xs cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Add Station
@@ -239,12 +243,22 @@ export default function Stations() {
                 {filteredStations.map((station) => (
                   <tr key={station.id} className="hover:bg-white/5/50 dark:hover:bg-blue-900/5 transition-colors">
                     <td className="modern-td">
-                      <div className="font-bold text-theme-text text-base">{station.name}</div>
-                      <div className="font-mono text-2xs text-gray-400 mt-0.5 uppercase tracking-wider">{station.code}</div>
+                      <button
+                        type="button"
+                        onClick={() => onNavigateToStation && onNavigateToStation(station.id || '', station.name)}
+                        className="text-left group cursor-pointer focus:outline-none"
+                        title={`Open ${station.name} Dashboard`}
+                      >
+                        <div className="flex items-center gap-1.5 font-bold text-blue-400 group-hover:text-blue-300 group-hover:underline text-base transition-colors">
+                          <span>{station.name}</span>
+                          <ExternalLink className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                        <div className="font-mono text-2xs text-gray-400 mt-0.5 uppercase tracking-wider">{station.code}</div>
+                      </button>
                     </td>
                     <td className="modern-td">
                       <span className="inline-flex items-center gap-1.5 glass-panel px-2 py-1 rounded-md text-xs text-theme-text-muted">
-                        <MapPin className="w-3.5 h-3.5" />
+                        <MapPin className="w-3.5 h-3.5 text-blue-400" />
                         {station.location || 'N/A'}
                       </span>
                     </td>
@@ -264,10 +278,20 @@ export default function Stations() {
                       </span>
                     </td>
                     <td className="modern-td">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex items-center justify-end gap-2">
+                        {onNavigateToStation && (
+                          <button
+                            onClick={() => onNavigateToStation(station.id || '', station.name)}
+                            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg transition-all cursor-pointer shadow-sm"
+                            title="Open Station Dashboard"
+                          >
+                            <BarChart3 className="w-3.5 h-3.5" />
+                            <span>Dashboard</span>
+                          </button>
+                        )}
                         <button
                           onClick={() => handleEditClick(station)}
-                          className="p-1.5 text-gray-600 dark:text-gray-300 hover:text-cyan-500 dark:hover:text-blue-400 hover:bg-white/10 dark:hover:bg-blue-900/40 rounded-lg transition-colors cursor-pointer"
+                          className="p-1.5 text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-white/10 dark:hover:bg-blue-900/40 rounded-lg transition-colors cursor-pointer"
                           title="Edit Station"
                         >
                           <Pencil className="w-4 h-4" />
@@ -396,7 +420,7 @@ export default function Stations() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-cyan-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] text-sm font-semibold rounded-lg transition-colors flex items-center justify-center min-w-[80px] disabled:opacity-50 cursor-pointer"
+                  className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] text-sm font-semibold rounded-lg transition-colors flex items-center justify-center min-w-[80px] disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? 'Saving...' : 'Save'}
                 </button>

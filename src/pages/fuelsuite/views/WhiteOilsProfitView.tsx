@@ -40,7 +40,7 @@ export default function WhiteOilsProfitView({ onBack }: WhiteOilsProfitViewProps
         </div>
         <div className="glass-panel p-6 rounded-xl bg-slate-900/50">
             <h3 className="text-sm text-slate-400 font-medium uppercase">Total Combined Sales</h3>
-            <p className="text-3xl font-bold text-cyan-400 mt-2">KES {data.totalSales.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-blue-400 mt-2">KES {data.totalSales.toLocaleString()}</p>
         </div>
       </div>
 
@@ -62,7 +62,7 @@ export default function WhiteOilsProfitView({ onBack }: WhiteOilsProfitViewProps
                         <tr key={name}>
                             <td className="p-3 font-medium text-white">{name}</td>
                             <td className="p-3 text-right font-mono">{stats.volume.toLocaleString()}</td>
-                            <td className="p-3 text-right font-mono text-cyan-400">KES {stats.sales.toLocaleString()}</td>
+                            <td className="p-3 text-right font-mono text-blue-400">KES {stats.sales.toLocaleString()}</td>
                         </tr>
                     ))}
                 </tbody>
