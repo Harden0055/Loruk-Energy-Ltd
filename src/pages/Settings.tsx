@@ -4,6 +4,7 @@ import { useTheme } from '../lib/theme';
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword, updateProfile } from 'firebase/auth';
 import { auth } from '../lib/firebase';
 import { exportDataToJson } from '../lib/export';
+import { seedAllMockData } from '../lib/generate_seed';
 import ThemeToggle from '../components/ThemeToggle';
 import { Lock, Shield, Eye, EyeOff, Save, Key, AlertTriangle, CheckCircle, Moon, Sun, UserCheck, Download, Palette, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -507,6 +508,16 @@ export default function Settings() {
             >
               <Download className="w-4 h-4" />
               Backup Data (JSON)
+            </button>
+            <button
+              onClick={async () => {
+                await seedAllMockData();
+                alert('Mock data seeded successfully! Please refresh the page.');
+              }}
+              className="mt-4 px-4 py-2 font-semibold text-xs tracking-wide uppercase bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)] rounded-xl shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4" />
+              Seed Mock Data
             </button>
           </section>
 

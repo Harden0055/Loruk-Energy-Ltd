@@ -252,14 +252,14 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
                     return (
                       <td className={`px-6 py-4 text-base font-mono font-bold text-right ${
                         dynamicBalance > 0 
-                          ? 'text-purple-600 dark:text-purple-400' 
+                          ? '!text-fuchsia-400' 
                           : dynamicBalance < 0 
-                            ? 'text-green-600 dark:text-green-400 font-semibold' 
-                            : 'text-gray-700 dark:text-gray-300'
+                            ? '!text-emerald-400 font-semibold' 
+                            : '!text-gray-300'
                       }`}>
                         {formatCurrency(dynamicBalance)}
                         {dynamicBalance < 0 && (
-                          <span className="block text-[10px] uppercase tracking-wider font-extrabold text-green-600 dark:text-green-400 mt-0.5">Advance Balance</span>
+                          <span className="block text-[10px] uppercase tracking-wider font-extrabold !text-emerald-400 mt-0.5">Advance Balance</span>
                         )}
                       </td>
                     );

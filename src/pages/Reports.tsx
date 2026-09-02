@@ -75,8 +75,17 @@ export default function Reports() {
         head: [['Date', 'Product', 'Litres', 'Total Amount']],
         body: deliveryRows,
         theme: 'grid',
-        headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
-        bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] }
+        headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.1, lineColor: [200, 200, 200] },
+        bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] },
+        columnStyles: {
+          3: { halign: 'right', fontStyle: 'bold' }
+        },
+        didParseCell: function(data) {
+          if (data.section === 'body' && data.column.index === 3) {
+            data.cell.styles.textColor = [192, 38, 211]; // Fuchsia 600
+            data.cell.styles.fillColor = [253, 244, 255]; // Fuchsia 50
+          }
+        }
       });
 
       let nextY = (doc as any).lastAutoTable.finalY + 15;
@@ -96,8 +105,17 @@ export default function Reports() {
         head: [['Date', 'Amount Paid']],
         body: paymentRows,
         theme: 'grid',
-        headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
-        bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] }
+        headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.1, lineColor: [200, 200, 200] },
+        bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] },
+        columnStyles: {
+          1: { halign: 'right', fontStyle: 'bold' }
+        },
+        didParseCell: function(data) {
+          if (data.section === 'body' && data.column.index === 1) {
+            data.cell.styles.textColor = [5, 150, 105]; // Emerald 600
+            data.cell.styles.fillColor = [236, 253, 244]; // Emerald 50
+          }
+        }
       });
 
       // Add summary section (Total Balance)
@@ -180,8 +198,17 @@ export default function Reports() {
           head: [['Customer', 'Product', 'Litres', 'Total Amount']],
           body: deliveryRows,
           theme: 'grid',
-          headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
-          bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] }
+          headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.1, lineColor: [200, 200, 200] },
+          bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] },
+          columnStyles: {
+            3: { halign: 'right', fontStyle: 'bold' }
+          },
+          didParseCell: function(data) {
+            if (data.section === 'body' && data.column.index === 3) {
+              data.cell.styles.textColor = [192, 38, 211]; // Fuchsia 600
+              data.cell.styles.fillColor = [253, 244, 255]; // Fuchsia 50
+            }
+          }
         });
 
         let nextY = (doc as any).lastAutoTable.finalY + 15;
@@ -201,8 +228,17 @@ export default function Reports() {
           head: [['Customer', 'Amount Paid']],
           body: paymentRows,
           theme: 'grid',
-          headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
-          bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] }
+          headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.1, lineColor: [200, 200, 200] },
+          bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] },
+          columnStyles: {
+            1: { halign: 'right', fontStyle: 'bold' }
+          },
+          didParseCell: function(data) {
+            if (data.section === 'body' && data.column.index === 1) {
+              data.cell.styles.textColor = [5, 150, 105]; // Emerald 600
+              data.cell.styles.fillColor = [236, 253, 244]; // Emerald 50
+            }
+          }
         });
 
         // @ts-ignore

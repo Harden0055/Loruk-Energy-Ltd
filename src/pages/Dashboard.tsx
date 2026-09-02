@@ -399,7 +399,7 @@ export default function Dashboard({
                           )}
                         </td>
                         <td className="modern-td">
-                          {formatCurrency(act.amount)}
+                          <span className="!text-rose-400 font-mono font-bold text-base">{formatCurrency(act.amount)}</span>
                         </td>
                         <td className="modern-td text-xs font-mono font-medium text-gray-500 dark:text-gray-400 select-all max-w-[120px] truncate" title={act.createdBy}>
                           {act.createdBy || 'System'}

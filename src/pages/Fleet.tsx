@@ -243,11 +243,14 @@ export default function Fleet({
     });
 
     const totalAmount = filteredExpenses.reduce((acc, e) => acc + e.amount, 0);
+    const totalLitres = filteredExpenses.reduce((acc, e) => acc + (e.litres || 0), 0);
 
     const carTotals: Record<string, number> = {};
+    const carLitres: Record<string, number> = {};
     const stationTotals: Record<string, number> = {};
     filteredExpenses.forEach(e => {
       carTotals[e.carRegistration] = (carTotals[e.carRegistration] || 0) + e.amount;
+      carLitres[e.carRegistration] = (carLitres[e.carRegistration] || 0) + (e.litres || 0);
       if (e.station) {
         stationTotals[e.station] = (stationTotals[e.station] || 0) + e.amount;
       }
@@ -257,7 +260,7 @@ export default function Fleet({
     doc.setFillColor(245, 247, 250);
     doc.setDrawColor(218, 223, 230);
     doc.setLineWidth(0.3);
-    doc.roundedRect(14, currentY, 90, 14, 2, 2, 'FD');
+    doc.roundedRect(14, currentY, 130, 14, 2, 2, 'FD');
 
     // Text inside box
     doc.setFontSize(9.5);
@@ -268,7 +271,14 @@ export default function Fleet({
     // Value
     doc.setFont("helvetica", "bold");
     doc.setTextColor(0, 0, 0);
-    doc.text(formatCurrency(totalAmount), 62, currentY + 9);
+    doc.text(formatCurrency(totalAmount), 58, currentY + 9);
+
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(60, 60, 60);
+    doc.text('Total Litres:', 96, currentY + 9);
+    
+    doc.setTextColor(0, 0, 0);
+    doc.text(`${totalLitres.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L`, 118, currentY + 9);
     
     // Reset colors & font for layout
     doc.setFont("helvetica", "normal");
@@ -285,7 +295,8 @@ export default function Fleet({
     Object.entries(carTotals)
       .sort(([, a], [, b]) => b - a)
       .forEach(([car, amount]) => {
-      doc.text(`${car}: ${formatCurrency(amount)}`, 14, currentY);
+      const litresForCar = carLitres[car] || 0;
+      doc.text(`${car}: ${formatCurrency(amount)} (${litresForCar.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L)`, 14, currentY);
       currentY += 6;
     });
 
@@ -322,7 +333,7 @@ export default function Fleet({
         e.litres ? `${e.litres} L` : '-',
         `${e.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KES`
       ]),
-      foot: [['', '', 'Total Amount', '', `${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KES`]],
+      foot: [['', '', 'Total', `${totalLitres.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L`, `${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KES`]],
     });
 
     // Footer section

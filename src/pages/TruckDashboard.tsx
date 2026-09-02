@@ -221,7 +221,7 @@ export default function TruckDashboard({
                     )}
                   </td>
                   <td className="modern-td">{e.litres ? `${e.litres.toLocaleString()} L` : '-'}</td>
-                  <td className="modern-td">{formatCurrency(e.amount)}</td>
+                  <td className="modern-td"><span className="text-rose-400 font-mono font-bold text-base">{formatCurrency(e.amount)}</span></td>
                 </tr>
               );
             })}

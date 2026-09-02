@@ -1057,7 +1057,7 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
                           className="px-2 py-1 glass-panel border border-theme-border rounded-lg text-sm text-theme-text text-right focus:outline-none focus:ring-2 focus:ring-blue-500 w-28 font-mono font-bold"
                         />
                       ) : (
-                        formatCurrency(d.totalAmount)
+                        <span className="!text-fuchsia-400 font-mono font-bold text-base">{formatCurrency(d.totalAmount)}</span>
                       )}
                     </td>
                     <td className="modern-td">

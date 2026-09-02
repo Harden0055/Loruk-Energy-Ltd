@@ -454,11 +454,12 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
       // Line item table
       const tableHeaders = [['Date', 'Transaction Type', 'Description', 'Amount (KES)', 'Closing Balance (KES)']];
-      const tableRows = [...timelineEvents].sort((a,b) => b.date - a.date).map(e => [
+      const eventsSorted = [...timelineEvents].sort((a,b) => b.date - a.date);
+      const tableRows = eventsSorted.map(e => [
         format(e.date, 'yyyy-MM-dd'),
         e.title,
         e.description,
-        `${e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit')) ? '+' : '-'}${e.amount.toLocaleString()}`,
+        `${e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit')) ? '+' : '-'}${e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
         e.balanceAfter.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
       ]);
 
@@ -472,8 +473,33 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         footStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
         styles: { fontSize: 9 },
         columnStyles: {
-          3: { halign: 'right' },
-          4: { halign: 'right' }
+          3: { halign: 'right', fontStyle: 'bold' },
+          4: { halign: 'right', fontStyle: 'bold' }
+        },
+        didParseCell: function(data) {
+          if (data.section === 'body') {
+            const e = eventsSorted[data.row.index];
+            const isPurple = e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit'));
+            
+            // Amount Column (Index 3)
+            if (data.column.index === 3) {
+              if (isPurple) {
+                data.cell.styles.textColor = [192, 38, 211]; // Fuchsia 600
+                data.cell.styles.fillColor = [253, 244, 255]; // Fuchsia 50
+              } else {
+                data.cell.styles.textColor = [5, 150, 105]; // Emerald 600
+                data.cell.styles.fillColor = [236, 253, 244]; // Emerald 50
+              }
+            }
+            // Balance Column (Index 4)
+            if (data.column.index === 4) {
+              if (e.balanceAfter > 0) {
+                data.cell.styles.textColor = [192, 38, 211];
+              } else if (e.balanceAfter < 0) {
+                data.cell.styles.textColor = [5, 150, 105];
+              }
+            }
+          }
         }
       });
 
@@ -1243,21 +1269,21 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                         {e.description}
                       </td>
                       <td className="px-4 sm:px-6 py-3.5 text-right font-mono font-bold text-sm whitespace-nowrap">
-                        <span className={isPurpleAmount ? 'text-purple-400' : 'text-emerald-400'}>
+                        <span className={isPurpleAmount ? '!text-fuchsia-400' : '!text-emerald-400'}>
                           {isPurpleAmount ? '+' : '-'}Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </span>
                       </td>
                       <td className="px-4 sm:px-6 py-3.5 text-right font-mono font-bold text-sm whitespace-nowrap">
                         {e.balanceAfter > 0 ? (
-                          <span className="text-purple-400">
+                          <span className="!text-fuchsia-400">
                             Ksh {e.balanceAfter.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         ) : e.balanceAfter < 0 ? (
-                          <span className="text-emerald-400">
+                          <span className="!text-emerald-400">
                             -Ksh {Math.abs(e.balanceAfter).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         ) : (
-                          <span className="text-theme-text-muted font-bold">
+                          <span className="!text-theme-text-muted font-bold">
                             Ksh 0.00
                           </span>
                         )}

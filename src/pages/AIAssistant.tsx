@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2 } from 'lucide-react';
+import { Send, Bot, User, Loader2, Download } from 'lucide-react';
 import { collection, getDocs, query, limit } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import ReactMarkdown from 'react-markdown';
+import jsPDF from 'jspdf';
 
 interface Message {
   id: string;
@@ -24,6 +25,25 @@ export default function AIAssistant() {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleDownloadText = (text: string) => {
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `AI_Report_${new Date().getTime()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadPdf = (text: string) => {
+    const doc = new jsPDF();
+    const splitText = doc.splitTextToSize(text, 180);
+    doc.text(splitText, 15, 15);
+    doc.save(`AI_Report_${new Date().getTime()}.pdf`);
   };
 
   useEffect(() => {
@@ -103,8 +123,24 @@ export default function AIAssistant() {
               {msg.role === 'user' ? (
                 <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.text}</p>
               ) : (
-                <div className="text-sm leading-relaxed markdown-body">
+                <div className="text-sm leading-relaxed markdown-body relative group">
                   <ReactMarkdown>{msg.text}</ReactMarkdown>
+                  <div className="absolute -bottom-8 right-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                    <button 
+                      onClick={() => handleDownloadText(msg.text)}
+                      className="px-2 py-1 text-[10px] uppercase font-bold tracking-wider text-theme-text-muted hover:text-white bg-black/40 rounded border border-white/10 hover:border-white/30 transition-all flex items-center gap-1"
+                      title="Download as Text"
+                    >
+                      <Download className="w-3 h-3" /> Text
+                    </button>
+                    <button 
+                      onClick={() => handleDownloadPdf(msg.text)}
+                      className="px-2 py-1 text-[10px] uppercase font-bold tracking-wider text-theme-text-muted hover:text-white bg-black/40 rounded border border-white/10 hover:border-white/30 transition-all flex items-center gap-1"
+                      title="Download as PDF"
+                    >
+                      <Download className="w-3 h-3" /> PDF
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

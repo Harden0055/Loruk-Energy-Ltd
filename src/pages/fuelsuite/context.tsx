@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
-import { collection, onSnapshot, setDoc, doc, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, setDoc, doc, deleteDoc, writeBatch } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { 
   deduplicateCollections, 
@@ -190,12 +190,16 @@ function useFirebaseCollection<T extends {id?: string}>(collectionName: string, 
     // Apply database updates asynchronously outside state updater context
     const syncFirestore = async () => {
       try {
+        const batch = writeBatch(db);
+        let operations = 0;
+
         // Handle additions and updates
         for (const newItem of newItems) {
           const oldItem = prevItems.find(i => i.id === newItem.id);
           if (!oldItem || JSON.stringify(oldItem) !== JSON.stringify(newItem)) {
             if (newItem.id) {
-              await setDoc(doc(db, collectionName, newItem.id), newItem);
+              batch.set(doc(db, collectionName, newItem.id), newItem);
+              operations++;
             }
           }
         }
@@ -203,8 +207,13 @@ function useFirebaseCollection<T extends {id?: string}>(collectionName: string, 
         // Handle deletions
         for (const oldItem of prevItems) {
           if (oldItem.id && !newItems.find(i => i.id === oldItem.id)) {
-            await deleteDoc(doc(db, collectionName, oldItem.id));
+            batch.delete(doc(db, collectionName, oldItem.id));
+            operations++;
           }
+        }
+
+        if (operations > 0) {
+          await batch.commit();
         }
       } catch (error) {
         console.error(`Error syncing collection ${collectionName} with Firestore:`, error);

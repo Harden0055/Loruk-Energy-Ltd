@@ -267,7 +267,8 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
       headRow.splice(1, 0, 'Customer');
     }
 
-    const rows = [...filteredEntries].map(e => {
+    const entriesList = [...filteredEntries];
+    const rows = entriesList.map(e => {
       const row = [
         format(e.date, 'MM/dd/yyyy'),
         e.note,
@@ -281,14 +282,43 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
       return row;
     });
 
+    const hasCustomerCol = selectedCustomerId === 'all';
+    const debitCol = hasCustomerCol ? 3 : 2;
+    const creditCol = hasCustomerCol ? 4 : 3;
+    const balanceCol = hasCustomerCol ? 5 : 4;
+
     autoTable(doc, {
       startY: currentY,
       head: [headRow],
       body: rows,
       theme: 'grid',
-      headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
+      headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'bold', lineWidth: 0.1, lineColor: [200, 200, 200] },
       bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] },
-      styles: { fontSize: 9 }
+      styles: { fontSize: 9 },
+      columnStyles: {
+        [debitCol]: { halign: 'right', fontStyle: 'bold' },
+        [creditCol]: { halign: 'right', fontStyle: 'bold' },
+        [balanceCol]: { halign: 'right', fontStyle: 'bold' }
+      },
+      didParseCell: function(data) {
+        if (data.section === 'body') {
+          const e = entriesList[data.row.index];
+          
+          if (data.column.index === debitCol && e.debit > 0) {
+            data.cell.styles.textColor = [192, 38, 211]; // Fuchsia 600
+            data.cell.styles.fillColor = [253, 244, 255]; // Fuchsia 50
+          } else if (data.column.index === creditCol && e.credit > 0) {
+            data.cell.styles.textColor = [5, 150, 105]; // Emerald 600
+            data.cell.styles.fillColor = [236, 253, 244]; // Emerald 50
+          } else if (data.column.index === balanceCol) {
+            if (e.runningBalance > 0) {
+              data.cell.styles.textColor = [192, 38, 211];
+            } else if (e.runningBalance < 0) {
+              data.cell.styles.textColor = [5, 150, 105];
+            }
+          }
+        }
+      }
     });
 
     // Add summary section (Closing Balance)
@@ -553,9 +583,15 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
                        <span>{e.note}</span>
                     </span>
                   </td>
-                  <td className="modern-td">{e.debit > 0 ? formatCurrency(e.debit) : '-'}</td>
-                  <td className="modern-td">{e.credit > 0 ? formatCurrency(e.credit) : '-'}</td>
-                  <td className={`px-4 py-3 text-base font-mono font-medium text-right ${e.runningBalance > 0 ? 'text-red-600 dark:text-red-400' : e.runningBalance < 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-500 dark:text-blue-400'}`}>{formatCurrency(e.runningBalance)}</td>
+                  <td className="modern-td text-right font-mono font-bold text-sm">
+                    {e.debit > 0 ? <span className="!text-fuchsia-400">{formatCurrency(e.debit)}</span> : '-'}
+                  </td>
+                  <td className="modern-td text-right font-mono font-bold text-sm">
+                    {e.credit > 0 ? <span className="!text-emerald-400">{formatCurrency(e.credit)}</span> : '-'}
+                  </td>
+                  <td className={`modern-td text-right font-mono font-bold text-sm ${e.runningBalance > 0 ? '!text-fuchsia-400' : e.runningBalance < 0 ? '!text-emerald-400' : '!text-theme-text-muted'}`}>
+                    {formatCurrency(e.runningBalance)}
+                  </td>
                   <td className="modern-td">
                     <button 
                       onClick={() => setDeletingEntry(e)}
