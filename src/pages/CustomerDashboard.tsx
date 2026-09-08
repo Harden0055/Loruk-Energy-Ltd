@@ -124,6 +124,41 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
   const { data: productDefs } = useProducts();
 
+  useEffect(() => {
+    if (activeModal === 'delivery' && customerId && deliveryProduct) {
+      if (deliveryProduct !== 'Super/Diesel Split') {
+        const savedRate = localStorage.getItem(`customer_rate_${customerId}_${deliveryProduct}`);
+        if (savedRate) setDeliveryRate(savedRate);
+      } else {
+        const savedSuper = localStorage.getItem(`customer_super_rate_${customerId}`);
+        if (savedSuper) setDeliverySuperRate(savedSuper);
+        
+        const savedDiesel = localStorage.getItem(`customer_diesel_rate_${customerId}`);
+        if (savedDiesel) setDeliveryDieselRate(savedDiesel);
+      }
+    }
+  }, [customerId, deliveryProduct, activeModal]);
+
+  useEffect(() => {
+    if (activeModal === 'delivery' && customerId && deliveryProduct && deliveryRate) {
+      if (deliveryProduct !== 'Super/Diesel Split') {
+        localStorage.setItem(`customer_rate_${customerId}_${deliveryProduct}`, deliveryRate);
+      }
+    }
+  }, [customerId, deliveryProduct, deliveryRate, activeModal]);
+
+  useEffect(() => {
+    if (activeModal === 'delivery' && customerId && deliverySuperRate) {
+      localStorage.setItem(`customer_super_rate_${customerId}`, deliverySuperRate);
+    }
+  }, [customerId, deliverySuperRate, activeModal]);
+
+  useEffect(() => {
+    if (activeModal === 'delivery' && customerId && deliveryDieselRate) {
+      localStorage.setItem(`customer_diesel_rate_${customerId}`, deliveryDieselRate);
+    }
+  }, [customerId, deliveryDieselRate, activeModal]);
+
   // Bidirectional calculations for CustomerDashboard:
   const handleProductTypeChange = (newProduct: string) => {
     setDeliveryRate('');
@@ -377,8 +412,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         }
 
         return true;
-      })
-      .reverse();
+      });
   }, [customerDeliveries, customerPayments, customerAdjustments, filterType, searchTerm, startDate, endDate, customer]);
 
   // Compute stats for charts and display
@@ -454,7 +488,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
       // Line item table
       const tableHeaders = [['Date', 'Transaction Type', 'Description', 'Amount (KES)', 'Closing Balance (KES)']];
-      const eventsSorted = [...timelineEvents].sort((a,b) => b.date - a.date);
+      const eventsSorted = [...timelineEvents].sort((a,b) => a.date - b.date);
       const tableRows = eventsSorted.map(e => [
         format(e.date, 'yyyy-MM-dd'),
         e.title,

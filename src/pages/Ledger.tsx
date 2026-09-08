@@ -215,7 +215,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
       runningBalance = runningBalance + entry.debit - entry.credit;
       return { ...entry, runningBalance };
     });
-    return entriesWithBalance.sort((a, b) => b.date - a.date);
+    return entriesWithBalance;
   }, [ledgerEntries, selectedCustomerId, filterType, dateFrom, dateTo, searchTerm, customers]);
 
   const totalDebits = filteredEntries.reduce((sum, e) => sum + e.debit, 0);

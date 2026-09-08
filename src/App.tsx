@@ -27,6 +27,8 @@ import ThemeToggle from './components/ThemeToggle';
 import { Fuel, LogIn, RefreshCcw, Printer, Menu, AlertTriangle, User, PanelLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { useProducts, addProduct } from './lib/operationsDb';
+import { PWAInstallButton } from './components/PWAInstallButton';
+import { OfflineIndicator } from './components/OfflineIndicator';
 
 type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'trucks' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'stationDashboard' | 'settings' | 'stations' | 'products' | 'assistant' | 'fuelsuite';
 
@@ -142,6 +144,8 @@ function AuthenticatedApp() {
 
   return (
     <div className="flex h-screen theme-bg-gradient text-theme-text font-sans overflow-hidden transition-colors relative">
+      <OfflineIndicator />
+      
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
         <div 
@@ -287,6 +291,7 @@ function AuthenticatedApp() {
                 Last Sync: {format(lastSync, 'HH:mm:ss')}
               </div>
             )}
+            <PWAInstallButton />
             <button
               onClick={() => {
                 if (window.self !== window.top) {

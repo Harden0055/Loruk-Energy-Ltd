@@ -93,6 +93,21 @@ export default function Fleet({
   const [rate, setRate] = useState('');
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
 
+  useEffect(() => {
+    if (isAdding && carReg && station) {
+      const savedRate = localStorage.getItem(`fleet_rate_${carReg}_${station}`);
+      if (savedRate) {
+        setRate(savedRate);
+      }
+    }
+  }, [carReg, station, isAdding]);
+
+  useEffect(() => {
+    if (carReg && station && rate && isAdding) {
+      localStorage.setItem(`fleet_rate_${carReg}_${station}`, rate);
+    }
+  }, [carReg, station, rate, isAdding]);
+
   const roundVal = (num: number) => {
     if (isNaN(num) || !isFinite(num)) return '';
     return (Math.round(num * 100) / 100).toString();
