@@ -151,7 +151,7 @@ interface FuelContextType {
 
 const FuelContext = createContext<FuelContextType | undefined>(undefined);
 
-function useFirebaseCollection<T extends {id?: string}>(collectionName: string, defaultValue: T[]): [T[], React.Dispatch<React.SetStateAction<T[]>>] {
+export function useFirebaseCollection<T extends {id?: string}>(collectionName: string, defaultValue: T[]): [T[], React.Dispatch<React.SetStateAction<T[]>>] {
   const [items, setItems] = useState<T[]>(defaultValue);
   const itemsRef = useRef<T[]>(defaultValue);
 

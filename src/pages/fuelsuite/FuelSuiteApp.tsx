@@ -12,7 +12,7 @@ import {
   Menu, 
   X, 
   User, 
-  Settings, 
+  Tag, 
   Building2, 
   Printer, 
   Database,
@@ -35,12 +35,12 @@ import ReportsView from './views/ReportsView';
 import ProductsView from './views/ProductsView';
 import DailyDataEntryView from './views/DailyDataEntryView';
 import MasterRecordsView from './views/MasterRecordsView';
-
+import StationsView from './views/StationsView';
 import DailyReportView from './views/DailyReportView';
 import MiniDashboardProfile from './views/MiniDashboardProfile';
 import ThemeToggle from '../../components/ThemeToggle';
 
-export type ViewType = 'Dashboard' | 'Daily Data Entry' | 'White Oils' | 'LPG' | 'Inventory' | 'Expenses' | 'Invoices' | 'Cash Position' | 'Master Records' | 'Reports' | 'Daily Report' | 'Settings';
+export type ViewType = 'Dashboard' | 'Daily Data Entry' | 'White Oils' | 'LPG' | 'Inventory' | 'Expenses' | 'Invoices' | 'Cash Position' | 'Master Records' | 'Stations' | 'Reports' | 'Daily Report' | 'Products';
 
 const Sidebar = ({ 
   currentView, 
@@ -69,9 +69,10 @@ const Sidebar = ({
     { name: 'Invoices', icon: FileText, color: 'text-amber-400', activeBg: 'bg-amber-500/15 border-amber-500/30 text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.15)]' },
     { name: 'Cash Position', icon: Wallet, color: 'text-emerald-400', activeBg: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.15)]' },
     { name: 'Master Records', icon: Database, color: 'text-purple-400', activeBg: 'bg-purple-500/15 border-purple-500/30 text-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.15)]' },
+    { name: 'Stations', icon: Building2, color: 'text-sky-400', activeBg: 'bg-sky-500/15 border-sky-500/30 text-sky-300 shadow-[0_0_20px_rgba(56,189,248,0.15)]' },
     { name: 'Reports', icon: BarChart3, color: 'text-indigo-400', activeBg: 'bg-indigo-500/15 border-indigo-500/30 text-indigo-300 shadow-[0_0_20px_rgba(99,102,241,0.15)]' },
     { name: 'Daily Report', icon: Layers, color: 'text-teal-400', activeBg: 'bg-teal-500/15 border-teal-500/30 text-teal-300 shadow-[0_0_20px_rgba(20,184,166,0.15)]' },
-    { name: 'Settings', icon: Settings, color: 'text-slate-400', activeBg: 'bg-slate-500/15 border-slate-500/30 text-slate-200 shadow-[0_0_20px_rgba(148,163,184,0.15)]' },
+    { name: 'Products', icon: Tag, color: 'text-slate-400', activeBg: 'bg-slate-500/15 border-slate-500/30 text-slate-200 shadow-[0_0_20px_rgba(148,163,184,0.15)]' },
   ];
 
   return (
@@ -162,7 +163,6 @@ const MainContent = ({
   isProfileOpen, 
   setIsProfileOpen, 
   onPrint,
-  onNavigateToStation
 }: { 
   currentView: ViewType; 
   setCurrentView: (v: ViewType) => void; 
@@ -172,7 +172,6 @@ const MainContent = ({
   isProfileOpen: boolean; 
   setIsProfileOpen: (b: boolean) => void; 
   onPrint: () => void;
-  onNavigateToStation?: (id: string, name: string) => void;
 }) => {
   const { activeStation, setActiveStation, stations } = useFuel();
   
@@ -260,12 +259,13 @@ const MainContent = ({
          </div>
       </header>
       <div className="flex-1 overflow-auto">
-        {currentView === 'Dashboard' && <DashboardView onNavigateToStation={onNavigateToStation} />}
+        {currentView === 'Dashboard' && <DashboardView />}
         {currentView === 'Daily Data Entry' && <DailyDataEntryView />}
         {currentView === 'White Oils' && <PumpReadingsView />}
         {currentView === 'LPG' && <LPGView />}
         {currentView === 'Inventory' && <InventoryView />}
-        {currentView === 'Settings' && <ProductsView onNavigateToStation={onNavigateToStation} />}
+        {currentView === 'Stations' && <StationsView onNavigateToDashboard={(name) => { setActiveStation(name); setCurrentView('Dashboard'); }} />}
+        {currentView === 'Products' && <ProductsView />}
         {currentView === 'Expenses' && <ExpensesView />}
         {currentView === 'Invoices' && <InvoicesView />}
         {currentView === 'Cash Position' && <CashPositionView />}
@@ -281,7 +281,6 @@ const MainContent = ({
           }
           setIsProfileOpen(false);
         }} 
-        onNavigateToStation={onNavigateToStation}
       />}
 
     </div>
@@ -290,10 +289,8 @@ const MainContent = ({
 
 export default function FuelSuiteApp({ 
   onBackToMain,
-  onNavigateToStation 
 }: { 
   onBackToMain: () => void;
-  onNavigateToStation?: (id: string, name: string) => void;
 }) {
   const [currentView, setCurrentView] = useState<ViewType>('Dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -404,7 +401,6 @@ export default function FuelSuiteApp({
         isProfileOpen={isProfileOpen} 
         setIsProfileOpen={setIsProfileOpen} 
         onPrint={handlePrint} 
-        onNavigateToStation={onNavigateToStation}
       />
     </div>
   );

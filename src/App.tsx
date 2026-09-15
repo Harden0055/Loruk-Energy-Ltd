@@ -135,9 +135,6 @@ function AuthenticatedApp() {
     return (
       <FuelSuiteApp 
         onBackToMain={() => navigateTo('dashboard')} 
-        onNavigateToStation={(id, name) => {
-          navigateTo('stationDashboard', { stationId: id, stationName: name });
-        }}
       />
     );
   }
@@ -409,10 +406,6 @@ function AuthenticatedApp() {
       {isProfileOpen && (
         <MiniDashboardProfile 
           onClose={() => setIsProfileOpen(false)} 
-          onNavigateToStation={(id, name) => {
-            setIsProfileOpen(false);
-            navigateTo('stationDashboard', { stationId: id, stationName: name });
-          }}
         />
       )}
     </div>

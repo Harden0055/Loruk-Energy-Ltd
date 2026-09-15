@@ -82,16 +82,13 @@ export const autoDetectCategoryAndUOM = (name: string): { category: ProductCateg
   return { category: 'Accessories', uom: 'Piece', suggestedSkuPrefix: 'ITEM' };
 };
 
-export default function ProductsView({ onNavigateToStation }: { onNavigateToStation?: (id: string, name: string) => void }) {
+export default function ProductsView() {
   const { confirm: confirmDelete, dialog: confirmDialog } = useConfirm();
   const { products, setProducts, stations, setStations } = useFuel();
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isBulkFormOpen, setIsBulkFormOpen] = useState(false);
   
-  const [newStationName, setNewStationName] = useState('');
-  const [editingStationId, setEditingStationId] = useState<string | null>(null);
-  const [editingStationName, setEditingStationName] = useState('');
   
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('ALL');
@@ -121,52 +118,6 @@ export default function ProductsView({ onNavigateToStation }: { onNavigateToStat
       return matchesCategory && matchesSearch;
     });
   }, [sortedProducts, selectedCategoryFilter, searchQuery]);
-
-  const handleAddStation = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const trimmed = newStationName.trim();
-    if (!trimmed) return;
-
-    if (stations.some(s => s.name.trim().toLowerCase() === trimmed.toLowerCase())) {
-      alert(`A station with name "${trimmed}" already exists.`);
-      return;
-    }
-
-    const newStation: StationData = { 
-      id: `station_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`, 
-      name: trimmed 
-    };
-    setStations(prev => [...prev, newStation]);
-    setNewStationName('');
-  };
-
-  const handleSaveEditStation = (id: string) => {
-    const trimmed = editingStationName.trim();
-    if (!trimmed) return;
-
-    if (stations.some(s => s.id !== id && s.name.trim().toLowerCase() === trimmed.toLowerCase())) {
-      alert(`Another station with name "${trimmed}" already exists.`);
-      return;
-    }
-
-    setStations(prev => prev.map(s => s.id === id ? { ...s, name: trimmed } : s));
-    setEditingStationId(null);
-    setEditingStationName('');
-  };
-
-  const handleRestoreDefaultStations = () => {
-    const defaults: StationData[] = [
-      { id: '1', name: 'Loruk Ndalu Filling Station' },
-      { id: '2', name: 'Loruk Junction Filling Station' },
-    ];
-    setStations(defaults);
-  };
-
-  const handleDeleteStation = (id: string) => {
-    confirmDelete('Are you sure you want to delete this station?', () => {
-      setStations(prev => prev.filter(s => s.id !== id));
-    });
-  };
 
   const resetForm = () => {
     setForm({
@@ -526,163 +477,6 @@ export default function ProductsView({ onNavigateToStation }: { onNavigateToStat
           </CardContent>
         </Card>
       )}
-
-      {/* Stations Configuration */}
-      <Card className="border-theme-border glass-panel">
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-blue-400" />
-              <CardTitle className="text-lg text-blue-400">Stations Configuration</CardTitle>
-              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-semibold">
-                {stations.length} Station{stations.length === 1 ? '' : 's'} Active
-              </span>
-            </div>
-            <p className="text-xs text-theme-text-muted mt-1">
-              Manage your operating filling stations. All sales, meter readings, expenses, and inventory isolate by station.
-            </p>
-          </div>
-          {stations.length === 0 && (
-            <Button 
-              onClick={handleRestoreDefaultStations} 
-              variant="secondary" 
-              className="text-xs text-emerald-400 hover:text-emerald-300 border-emerald-500/30"
-            >
-              <Sparkles className="w-3.5 h-3.5 mr-1.5" /> Initialize 2 Standard Stations
-            </Button>
-          )}
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <form onSubmit={handleAddStation} className="flex flex-col sm:flex-row gap-3">
-            <Input 
-              value={newStationName} 
-              onChange={e => setNewStationName(e.target.value)} 
-              placeholder="Enter new station name (e.g. Loruk Ndalu Filling Station)" 
-              className="flex-1 bg-slate-900 border-theme-border text-slate-100 placeholder-slate-500"
-            />
-            <Button type="submit" className="flex items-center justify-center gap-2 px-5 py-2 whitespace-nowrap bg-blue-500 hover:bg-blue-600 text-slate-950 font-bold">
-              <Plus className="w-4 h-4" /> Add Station
-            </Button>
-          </form>
-
-          <div className="rounded-xl border border-theme-border/60 overflow-hidden bg-slate-900/30">
-            <Table>
-              <thead>
-                <tr className="modern-tr bg-slate-950/50">
-                  <Th className="w-12 text-center text-xs">#</Th>
-                  <Th className="text-xs">STATION NAME</Th>
-                  <Th className="w-36 text-right text-xs">ACTIONS</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {stations.map((s, idx) => (
-                  <tr key={s.id} className="hover:bg-slate-800/30 transition-colors border-b border-theme-border/40 last:border-0">
-                    <Td className="text-center text-xs font-mono text-blue-400/80 font-bold">{idx + 1}</Td>
-                    <Td>
-                      {editingStationId === s.id ? (
-                        <div className="flex items-center gap-2 max-w-md">
-                          <Input 
-                            value={editingStationName}
-                            onChange={e => setEditingStationName(e.target.value)}
-                            onKeyDown={e => {
-                              if (e.key === 'Enter') handleSaveEditStation(s.id);
-                              if (e.key === 'Escape') setEditingStationId(null);
-                            }}
-                            className="text-sm py-1 bg-slate-900"
-                            autoFocus
-                          />
-                          <button 
-                            type="button"
-                            onClick={() => handleSaveEditStation(s.id)}
-                            className="p-1.5 bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 rounded border border-emerald-500/30 cursor-pointer"
-                            title="Save name"
-                          >
-                            <Check className="w-4 h-4" />
-                          </button>
-                          <button 
-                            type="button"
-                            onClick={() => setEditingStationId(null)}
-                            className="p-1.5 bg-slate-800 text-slate-400 hover:text-slate-200 rounded cursor-pointer"
-                            title="Cancel"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
-                          {onNavigateToStation ? (
-                            <button
-                              type="button"
-                              onClick={() => onNavigateToStation(s.id, s.name)}
-                              className="font-semibold text-blue-400 hover:text-blue-300 hover:underline text-sm inline-flex items-center gap-1.5 cursor-pointer text-left focus:outline-none"
-                              title={`Open ${s.name} Dashboard`}
-                            >
-                              <span>{s.name}</span>
-                              <ExternalLink className="w-3 h-3 opacity-60" />
-                            </button>
-                          ) : (
-                            <span className="font-semibold text-slate-100 text-sm">{s.name}</span>
-                          )}
-                        </div>
-                      )}
-                    </Td>
-                    <Td className="text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        {onNavigateToStation && (
-                          <button
-                            type="button"
-                            onClick={() => onNavigateToStation(s.id, s.name)}
-                            className="flex items-center gap-1 px-2 py-1 text-xs font-bold text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 rounded-lg transition-colors cursor-pointer"
-                            title="Open Station Dashboard"
-                          >
-                            <BarChart3 className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">Dashboard</span>
-                          </button>
-                        )}
-                        <button 
-                          onClick={() => {
-                            setEditingStationId(s.id);
-                            setEditingStationName(s.name);
-                          }} 
-                          className="text-slate-400 hover:text-blue-400 p-2 rounded hover:bg-white/5 transition-colors cursor-pointer" 
-                          title="Rename Station"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button 
-                          onClick={() => handleDeleteStation(s.id)} 
-                          className="text-slate-400 hover:text-red-400 p-2 rounded hover:bg-red-500/10 transition-colors cursor-pointer" 
-                          title="Delete Station"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </Td>
-                  </tr>
-                ))}
-                {stations.length === 0 && (
-                  <tr>
-                    <Td colSpan={3} className="text-center text-theme-text-muted py-8">
-                      <div className="flex flex-col items-center justify-center gap-2">
-                        <Building2 className="w-8 h-8 text-slate-600" />
-                        <p className="text-sm">No stations configured yet.</p>
-                        <Button 
-                          onClick={handleRestoreDefaultStations} 
-                          variant="secondary" 
-                          className="text-xs text-blue-400 border-blue-500/30 mt-1"
-                        >
-                          <Sparkles className="w-3.5 h-3.5 mr-1" /> Add Loruk Ndalu & Loruk Junction Stations
-                        </Button>
-                      </div>
-                    </Td>
-                  </tr>
-                )}
-              </tbody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Product List Table */}
       <Card className="border-theme-border glass-panel">

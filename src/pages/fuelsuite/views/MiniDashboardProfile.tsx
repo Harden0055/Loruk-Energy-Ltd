@@ -6,12 +6,11 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 interface MiniDashboardProfileProps {
   onClose: () => void;
   onNavigate?: (view: string) => void;
-  onNavigateToStation?: (id: string, name: string) => void;
 }
 
 const COLORS = ['#06B6D4', '#3B82F6', '#F97316', '#10B981', '#A855F7'];
 
-export default function MiniDashboardProfile({ onClose, onNavigate, onNavigateToStation }: MiniDashboardProfileProps) {
+export default function MiniDashboardProfile({ onClose, onNavigate }: MiniDashboardProfileProps) {
   const { pumpReadings, lpgTransactions, inventoryItems, products, expenses, stations } = useFuel();
 
   const stationData = useMemo(() => {
@@ -211,28 +210,6 @@ export default function MiniDashboardProfile({ onClose, onNavigate, onNavigateTo
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            {onNavigateToStation && stationData.length > 0 && (
-              <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between flex-wrap gap-2">
-                <span className="text-[10px] text-slate-400 font-semibold uppercase">Open Station Dashboards:</span>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {stationData.map(s => (
-                    <button
-                      key={s.name}
-                      type="button"
-                      onClick={() => {
-                        onClose();
-                        onNavigateToStation(s.name, s.name);
-                      }}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold text-blue-400 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 transition-all cursor-pointer"
-                    >
-                      <Building2 className="w-3 h-3" />
-                      <span>{s.name}</span>
-                      <ExternalLink className="w-2.5 h-2.5 opacity-60" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Product Performance Chart */}

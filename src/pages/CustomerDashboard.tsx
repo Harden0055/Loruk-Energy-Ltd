@@ -412,7 +412,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         }
 
         return true;
-      });
+      })
+      .reverse();
   }, [customerDeliveries, customerPayments, customerAdjustments, filterType, searchTerm, startDate, endDate, customer]);
 
   // Compute stats for charts and display

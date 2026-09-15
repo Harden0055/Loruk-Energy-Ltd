@@ -12,6 +12,14 @@ import {
   useFuelRates,
   useOpeningStocks
 } from '../lib/operationsDb';
+import { 
+  useFirebaseCollection,
+  PumpReading as FSPumpReading,
+  LPGTransaction as FSLPGTransaction,
+  Expense as FSExpense,
+  Invoice as FSInvoice,
+  CashPosition as FSCashPosition
+} from './fuelsuite/context';
 import { useDeliveries, useFleetExpenses } from '../lib/db';
 import { formatCurrency, formatLitres } from '../lib/utils';
 import { format } from 'date-fns';
@@ -97,6 +105,106 @@ export default function StationDashboard({
   const { deliveries = [] } = useDeliveries();
   const { expenses: fleetExpenses = [] } = useFleetExpenses();
 
+  // FuelSuite Pro Data Integration
+  const [fsPumpReadings] = useFirebaseCollection<FSPumpReading>('fuelsuite_pumpReadings', []);
+  const [fsExpenses] = useFirebaseCollection<FSExpense>('fuelsuite_expenses', []);
+  const [fsLpg] = useFirebaseCollection<FSLPGTransaction>('fuelsuite_lpgTransactions', []);
+  const [fsInvoices] = useFirebaseCollection<FSInvoice>('fuelsuite_invoices', []);
+  const [fsCashPositions] = useFirebaseCollection<FSCashPosition>('fuelsuite_cashPositions', []);
+
+  // Merge Data
+  const mergedPumpReadings = useMemo(() => {
+    const fsMapped = fsPumpReadings.map(r => ({
+      id: r.id,
+      date: new Date(r.date).getTime(),
+      station: r.station,
+      product: r.product,
+      litresStart: r.litresStart || 0,
+      litresStop: r.litresStop || 0,
+      ratePerLitre: r.ratePerLitre || 0,
+      manualRevenue: r.manualCash || 0,
+      litresSold: (r.litresStop || 0) - (r.litresStart || 0),
+      calculatedRevenue: ((r.litresStop || 0) - (r.litresStart || 0)) * (r.ratePerLitre || 0)
+    }));
+    return [...pumpReadings, ...fsMapped];
+  }, [pumpReadings, fsPumpReadings]);
+
+  const mergedExpenses = useMemo(() => {
+    const fsMapped = fsExpenses.map(e => ({
+      id: e.id,
+      date: new Date(e.date).getTime(),
+      station: e.station,
+      description: e.description,
+      amount: e.amount,
+      category: e.category
+    }));
+    return [...expenses, ...fsMapped];
+  }, [expenses, fsExpenses]);
+
+  const mergedLpgSales = useMemo(() => {
+    const fsMapped = fsLpg.filter(l => l.type === 'sale').map(l => ({
+      id: l.id,
+      date: new Date(l.date || Date.now()).getTime(),
+      station: l.station || '',
+      cylindersSold: l.quantity || 0,
+      totalSalesAmount: l.amount || 0,
+      sold6kg: (l.item || '').includes('6') ? l.quantity : 0,
+      sold13kg: (l.item || '').includes('13') ? l.quantity : 0,
+    }));
+    return [...lpgSales, ...fsMapped];
+  }, [lpgSales, fsLpg]);
+
+  const mergedLpgPurchases = useMemo(() => {
+    const fsMapped = fsLpg.filter(l => l.type === 'purchase').map(l => ({
+      id: l.id,
+      date: new Date(l.date || Date.now()).getTime(),
+      station: l.station || '',
+      cylindersBought: l.quantity || 0,
+      purchaseCost: l.amount || 0,
+      bought6kg: (l.item || '').includes('6') ? l.quantity : 0,
+      bought13kg: (l.item || '').includes('13') ? l.quantity : 0,
+    }));
+    return [...lpgPurchases, ...fsMapped];
+  }, [lpgPurchases, fsLpg]);
+
+  const mergedInvoices = useMemo(() => {
+    const fsMapped = fsInvoices.map(i => {
+      const amt = (i as any).totalAmount || (i as any).amount || 0;
+      const pd = (i as any).paidAmount || 0;
+      const bal = amt - pd;
+      let stat = 'UNPAID';
+      if (bal <= 0) stat = 'PAID';
+      else if (pd > 0) stat = 'PARTIAL';
+
+      return {
+        id: i.id,
+        station: i.station,
+        customerName: i.customerName || '',
+        invoiceAmount: amt,
+        paidAmount: pd,
+        balance: bal,
+        status: stat as 'PAID' | 'PARTIAL' | 'UNPAID',
+        createdAt: new Date(i.date || Date.now()).getTime(),
+        invoiceDate: new Date(i.date || Date.now()).getTime(),
+        invoiceNumber: (i as any).invoiceNumber || i.id || ''
+      };
+    });
+    return [...invoices, ...fsMapped] as any[]; // casting since types slightly overlap
+  }, [invoices, fsInvoices]);
+
+  const mergedCashPositions = useMemo(() => {
+    const fsMapped = fsCashPositions.map(c => ({
+      id: c.id,
+      station: c.station || '',
+      date: new Date(c.date).getTime(),
+      cashAtHand: c.cashOnHand || 0,
+      mpesaBalance: c.mPesa || 0,
+      bankedAmount: 0,
+      variance: 0
+    }));
+    return [...cashPositions, ...fsMapped];
+  }, [cashPositions, fsCashPositions]);
+
   // Active Station determination
   const currentStation = useMemo(() => {
     if (stationId) {
@@ -132,16 +240,24 @@ export default function StationDashboard({
     const s = itemStation.trim().toLowerCase();
     const cur = activeName.trim().toLowerCase();
     const curCode = (currentStation.code || '').trim().toLowerCase();
-    const curLoc = (currentStation.location || '').trim().toLowerCase();
+    const curId = currentStation.id?.trim().toLowerCase();
 
-    // Direct match or partial containment
+    // Direct match
     if (s === cur) return true;
+    if (curId && s === curId) return true;
     if (curCode && s === curCode) return true;
-    if (cur.includes('ndalu') && s.includes('ndalu')) return true;
-    if (cur.includes('junction') && s.includes('junction')) return true;
-    if (cur.includes('loruk') && s.includes('loruk')) return true;
-    if (curLoc && s.includes(curLoc)) return true;
-    return s.includes(cur) || cur.includes(s);
+    
+    // Legacy mapping strictly tied to specific known legacy short names
+    const isCurNdalu = cur === 'ndalu' || cur === 'loruk ndalu filling station';
+    const isCurJunction = cur === 'junction' || cur === 'loruk junction filling station';
+
+    const isItemNdalu = s === 'ndalu' || s === 'loruk ndalu filling station';
+    const isItemJunction = s === 'junction' || s === 'loruk junction filling station';
+
+    if (isCurNdalu && isItemNdalu) return true;
+    if (isCurJunction && isItemJunction) return true;
+
+    return false;
   };
 
   // State Filters
@@ -176,49 +292,49 @@ export default function StationDashboard({
 
   // 1. Filtered Pump Readings for this station
   const stationPumpReadings = useMemo(() => {
-    return (pumpReadings || [])
+    return (mergedPumpReadings || [])
       .filter(r => matchesStation(r.station))
       .filter(r => isWithinDateRange(r.date))
       .sort((a, b) => (b.date || 0) - (a.date || 0));
-  }, [pumpReadings, activeName, dateRange]);
+  }, [mergedPumpReadings, activeName, dateRange]);
 
   // 2. Filtered Expenses for this station
   const stationExpenses = useMemo(() => {
-    return (expenses || [])
+    return (mergedExpenses || [])
       .filter(e => matchesStation(e.station))
       .filter(e => isWithinDateRange(e.date))
       .sort((a, b) => (b.date || 0) - (a.date || 0));
-  }, [expenses, activeName, dateRange]);
+  }, [mergedExpenses, activeName, dateRange]);
 
   // 3. Filtered LPG Sales & Purchases
   const stationLpgSales = useMemo(() => {
-    return (lpgSales || [])
+    return (mergedLpgSales || [])
       .filter(l => matchesStation(l.station))
       .filter(l => isWithinDateRange(l.date))
       .sort((a, b) => (b.date || 0) - (a.date || 0));
-  }, [lpgSales, activeName, dateRange]);
+  }, [mergedLpgSales, activeName, dateRange]);
 
   const stationLpgPurchases = useMemo(() => {
-    return (lpgPurchases || [])
+    return (mergedLpgPurchases || [])
       .filter(l => matchesStation(l.station))
       .filter(l => isWithinDateRange(l.date))
       .sort((a, b) => (b.date || 0) - (a.date || 0));
-  }, [lpgPurchases, activeName, dateRange]);
+  }, [mergedLpgPurchases, activeName, dateRange]);
 
   // 4. Filtered Invoices
   const stationInvoices = useMemo(() => {
-    return (invoices || [])
+    return (mergedInvoices || [])
       .filter(inv => matchesStation(inv.station))
       .filter(inv => isWithinDateRange(inv.invoiceDate || inv.createdAt))
       .sort((a, b) => ((b.invoiceDate || b.createdAt) || 0) - ((a.invoiceDate || a.createdAt) || 0));
-  }, [invoices, activeName, dateRange]);
+  }, [mergedInvoices, activeName, dateRange]);
 
   // 5. Filtered Cash Positions
   const stationCashPositions = useMemo(() => {
-    return (cashPositions || [])
+    return (mergedCashPositions || [])
       .filter(c => matchesStation(c.station))
       .sort((a, b) => (b.date || 0) - (a.date || 0));
-  }, [cashPositions, activeName]);
+  }, [mergedCashPositions, activeName]);
 
   // 6. Filtered Fleet Fueling at this station
   const stationFleetExpenses = useMemo(() => {

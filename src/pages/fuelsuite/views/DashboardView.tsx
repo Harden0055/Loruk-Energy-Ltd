@@ -22,7 +22,7 @@ import {
 
 const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 
-export default function DashboardView({ onNavigateToStation }: { onNavigateToStation?: (id: string, name: string) => void }) {
+export default function DashboardView() {
   const { activeStation, pumpReadings, expenses, lpgTransactions, inventoryItems, invoices } = useFuel();
   const [filterYear] = useState<string>('All');
   
@@ -379,7 +379,6 @@ export default function DashboardView({ onNavigateToStation }: { onNavigateToSta
                <button
                  key={d.name}
                  type="button"
-                 onClick={() => onNavigateToStation?.(d.name, d.name)}
                  className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white/[0.04] hover:bg-blue-500/15 border border-white/[0.08] hover:border-blue-500/30 text-[10px] text-slate-300 hover:text-blue-300 font-semibold transition-all cursor-pointer group"
                  title={`Open ${d.name} Dashboard`}
                >
