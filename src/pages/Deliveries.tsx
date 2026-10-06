@@ -171,7 +171,7 @@ function DeleteMultipleConfirmModal({
   );
 }
 
-export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: string) => void }) {
+export default function Deliveries({ onViewCustomer, initialAction, initialFilter }: { onViewCustomer?: (id: string) => void; initialAction?: string; initialFilter?: string }) {
   const { user } = useAuth();
   const isAdmin = (user as any)?.role === 'admin' || user?.email?.includes('admin');
   const { deliveries, loading } = useDeliveries();
@@ -188,9 +188,15 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
   }, [products]);
   
   const [search, setSearch] = useState('');
-  const [isAdding, setIsAdding] = useState(false);
+  const [isAdding, setIsAdding] = useState(initialAction === 'add');
   const [showAIModal, setShowAIModal] = useState(false);
   const [initialForm, setInitialForm] = useState<any>(null);
+
+  useEffect(() => {
+    if (initialAction === 'add') {
+      setIsAdding(true);
+    }
+  }, [initialAction]);
 
   const [deletingDelivery, setDeletingDelivery] = useState<Delivery | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -214,8 +220,8 @@ export default function Deliveries({ onViewCustomer }: { onViewCustomer?: (id: s
 
   const [inlineSaveLoading, setInlineSaveLoading] = useState(false);
 
-  const [showFilters, setShowFilters] = useState(false);
-  const [filterProductType, setFilterProductType] = useState<string>('All');
+  const [showFilters, setShowFilters] = useState(initialFilter === 'split');
+  const [filterProductType, setFilterProductType] = useState<string>(initialFilter === 'split' ? 'Super/Diesel Split' : 'All');
   const [filterCustomerId, setFilterCustomerId] = useState<string>('All');
   const [filterStartDate, setFilterStartDate] = useState<string>('');
   const [filterEndDate, setFilterEndDate] = useState<string>('');
@@ -1388,12 +1394,12 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
   };
 
   return (
-    <div className="fixed inset-0 bg-black/45  flex items-center justify-center p-4 z-50">
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-theme-border w-full max-w-md overflow-hidden transition-colors">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-[#000000] rounded-2xl shadow-2xl border border-white/10 w-full max-w-md overflow-hidden transition-colors">
         <form onSubmit={handleSubmit}>
-          <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:bg-white/5 flex justify-between items-center">
-            <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Record Fuel Delivery</h3>
-            <button type="button" onClick={onClose} className="text-blue-400 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"><X className="w-5 h-5"/></button>
+          <div className="px-6 py-5 border-b border-white/10 bg-[#000000] flex justify-between items-center">
+            <h3 className="text-xl font-bold text-white">Record Fuel Delivery</h3>
+            <button type="button" onClick={onClose} className="text-[#A1A1AA] hover:text-white transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
           </div>
           <div className="p-6 space-y-4">
             <div>
@@ -1529,9 +1535,9 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
               </div>
             )}
           </div>
-          <div className="px-6 py-4 bg-blue-100/50 dark:bg-white/5 border-t border-theme-border flex justify-end gap-3">
-             <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-blue-400 hover:text-blue-900 dark:text-theme-text-muted dark:hover:text-blue-100 transition-colors">Cancel</button>
-             <button type="submit" disabled={loading} className="px-5 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg text-base font-semibold transition-colors">Record Delivery</button>
+          <div className="px-6 py-4 bg-[#000000] border-t border-white/10 flex justify-end gap-3">
+             <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-gray-400 hover:text-white transition-colors cursor-pointer">Cancel</button>
+             <button type="submit" disabled={loading} className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-base font-semibold transition-colors cursor-pointer shadow-sm">Record Delivery</button>
           </div>
         </form>
       </div>

@@ -11,7 +11,7 @@ import {
 } from './deduplication';
 
 export type Station = string;
-export interface StationData { id: string; name: string; }
+export interface StationData { id: string; name: string; code?: string; location?: string; tradingAs?: string; poBox?: string; status?: string; }
 
 export interface PumpReading {
   id: string;

@@ -134,6 +134,10 @@ export default function Stations({ onNavigateToStation }: StationsProps) {
     const locationMatch = (s.location || '').toLowerCase().includes(term);
     const statusMatch = statusFilter === 'all' || s.status === statusFilter;
     return (nameMatch || codeMatch || locationMatch) && statusMatch;
+  }).sort((a, b) => {
+    const codeA = (a.code || '').toLowerCase();
+    const codeB = (b.code || '').toLowerCase();
+    return codeA.localeCompare(codeB);
   });
 
   const totalStations = stations.length;

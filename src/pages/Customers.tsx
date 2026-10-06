@@ -10,9 +10,11 @@ import Papa from 'papaparse';
 interface CustomersProps {
   onViewCustomer?: (id: string) => void;
   onNavigate?: (page: string) => void;
+  initialAction?: string;
+  initialFilter?: string;
 }
 
-export default function Customers({ onViewCustomer, onNavigate }: CustomersProps = {}) {
+export default function Customers({ onViewCustomer, onNavigate, initialAction, initialFilter }: CustomersProps = {}) {
   const { customers, loading: customersLoading } = useCustomers();
   const { deliveries, loading: deliveriesLoading } = useDeliveries();
   const { payments, loading: paymentsLoading } = usePayments();
@@ -20,8 +22,20 @@ export default function Customers({ onViewCustomer, onNavigate }: CustomersProps
   const loading = customersLoading || deliveriesLoading || paymentsLoading || adjustmentsLoading;
 
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'credit_risk'>('all');
-  const [isAdding, setIsAdding] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'credit_risk'>(initialFilter === 'debtors' ? 'credit_risk' : 'all');
+  const [isAdding, setIsAdding] = useState(initialAction === 'add');
+
+  useEffect(() => {
+    if (initialAction === 'add') {
+      setIsAdding(true);
+    }
+  }, [initialAction]);
+
+  useEffect(() => {
+    if (initialFilter === 'debtors') {
+      setStatusFilter('credit_risk');
+    }
+  }, [initialFilter]);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(null);
   const [adjustingCustomer, setAdjustingCustomer] = useState<Customer | null>(null);

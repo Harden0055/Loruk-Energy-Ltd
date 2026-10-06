@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+const fs = require('fs');
+
+const code = `import React, { useState } from 'react';
 import { useFuel } from '../context';
 import { db } from '../../../lib/firebase';
 import { deleteDoc, doc, setDoc } from 'firebase/firestore';
-import { Building2, Plus, Sparkles, Check, X, Pencil, Trash2, ExternalLink, MapPin, BarChart3 } from 'lucide-react';
+import { Building2, Plus, Sparkles, Check, X, Pencil, Trash2, ExternalLink, MapPin } from 'lucide-react';
 import { Button, Input, Table, Th, Td } from '../components';
 
 export default function StationsView({ onNavigateToDashboard }: { onNavigateToDashboard?: (name: string) => void }) {
@@ -25,7 +27,7 @@ export default function StationsView({ onNavigateToDashboard }: { onNavigateToDa
     const newStation = {
       id: Date.now().toString(),
       name: newStationName.trim(),
-      code: `ST-${stations.length + 1}`.padStart(6, '0'),
+      code: \`ST-\${stations.length + 1}\`.padStart(6, '0'),
       location: '',
       tradingAs: '',
       poBox: '',
@@ -187,7 +189,7 @@ export default function StationsView({ onNavigateToDashboard }: { onNavigateToDa
                         <option value="inactive">INACTIVE</option>
                       </select>
                     ) : (
-                      <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-bold border ${(!s.status || s.status === 'active') ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}`}>
+                      <span className={\`inline-flex px-2 py-0.5 rounded text-[10px] font-bold border \${(!s.status || s.status === 'active') ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-rose-500/10 text-rose-400 border-rose-500/20'}\`}>
                         {(!s.status || s.status === 'active') ? 'ACTIVE' : 'INACTIVE'}
                       </span>
                     )}
@@ -237,3 +239,5 @@ export default function StationsView({ onNavigateToDashboard }: { onNavigateToDa
     </div>
   );
 }
+`;
+fs.writeFileSync('src/pages/fuelsuite/views/StationsView.tsx', code);

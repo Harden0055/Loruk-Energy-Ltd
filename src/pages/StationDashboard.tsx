@@ -23,7 +23,8 @@ import {
 import { useDeliveries, useFleetExpenses } from '../lib/db';
 import { formatCurrency, formatLitres } from '../lib/utils';
 import { format } from 'date-fns';
-import { 
+import {
+  Droplets,
   Building2, 
   MapPin, 
   Fuel, 
@@ -261,7 +262,7 @@ export default function StationDashboard({
   };
 
   // State Filters
-  const [activeTab, setActiveTab] = useState<'overview' | 'fuel' | 'lpg' | 'expenses' | 'invoices' | 'timeline'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'deliveries' | 'expenses' | 'timeline'>('overview');
   const [dateRange, setDateRange] = useState<'all' | '7d' | '30d' | 'this_month'>('all');
   const [timelineSearch, setTimelineSearch] = useState('');
   const [timelineFilter, setTimelineFilter] = useState<'all' | 'fuel' | 'lpg' | 'expense' | 'invoice' | 'delivery'>('all');
@@ -360,10 +361,10 @@ export default function StationDashboard({
     let otherLitres = 0;
     let otherRevenue = 0;
 
-    stationPumpReadings.forEach(r => {
-      const soldLitres = r.litresSold || (r.litresStop >= r.litresStart ? r.litresStop - r.litresStart : 0);
-      const rev = r.calculatedRevenue || r.manualRevenue || (soldLitres * (r.ratePerLitre || 0));
-      const prod = (r.product || '').toLowerCase();
+    stationDeliveries.forEach(d => {
+      const soldLitres = d.litres || 0;
+      const rev = d.totalAmount || 0;
+      const prod = (d.productType || '').toLowerCase();
 
       if (prod.includes('super') || prod.includes('pms') || prod.includes('petrol')) {
         superLitres += soldLitres;
@@ -390,7 +391,7 @@ export default function StationDashboard({
       totalLitres,
       totalFuelRev
     };
-  }, [stationPumpReadings]);
+  }, [stationDeliveries]);
 
   const lpgRevenue = useMemo(() => {
     return stationLpgSales.reduce((sum, s) => sum + (s.totalSalesAmount || 0), 0);
@@ -404,9 +405,9 @@ export default function StationDashboard({
     return stationExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
   }, [stationExpenses]);
 
-  const totalGrossRevenue = fuelMetrics.totalFuelRev + lpgRevenue;
-  const netOperatingProfit = totalGrossRevenue - totalExpensesAmount;
-  const profitMarginPct = totalGrossRevenue > 0 ? (netOperatingProfit / totalGrossRevenue) * 100 : 0;
+  const totalDeliveriesValue = stationDeliveries.reduce((sum, d) => sum + (d.totalAmount || 0), 0);
+  const netOperatingProfit = totalDeliveriesValue - totalExpensesAmount;
+  const profitMarginPct = totalDeliveriesValue > 0 ? (netOperatingProfit / totalDeliveriesValue) * 100 : 0;
 
   // Invoices & Receivables
   const totalInvoiced = stationInvoices.reduce((sum, inv) => sum + (inv.invoiceAmount || 0), 0);
@@ -448,33 +449,25 @@ export default function StationDashboard({
     return data.filter(d => d.value > 0);
   }, [fuelMetrics, lpgRevenue]);
 
-  // Monthly / Daily Sales & Expenses Trend Line
+  // Monthly / Daily Deliveries & Expenses Trend Line
   const timelineTrendData = useMemo(() => {
-    const groups: Record<string, { dateStr: string; Revenue: number; Expenses: number; Litres: number; timestamp: number }> = {};
-
-    stationPumpReadings.forEach(r => {
-      const d = format(new Date(r.date), 'MMM dd');
-      if (!groups[d]) groups[d] = { dateStr: d, Revenue: 0, Expenses: 0, Litres: 0, timestamp: r.date };
-      const soldLitres = r.litresSold || (r.litresStop >= r.litresStart ? r.litresStop - r.litresStart : 0);
-      const rev = r.calculatedRevenue || r.manualRevenue || (soldLitres * (r.ratePerLitre || 0));
-      groups[d].Revenue += rev;
-      groups[d].Litres += soldLitres;
-    });
-
-    stationLpgSales.forEach(s => {
-      const d = format(new Date(s.date), 'MMM dd');
-      if (!groups[d]) groups[d] = { dateStr: d, Revenue: 0, Expenses: 0, Litres: 0, timestamp: s.date };
-      groups[d].Revenue += (s.totalSalesAmount || 0);
+    const groups: Record<string, { dateStr: string; DeliveriesValue: number; Expenses: number; Litres: number; timestamp: number }> = {};
+    
+    stationDeliveries.forEach(d => {
+      const dateStr = format(new Date(d.date), 'MMM dd');
+      if (!groups[dateStr]) groups[dateStr] = { dateStr, DeliveriesValue: 0, Expenses: 0, Litres: 0, timestamp: d.date };
+      groups[dateStr].DeliveriesValue += (d.totalAmount || 0);
+      groups[dateStr].Litres += (d.litres || 0);
     });
 
     stationExpenses.forEach(e => {
-      const d = format(new Date(e.date), 'MMM dd');
-      if (!groups[d]) groups[d] = { dateStr: d, Revenue: 0, Expenses: 0, Litres: 0, timestamp: e.date };
-      groups[d].Expenses += (e.amount || 0);
+      const dateStr = format(new Date(e.date), 'MMM dd');
+      if (!groups[dateStr]) groups[dateStr] = { dateStr, DeliveriesValue: 0, Expenses: 0, Litres: 0, timestamp: e.date };
+      groups[dateStr].Expenses += (e.amount || 0);
     });
 
     return Object.values(groups).sort((a, b) => a.timestamp - b.timestamp).slice(-14);
-  }, [stationPumpReadings, stationLpgSales, stationExpenses]);
+  }, [stationDeliveries, stationExpenses]);
 
   // Unified Audit Timeline Events
   const timelineEvents = useMemo(() => {
@@ -677,7 +670,7 @@ export default function StationDashboard({
         {/* Metric 1: Total Gross Revenue */}
         <div className="glass-panel rounded-xl p-4 border border-blue-500/30 bg-blue-500/[0.03] shadow-[0_0_20px_rgba(59,130,246,0.08)]">
           <div className="flex justify-between items-start">
-            <p className="text-[11px] font-extrabold text-theme-text-muted uppercase tracking-wider">Gross Revenue</p>
+            <p className="text-[11px] font-extrabold text-theme-text-muted uppercase tracking-wider">Deliveries Value</p>
             <div className="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
               <DollarSign className="w-4 h-4" />
             </div>
@@ -686,11 +679,11 @@ export default function StationDashboard({
             <div className="flex items-baseline">
               <span className="text-xs font-bold text-blue-400/80 mr-1">Ksh</span>
               <h3 className="text-xl sm:text-2xl font-black font-mono text-blue-400 tracking-tight leading-none">
-                {totalGrossRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {totalDeliveriesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </h3>
             </div>
             <p className="text-[10px] text-theme-text-muted font-medium mt-1.5 truncate">
-              Fuel: <span className="font-bold text-blue-300">Ksh {fuelMetrics.totalFuelRev.toLocaleString()}</span>
+              Fuel Deliveries: <span className="font-bold text-blue-300">Ksh {totalDeliveriesValue.toLocaleString()}</span>
             </p>
           </div>
         </div>
@@ -740,7 +733,7 @@ export default function StationDashboard({
         {/* Metric 4: Net Operating Profit */}
         <div className="glass-panel rounded-xl p-4 border border-emerald-500/30 bg-emerald-500/[0.03] shadow-[0_0_20px_rgba(16,185,129,0.08)]">
           <div className="flex justify-between items-start">
-            <p className="text-[11px] font-extrabold text-theme-text-muted uppercase tracking-wider">Net Operating Profit</p>
+            <p className="text-[11px] font-extrabold text-theme-text-muted uppercase tracking-wider">Deliveries vs Expenses</p>
             <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
               <TrendingUp className="w-4 h-4" />
             </div>
@@ -805,10 +798,8 @@ export default function StationDashboard({
       <div className="flex border-b border-theme-border overflow-x-auto gap-2 pb-1 scrollbar-none">
         {[
           { id: 'overview', label: 'Overview & Charts', icon: BarChart3 },
-          { id: 'fuel', label: 'Fuel Pump Operations', icon: Fuel },
-          { id: 'lpg', label: 'LPG Gas & Cylinders', icon: Flame },
+          { id: 'deliveries', label: 'Fuel Deliveries', icon: Droplets },
           { id: 'expenses', label: 'Operating Expenses', icon: ReceiptText },
-          { id: 'invoices', label: 'Invoices & Credit', icon: FileText },
           { id: 'timeline', label: 'Audit Statement Timeline', icon: Clock }
         ].map(tab => {
           const Icon = tab.icon;
@@ -838,8 +829,8 @@ export default function StationDashboard({
             <div className="lg:col-span-2 glass-panel border border-theme-border rounded-xl p-6 shadow-sm">
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h3 className="text-base font-black text-theme-text tracking-tight">Station Revenue & Expense Dynamics</h3>
-                  <p className="text-xs text-theme-text-muted">Time-series comparison of incoming sales vs outflow expenses</p>
+                  <h3 className="text-base font-black text-theme-text tracking-tight">Station Deliveries & Expense Dynamics</h3>
+                  <p className="text-xs text-theme-text-muted">Time-series comparison of incoming deliveries vs outflow expenses</p>
                 </div>
                 <div className="flex items-center gap-2 bg-blue-500/10 border border-blue-500/25 px-3 py-1.5 rounded-lg shadow-sm">
                   <TrendingUp className="w-4 h-4 text-blue-400" />
@@ -881,7 +872,7 @@ export default function StationDashboard({
                         }}
                       />
                       <Legend />
-                      <Area type="monotone" dataKey="Revenue" stroke="#38BDF8" strokeWidth={2.5} fillOpacity={1} fill="url(#revGrad)" />
+                      <Area type="monotone" dataKey="DeliveriesValue" name="Deliveries" stroke="#38BDF8" strokeWidth={2.5} fillOpacity={1} fill="url(#revGrad)" />
                       <Area type="monotone" dataKey="Expenses" stroke="#F43F5E" strokeWidth={2.5} fillOpacity={1} fill="url(#expGrad)" />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -1018,144 +1009,44 @@ export default function StationDashboard({
       )}
 
       {/* TAB 2: FUEL PUMP OPERATIONS */}
-      {activeTab === 'fuel' && (
-        <div className="space-y-6">
-          <div className="glass-panel border border-theme-border rounded-xl overflow-hidden shadow-sm">
-            <div className="p-5 border-b border-theme-border flex justify-between items-center flex-wrap gap-3">
-              <div>
-                <h3 className="text-base font-black text-theme-text tracking-tight">Meter Readings & Dispenser Logs</h3>
-                <p className="text-xs text-theme-text-muted">Detailed pump meter shifts, litres dispensed, and cash revenues</p>
-              </div>
-              <span className="font-mono text-xs font-bold px-3 py-1 bg-sky-500/15 text-sky-400 rounded-lg border border-sky-500/30">
-                {stationPumpReadings.length} Meter Logs
-              </span>
-            </div>
-
+            {activeTab === 'deliveries' && (
+        <div className="space-y-4 animate-fade-in">
+          <div className="glass-panel border border-theme-border rounded-xl overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
-              <table className="modern-table">
+              <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="modern-tr">
-                    <th className="modern-th">Date & Time</th>
-                    <th className="modern-th">Product</th>
-                    <th className="modern-th text-right">Start Meter</th>
-                    <th className="modern-th text-right">Stop Meter</th>
-                    <th className="modern-th text-right">Volume (L)</th>
-                    <th className="modern-th text-right">Rate/L</th>
-                    <th className="modern-th text-right">Revenue (Ksh)</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-theme-border text-sm font-medium">
-                  {stationPumpReadings.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center text-theme-text-muted text-sm">
-                        No pump meter readings logged for {currentStation.name}.
-                      </td>
-                    </tr>
-                  ) : (
-                    stationPumpReadings.map((r, idx) => {
-                      const sold = r.litresSold || (r.litresStop >= r.litresStart ? r.litresStop - r.litresStart : 0);
-                      const rev = r.calculatedRevenue || r.manualRevenue || (sold * (r.ratePerLitre || 0));
-                      const isSuper = (r.product || '').toLowerCase().includes('super');
-                      return (
-                        <tr key={r.id || idx} className="hover:bg-white/[0.03] transition-colors">
-                          <td className="modern-td font-mono text-xs text-theme-text-muted">
-                            {format(new Date(r.date), 'dd-MMM-yyyy HH:mm')}
-                          </td>
-                          <td className="modern-td">
-                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border ${
-                              isSuper ? 'bg-sky-500/15 text-sky-400 border-sky-500/30' : 'bg-blue-500/15 text-blue-400 border-blue-500/30'
-                            }`}>
-                              <Fuel className="w-3.5 h-3.5" />
-                              {r.product}
-                            </span>
-                          </td>
-                          <td className="modern-td text-right font-mono text-xs">{r.litresStart?.toLocaleString()}</td>
-                          <td className="modern-td text-right font-mono text-xs">{r.litresStop?.toLocaleString()}</td>
-                          <td className="modern-td text-right font-mono font-bold text-xs text-sky-400">
-                            {sold.toLocaleString()} L
-                          </td>
-                          <td className="modern-td text-right font-mono text-xs">Ksh {r.ratePerLitre || 0}</td>
-                          <td className="modern-td text-right font-mono font-bold text-xs text-emerald-400">
-                            Ksh {rev.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 3: LPG GAS & CYLINDERS */}
-      {activeTab === 'lpg' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="glass-panel p-4 rounded-xl border border-orange-500/30 bg-orange-500/[0.03]">
-              <span className="text-xs font-bold text-theme-text-muted uppercase">Total LPG Sales</span>
-              <h3 className="text-2xl font-black font-mono text-orange-400 mt-1">
-                Ksh {lpgRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </h3>
-              <p className="text-[10px] text-theme-text-muted mt-1">{stationLpgSales.length} retail sale transactions</p>
-            </div>
-            <div className="glass-panel p-4 rounded-xl border border-theme-border">
-              <span className="text-xs font-bold text-theme-text-muted uppercase">LPG Replenishments</span>
-              <h3 className="text-2xl font-black font-mono text-theme-text mt-1">
-                Ksh {lpgCost.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </h3>
-              <p className="text-[10px] text-theme-text-muted mt-1">{stationLpgPurchases.length} stock refill batches</p>
-            </div>
-            <div className="glass-panel p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.03]">
-              <span className="text-xs font-bold text-theme-text-muted uppercase">LPG Gross Margin</span>
-              <h3 className="text-2xl font-black font-mono text-emerald-400 mt-1">
-                Ksh {(lpgRevenue - lpgCost).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </h3>
-              <p className="text-[10px] text-theme-text-muted mt-1">Net cylinder retail margin</p>
-            </div>
-          </div>
-
-          <div className="glass-panel border border-theme-border rounded-xl overflow-hidden shadow-sm">
-            <div className="p-5 border-b border-theme-border">
-              <h3 className="text-base font-black text-theme-text tracking-tight">LPG Cylinder Sales Log</h3>
-              <p className="text-xs text-theme-text-muted">6kg, 13kg, and 50kg cylinder refills and complete gas transactions</p>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="modern-table">
-                <thead>
-                  <tr className="modern-tr">
+                  <tr className="bg-slate-50/50 dark:bg-slate-900/50 border-b border-theme-border">
                     <th className="modern-th">Date</th>
-                    <th className="modern-th text-center">Total Cylinders</th>
-                    <th className="modern-th text-center">6kg Sold</th>
-                    <th className="modern-th text-center">13kg Sold</th>
-                    <th className="modern-th text-right">Total Amount (Ksh)</th>
+                    
+                    <th className="modern-th">Product</th>
+                    <th className="modern-th text-right">Volume</th>
+                    <th className="modern-th text-right">Value (KES)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-theme-border text-sm font-medium">
-                  {stationLpgSales.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-theme-text-muted text-sm">
-                        No LPG sales logged for this station.
+                <tbody className="divide-y divide-theme-border/50">
+                  {stationDeliveries.map(d => (
+                    <tr key={d.id} className="modern-tr group">
+                      <td className="modern-td">{format(d.date || 0, 'MMM dd, yyyy')}</td>
+                      
+                      <td className="modern-td">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                          {d.productType}
+                        </span>
+                      </td>
+                      <td className="modern-td text-right font-medium text-slate-700 dark:text-slate-300">
+                        {d.litres.toLocaleString()} L
+                      </td>
+                      <td className="modern-td text-right font-bold text-slate-700 dark:text-slate-300">
+                        {d.totalAmount.toLocaleString()}
                       </td>
                     </tr>
-                  ) : (
-                    stationLpgSales.map((s, idx) => (
-                      <tr key={s.id || idx} className="hover:bg-white/[0.03] transition-colors">
-                        <td className="modern-td font-mono text-xs text-theme-text-muted">
-                          {format(new Date(s.date), 'dd-MMM-yyyy')}
-                        </td>
-                        <td className="modern-td text-center font-bold text-orange-400">
-                          {s.cylindersSold || 0}
-                        </td>
-                        <td className="modern-td text-center font-mono text-xs">{s.sold6kg || 0}</td>
-                        <td className="modern-td text-center font-mono text-xs">{s.sold13kg || 0}</td>
-                        <td className="modern-td text-right font-mono font-bold text-xs text-emerald-400">
-                          Ksh {(s.totalSalesAmount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                        </td>
-                      </tr>
-                    ))
+                  ))}
+                  {stationDeliveries.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="py-8 text-center text-theme-text-muted">
+                        No deliveries recorded for this station.
+                      </td>
+                    </tr>
                   )}
                 </tbody>
               </table>
@@ -1163,9 +1054,7 @@ export default function StationDashboard({
           </div>
         </div>
       )}
-
-      {/* TAB 4: EXPENSES & COST CONTROL */}
-      {activeTab === 'expenses' && (
+{activeTab === 'expenses' && (
         <div className="space-y-6">
           <div className="glass-panel border border-theme-border rounded-xl overflow-hidden shadow-sm">
             <div className="p-5 border-b border-theme-border flex justify-between items-center flex-wrap gap-3">
@@ -1223,98 +1112,6 @@ export default function StationDashboard({
       )}
 
       {/* TAB 5: INVOICES & STATION CUSTOMERS */}
-      {activeTab === 'invoices' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="glass-panel p-4 rounded-xl border border-blue-500/30 bg-blue-500/[0.03]">
-              <span className="text-xs font-bold text-theme-text-muted uppercase">Total Invoiced</span>
-              <h3 className="text-2xl font-black font-mono text-blue-400 mt-1">
-                Ksh {totalInvoiced.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </h3>
-            </div>
-            <div className="glass-panel p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.03]">
-              <span className="text-xs font-bold text-theme-text-muted uppercase">Settled Payments</span>
-              <h3 className="text-2xl font-black font-mono text-emerald-400 mt-1">
-                Ksh {totalInvoicesPaid.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </h3>
-            </div>
-            <div className="glass-panel p-4 rounded-xl border border-amber-500/30 bg-amber-500/[0.03]">
-              <span className="text-xs font-bold text-theme-text-muted uppercase">Pending Receivables</span>
-              <h3 className="text-2xl font-black font-mono text-amber-400 mt-1">
-                Ksh {outstandingInvoicesBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </h3>
-            </div>
-          </div>
-
-          <div className="glass-panel border border-theme-border rounded-xl overflow-hidden shadow-sm">
-            <div className="p-5 border-b border-theme-border">
-              <h3 className="text-base font-black text-theme-text tracking-tight">Station Invoices Ledger</h3>
-              <p className="text-xs text-theme-text-muted">Issued customer invoices and credit balances associated with this location</p>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="modern-table">
-                <thead>
-                  <tr className="modern-tr">
-                    <th className="modern-th">Invoice #</th>
-                    <th className="modern-th">Customer Name</th>
-                    <th className="modern-th">Date</th>
-                    <th className="modern-th text-right">Invoice Amount</th>
-                    <th className="modern-th text-right">Paid</th>
-                    <th className="modern-th text-right">Balance</th>
-                    <th className="modern-th text-center">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-theme-border text-sm font-medium">
-                  {stationInvoices.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center text-theme-text-muted text-sm">
-                        No customer invoices linked to this station.
-                      </td>
-                    </tr>
-                  ) : (
-                    stationInvoices.map((inv, idx) => (
-                      <tr key={inv.id || idx} className="hover:bg-white/[0.03] transition-colors">
-                        <td className="modern-td font-mono font-bold text-xs text-blue-400">
-                          {inv.invoiceNumber}
-                        </td>
-                        <td className="modern-td font-bold text-theme-text">
-                          {inv.customerName}
-                        </td>
-                        <td className="modern-td font-mono text-xs text-theme-text-muted">
-                          {format(new Date(inv.invoiceDate || inv.createdAt || Date.now()), 'dd-MMM-yyyy')}
-                        </td>
-                        <td className="modern-td text-right font-mono font-bold text-xs">
-                          Ksh {(inv.invoiceAmount || 0).toLocaleString()}
-                        </td>
-                        <td className="modern-td text-right font-mono text-xs text-emerald-400">
-                          Ksh {(inv.paidAmount || 0).toLocaleString()}
-                        </td>
-                        <td className="modern-td text-right font-mono font-bold text-xs text-amber-400">
-                          Ksh {(inv.balance || 0).toLocaleString()}
-                        </td>
-                        <td className="modern-td text-center">
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                            inv.status === 'PAID'
-                              ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
-                              : inv.status === 'PARTIAL'
-                                ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                                : 'bg-rose-500/15 text-rose-400 border-rose-500/30'
-                          }`}>
-                            {inv.status || 'UNPAID'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 6: AUDIT STATEMENT TIMELINE */}
       {activeTab === 'timeline' && (
         <div className="space-y-6">
           <div className="glass-panel border border-theme-border rounded-xl overflow-hidden shadow-sm">

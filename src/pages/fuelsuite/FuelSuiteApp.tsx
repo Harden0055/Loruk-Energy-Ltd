@@ -80,18 +80,18 @@ const Sidebar = ({
       {isOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden" onClick={() => setIsOpen(false)} />
       )}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 transform transition-all duration-300 ease-in-out flex flex-col h-full bg-[var(--theme-sidebar-bg,#070914)] border-r border-theme-border text-theme-text hide-scrollbar overflow-y-auto ${
+      <aside className={`fixed lg:static inset-y-0 left-0 z-50 transform transition-all duration-300 ease-in-out flex flex-col h-full bg-[#000000] border-r border-white/10 text-theme-text hide-scrollbar overflow-y-auto ${
         isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       } ${
         isCollapsed ? "lg:w-0 lg:p-0 lg:border-r-0 lg:opacity-0 lg:pointer-events-none lg:overflow-hidden" : "w-64"
       }`}>
-        <div className="p-4 sm:p-5 border-b border-theme-border flex items-center justify-between shrink-0">
+        <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_15px_rgba(6,182,212,0.25)] shrink-0">
-              <Fuel className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 shadow-[0_0_15px_rgba(139,92,246,0.2)] shrink-0">
+              <Fuel className="w-5 h-5 text-emerald-400" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-lg font-extrabold text-gradient tracking-tight truncate">FuelSuite Pro</h2>
+              <h2 className="text-lg font-extrabold text-white tracking-tight truncate">FuelSuite Pro</h2>
               <p className="text-[9px] text-theme-text-muted font-mono uppercase tracking-widest truncate">Energy Operations</p>
             </div>
           </div>
@@ -183,13 +183,13 @@ const MainContent = ({
   }, [stations]);
 
   return (
-    <div className="flex-1 theme-bg-gradient overflow-hidden flex flex-col min-w-0">
-      <header className="px-4 sm:px-6 py-3.5 border-b border-theme-border bg-[var(--theme-header-bg,rgba(7,9,20,0.85))] backdrop-blur-md flex flex-row items-center justify-between gap-4 z-10 relative transition-colors duration-300">
+    <div className="flex-1 bg-[#000000] overflow-hidden flex flex-col min-w-0">
+      <header className="px-4 sm:px-6 py-3.5 border-b border-white/10 bg-[#000000] flex flex-row items-center justify-between gap-4 z-10 relative transition-colors duration-300">
          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
            {/* Mobile menu open */}
            <button 
              onClick={onOpenSidebar} 
-             className="lg:hidden p-2 text-theme-text-muted hover:text-theme-text hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+             className="lg:hidden p-2 text-theme-text-muted hover:text-white hover:bg-white/5 rounded-xl transition-all cursor-pointer"
              title="Open Menu"
            >
               <Menu className="w-5 h-5" />
@@ -200,18 +200,18 @@ const MainContent = ({
              onClick={onToggleSidebar}
              className={`hidden lg:flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer text-xs font-semibold ${
                isSidebarCollapsed 
-                 ? 'bg-blue-500/15 border-blue-500/30 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:bg-blue-500/25' 
-                 : 'bg-white/[0.04] border-theme-border text-theme-text-muted hover:text-white hover:bg-white/[0.08]'
+                 ? 'bg-white/[0.04] border-purple-500/30 text-purple-300 hover:bg-white/[0.08]' 
+                 : 'bg-white/[0.04] border-white/10 text-theme-text-muted hover:text-white hover:bg-white/[0.08]'
              }`}
              title={isSidebarCollapsed ? "Show Sidebar (Ctrl+B)" : "Hide Sidebar (Ctrl+B)"}
            >
-             <PanelLeft className="w-4 h-4 text-blue-400" />
+             <PanelLeft className="w-4 h-4 text-emerald-400" />
              <span className="hidden xl:inline">{isSidebarCollapsed ? "Show Sidebar" : "Hide Sidebar"}</span>
            </button>
 
            <div className="flex items-center gap-2.5 min-w-0">
-             <h1 className="text-base sm:text-lg font-extrabold text-theme-text tracking-tight truncate">{currentView}</h1>
-             <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/25 shrink-0">Live</span>
+             <h1 className="text-base sm:text-lg font-extrabold text-white tracking-tight truncate">{currentView}</h1>
+             <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 shrink-0">Live</span>
            </div>
          </div>
          
@@ -220,41 +220,41 @@ const MainContent = ({
 
            <button
              onClick={onPrint}
-             className="flex items-center gap-2 text-xs font-bold text-theme-text-muted hover:text-theme-text bg-white/[0.04] hover:bg-white/[0.08] px-3.5 py-2 rounded-xl border border-theme-border transition-all cursor-pointer shadow-sm"
+             className="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] px-3.5 py-2 rounded-xl border border-white/10 transition-all cursor-pointer shadow-sm"
              title="Print Page"
            >
-             <Printer className="w-3.5 h-3.5 text-blue-400" />
+             <Printer className="w-3.5 h-3.5 text-gray-400" />
              <span className="hidden sm:inline">Print</span>
            </button>
 
            <button 
              onClick={() => setIsProfileOpen(true)}
-             className="flex items-center justify-center w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all border border-blue-500/30 shadow-[0_0_15px_rgba(6,182,212,0.15)] cursor-pointer"
+             className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/[0.04] text-purple-300 hover:bg-white/[0.08] transition-all border border-purple-500/25 cursor-pointer"
              title="Profile & Station Performance"
            >
-             <User className="w-4 h-4 text-blue-400" />
+             <User className="w-4 h-4 text-purple-400" />
            </button>
 
-           <div className="flex items-center gap-2 bg-theme-panel border border-theme-border rounded-xl px-3 py-1.5 shadow-sm hover:border-blue-500/40 transition-colors">
-             <div className="w-6 h-6 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
+           <div className="flex items-center gap-2 bg-[#000000] border border-white/10 rounded-xl px-3 py-1.5 shadow-sm hover:border-purple-500/40 transition-colors">
+             <div className="w-6 h-6 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 shrink-0">
                <Building2 className="w-3.5 h-3.5" />
              </div>
              <div className="flex flex-col">
-               <label className="text-[8px] font-extrabold text-blue-400 uppercase tracking-widest leading-none mb-0.5">Active Station</label>
+               <label className="text-[8px] font-extrabold text-emerald-400 uppercase tracking-widest leading-none mb-0.5">Active Station</label>
                <select 
-                 className="appearance-none bg-transparent text-theme-text text-xs font-bold focus:outline-none cursor-pointer pr-4 hover:text-blue-300 transition-colors"
+                 className="appearance-none bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer pr-4 hover:text-emerald-300 transition-colors"
                  value={activeStation}
                  onChange={(e) => setActiveStation(e.target.value as Station)}
                >
-                 <option value="Combined Total" className="bg-[var(--theme-sidebar-bg,#070914)] text-theme-text font-bold">Combined Total (All Stations)</option>
+                 <option value="Combined Total" className="bg-[#000000] text-white font-bold">Combined Total (All Stations)</option>
                  {stationsList.map(s => (
-                   <option key={s.id || s.name} value={s.name} className="bg-[var(--theme-sidebar-bg,#070914)] text-theme-text font-bold">
+                   <option key={s.id || s.name} value={s.name} className="bg-[#000000] text-white font-bold">
                      {s.name}
                    </option>
                  ))}
                </select>
              </div>
-             <ChevronDown className="w-3.5 h-3.5 text-theme-text-muted pointer-events-none" />
+             <ChevronDown className="w-3.5 h-3.5 text-gray-400 pointer-events-none" />
            </div>
          </div>
       </header>
@@ -289,10 +289,18 @@ const MainContent = ({
 
 export default function FuelSuiteApp({ 
   onBackToMain,
+  initialView = 'Dashboard',
 }: { 
   onBackToMain: () => void;
+  initialView?: ViewType;
 }) {
-  const [currentView, setCurrentView] = useState<ViewType>('Dashboard');
+  const [currentView, setCurrentView] = useState<ViewType>(initialView);
+
+  useEffect(() => {
+    if (initialView) {
+      setCurrentView(initialView);
+    }
+  }, [initialView]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
     try {
@@ -338,7 +346,7 @@ export default function FuelSuiteApp({
   };
 
   return (
-    <div className="flex h-screen theme-bg-gradient font-sans selection:bg-blue-500/30 overflow-hidden relative">
+    <div className="flex h-screen bg-[#000000] font-sans selection:bg-purple-500/20 overflow-hidden relative">
       {showPrintWarning && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 print-hide">
           <div className="glass-panel p-6 rounded-2xl shadow-2xl max-w-md w-full border border-theme-border">

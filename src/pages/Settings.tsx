@@ -186,7 +186,7 @@ export default function Settings() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-theme-border pb-4">
           <div>
             <h3 className="text-lg font-bold text-theme-text flex items-center gap-2">
-              <Palette className="w-5 h-5 text-blue-400" />
+              <Palette className="w-5 h-5 text-purple-400" />
               Interface Theme & Surface Styling
             </h3>
             <p className="text-xs text-theme-text-muted mt-1">

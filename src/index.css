@@ -1,7 +1,45 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
-:root, .theme-high-contrast {
+:root, .theme-deepcharts, [data-theme="deepcharts"] {
+  --color-theme-bg: #000000;
+  --color-theme-bg-dark: #000000;
+  --color-theme-panel: #000000;
+  --color-theme-panel-dark: #000000;
+  --color-theme-panel-elevated: #020204;
+  --color-theme-border: rgba(139, 92, 246, 0.18);
+  --color-theme-border-dark: rgba(139, 92, 246, 0.18);
+  --color-theme-text: #FFFFFF;
+  --color-theme-text-dark: #FFFFFF;
+  --color-theme-text-muted: #94A3B8;
+  --color-theme-text-muted-dark: #94A3B8;
+  --color-theme-primary: #00E676;
+  --color-theme-secondary: #8B5CF6;
+  --color-theme-tertiary: #A855F7;
+  --color-theme-spark: #10B981;
+  --color-theme-accent: #8B5CF6;
+  --color-theme-highlight: #E9D5FF;
+  --color-theme-highlight-glow: #00E676;
+
+  --theme-canvas-bg: #000000;
+  --theme-gradient-start: #000000;
+  --theme-gradient-end: #000000;
+  --theme-glass-bg: #000000;
+  --theme-glass-border: rgba(139, 92, 246, 0.18);
+  --theme-glass-hover-border: rgba(0, 230, 118, 0.4);
+  --theme-glass-hover-shadow: rgba(0, 0, 0, 0.9);
+  --theme-input-bg: #000000;
+  --theme-input-border: rgba(139, 92, 246, 0.18);
+  --theme-header-bg: #000000;
+  --theme-sidebar-bg: #000000;
+  --theme-sidebar-border: rgba(139, 92, 246, 0.14);
+
+  --theme-accent-gradient: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 35%, #00E676 100%);
+  --theme-card-gradient: #000000;
+  --theme-glow-accent: 0 0 15px rgba(139, 92, 246, 0.15);
+}
+
+.theme-high-contrast, [data-theme="high-contrast"] {
   --color-theme-bg: #030712;
   --color-theme-bg-dark: #030712;
   --color-theme-panel: #070D1E;
@@ -273,21 +311,26 @@
   --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --animate-fade-in: fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-aurora: deepcharts-aurora 8s ease-in-out infinite alternate;
 
-  --color-theme-bg: #04060E;
-  --color-theme-bg-dark: #04060E;
-  --color-theme-panel: #070914;
-  --color-theme-panel-dark: #070914;
-  --color-theme-border: rgba(37, 99, 235, 0.25);
-  --color-theme-border-dark: rgba(37, 99, 235, 0.25);
-  --color-theme-text: #FFFFFF;
-  --color-theme-text-dark: #FFFFFF;
-  --color-theme-text-muted: #8A99BB;
-  --color-theme-text-muted-dark: #8A99BB;
+  --color-theme-bg: var(--color-theme-bg, #000000);
+  --color-theme-bg-dark: var(--color-theme-bg-dark, #000000);
+  --color-theme-panel: var(--color-theme-panel, #050508);
+  --color-theme-panel-dark: var(--color-theme-panel-dark, #050508);
+  --color-theme-panel-elevated: var(--color-theme-panel-elevated, #090912);
+  --color-theme-border: var(--color-theme-border, rgba(139, 92, 246, 0.22));
+  --color-theme-border-dark: var(--color-theme-border-dark, rgba(139, 92, 246, 0.22));
+  --color-theme-text: var(--color-theme-text, #FFFFFF);
+  --color-theme-text-dark: var(--color-theme-text-dark, #FFFFFF);
+  --color-theme-text-muted: var(--color-theme-text-muted, #94A3B8);
+  --color-theme-text-muted-dark: var(--color-theme-text-muted-dark, #94A3B8);
   
-  --color-theme-primary: #3B82F6;
-  --color-theme-accent: #A855F7;
-  --color-theme-highlight: #D8B4FE;
+  --color-theme-primary: var(--color-theme-primary, #00E676);
+  --color-theme-secondary: var(--color-theme-secondary, #8B5CF6);
+  --color-theme-tertiary: var(--color-theme-tertiary, #A855F7);
+  --color-theme-spark: var(--color-theme-spark, #10B981);
+  --color-theme-accent: var(--color-theme-accent, #8B5CF6);
+  --color-theme-highlight: var(--color-theme-highlight, #E9D5FF);
 
   @keyframes fade-in {
     from {
@@ -299,11 +342,26 @@
       transform: translateY(0);
     }
   }
+
+  @keyframes deepcharts-aurora {
+    0% {
+      opacity: 0.8;
+      transform: translate(-50%, 0) scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: translate(-50%, -6px) scale(1.05);
+    }
+    100% {
+      opacity: 0.8;
+      transform: translate(-50%, 0) scale(1);
+    }
+  }
 }
 
 /* Custom Base Resets */
 html, body {
-  background-color: var(--theme-canvas-bg, #04060E) !important;
+  background-color: var(--theme-canvas-bg, #000000) !important;
   color: var(--color-theme-text, #FFFFFF) !important;
   font-family: 'Plus Jakarta Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -312,7 +370,7 @@ html, body {
 }
 
 .dark {
-  background-color: var(--theme-canvas-bg, #04060E) !important;
+  background-color: var(--theme-canvas-bg, #000000) !important;
   color: var(--color-theme-text, #FFFFFF) !important;
 }
 
@@ -377,51 +435,75 @@ svg.lucide {
 @layer utilities {
   /* Dynamic Canvas Backgrounds based on Surface Style */
   .theme-bg-gradient {
-    background: radial-gradient(circle at 50% 0%, var(--theme-gradient-start, #0B112B) 0%, var(--theme-gradient-end, #04060E) 100%) !important;
-    transition: background 0.35s ease;
+    background: #000000 !important;
+    background-color: #000000 !important;
+  }
+
+  /* DeepCharts Pure Pitch Black Canvas Everywhere (like bottom of tables) */
+  .theme-deepcharts .theme-bg-gradient,
+  [data-theme="deepcharts"] .theme-bg-gradient,
+  .theme-deepcharts.theme-bg-gradient,
+  [data-theme="deepcharts"].theme-bg-gradient {
+    background: #000000 !important;
+    background-color: #000000 !important;
+    position: relative;
   }
 
   /* Solid Surface Mode */
   .surface-solid .theme-bg-gradient,
   [data-surface-style="solid"] .theme-bg-gradient {
-    background: var(--theme-canvas-bg, #04060E) !important;
+    background: #000000 !important;
+    background-color: #000000 !important;
   }
 
   .surface-solid .glass-panel,
   [data-surface-style="solid"] .glass-panel {
-    background: var(--color-theme-panel, #070914) !important;
+    background: #000000 !important;
     backdrop-filter: none !important;
-    border-color: var(--color-theme-border, rgba(59, 130, 246, 0.2)) !important;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.95) !important;
   }
 
   /* Mesh Surface Mode */
   .surface-mesh .theme-bg-gradient,
   [data-surface-style="mesh"] .theme-bg-gradient {
-    background: 
-      radial-gradient(at 0% 0%, var(--theme-gradient-start, #0B112B) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, var(--color-theme-panel-elevated, #16244A) 0px, transparent 50%),
-      radial-gradient(at 50% 50%, var(--theme-gradient-start, #0B112B) 0px, transparent 65%),
-      var(--theme-canvas-bg, #04060E) !important;
+    background: #000000 !important;
+    background-color: #000000 !important;
   }
 
   .glass-panel {
-    background: var(--theme-glass-bg, rgba(3, 5, 12, 0.65)) !important;
-    border: 1px solid var(--theme-glass-border, rgba(59, 130, 246, 0.18)) !important;
+    background: #000000 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 12px !important;
     backdrop-filter: blur(24px) !important;
-    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.95), inset 0 1px 1px rgba(255, 255, 255, 0.03) !important;
     transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease, background 0.25s ease !important;
+  }
+
+  /* DeepCharts Pitch Black Glass Card with Subtle Fading Hairline */
+  .theme-deepcharts .glass-panel,
+  [data-theme="deepcharts"] .glass-panel {
+    background: #000000 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-top: 1px solid rgba(139, 92, 246, 0.25) !important;
+    box-shadow: 0 8px 30px -8px rgba(0, 0, 0, 0.98), inset 0 1px 1px rgba(255, 255, 255, 0.04) !important;
   }
 
   .surface-gradient .glass-panel,
   [data-surface-style="gradient"] .glass-panel {
-    background: var(--theme-card-gradient, var(--theme-glass-bg)) !important;
+    background: #000000 !important;
   }
 
   .glass-panel:hover {
-    border-color: var(--theme-glass-hover-border, rgba(59, 130, 246, 0.4)) !important;
-    box-shadow: 0 4px 32px 0 var(--theme-glass-hover-shadow, rgba(59, 130, 246, 0.2)), inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(0, 230, 118, 0.35) !important;
+    box-shadow: 0 4px 32px 0 rgba(0, 0, 0, 0.95), inset 0 1px 1px rgba(255, 255, 255, 0.06) !important;
+  }
+
+  .theme-deepcharts .glass-panel:hover,
+  [data-theme="deepcharts"] .glass-panel:hover {
+    border-color: rgba(0, 230, 118, 0.35) !important;
+    border-top-color: rgba(0, 230, 118, 0.6) !important;
+    box-shadow: 0 10px 40px -8px rgba(0, 0, 0, 0.98), 0 0 20px rgba(0, 230, 118, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.08) !important;
   }
 
   /* Solid to Gradient Swatch Card */
@@ -525,17 +607,47 @@ svg.lucide {
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, #60A5FA 0%, #A855F7 100%);
+    background: linear-gradient(180deg, #FFFFFF 25%, #E9D5FF 65%, rgba(168, 85, 247, 0.8) 100%);
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     background-clip: text !important;
+    filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.35));
   }
 
-  .text-gradient-emerald {
-    background: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+  /* DeepCharts Smart Money Signature Fading Text */
+  .text-fading-smart,
+  .theme-deepcharts .text-gradient,
+  [data-theme="deepcharts"] .text-gradient {
+    background: linear-gradient(180deg, #FFFFFF 25%, #E9D5FF 60%, rgba(168, 85, 247, 0.8) 100%) !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     background-clip: text !important;
+    filter: drop-shadow(0 0 24px rgba(139, 92, 246, 0.45));
+  }
+
+  .text-purple-green-fade {
+    background: linear-gradient(135deg, #A855F7 0%, #8B5CF6 35%, #00E676 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    filter: drop-shadow(0 0 18px rgba(0, 230, 118, 0.35));
+  }
+
+  .text-gradient-green,
+  .text-gradient-emerald {
+    background: linear-gradient(135deg, #00FF85 0%, #00E676 50%, #10B981 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    filter: drop-shadow(0 0 15px rgba(0, 230, 118, 0.4));
+  }
+
+  .text-gradient-purple {
+    background: linear-gradient(135deg, #C084FC 0%, #8B5CF6 50%, #7C3AED 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.4));
   }
 
   .text-gradient-amber {
@@ -545,11 +657,44 @@ svg.lucide {
     background-clip: text !important;
   }
 
-  .text-gradient-purple {
-    background: linear-gradient(135deg, #C084FC 0%, #8B5CF6 100%);
-    -webkit-background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-    background-clip: text !important;
+  /* DeepCharts Action Buttons & Badges */
+  .deepcharts-btn-purple {
+    background: linear-gradient(135deg, #7C3AED 0%, #8B5CF6 50%, #6366F1 100%) !important;
+    color: #FFFFFF !important;
+    border: 1px solid rgba(168, 85, 247, 0.5) !important;
+    box-shadow: 0 0 25px rgba(124, 58, 237, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  .deepcharts-btn-purple:hover {
+    box-shadow: 0 0 35px rgba(124, 58, 237, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
+    transform: translateY(-1px);
+  }
+
+  .deepcharts-btn-green {
+    background: linear-gradient(135deg, #00E676 0%, #10B981 100%) !important;
+    color: #000000 !important;
+    font-weight: 700 !important;
+    border: 1px solid rgba(0, 230, 118, 0.6) !important;
+    box-shadow: 0 0 25px rgba(0, 230, 118, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  .deepcharts-btn-green:hover {
+    box-shadow: 0 0 35px rgba(0, 230, 118, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+    transform: translateY(-1px);
+  }
+
+  .deepcharts-badge-green {
+    background: rgba(0, 230, 118, 0.12) !important;
+    color: #00E676 !important;
+    border: 1px solid rgba(0, 230, 118, 0.35) !important;
+    box-shadow: 0 0 12px rgba(0, 230, 118, 0.2) !important;
+  }
+
+  .deepcharts-badge-purple {
+    background: rgba(139, 92, 246, 0.15) !important;
+    color: #C084FC !important;
+    border: 1px solid rgba(139, 92, 246, 0.4) !important;
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.25) !important;
   }
 
   .sidebar-item {
@@ -560,16 +705,16 @@ svg.lucide {
   }
 
   .sidebar-item:hover {
-    background: rgba(59, 130, 246, 0.08) !important;
-    color: var(--color-theme-primary, #3B82F6) !important;
+    background: rgba(139, 92, 246, 0.08) !important;
+    color: #00E676 !important;
   }
 
   .sidebar-item-active {
-    background: linear-gradient(90deg, rgba(37, 99, 235, 0.85) 0%, rgba(67, 56, 202, 0.85) 100%) !important;
-    border: 1px solid rgba(99, 102, 241, 0.4) !important;
+    background: linear-gradient(90deg, rgba(124, 58, 237, 0.85) 0%, rgba(16, 185, 129, 0.85) 100%) !important;
+    border: 1px solid rgba(139, 92, 246, 0.45) !important;
     color: #FFFFFF !important;
     font-weight: 600 !important;
-    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.25) !important;
+    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3) !important;
   }
   
   .sidebar-item-active svg.lucide {
@@ -637,39 +782,54 @@ svg.lucide {
     filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
   }
 
+  .sidebar-subnav-grid {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease, margin 0.22s ease;
+    pointer-events: none;
+  }
+
+  .sidebar-subnav-grid[data-expanded="true"] {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   .modern-table-container {
     border-radius: 12px !important;
     overflow: hidden;
-    background: var(--theme-glass-bg, rgba(7, 11, 22, 0.6)) !important;
-    border: 1px solid var(--theme-glass-border, rgba(59, 130, 246, 0.15)) !important;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+    background: #000000 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.95) !important;
   }
 
   .modern-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.875rem;
+    background: #000000 !important;
   }
 
   .modern-th {
     padding: 0.875rem 1.25rem !important;
     font-weight: 700 !important;
-    color: var(--color-theme-text-muted, #8B9BB4) !important;
-    background: var(--theme-header-bg, rgba(6, 11, 20, 0.9)) !important;
-    border-bottom: 1px solid var(--theme-glass-border, rgba(59, 130, 246, 0.1)) !important;
+    color: var(--color-theme-text-muted, #94A3B8) !important;
+    background: #000000 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
     text-transform: uppercase;
     font-size: 0.7rem;
     letter-spacing: 0.06em;
   }
 
   .modern-tr {
-    border-bottom: 1px solid var(--theme-glass-border, rgba(59, 130, 246, 0.05)) !important;
-    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    background: #000000 !important;
     transition: all 0.2s ease-out !important;
   }
 
   .modern-tr:hover {
-    background: rgba(59, 130, 246, 0.06) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
   }
 
   .modern-td {

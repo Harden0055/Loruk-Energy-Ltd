@@ -20,6 +20,8 @@ import { setupPdfHeader, addPdfFooter } from '../lib/pdfTemplate';
 interface LedgerEntry {
   id: string;
   date: number;
+  createdAt?: number;
+  sortOrder?: number;
   type: 'delivery' | 'payment' | 'adjustment_debit' | 'adjustment_credit';
   note: string;
   debit: number; // Delivery or Debit adjustment amount
@@ -113,6 +115,8 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
       entries.push({
         id: `del-${d.id}`,
         date: d.date,
+        createdAt: d.createdAt,
+        sortOrder: 1,
         type: 'delivery',
         note: `Delivery`,
         debit: d.totalAmount,
@@ -126,6 +130,8 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
       entries.push({
         id: `pay-${p.id}`,
         date: p.date,
+        createdAt: p.createdAt,
+        sortOrder: 2,
         type: 'payment',
         note: `Payment`,
         debit: 0,
@@ -139,6 +145,8 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
       entries.push({
         id: `adj-${adj.id}`,
         date: adj.date,
+        createdAt: adj.createdAt,
+        sortOrder: 3,
         type: adj.type === 'debit' ? 'adjustment_debit' : 'adjustment_credit',
         note: adj.type === 'debit' ? 'Debit Note' : 'Credit Note',
         debit: adj.type === 'debit' ? adj.amount : 0,
@@ -148,8 +156,14 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
       });
     });
 
-    // Sort chronologically
-    return entries.sort((a, b) => a.date - b.date);
+    // Sort chronologically using FIFO strategy (first input first)
+    return entries.sort((a, b) => {
+      if (a.date !== b.date) return a.date - b.date;
+      if (a.createdAt && b.createdAt && a.createdAt !== b.createdAt) {
+        return a.createdAt - b.createdAt;
+      }
+      return (a.sortOrder || 0) - (b.sortOrder || 0);
+    });
   }, [deliveries, payments, adjustments, customers, loading]);
 
   const filteredEntries = useMemo(() => {
@@ -383,15 +397,15 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
         </div>
       )})()}
 
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-blue-950 border border-theme-border p-6 rounded-xl shadow-sm flex items-center justify-between">
+      <div className="bg-[#000000] border border-white/[0.08] p-6 rounded-xl shadow-sm flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-purple-500 dark:text-purple-400 mb-1">Total Outstanding Balance (All Entries)</p>
-          <h3 className={`text-3xl font-bold ${overallBalance < 0 ? 'text-green-600 dark:text-green-400' : overallBalance > 0 ? 'text-purple-600 dark:text-purple-400' : 'text-gray-900 dark:text-theme-text'}`}>
+          <p className="text-sm font-medium text-purple-400 mb-1">Total Outstanding Balance (All Entries)</p>
+          <h3 className={`text-3xl font-bold ${overallBalance < 0 ? 'text-green-400' : overallBalance > 0 ? 'text-purple-400' : 'text-white'}`}>
             {formatCurrency(overallBalance)}
           </h3>
         </div>
-        <div className="w-14 h-14 glass-panel rounded-full shadow-sm flex items-center justify-center">
-          <Wallet className="w-7 h-7 text-pink-500 dark:text-pink-400" />
+        <div className="w-14 h-14 bg-white/[0.04] border border-white/10 rounded-full shadow-sm flex items-center justify-center">
+          <Wallet className="w-7 h-7 text-purple-400" />
         </div>
       </div>
 
@@ -443,30 +457,30 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-blue-950 border border-theme-border p-6 rounded-xl shadow-sm flex items-center justify-between">
+        <div className="bg-[#000000] border border-white/[0.08] hover:border-red-500/30 p-6 rounded-xl shadow-sm flex items-center justify-between transition-colors">
           <div>
-            <p className="text-sm font-semibold text-blue-400 dark:text-blue-400 mb-1">Filtered Debits (Deliveries)</p>
-            <h3 className="text-2xl font-bold text-blue-900 dark:text-theme-text">{formatCurrency(totalDebits)}</h3>
+            <p className="text-sm font-semibold text-gray-400 mb-1">Filtered Debits (Deliveries)</p>
+            <h3 className="text-2xl font-bold text-white">{formatCurrency(totalDebits)}</h3>
           </div>
-          <div className="w-12 h-12 glass-panel rounded-full shadow-sm flex items-center justify-center">
-            <ArrowUp className="w-6 h-6 text-red-600 dark:text-red-400" />
+          <div className="w-12 h-12 bg-red-500/10 border border-red-500/20 rounded-full shadow-sm flex items-center justify-center">
+            <ArrowUp className="w-6 h-6 text-red-400" />
           </div>
         </div>
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-blue-950 border border-theme-border p-6 rounded-xl shadow-sm flex items-center justify-between">
+        <div className="bg-[#000000] border border-white/[0.08] hover:border-emerald-500/30 p-6 rounded-xl shadow-sm flex items-center justify-between transition-colors">
           <div>
-            <p className="text-sm font-semibold text-blue-400 dark:text-blue-400 mb-1">Filtered Credits (Payments)</p>
-            <h3 className="text-2xl font-bold text-blue-900 dark:text-theme-text">{formatCurrency(totalCredits)}</h3>
+            <p className="text-sm font-semibold text-gray-400 mb-1">Filtered Credits (Payments)</p>
+            <h3 className="text-2xl font-bold text-emerald-400">{formatCurrency(totalCredits)}</h3>
           </div>
-          <div className="w-12 h-12 glass-panel rounded-full shadow-sm flex items-center justify-center">
-            <ArrowDown className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+          <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 rounded-full shadow-sm flex items-center justify-center">
+            <ArrowDown className="w-6 h-6 text-emerald-400" />
           </div>
         </div>
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-blue-950 border border-theme-border p-6 rounded-xl shadow-sm flex items-center justify-between">
+        <div className="bg-[#000000] border border-white/[0.08] hover:border-purple-500/30 p-6 rounded-xl shadow-sm flex items-center justify-between transition-colors">
           <div>
-            <p className="text-sm font-medium text-blue-400 dark:text-blue-400 mb-1">Net Change</p>
-            <h3 className={`text-2xl font-bold ${totalDebits - totalCredits > 0 ? 'text-blue-900 dark:text-theme-text' : 'text-emerald-600 dark:text-emerald-400'}`}>
+            <p className="text-sm font-medium text-gray-400 mb-1">Net Change</p>
+            <h3 className={`text-2xl font-bold ${totalDebits - totalCredits > 0 ? 'text-purple-400' : 'text-emerald-400'}`}>
               {formatCurrency(Math.abs(totalDebits - totalCredits))}
-              <span className="text-sm font-normal ml-1 text-gray-500 dark:text-gray-300">{totalDebits - totalCredits > 0 ? 'Due' : 'Credit'}</span>
+              <span className="text-sm font-normal ml-1 text-gray-400">{totalDebits - totalCredits > 0 ? 'Due' : 'Credit'}</span>
             </h3>
           </div>
           <div className="w-12 h-12 glass-panel rounded-full shadow-sm flex items-center justify-center">

@@ -7,15 +7,21 @@ import { format } from 'date-fns';
 import { Payment } from '../types';
 import AIInputModal from '../components/AIInputModal';
 
-export default function Payments({ onViewCustomer }: { onViewCustomer?: (id: string) => void }) {
+export default function Payments({ onViewCustomer, initialAction }: { onViewCustomer?: (id: string) => void; initialAction?: string }) {
   const { user } = useAuth();
   const isAdmin = (user as any)?.role === 'admin' || user?.email?.includes('admin');
   const { payments, loading } = usePayments();
   const { customers } = useCustomers();
   const [search, setSearch] = useState('');
-  const [isAdding, setIsAdding] = useState(false);
+  const [isAdding, setIsAdding] = useState(initialAction === 'add');
   const [showAIModal, setShowAIModal] = useState(false);
   const [initialForm, setInitialForm] = useState<any>(null);
+
+  React.useEffect(() => {
+    if (initialAction === 'add') {
+      setIsAdding(true);
+    }
+  }, [initialAction]);
   const [deletingPayment, setDeletingPayment] = useState<Payment | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);

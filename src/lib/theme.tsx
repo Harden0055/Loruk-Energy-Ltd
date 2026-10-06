@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 export type Theme = 
+  | 'deepcharts'
   | 'high-contrast' 
   | 'dark-blue' 
   | 'emerald-aurora' 
@@ -38,6 +39,33 @@ export interface ThemeConfig {
 }
 
 export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
+  'deepcharts': {
+    id: 'deepcharts',
+    name: 'DeepCharts Black',
+    category: 'Pitch Black & Neon Purple/Green',
+    badge: 'DeepCharts ⚡',
+    tagline: 'Pure pitch-black canvas with electric candlestick green, royal smart-money purple, and atmospheric ethereal fading glow.',
+    accentColor: '#00E676',
+    primaryColor: '#00E676',
+    secondaryColor: '#8B5CF6',
+    tertiaryColor: '#A855F7',
+    sparkColor: '#10B981',
+    gradientFrom: '#00E676',
+    gradientVia: '#8B5CF6',
+    gradientTo: '#7C3AED',
+    solidPreview: '#000000',
+    gradientPreview: 'radial-gradient(ellipse 90% 65% at 50% 0%, #4C1D95 0%, #1E0838 45%, #000000 100%)',
+    borderClass: 'border-purple-500/40 shadow-[0_0_25px_rgba(139,92,246,0.3)]',
+    textAccentClass: 'text-emerald-400',
+    harmonicPalette: [
+      { name: 'Candle Green', hex: '#00E676', role: 'Primary Core' },
+      { name: 'Smart Violet', hex: '#8B5CF6', role: 'Harmonious Mid' },
+      { name: 'Royal Orchid', hex: '#A855F7', role: 'Triadic Spark' },
+      { name: 'Mint Specular', hex: '#10B981', role: 'Specular Glow' },
+      { name: 'Pitch Black', hex: '#000000', role: 'Deep Canvas' }
+    ],
+    chartColors: ['#00E676', '#8B5CF6', '#10B981', '#A855F7', '#34D399'],
+  },
   'high-contrast': {
     id: 'high-contrast',
     name: 'Cyber Onyx',
@@ -246,6 +274,7 @@ const THEME_STORAGE_KEY = 'loruk_ui_theme_mode';
 const SURFACE_STORAGE_KEY = 'loruk_ui_surface_style';
 
 const ALL_THEME_CLASSES = [
+  'theme-deepcharts',
   'theme-high-contrast',
   'theme-dark-blue',
   'theme-emerald-aurora',
@@ -265,7 +294,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {
       // LocalStorage access fallback
     }
-    return 'high-contrast';
+    return 'deepcharts';
   });
 
   const [surfaceStyle, setSurfaceStyleState] = useState<SurfaceStyle>(() => {

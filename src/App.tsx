@@ -39,6 +39,8 @@ function AuthenticatedApp() {
   const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
   const [selectedStationName, setSelectedStationName] = useState<string | null>(null);
   const [selectedStation, setSelectedStation] = useState<'Ndalu' | 'Junction' | 'Combined'>('Combined');
+  const [fuelSuiteInitialView, setFuelSuiteInitialView] = useState<any>('Dashboard');
+  const [pageParams, setPageParams] = useState<any>({});
   const { lastSync } = useSync();
   const [quotaExceeded, setQuotaExceeded] = useState(false); // Changed to avoid quota issues for now
 
@@ -91,11 +93,32 @@ function AuthenticatedApp() {
     }
   }, [products?.length, productsLoading]);
 
-  const navigateTo = (page: Page, params?: { customerId?: string | null, truckReg?: string | null, stationId?: string | null, stationName?: string | null }) => {
+  const navigateTo = (
+    page: Page, 
+    params?: { 
+      customerId?: string | null; 
+      truckReg?: string | null; 
+      stationId?: string | null; 
+      stationName?: string | null;
+      station?: 'Ndalu' | 'Junction' | 'Combined';
+      fuelsuiteView?: any;
+      action?: string;
+      filter?: string;
+      tab?: string;
+    }
+  ) => {
     const customerId = params?.customerId !== undefined ? params.customerId : (page === 'customerDashboard' ? selectedCustomerId : null);
     const truckReg = params?.truckReg !== undefined ? params.truckReg : (page === 'truckDashboard' ? selectedTruckReg : null);
     const stationId = params?.stationId !== undefined ? params.stationId : (page === 'stationDashboard' ? selectedStationId : null);
     const stationName = params?.stationName !== undefined ? params.stationName : (page === 'stationDashboard' ? selectedStationName : null);
+    
+    if (params?.station) {
+      setSelectedStation(params.station);
+    }
+    if (params?.fuelsuiteView) {
+      setFuelSuiteInitialView(params.fuelsuiteView);
+    }
+    setPageParams(params || {});
     
     setCurrentPage(page);
     setSelectedCustomerId(customerId);
@@ -134,14 +157,25 @@ function AuthenticatedApp() {
   if (currentPage === 'fuelsuite') {
     return (
       <FuelSuiteApp 
+        initialView={fuelSuiteInitialView}
         onBackToMain={() => navigateTo('dashboard')} 
       />
     );
   }
 
   return (
-    <div className="flex h-screen theme-bg-gradient text-theme-text font-sans overflow-hidden transition-colors relative">
+    <div className="flex h-screen bg-[#000000] text-theme-text font-sans overflow-hidden transition-colors relative">
       <OfflineIndicator />
+
+      {/* Ultra-Subtle Ethereal Atmospheric Fade (Dimmed & Low-Brightness on Pitch Black) */}
+      <div className="absolute top-0 inset-x-0 h-48 pointer-events-none z-0 overflow-hidden select-none opacity-20">
+        {/* Faint Center-Top Ambient Violet Whispers */}
+        <div className="absolute top-[-90px] left-1/2 -translate-x-1/2 w-[600px] h-[180px] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.06)_0%,rgba(124,58,237,0.02)_50%,transparent_70%)] blur-3xl animate-[deepcharts-aurora_14s_ease-in-out_infinite_alternate]" />
+        {/* Faint Far-Right Candlestick Green Tint */}
+        <div className="absolute top-[-70px] right-[5%] w-[360px] h-[150px] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(0,230,118,0.03)_0%,transparent_65%)] blur-3xl animate-[deepcharts-aurora_16s_ease-in-out_infinite_alternate-reverse]" />
+        {/* Immediate Seamless Fade to Pure Pitch Black #000000 */}
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[#000000]" />
+      </div>
       
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
@@ -198,8 +232,10 @@ function AuthenticatedApp() {
       }`}>
         <Sidebar 
           currentPage={currentPage} 
-          onNavigate={(p) => {
-            navigateTo(p as Page);
+          currentStation={selectedStation}
+          currentStationName={selectedStationName}
+          onNavigate={(p, params) => {
+            navigateTo(p as Page, params);
             setIsMobileMenuOpen(false);
           }}
           onClose={() => setIsMobileMenuOpen(false)}
@@ -208,8 +244,8 @@ function AuthenticatedApp() {
         />
       </div>
 
-      <div className="flex-1 flex flex-col overflow-hidden w-full">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center px-4 md:px-8 py-4 md:py-6 bg-transparent border-b border-theme-border/30 transition-all gap-4">
+      <div className="flex-1 flex flex-col overflow-hidden w-full bg-[#000000]">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center px-4 md:px-8 py-4 md:py-6 bg-[#000000] border-b border-white/[0.06] transition-all gap-4">
           <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
             <div className="flex items-center gap-3">
               {/* Mobile Menu Button */}
@@ -226,8 +262,8 @@ function AuthenticatedApp() {
                 onClick={toggleSidebarCollapsed}
                 className={`hidden lg:flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer text-xs font-semibold ${
                   isSidebarCollapsed 
-                    ? 'bg-blue-500/15 border-blue-500/30 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:bg-blue-500/25' 
-                    : 'bg-white/[0.04] border-theme-border text-theme-text-muted hover:text-white hover:bg-white/[0.08]'
+                    ? 'bg-white/[0.04] border-purple-500/30 text-purple-300 hover:bg-white/[0.08]' 
+                    : 'bg-white/[0.04] border-white/10 text-theme-text-muted hover:text-white hover:bg-white/[0.08]'
                 }`}
                 title={isSidebarCollapsed ? "Show Sidebar (Ctrl+B)" : "Hide Sidebar (Ctrl+B)"}
               >
@@ -235,15 +271,7 @@ function AuthenticatedApp() {
                 <span className="hidden xl:inline">{isSidebarCollapsed ? "Show Sidebar" : "Hide Sidebar"}</span>
               </button>
 
-              <h1 className={`text-2xl md:text-3xl font-bold capitalize tracking-tight ${
-                currentPage === 'payments'
-                  ? 'bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent font-extrabold'
-                  : currentPage === 'customers' || currentPage === 'customerDashboard'
-                    ? 'bg-gradient-to-r from-sky-400 to-blue-400 bg-clip-text text-transparent font-extrabold'
-                    : currentPage === 'stationDashboard'
-                      ? 'bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent font-extrabold'
-                      : 'text-white text-gradient'
-              }`}>
+              <h1 className="text-2xl md:text-3xl font-extrabold capitalize tracking-tight text-white">
                 {currentPage === 'customerDashboard' ? 'Customer Profile' : currentPage === 'truckDashboard' && selectedTruckReg ? `Dashboard: ${selectedTruckReg}` : currentPage === 'stationDashboard' ? (selectedStationName ? `Station Dashboard: ${selectedStationName}` : 'Station Dashboard') : currentPage.replace(/([A-Z])/g, ' $1').trim()}
               </h1>
             </div>
@@ -251,22 +279,22 @@ function AuthenticatedApp() {
           
           {/* Station Selection Filter */}
           {currentPage === 'operations' && (
-            <div className="flex items-center gap-1.5 bg-[#121216]/80 p-1 rounded-xl border border-theme-border/50">
+            <div className="flex items-center gap-1.5 bg-[#000000] p-1 rounded-xl border border-white/10">
               <button 
                 onClick={() => setSelectedStation('Combined')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Combined' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Combined' ? 'bg-white/10 text-white border border-white/20 shadow-sm' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
               >
                 Combined Total
               </button>
               <button 
                 onClick={() => setSelectedStation('Ndalu')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Ndalu' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Ndalu' ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-sm' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
               >
                 Ndalu Station
               </button>
               <button 
                 onClick={() => setSelectedStation('Junction')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Junction' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Junction' ? 'bg-purple-500/15 text-purple-300 border border-purple-500/30 shadow-sm' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
               >
                 Junction Station
               </button>
@@ -277,14 +305,14 @@ function AuthenticatedApp() {
             <ThemeToggle variant="button" />
             <button 
               onClick={() => setIsProfileOpen(true)}
-              className="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl bg-[#8B3DFF]/10 text-[#B15DFF] hover:bg-[#8B3DFF]/20 transition-all duration-300 border border-[#8B3DFF]/30 shadow-[0_0_15px_rgba(139,61,255,0.15)] cursor-pointer"
+              className="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl bg-white/[0.04] text-purple-300 hover:bg-white/[0.08] transition-all duration-300 border border-purple-500/20 cursor-pointer"
               title="Profile & Summary Dashboard"
             >
-              <User className="w-4 h-4 text-[#B15DFF]" />
+              <User className="w-4 h-4 text-purple-300" />
             </button>
             {lastSync && (
-              <div className="flex items-center gap-2 text-xs text-[#A1A1AA] bg-[#121216]/80 border border-theme-border/50 px-3 py-1.5 rounded-full shrink-0">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#22C55E]" />
+              <div className="flex items-center gap-2 text-xs text-[#A1A1AA] bg-[#000000] border border-white/10 px-3 py-1.5 rounded-full shrink-0">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#00E676]" />
                 Last Sync: {format(lastSync, 'HH:mm:ss')}
               </div>
             )}
@@ -297,7 +325,7 @@ function AuthenticatedApp() {
                   window.print();
                 }
               }}
-              className="flex items-center gap-2 text-sm font-semibold text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl border border-theme-border transition-all duration-300 cursor-pointer shadow-md hover:scale-102"
+              className="flex items-center gap-2 text-sm font-semibold text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl border border-white/10 transition-all duration-300 cursor-pointer shadow-sm hover:scale-102"
               title="Print Page"
             >
               <Printer className="w-4 h-4 text-[#A1A1AA]" />
@@ -305,7 +333,7 @@ function AuthenticatedApp() {
             </button>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-8">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8 space-y-4 md:space-y-8 bg-[#000000]">
           <ErrorBoundary>
             {currentPage === 'dashboard' && (
               <Dashboard 
@@ -326,6 +354,8 @@ function AuthenticatedApp() {
                 onViewCustomer={(id) => {
                   navigateTo('customerDashboard', { customerId: id });
                 }}
+                initialAction={pageParams?.action}
+                initialFilter={pageParams?.filter}
               />
             )}
             {currentPage === 'payments' && (
@@ -333,6 +363,7 @@ function AuthenticatedApp() {
                 onViewCustomer={(id) => {
                   navigateTo('customerDashboard', { customerId: id });
                 }}
+                initialAction={pageParams?.action}
               />
             )}
             {currentPage === 'ledger' && (
@@ -379,6 +410,8 @@ function AuthenticatedApp() {
                   navigateTo('customerDashboard', { customerId: id });
                 }}
                 onNavigate={(p) => navigateTo(p as Page)}
+                initialAction={pageParams?.action}
+                initialFilter={pageParams?.filter}
               />
             )}
             {currentPage === 'customerDashboard' && (

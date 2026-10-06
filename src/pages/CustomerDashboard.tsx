@@ -82,6 +82,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [searchTerm, setSearchTerm] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [sortStrategy, setSortStrategy] = useState<'fifo' | 'lifo'>('fifo');
 
   // Verify balance utility
   const verifyBalance = () => {
@@ -329,23 +330,11 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   }, [customer, customerDeliveries, customerPayments, customerAdjustments]);
 
   const timelineEvents = useMemo(() => {
-    const allEvents: Array<{
-      id: string;
-      date: number;
-      type: 'delivery' | 'payment' | 'adjustment';
-      title: string;
-      description: string;
-      amount: number;
-      createdBy: string;
-      val: number;
-      balanceAfter: number;
-      sortOrder: number;
-    }> = [];
-
-    const transactions = [
+    const rawTransactions = [
       ...customerDeliveries.map(d => ({ 
         id: `del-${d.id}`, 
         date: d.date, 
+        createdAt: d.createdAt,
         type: 'delivery' as const, 
         title: 'Fuel Delivery',
         description: d.productType === 'Super/Diesel Split' ? `Delivered ${(d.superLitres || 0)/1000}/${(d.dieselLitres || 0)/1000}L split` : ['lpg', 'lubricant'].some(str => d.productType.toLowerCase().includes(str)) ? `Delivered ${d.productType}` : `Delivered ${d.litres.toLocaleString()}L of ${d.productType}`,
@@ -357,6 +346,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       ...customerPayments.map(p => ({ 
         id: `pay-${p.id}`, 
         date: p.date, 
+        createdAt: p.createdAt,
         type: 'payment' as const, 
         title: 'Payment Received',
         description: 'Payment processed successfully',
@@ -368,6 +358,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       ...customerAdjustments.map(a => ({ 
         id: `adj-${a.id}`, 
         date: a.date, 
+        createdAt: a.createdAt,
         type: 'adjustment' as const, 
         title: a.type === 'credit' ? 'Balance Credit' : 'Balance Debit',
         description: a.description || 'Account Adjustment',
@@ -377,7 +368,13 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         sortOrder: 3
       }))
     ].sort((a, b) => {
+      // 1. Primary sort: Chronological date ascending (FIFO)
       if (a.date !== b.date) return a.date - b.date;
+      // 2. Secondary sort: Creation timestamp ascending (FIFO: first data input recorded first)
+      if (a.createdAt && b.createdAt && a.createdAt !== b.createdAt) {
+        return a.createdAt - b.createdAt;
+      }
+      // 3. Tertiary sort: Debits/deliveries first then payments/credits
       return a.sortOrder - b.sortOrder;
     }); 
 
@@ -385,36 +382,36 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       ? (customer.openingBalanceType === 'advance' ? -customer.openingBalance : customer.openingBalance) 
       : 0;
 
-    const eventsWithBalance = transactions.map(t => {
+    const eventsWithBalance = rawTransactions.map(t => {
       runningBalance += t.val;
       return { ...t, balanceAfter: runningBalance };
     });
 
-    return eventsWithBalance
-      .filter(e => {
-        if (filterType !== 'all' && e.type !== filterType) return false;
-        
-        if (searchTerm.trim() !== '') {
-          const matchTitle = textMatches(e.title, searchTerm);
-          const matchDesc = textMatches(e.description, searchTerm);
-          const matchUser = textMatches(e.createdBy, searchTerm);
-          if (!matchTitle && !matchDesc && !matchUser) return false;
-        }
+    const filtered = eventsWithBalance.filter(e => {
+      if (filterType !== 'all' && e.type !== filterType) return false;
+      
+      if (searchTerm.trim() !== '') {
+        const matchTitle = textMatches(e.title, searchTerm);
+        const matchDesc = textMatches(e.description, searchTerm);
+        const matchUser = textMatches(e.createdBy, searchTerm);
+        if (!matchTitle && !matchDesc && !matchUser) return false;
+      }
 
-        if (startDate) {
-          const startMs = new Date(startDate).getTime();
-          if (e.date < startMs) return false;
-        }
+      if (startDate) {
+        const startMs = new Date(startDate).getTime();
+        if (e.date < startMs) return false;
+      }
 
-        if (endDate) {
-          const endMs = new Date(endDate).getTime() + 86400000; // end of day
-          if (e.date > endMs) return false;
-        }
+      if (endDate) {
+        const endMs = new Date(endDate).getTime() + 86400000; // end of day
+        if (e.date > endMs) return false;
+      }
 
-        return true;
-      })
-      .reverse();
-  }, [customerDeliveries, customerPayments, customerAdjustments, filterType, searchTerm, startDate, endDate, customer]);
+      return true;
+    });
+
+    return sortStrategy === 'fifo' ? filtered : [...filtered].reverse();
+  }, [customerDeliveries, customerPayments, customerAdjustments, filterType, searchTerm, startDate, endDate, customer, sortStrategy]);
 
   // Compute stats for charts and display
   const totalFuelLitres = useMemo(() => {
@@ -438,18 +435,24 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
   // Chart data generation (Last 15 chronological transactions or chronological trends)
   const chartData = useMemo(() => {
-    // Generate running balance history in chronological order
+    // Generate running balance history in chronological FIFO order
     const chronologicalEvents = [
-      ...customerDeliveries.map(d => ({ date: d.date, type: 'delivery', val: d.totalAmount })),
-      ...customerPayments.map(p => ({ date: p.date, type: 'payment', val: -(p.amount || 0) })),
-      ...customerAdjustments.map(a => ({ date: a.date, type: 'adjustment', val: a.type === 'debit' ? a.amount : -a.amount }))
-    ].sort((a, b) => a.date - b.date);
+      ...customerDeliveries.map(d => ({ date: d.date, createdAt: d.createdAt, sortOrder: 1, type: 'delivery', val: d.totalAmount })),
+      ...customerPayments.map(p => ({ date: p.date, createdAt: p.createdAt, sortOrder: 2, type: 'payment', val: -(p.amount || 0) })),
+      ...customerAdjustments.map(a => ({ date: a.date, createdAt: a.createdAt, sortOrder: 3, type: 'adjustment', val: a.type === 'debit' ? a.amount : -a.amount }))
+    ].sort((a, b) => {
+      if (a.date !== b.date) return a.date - b.date;
+      if (a.createdAt && b.createdAt && a.createdAt !== b.createdAt) {
+        return a.createdAt - b.createdAt;
+      }
+      return a.sortOrder - b.sortOrder;
+    });
 
     let runningBalance = customer?.openingBalance 
       ? (customer.openingBalanceType === 'advance' ? -customer.openingBalance : customer.openingBalance) 
       : 0;
 
-    const data = chronologicalEvents.map((ev, index) => {
+    const data = chronologicalEvents.map((ev) => {
       runningBalance += ev.val;
       return {
         name: format(ev.date, 'MMM dd'),
@@ -487,9 +490,15 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         ]
       });
 
-      // Line item table
+      // Line item table: strictly FIFO order (first input first) so closing balances rhyme with debit/credit sequentially
       const tableHeaders = [['Date', 'Transaction Type', 'Description', 'Amount (KES)', 'Closing Balance (KES)']];
-      const eventsSorted = [...timelineEvents].sort((a,b) => a.date - b.date);
+      const eventsSorted = [...timelineEvents].sort((a, b) => {
+        if (a.date !== b.date) return a.date - b.date;
+        if (a.createdAt && b.createdAt && a.createdAt !== b.createdAt) {
+          return a.createdAt - b.createdAt;
+        }
+        return a.sortOrder - b.sortOrder;
+      });
       const tableRows = eventsSorted.map(e => [
         format(e.date, 'yyyy-MM-dd'),
         e.title,
@@ -821,10 +830,10 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       </div>
 
       {/* Customer Header Section */}
-      <div className="glass-panel border border-theme-border rounded-xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-colors">
+      <div className="glass-panel border border-white/[0.08] bg-[#000000] rounded-xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-colors">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-            <span className="font-mono text-xs uppercase tracking-widest bg-blue-500/10 text-blue-400 px-3 py-1 rounded-lg font-bold border border-blue-500/25 shadow-sm">
+            <span className="font-mono text-xs uppercase tracking-widest bg-purple-500/10 text-purple-300 px-3 py-1 rounded-lg font-bold border border-purple-500/25 shadow-sm">
               {customer.customerId}
             </span>
             <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border ${
@@ -836,31 +845,31 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               {customer.status === 'active' ? 'Active Account' : 'Credit Risk'}
             </span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-theme-text tracking-tight">{customer.name}</h2>
+          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">{customer.name}</h2>
           <p className="text-xs sm:text-sm text-theme-text-muted font-medium">
             Account activated: <span className="text-theme-text font-semibold">{format(customer.createdAt || Date.now(), 'PPP')}</span>
           </p>
         </div>
 
         {/* Action triggers */}
-        <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto p-2 bg-theme-panel border border-theme-border rounded-xl shadow-inner">
+        <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto p-2 bg-[#000000] border border-white/[0.08] rounded-xl">
           <button
             onClick={() => setActiveModal('delivery')}
-            className="w-full sm:w-auto px-4 py-2.5 bg-blue-500/15 hover:bg-blue-500/25 text-blue-400 border border-blue-500/30 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-[0_0_15px_rgba(59,130,246,0.15)]"
+            className="w-full sm:w-auto px-4 py-2.5 bg-white/[0.03] hover:bg-white/[0.08] text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
           >
-            <Plus className="w-4 h-4 text-blue-400" />
+            <Plus className="w-4 h-4 text-emerald-400" />
             Log Delivery
           </button>
           <button
             onClick={() => setActiveModal('payment')}
-            className="w-full sm:w-auto px-4 py-2.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+            className="w-full sm:w-auto px-4 py-2.5 bg-white/[0.03] hover:bg-white/[0.08] text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
           >
             <Plus className="w-4 h-4 text-emerald-400" />
             Record Payment
           </button>
           <button
             onClick={() => setActiveModal('adjustment')}
-            className="w-full sm:w-auto px-4 py-2.5 bg-purple-500/15 hover:bg-purple-500/25 text-purple-400 border border-purple-500/30 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-[0_0_15px_rgba(168,85,247,0.15)]"
+            className="w-full sm:w-auto px-4 py-2.5 bg-white/[0.03] hover:bg-white/[0.08] text-purple-400 border border-purple-500/30 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
           >
             <ArrowUpDown className="w-4 h-4 text-purple-400" />
             Adjust Balance
@@ -1176,29 +1185,48 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               <p className="text-xs text-theme-text-muted">Detailed list of every payment, fuel delivery, and ledger override</p>
             </div>
 
-            {/* Quick type filter */}
-            <div className="flex flex-wrap gap-1.5 bg-theme-panel border border-theme-border p-1 rounded-xl">
-              {(['all', 'delivery', 'payment', 'adjustment'] as const).map(f => {
-                const isActive = filterType === f;
-                let activeStyle = 'bg-blue-500/15 text-blue-400 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]';
-                if (f === 'delivery') activeStyle = 'bg-sky-500/15 text-sky-400 border-sky-500/30 shadow-[0_0_15px_rgba(56,189,248,0.15)]';
-                if (f === 'payment') activeStyle = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]';
-                if (f === 'adjustment') activeStyle = 'bg-purple-500/15 text-purple-400 border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.15)]';
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Strategy toggle */}
+              <div className="bg-theme-panel border border-theme-border p-1 rounded-xl flex items-center">
+                <button
+                  type="button"
+                  onClick={() => setSortStrategy(prev => prev === 'fifo' ? 'lifo' : 'fifo')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg uppercase tracking-wider transition-all cursor-pointer border flex items-center gap-1.5 ${
+                    sortStrategy === 'fifo'
+                      ? 'bg-blue-500/15 text-blue-400 border-blue-500/30 font-extrabold shadow-[0_0_15px_rgba(59,130,246,0.15)]'
+                      : 'border-transparent text-theme-text-muted hover:text-theme-text hover:bg-white/5'
+                  }`}
+                  title="FIFO Strategy: First In First Out (First data input is recorded first). Click to toggle."
+                >
+                  <ArrowUpDown className="w-3.5 h-3.5" />
+                  <span>{sortStrategy === 'fifo' ? 'FIFO (First-In First-Out)' : 'Newest First'}</span>
+                </button>
+              </div>
 
-                return (
-                  <button
-                     key={f}
-                     onClick={() => setFilterType(f)}
-                     className={`px-3 py-1.5 text-xs font-bold rounded-lg uppercase tracking-wider transition-all cursor-pointer border ${
-                       isActive 
-                         ? `${activeStyle} font-extrabold`
-                         : 'border-transparent text-theme-text-muted hover:text-theme-text hover:bg-white/5'
-                     }`}
-                  >
-                    {f === 'all' ? 'All Logs' : f}
-                  </button>
-                );
-              })}
+              {/* Quick type filter */}
+              <div className="flex flex-wrap gap-1.5 bg-theme-panel border border-theme-border p-1 rounded-xl">
+                {(['all', 'delivery', 'payment', 'adjustment'] as const).map(f => {
+                  const isActive = filterType === f;
+                  let activeStyle = 'bg-blue-500/15 text-blue-400 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)]';
+                  if (f === 'delivery') activeStyle = 'bg-sky-500/15 text-sky-400 border-sky-500/30 shadow-[0_0_15px_rgba(56,189,248,0.15)]';
+                  if (f === 'payment') activeStyle = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]';
+                  if (f === 'adjustment') activeStyle = 'bg-purple-500/15 text-purple-400 border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.15)]';
+
+                  return (
+                    <button
+                       key={f}
+                       onClick={() => setFilterType(f)}
+                       className={`px-3 py-1.5 text-xs font-bold rounded-lg uppercase tracking-wider transition-all cursor-pointer border ${
+                         isActive 
+                           ? `${activeStyle} font-extrabold`
+                           : 'border-transparent text-theme-text-muted hover:text-theme-text hover:bg-white/5'
+                       }`}
+                    >
+                      {f === 'all' ? 'All Logs' : f}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -1334,46 +1362,46 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
       {/* QUICK MODALS MAP */}
       {activeModal === 'edit_adjustment' && editingAdjustment && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-theme-border w-full max-w-md overflow-hidden transform transition-all duration-300">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-[#000000] rounded-2xl shadow-2xl border border-white/10 w-full max-w-md overflow-hidden transform transition-all duration-300">
             <form onSubmit={handleUpdateAdjustment}>
-              <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:bg-white/5 flex justify-between items-center">
+              <div className="px-6 py-5 border-b border-white/10 bg-[#000000] flex justify-between items-center">
                 <div>
-                  <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Edit Ledger Override</h3>
+                  <h3 className="text-xl font-bold text-white">Edit Ledger Override</h3>
                 </div>
-                <button type="button" onClick={() => { setActiveModal(null); setEditingAdjustment(null); }} className="p-1 px-2 text-blue-400 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
+                <button type="button" onClick={() => { setActiveModal(null); setEditingAdjustment(null); }} className="p-1 px-2 text-[#A1A1AA] hover:text-white rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
               </div>
               <div className="p-6 space-y-4">
                  <div>
-                  <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Adjustment Action *</label>
+                  <label className="block text-sm font-semibold text-white mb-1.5">Adjustment Action *</label>
                   <div className="grid grid-cols-2 gap-3">
-                    <button type="button" onClick={() => setAdjustType('credit')} className={`px-4 py-3 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${adjustType === 'credit' ? 'bg-pink-500/10 border-pink-500/50 text-pink-500 shadow-[0_0_15px_rgba(236,72,153,0.15)]' : 'bg-white/5 border-theme-border text-gray-500 hover:text-pink-400'}`}>
+                    <button type="button" onClick={() => setAdjustType('credit')} className={`px-4 py-3 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${adjustType === 'credit' ? 'bg-pink-500/15 border-pink-500/50 text-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.15)]' : 'bg-white/[0.03] border-white/10 text-gray-400 hover:text-white'}`}>
                        Balance Credit
                     </button>
-                    <button type="button" onClick={() => setAdjustType('debit')} className={`px-4 py-3 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${adjustType === 'debit' ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'bg-white/5 border-theme-border text-gray-500 hover:text-emerald-400'}`}>
+                    <button type="button" onClick={() => setAdjustType('debit')} className={`px-4 py-3 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${adjustType === 'debit' ? 'bg-emerald-500/15 border-emerald-500/50 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'bg-white/[0.03] border-white/10 text-gray-400 hover:text-white'}`}>
                        Balance Debit
                     </button>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Override Amount (KES) *</label>
+                  <label className="block text-sm font-semibold text-white mb-1.5">Override Amount (KES) *</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-blue-500 dark:text-blue-400 font-bold">KSh</span>
-                    <input type="number" required min="0" step="0.01" value={adjustAmount} onChange={e => setAdjustAmount(e.target.value)} className="w-full pl-12 pr-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-lg font-mono font-bold text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" placeholder="0.00" />
+                    <span className="absolute left-3 top-2.5 text-emerald-400 font-bold">KSh</span>
+                    <input type="number" required min="0" step="0.01" value={adjustAmount} onChange={e => setAdjustAmount(e.target.value)} className="w-full pl-12 pr-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-lg font-mono font-bold text-white outline-none focus:border-purple-500 shadow-sm" placeholder="0.00" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Date *</label>
-                  <input type="date" required value={adjustDate} onChange={e => setAdjustDate(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" />
+                  <label className="block text-sm font-semibold text-white mb-1.5">Date *</label>
+                  <input type="date" required value={adjustDate} onChange={e => setAdjustDate(e.target.value)} className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-base text-white outline-none focus:border-purple-500 shadow-sm" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Reason for Override *</label>
-                  <textarea required value={adjustReason} onChange={e => setAdjustReason(e.target.value)} rows={3} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-sm text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm resize-none" placeholder="Explain why this ledger override is necessary..."></textarea>
+                  <label className="block text-sm font-semibold text-white mb-1.5">Reason for Override *</label>
+                  <textarea required value={adjustReason} onChange={e => setAdjustReason(e.target.value)} rows={3} className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-sm text-white outline-none focus:border-purple-500 shadow-sm resize-none" placeholder="Explain why this ledger override is necessary..."></textarea>
                 </div>
               </div>
-              <div className="px-6 py-4 border-t border-theme-border bg-blue-100/50 dark:bg-black/20 flex justify-end gap-3">
-                 <button type="button" onClick={() => { setActiveModal(null); setEditingAdjustment(null); }} className="px-4 py-2 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-white/10 dark:hover:bg-blue-900/50 rounded-lg transition-colors cursor-pointer">Cancel</button>
-                 <button type="submit" disabled={modalLoading} className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-bold rounded-lg shadow-[0_0_20px_rgba(37,99,235,0.3)] transition-all cursor-pointer">
+              <div className="px-6 py-4 border-t border-white/10 bg-[#000000] flex justify-end gap-3">
+                 <button type="button" onClick={() => { setActiveModal(null); setEditingAdjustment(null); }} className="px-4 py-2 text-sm font-semibold text-gray-400 hover:text-white rounded-lg transition-colors cursor-pointer">Cancel</button>
+                 <button type="submit" disabled={modalLoading} className="px-5 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-bold rounded-lg shadow-sm transition-all cursor-pointer">
                    {modalLoading ? 'Saving...' : 'Update'}
                  </button>
               </div>
@@ -1383,15 +1411,15 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       )}
 
       {activeModal === 'delivery' && (
-        <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-theme-border w-full max-w-sm overflow-hidden transform transition-all duration-300">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-[#000000] rounded-2xl shadow-2xl border border-white/10 w-full max-w-sm overflow-hidden transform transition-all duration-300">
             <form onSubmit={handleAddDelivery}>
-              <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:bg-white/5 flex justify-between items-center">
+              <div className="px-6 py-5 border-b border-white/10 bg-[#000000] flex justify-between items-center">
                 <div>
-                  <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Log Fuel Delivery</h3>
-                  <p className="text-xs text-blue-400 dark:text-theme-text-muted font-medium pb-1">For {customer.name}</p>
+                  <h3 className="text-xl font-bold text-white">Log Fuel Delivery</h3>
+                  <p className="text-xs text-theme-text-muted font-medium pb-1">For {customer.name}</p>
                 </div>
-                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-blue-400 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
+                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-[#A1A1AA] hover:text-white rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
               </div>
               <div className="p-6 space-y-4">
                 <div>
@@ -1526,18 +1554,18 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   </div>
                 )}
               </div>
-              <div className="px-6 py-4 bg-blue-100/50 dark:bg-white/5 border-t border-theme-border flex justify-end gap-3 rounded-b-xl">
+              <div className="px-6 py-4 bg-[#000000] border-t border-white/10 flex justify-end gap-3 rounded-b-xl">
                 <button
                   type="button"
                   onClick={() => setActiveModal(null)}
-                  className="px-4 py-2 font-semibold text-blue-400 dark:text-theme-text-muted hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
+                  className="px-4 py-2 font-semibold text-gray-400 hover:text-white transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={modalLoading}
-                  className="px-5 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg text-sm font-bold shadow-md shadow-blue-500/20 disabled:opacity-50 transition-colors"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-md shadow-emerald-500/20 disabled:opacity-50 transition-colors cursor-pointer"
                 >
                   Save Delivery
                 </button>
@@ -1548,29 +1576,29 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       )}
 
       {activeModal === 'payment' && (
-        <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-theme-border w-full max-w-sm overflow-hidden transform transition-all duration-300">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-[#000000] rounded-2xl shadow-2xl border border-white/10 w-full max-w-sm overflow-hidden transform transition-all duration-300">
             <form onSubmit={handleAddPayment}>
-              <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:bg-white/5 flex justify-between items-center">
+              <div className="px-6 py-5 border-b border-white/10 bg-[#000000] flex justify-between items-center">
                 <div>
-                  <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Record Payment</h3>
-                  <p className="text-xs text-blue-400 dark:text-theme-text-muted font-medium pb-1">For {customer.name}</p>
+                  <h3 className="text-xl font-bold text-white">Record Payment</h3>
+                  <p className="text-xs text-theme-text-muted font-medium pb-1">For {customer.name}</p>
                 </div>
-                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-blue-400 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
+                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-[#A1A1AA] hover:text-white rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
               </div>
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Date *</label>
+                  <label className="block text-sm font-semibold text-white mb-1.5">Date *</label>
                   <input 
                     type="date"
                     required
                     value={paymentDate}
                     onChange={e => setPaymentDate(e.target.value)}
-                    className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-base text-white outline-none focus:border-purple-500 shadow-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Payment Amount (KES) *</label>
+                  <label className="block text-sm font-semibold text-white mb-1.5">Payment Amount (KES) *</label>
                   <input 
                     type="number"
                     step="0.01"
@@ -1578,22 +1606,22 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     placeholder="0.00"
                     value={paymentAmount}
                     onChange={e => setPaymentAmount(e.target.value)}
-                    className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-base text-white outline-none focus:border-purple-500 shadow-sm"
                   />
                 </div>
               </div>
-              <div className="px-6 py-4 bg-blue-100/50 dark:bg-white/5 border-t border-theme-border flex justify-end gap-3 rounded-b-xl">
+              <div className="px-6 py-4 bg-[#000000] border-t border-white/10 flex justify-end gap-3 rounded-b-xl">
                 <button
                   type="button"
                   onClick={() => setActiveModal(null)}
-                  className="px-4 py-2 font-semibold text-blue-400 dark:text-theme-text-muted hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
+                  className="px-4 py-2 font-semibold text-gray-400 hover:text-white transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={modalLoading}
-                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-md shadow-emerald-500/20 disabled:opacity-50 transition-colors"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold shadow-md shadow-emerald-500/20 disabled:opacity-50 transition-colors cursor-pointer"
                 >
                   Record Payment
                 </button>
@@ -1604,27 +1632,27 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       )}
 
       {activeModal === 'adjustment' && (
-        <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-950 rounded-xl shadow-2xl border border-theme-border w-full max-w-sm overflow-hidden transform transition-all duration-300">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-[#000000] rounded-2xl shadow-2xl border border-white/10 w-full max-w-sm overflow-hidden transform transition-all duration-300">
             <form onSubmit={handleAddAdjustment}>
-              <div className="px-6 py-5 border-b border-theme-border bg-blue-100/50 dark:bg-white/5 flex justify-between items-center">
+              <div className="px-6 py-5 border-b border-white/10 bg-[#000000] flex justify-between items-center">
                 <div>
-                  <h3 className="text-xl font-bold text-blue-900 dark:text-blue-50">Log Adjustment</h3>
-                  <p className="text-xs text-blue-400 dark:text-theme-text-muted font-medium pb-1">Manual Ledger Adjustment overriding standard log flows</p>
+                  <h3 className="text-xl font-bold text-white">Log Adjustment</h3>
+                  <p className="text-xs text-theme-text-muted font-medium pb-1">Manual Ledger Adjustment overriding standard log flows</p>
                 </div>
-                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-blue-400 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
+                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-[#A1A1AA] hover:text-white rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
               </div>
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Adjustment Type</label>
+                  <label className="block text-sm font-semibold text-white mb-1.5">Adjustment Type</label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => setAdjustType('credit')}
-                      className={`py-2 px-3 rounded-lg border text-sm font-bold transition-all shadow-sm ${
+                      className={`py-2 px-3 rounded-lg border text-sm font-bold transition-all shadow-sm cursor-pointer ${
                         adjustType === 'credit'
-                          ? 'border-emerald-500 bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 ring-2 ring-emerald-500/10'
-                          : 'border-theme-border dark:border-theme-border text-blue-500 dark:text-blue-400 glass-panel hover:bg-blue-50 dark:hover:bg-blue-900/50'
+                          ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-400'
+                          : 'border-white/10 text-gray-400 bg-white/[0.03] hover:text-white'
                       }`}
                     >
                       Credit (-)
@@ -1632,10 +1660,10 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     <button
                       type="button"
                       onClick={() => setAdjustType('debit')}
-                      className={`py-2 px-3 rounded-lg border text-sm font-bold transition-all shadow-sm ${
+                      className={`py-2 px-3 rounded-lg border text-sm font-bold transition-all shadow-sm cursor-pointer ${
                         adjustType === 'debit'
-                          ? 'border-red-500 bg-red-50 text-red-600 dark:bg-red-950/20 dark:text-red-400 ring-2 ring-red-500/10'
-                          : 'border-theme-border dark:border-theme-border text-blue-500 dark:text-blue-400 glass-panel hover:bg-blue-50 dark:hover:bg-blue-900/50'
+                          ? 'border-red-500/50 bg-red-500/15 text-red-400'
+                          : 'border-white/10 text-gray-400 bg-white/[0.03] hover:text-white'
                       }`}
                     >
                       Debit (+)
@@ -1643,17 +1671,17 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Date *</label>
+                  <label className="block text-sm font-semibold text-white mb-1.5">Date *</label>
                   <input 
                     type="date"
                     required
                     value={adjustDate}
                     onChange={e => setAdjustDate(e.target.value)}
-                    className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-base text-white outline-none focus:border-purple-500 shadow-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Override Amount (KES) *</label>
+                  <label className="block text-sm font-semibold text-white mb-1.5">Override Amount (KES) *</label>
                   <input 
                     type="number"
                     step="0.01"
@@ -1661,33 +1689,33 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     placeholder="0.00"
                     value={adjustAmount}
                     onChange={e => setAdjustAmount(e.target.value)}
-                    className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-base text-white outline-none focus:border-purple-500 shadow-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Adjustment Reason Explanation *</label>
+                  <label className="block text-sm font-semibold text-white mb-1.5">Adjustment Reason Explanation *</label>
                   <textarea 
                     required
                     placeholder="Enter context, memo, or invoice reason..."
                     value={adjustReason}
                     onChange={e => setAdjustReason(e.target.value)}
                     rows={3}
-                    className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-sm text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm resize-none"
+                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-sm text-white outline-none focus:border-purple-500 shadow-sm resize-none"
                   />
                 </div>
               </div>
-              <div className="px-6 py-4 bg-blue-100/50 dark:bg-white/5 border-t border-theme-border flex justify-end gap-3 rounded-b-xl">
+              <div className="px-6 py-4 bg-[#000000] border-t border-white/10 flex justify-end gap-3 rounded-b-xl">
                 <button
                   type="button"
                   onClick={() => setActiveModal(null)}
-                  className="px-4 py-2 font-semibold text-blue-400 dark:text-theme-text-muted hover:text-blue-900 dark:hover:text-blue-100 transition-colors"
+                  className="px-4 py-2 font-semibold text-gray-400 hover:text-white transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={modalLoading}
-                  className="px-5 py-2 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-sm font-bold shadow-md shadow-slate-500/20 disabled:opacity-50 transition-colors"
+                  className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-bold shadow-sm disabled:opacity-50 transition-colors cursor-pointer"
                 >
                   Confirm Adjustment
                 </button>

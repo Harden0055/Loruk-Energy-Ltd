@@ -195,10 +195,10 @@ export default function Dashboard({
       {/* Summary Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <MetricCard title="Total Outstanding Balances" value={formatCurrency(outstandingBalance)} icon={DollarSign} color={outstandingBalanceColor} />
-        <MetricCard title="Total Fleet Fueling" value={formatCurrency(totalFleetExpenses)} icon={TrendingUp} color="text-orange-500 dark:text-orange-400" />
-        <MetricCard title="Average Expense per Truck" value={formatCurrency(avgExpensePerTruck)} icon={CarFront} color="text-blue-500 dark:text-blue-400" />
-        <MetricCard title="Active Customers" value={activeCustomers.toString()} icon={Users} color="text-emerald-600 dark:text-emerald-400" />
-        <MetricCard title="Active Trucks" value={activeTrucksCount.toString()} icon={Truck} color="text-blue-600 dark:text-blue-400 glow-blue-text" />
+        <MetricCard title="Total Fleet Fueling" value={formatCurrency(totalFleetExpenses)} icon={TrendingUp} color="text-purple-400" />
+        <MetricCard title="Average Expense per Truck" value={formatCurrency(avgExpensePerTruck)} icon={CarFront} color="text-emerald-400" />
+        <MetricCard title="Active Customers" value={activeCustomers.toString()} icon={Users} color="text-emerald-400" />
+        <MetricCard title="Active Trucks" value={activeTrucksCount.toString()} icon={Truck} color="text-purple-400" />
       </div>
 
       {/* Customer Debt Overview */}
@@ -249,8 +249,9 @@ export default function Dashboard({
                 <AreaChart data={fleetTrend}>
                   <defs>
                     <linearGradient id="colorAmount" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={activeConfig.primaryColor} stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor={activeConfig.secondaryColor} stopOpacity={0.0}/>
+                      <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.45}/>
+                      <stop offset="50%" stopColor="#00E676" stopOpacity={0.15}/>
+                      <stop offset="100%" stopColor="#000000" stopOpacity={0.0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.03)" vertical={false} />
@@ -423,17 +424,17 @@ export default function Dashboard({
 
 function MetricCard({ title, value, icon: Icon, color }: any) {
   return (
-    <div className="glass-panel p-5 rounded-[20px] transition-all duration-300 hover:translate-y-[-4px] hover:shadow-[0_0_50px_rgba(0,212,255,0.18)] hover:border-[#00D4FF]/30 flex flex-col justify-between h-36">
+    <div className="glass-panel p-5 rounded-[20px] transition-all duration-300 hover:translate-y-[-4px] hover:shadow-[0_0_40px_rgba(139,92,246,0.25)] hover:border-purple-500/40 flex flex-col justify-between h-36">
       <div className="flex items-start justify-between">
         <p className="text-[10px] font-semibold tracking-wider text-[#A1A1AA] uppercase">{title}</p>
         <div className="w-8 h-8 rounded-lg shrink-0 bg-white/5 flex items-center justify-center">
-          <Icon className={`w-4 h-4 ${color || 'text-blue-500'}`} />
+          <Icon className={`w-4 h-4 ${color || 'text-purple-400'}`} />
         </div>
       </div>
       <div>
-        <p className="text-xl xl:text-2xl font-bold text-white tracking-tight leading-none mb-2">{value}</p>
+        <p className="text-xl xl:text-2xl font-bold text-white tracking-tight leading-none mb-2 font-mono">{value}</p>
         <div className="flex items-center gap-1.5 text-[9px] text-emerald-400 font-bold uppercase tracking-widest">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#22C55E]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#00E676]" />
           Operational
         </div>
       </div>
