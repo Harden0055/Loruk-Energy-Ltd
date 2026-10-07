@@ -34,6 +34,7 @@ import {
   Calendar, 
   Search, 
   FileText,
+  Wallet,
   X
 } from 'lucide-react';
 import { 
@@ -51,6 +52,20 @@ import {
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { setupPdfHeader, addPdfFooter } from '../lib/pdfTemplate';
+
+// Precise date parser that avoids UTC midnight timezone rollback
+const parseDateToTimestamp = (dateStr: string): number => {
+  if (!dateStr) return Date.now();
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const d = parseInt(parts[2], 10);
+    // Midday (12:00:00) prevents any timezone boundary shifting across days
+    return new Date(y, m, d, 12, 0, 0).getTime();
+  }
+  return new Date(dateStr).getTime() || Date.now();
+};
 
 interface CustomerDashboardProps {
   customerId: string;
@@ -82,7 +97,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [searchTerm, setSearchTerm] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [sortStrategy, setSortStrategy] = useState<'fifo' | 'lifo'>('fifo');
+  const [sortStrategy, setSortStrategy] = useState<'newest' | 'oldest'>('newest');
 
   // Verify balance utility
   const verifyBalance = () => {
@@ -367,28 +382,60 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         createdBy: a.createdBy || 'System',
         sortOrder: 3
       }))
-    ].sort((a, b) => {
-      // 1. Primary sort: Chronological date ascending (FIFO)
-      if (a.date !== b.date) return a.date - b.date;
-      // 2. Secondary sort: Creation timestamp ascending (FIFO: first data input recorded first)
-      if (a.createdAt && b.createdAt && a.createdAt !== b.createdAt) {
-        return a.createdAt - b.createdAt;
-      }
-      // 3. Tertiary sort: Debits/deliveries first then payments/credits
-      return a.sortOrder - b.sortOrder;
-    }); 
+    ];
 
-    let runningBalance = customer?.openingBalance 
+    // Chronologically rearrange by calendar date, same-day transaction types (debits/deliveries first), then entry creation timestamp
+    rawTransactions.sort((a, b) => {
+      // 1. Primary: Compare calendar date (YYYY-MM-DD key)
+      const dA = new Date(a.date);
+      const dB = new Date(b.date);
+      const keyA = dA.getFullYear() * 10000 + (dA.getMonth() + 1) * 100 + dA.getDate();
+      const keyB = dB.getFullYear() * 10000 + (dB.getMonth() + 1) * 100 + dB.getDate();
+      if (keyA !== keyB) return keyA - keyB;
+
+      // 2. Secondary: Debits/deliveries first, then payments/credits, then adjustments
+      if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+
+      // 3. Tertiary: Creation timestamp ascending (FIFO: first entered first)
+      const cA = a.createdAt || a.date;
+      const cB = b.createdAt || b.date;
+      return cA - cB;
+    });
+
+    const openingBalanceVal = customer?.openingBalance 
       ? (customer.openingBalanceType === 'advance' ? -customer.openingBalance : customer.openingBalance) 
       : 0;
 
+    let runningBalance = openingBalanceVal;
+
     const eventsWithBalance = rawTransactions.map(t => {
-      runningBalance += t.val;
+      runningBalance = Math.round((runningBalance + t.val) * 100) / 100;
       return { ...t, balanceAfter: runningBalance };
     });
 
-    const filtered = eventsWithBalance.filter(e => {
-      if (filterType !== 'all' && e.type !== filterType) return false;
+    // If customer has an opening balance, include it at the start of the account statement
+    const allEvents = customer && customer.openingBalance ? [
+      {
+        id: `opening-${customer.id}`,
+        date: customer.createdAt ? Math.min(customer.createdAt, rawTransactions[0]?.date ? rawTransactions[0].date - 86400000 : customer.createdAt) : (rawTransactions[0]?.date ? rawTransactions[0].date - 86400000 : Date.now() - 30 * 86400000),
+        createdAt: customer.createdAt || 0,
+        type: 'opening' as const,
+        title: 'Opening Balance',
+        description: customer.openingBalanceType === 'advance' ? 'Opening Balance (Advance/Prepayment)' : 'Opening Balance (Brought Forward / Arrears)',
+        amount: customer.openingBalance,
+        val: openingBalanceVal,
+        balanceAfter: openingBalanceVal,
+        createdBy: customer.updatedBy || 'System',
+        sortOrder: 0
+      },
+      ...eventsWithBalance
+    ] : eventsWithBalance;
+
+    const filtered = allEvents.filter(e => {
+      if (filterType !== 'all') {
+        if (e.type === 'opening') return true;
+        if (e.type !== filterType) return false;
+      }
       
       if (searchTerm.trim() !== '') {
         const matchTitle = textMatches(e.title, searchTerm);
@@ -398,20 +445,30 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       }
 
       if (startDate) {
-        const startMs = new Date(startDate).getTime();
+        const startMs = parseDateToTimestamp(startDate) - 43200000;
         if (e.date < startMs) return false;
       }
 
       if (endDate) {
-        const endMs = new Date(endDate).getTime() + 86400000; // end of day
+        const endMs = parseDateToTimestamp(endDate) + 43200000;
         if (e.date > endMs) return false;
       }
 
       return true;
     });
 
-    return sortStrategy === 'fifo' ? filtered : [...filtered].reverse();
+    return sortStrategy === 'newest' ? [...filtered].reverse() : filtered;
   }, [customerDeliveries, customerPayments, customerAdjustments, filterType, searchTerm, startDate, endDate, customer, sortStrategy]);
+
+  // Automated background synchronization so stored customer.balance matches calculated balance
+  useEffect(() => {
+    if (!customer) return;
+    const trueBal = Math.round(calculatedBalance * 100) / 100;
+    const storedBal = Math.round((customer.balance || 0) * 100) / 100;
+    if (storedBal !== trueBal) {
+      updateCustomer(customer.id, { balance: trueBal }, undefined, user?.email || 'System');
+    }
+  }, [customer, calculatedBalance, user]);
 
   // Compute stats for charts and display
   const totalFuelLitres = useMemo(() => {
@@ -429,9 +486,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const remainingCredit = useMemo(() => {
     if (!customer) return 0;
     const limit = customer.creditLimit || 0;
-    const bal = customer.balance || 0;
+    const bal = calculatedBalance || 0;
     return Math.max(0, limit - bal);
-  }, [customer]);
+  }, [customer, calculatedBalance]);
 
   // Chart data generation (Last 15 chronological transactions or chronological trends)
   const chartData = useMemo(() => {
@@ -483,27 +540,31 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           `Customer Name: ${customer.name}`
         ],
         rightBoxLines: [
-          { label: 'Outstanding Bal :', value: `KES ${customer.balance.toLocaleString()}` },
+          { label: 'Outstanding Bal :', value: `KES ${calculatedBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
           { label: 'Total Purchases :', value: `KES ${totalSalesValue.toLocaleString()}` },
           { label: 'Total Payments :', value: `KES ${totalPaymentsValue.toLocaleString()}` },
           { label: 'Total Litres :', value: formatLitres(totalFuelLitres) }
         ]
       });
 
-      // Line item table: strictly FIFO order (first input first) so closing balances rhyme with debit/credit sequentially
+      // Line item table: strictly chronological order so closing balances rhyme with debit/credit sequentially
       const tableHeaders = [['Date', 'Transaction Type', 'Description', 'Amount (KES)', 'Closing Balance (KES)']];
       const eventsSorted = [...timelineEvents].sort((a, b) => {
-        if (a.date !== b.date) return a.date - b.date;
-        if (a.createdAt && b.createdAt && a.createdAt !== b.createdAt) {
-          return a.createdAt - b.createdAt;
-        }
-        return a.sortOrder - b.sortOrder;
+        const dA = new Date(a.date);
+        const dB = new Date(b.date);
+        const keyA = dA.getFullYear() * 10000 + (dA.getMonth() + 1) * 100 + dA.getDate();
+        const keyB = dB.getFullYear() * 10000 + (dB.getMonth() + 1) * 100 + dB.getDate();
+        if (keyA !== keyB) return keyA - keyB;
+        if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+        return (a.createdAt || a.date) - (b.createdAt || b.date);
       });
       const tableRows = eventsSorted.map(e => [
         format(e.date, 'yyyy-MM-dd'),
         e.title,
         e.description,
-        `${e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit')) ? '+' : '-'}${e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        e.type === 'opening'
+          ? `${e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          : `${e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit')) ? '+' : '-'}${e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
         e.balanceAfter.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
       ]);
 
@@ -562,7 +623,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       doc.setFontSize(9);
       doc.setTextColor(30, 41, 59);
       
-      const balanceValText = customer.balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const balanceValText = calculatedBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       doc.text(`Total Balance (KES) :   ${balanceValText}`, 192, summaryY + 9, { align: 'right' });
 
       // @ts-ignore
@@ -615,7 +676,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       
       await createDelivery({
         customerId: customer.id,
-        date: new Date(deliveryDate).getTime(),
+        date: parseDateToTimestamp(deliveryDate),
         productType: deliveryProduct,
         litres: finalLitres,
         totalAmount: amt,
@@ -664,7 +725,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       const paymentPromises = [
         createPayment({
           customerId: customer.id,
-          date: new Date(paymentDate).getTime(),
+          date: parseDateToTimestamp(paymentDate),
           amount: amountVal,
           createdBy: user?.email || 'Unknown'
         }, user?.email || 'Unknown'),
@@ -703,7 +764,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
     if (!customer || !editingAdjustment) return;
     const amountVal = parseFloat(adjustAmount);
     if (!amountVal || amountVal <= 0 || !adjustReason.trim()) {
-      alert('Please enter progress amount and adjustment explanation');
+      alert('Please enter valid amount and adjustment explanation');
       return;
     }
     setModalLoading(true);
@@ -712,32 +773,30 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       const oldType = editingAdjustment.originalType; // credit or debit
       
       await updateAdjustment(editingAdjustment.id.replace('adj-', ''), {
-        date: new Date(adjustDate).getTime(),
+        date: parseDateToTimestamp(adjustDate),
         type: adjustType,
         amount: amountVal,
         description: adjustReason.trim(),
       }, user?.email || 'Unknown');
       
-      // Update customer balance based on difference
+      // Calculate delta to apply to customer balance
       let balanceChange = 0;
-      // Reverse old
+      // Revert old transaction effect
       if (oldType === 'credit') {
-        balanceChange -= oldAmount;
+        balanceChange += oldAmount; // reverting a credit increases balance
       } else {
-        balanceChange += oldAmount;
+        balanceChange -= oldAmount; // reverting a debit decreases balance
       }
       
-      // Apply new
+      // Apply new transaction effect
       if (adjustType === 'credit') {
-        balanceChange += amountVal;
+        balanceChange -= amountVal; // new credit reduces balance
       } else {
-        balanceChange -= amountVal;
+        balanceChange += amountVal; // new debit increases balance
       }
       
       if (balanceChange !== 0) {
-        await updateCustomer(customer.id, {
-          openingBalance: (customer.openingBalance || 0) + balanceChange
-        });
+        await updateCustomer(customer.id, {}, { balance: balanceChange }, user?.email || 'Unknown');
       }
       
       setActiveModal(null);
@@ -765,7 +824,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
     try {
       await createAdjustment({
         customerId: customer.id,
-        date: new Date(adjustDate).getTime(),
+        date: parseDateToTimestamp(adjustDate),
         type: adjustType,
         amount: amountVal,
         description: adjustReason.trim(),
@@ -803,7 +862,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
     );
   }
 
-  const isCreditRisk = customer.status === 'credit_risk' || customer.balance > customer.creditLimit;
+  const isCreditRisk = customer.status === 'credit_risk' || calculatedBalance > customer.creditLimit;
 
   return (
     <div className="space-y-6">
@@ -1190,16 +1249,16 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               <div className="bg-theme-panel border border-theme-border p-1 rounded-xl flex items-center">
                 <button
                   type="button"
-                  onClick={() => setSortStrategy(prev => prev === 'fifo' ? 'lifo' : 'fifo')}
+                  onClick={() => setSortStrategy(prev => prev === 'newest' ? 'oldest' : 'newest')}
                   className={`px-3 py-1.5 text-xs font-bold rounded-lg uppercase tracking-wider transition-all cursor-pointer border flex items-center gap-1.5 ${
-                    sortStrategy === 'fifo'
+                    sortStrategy === 'newest'
                       ? 'bg-blue-500/15 text-blue-400 border-blue-500/30 font-extrabold shadow-[0_0_15px_rgba(59,130,246,0.15)]'
                       : 'border-transparent text-theme-text-muted hover:text-theme-text hover:bg-white/5'
                   }`}
-                  title="FIFO Strategy: First In First Out (First data input is recorded first). Click to toggle."
+                  title="Toggle chronological sorting. Currently showing latest transactions at the top."
                 >
                   <ArrowUpDown className="w-3.5 h-3.5" />
-                  <span>{sortStrategy === 'fifo' ? 'FIFO (First-In First-Out)' : 'Newest First'}</span>
+                  <span>{sortStrategy === 'newest' ? 'Latest First (Newest at Top)' : 'Oldest First (FIFO)'}</span>
                 </button>
               </div>
 
@@ -1289,24 +1348,27 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 </tr>
               ) : (
                 timelineEvents.map(e => {
+                  const isOpening = e.type === 'opening';
                   const isPurpleAmount = e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit'));
                   return (
-                    <tr key={e.id} className="hover:bg-white/[0.04] transition-colors">
+                    <tr key={e.id} className={`hover:bg-white/[0.04] transition-colors ${isOpening ? 'bg-white/[0.02] border-b-2 border-white/10' : ''}`}>
                       <td className="modern-td font-mono text-xs text-theme-text-muted">
-                        {format(e.date, 'dd-MMM-yyyy HH:mm')}
+                        {format(e.date, 'dd-MMM-yyyy')}
                       </td>
                       <td className="modern-td">
                         <div className="flex items-center gap-2.5">
                           <div 
-                            className={`p-1.5 rounded-lg cursor-pointer transition-transform hover:scale-110 border ${
-                              e.type === 'payment'
-                                ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]'
-                                : e.type === 'delivery'
-                                  ? 'bg-blue-500/15 border-blue-500/30 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]'
-                                  : e.title.includes('Credit')
-                                    ? 'bg-teal-500/15 border-teal-500/30 text-teal-400 shadow-[0_0_15px_rgba(20,184,166,0.2)]'
-                                    : 'bg-rose-500/15 border-rose-500/30 text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.2)]'
-                            }`} 
+                            className={`p-1.5 rounded-lg transition-transform border ${
+                              isOpening
+                                ? 'bg-amber-500/15 border-amber-500/30 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
+                                : e.type === 'payment'
+                                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]'
+                                  : e.type === 'delivery'
+                                    ? 'bg-blue-500/15 border-blue-500/30 text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]'
+                                    : e.title.includes('Credit')
+                                      ? 'bg-teal-500/15 border-teal-500/30 text-teal-400 shadow-[0_0_15px_rgba(20,184,166,0.2)]'
+                                      : 'bg-rose-500/15 border-rose-500/30 text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.2)]'
+                            } ${e.type === 'adjustment' ? 'cursor-pointer hover:scale-110' : ''}`} 
                             onClick={() => {
                               if (e.type === 'adjustment') {
                                 setEditingAdjustment({ ...e, originalType: e.title.includes('Credit') ? 'credit' : 'debit' });
@@ -1319,11 +1381,12 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                             }}
                             title={e.type === 'adjustment' ? "Click to edit override" : undefined}
                           >
+                            {isOpening ? <Wallet className="w-4 h-4" /> : null}
                             {e.type === 'adjustment' ? <ArrowUpDown className="w-4 h-4" /> : null}
                             {e.type === 'delivery' ? <Truck className="w-4 h-4" /> : null}
                             {e.type === 'payment' ? <DollarSign className="w-4 h-4" /> : null}
                           </div>
-                          <span className="text-sm font-bold text-theme-text">
+                          <span className={`text-sm font-bold ${isOpening ? 'text-amber-300' : 'text-theme-text'}`}>
                             {e.title}
                           </span>
                         </div>
@@ -1332,9 +1395,15 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                         {e.description}
                       </td>
                       <td className="px-4 sm:px-6 py-3.5 text-right font-mono font-bold text-sm whitespace-nowrap">
-                        <span className={isPurpleAmount ? '!text-fuchsia-400' : '!text-emerald-400'}>
-                          {isPurpleAmount ? '+' : '-'}Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
+                        {isOpening ? (
+                          <span className="text-amber-300">
+                            Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        ) : (
+                          <span className={isPurpleAmount ? '!text-fuchsia-400' : '!text-emerald-400'}>
+                            {isPurpleAmount ? '+' : '-'}Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 sm:px-6 py-3.5 text-right font-mono font-bold text-sm whitespace-nowrap">
                         {e.balanceAfter > 0 ? (
@@ -1356,6 +1425,23 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 })
               )}
             </tbody>
+            <tfoot className="border-t-2 border-white/10 bg-white/[0.02]">
+              <tr className="modern-tr">
+                <td colSpan={3} className="px-4 sm:px-6 py-4 text-xs font-mono uppercase tracking-wider text-theme-text-muted">
+                  Reconciliation Summary & Total Position
+                </td>
+                <td className="px-4 sm:px-6 py-4 text-right font-mono text-xs text-theme-text-muted whitespace-nowrap">
+                  <span className="block text-[10px] uppercase font-sans tracking-widest text-slate-400">Total Purchases</span>
+                  Ksh {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </td>
+                <td className="px-4 sm:px-6 py-4 text-right font-mono font-black text-sm sm:text-base whitespace-nowrap">
+                  <span className="block text-[10px] uppercase font-sans tracking-widest text-slate-400">Final Closing Balance</span>
+                  <span className={calculatedBalance > 0 ? '!text-fuchsia-400' : calculatedBalance < 0 ? '!text-emerald-400' : '!text-white'}>
+                    {calculatedBalance < 0 ? '-' : ''}Ksh {Math.abs(calculatedBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>

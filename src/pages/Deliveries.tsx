@@ -9,6 +9,18 @@ import AIInputModal from '../components/AIInputModal';
 import { Delivery } from '../types';
 import Papa from 'papaparse';
 
+const parseDateToTimestamp = (dateStr: string): number => {
+  if (!dateStr) return Date.now();
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const d = parseInt(parts[2], 10);
+    return new Date(y, m, d, 12, 0, 0).getTime();
+  }
+  return new Date(dateStr).getTime() || Date.now();
+};
+
 interface DeleteDeliveryProps {
   delivery: Delivery;
   customerName: string;
@@ -1364,7 +1376,7 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
       
       await createDelivery({ 
         customerId: form.customerId, 
-        date: new Date(form.date).getTime() || Date.now(),
+        date: parseDateToTimestamp(form.date),
         productId: uniqueProducts.find(p => p.name === form.productType)?.id || '',
         productType: form.productType,
         litres: finalLitres,

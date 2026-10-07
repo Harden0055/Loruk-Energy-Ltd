@@ -158,11 +158,13 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
 
     // Sort chronologically using FIFO strategy (first input first)
     return entries.sort((a, b) => {
-      if (a.date !== b.date) return a.date - b.date;
-      if (a.createdAt && b.createdAt && a.createdAt !== b.createdAt) {
-        return a.createdAt - b.createdAt;
-      }
-      return (a.sortOrder || 0) - (b.sortOrder || 0);
+      const dA = new Date(a.date);
+      const dB = new Date(b.date);
+      const keyA = dA.getFullYear() * 10000 + (dA.getMonth() + 1) * 100 + dA.getDate();
+      const keyB = dB.getFullYear() * 10000 + (dB.getMonth() + 1) * 100 + dB.getDate();
+      if (keyA !== keyB) return keyA - keyB;
+      if ((a.sortOrder || 0) !== (b.sortOrder || 0)) return (a.sortOrder || 0) - (b.sortOrder || 0);
+      return (a.createdAt || a.date) - (b.createdAt || b.date);
     });
   }, [deliveries, payments, adjustments, customers, loading]);
 

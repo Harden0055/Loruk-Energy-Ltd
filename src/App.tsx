@@ -245,7 +245,7 @@ function AuthenticatedApp() {
       </div>
 
       <div className="flex-1 flex flex-col overflow-hidden w-full bg-[#000000]">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center px-4 md:px-8 py-4 md:py-6 bg-[#000000] border-b border-white/[0.06] transition-all gap-4">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center px-4 md:px-8 py-4 md:py-6 bg-[#000000] border-b border-white/[0.06] transition-all gap-4 relative z-10">
           <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
             <div className="flex items-center gap-3">
               {/* Mobile Menu Button */}
@@ -262,7 +262,7 @@ function AuthenticatedApp() {
                 onClick={toggleSidebarCollapsed}
                 className={`hidden lg:flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer text-xs font-semibold ${
                   isSidebarCollapsed 
-                    ? 'bg-white/[0.04] border-purple-500/30 text-purple-300 hover:bg-white/[0.08]' 
+                    ? 'bg-white/[0.04] border-white/20 text-white hover:bg-white/[0.08]' 
                     : 'bg-white/[0.04] border-white/10 text-theme-text-muted hover:text-white hover:bg-white/[0.08]'
                 }`}
                 title={isSidebarCollapsed ? "Show Sidebar (Ctrl+B)" : "Hide Sidebar (Ctrl+B)"}

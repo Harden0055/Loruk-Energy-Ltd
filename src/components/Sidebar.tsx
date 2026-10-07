@@ -417,14 +417,14 @@ export default function Sidebar({
   };
 
   return (
-    <aside className="h-full w-64 border-r border-theme-border flex flex-col bg-[var(--theme-sidebar-bg,#000000)] text-theme-text transition-all duration-300 relative select-none">
+    <aside className="h-full w-64 border-r border-white/[0.08] flex flex-col bg-[#000000] text-theme-text transition-all duration-300 relative select-none">
       {/* Brand Header */}
-      <div className="px-5 py-5 flex items-center justify-between border-b border-theme-border/50 mb-2 shrink-0">
+      <div className="px-5 py-5 flex items-center justify-between border-b border-white/[0.08] mb-2 shrink-0 bg-[#000000]">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 bg-gradient-to-br from-[#8B5CF6] to-[#00E676] rounded-xl flex items-center justify-center shadow-[0_0_25px_rgba(139,92,246,0.35)] transition-all duration-300 hover:scale-105 shrink-0">
+          <div className="w-10 h-10 bg-gradient-to-br from-[#8B5CF6] to-[#00E676] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.25)] transition-all duration-300 hover:scale-105 shrink-0">
             <FireLEIcon className="w-7 h-7 text-white" />
           </div>
-          <span className="font-bold text-lg tracking-tight text-gradient transition-colors truncate">Loruk Energy</span>
+          <span className="font-bold text-lg tracking-tight text-white transition-colors truncate">Loruk Energy</span>
         </div>
 
         <div className="flex items-center gap-1">
@@ -453,12 +453,12 @@ export default function Sidebar({
       </div>
       
       {/* Main Nav Items with Hover Expansion */}
-      <nav className="flex-1 px-3 py-2 space-y-1.5 overflow-y-auto hide-scrollbar">
+      <nav className="flex-1 px-3 py-2 space-y-1.5 overflow-y-auto hide-scrollbar bg-[#000000]">
         {navItems.map(renderNavParent)}
       </nav>
 
       {/* Footer Nav with Expandable Sub Pages & User Profile */}
-      <div className="p-4 border-t border-theme-border mt-auto shrink-0 bg-black/20">
+      <div className="p-4 border-t border-white/[0.08] mt-auto shrink-0 bg-[#000000]">
         <div className="mb-3 space-y-1.5">
           {bottomItems.map(renderNavParent)}
         </div>
@@ -467,19 +467,19 @@ export default function Sidebar({
           <ThemeToggle variant="pill" className="w-full justify-between" />
         </div>
 
-        <div className="flex items-center gap-3 px-3 py-2.5 mb-3 bg-theme-panel border border-theme-border rounded-xl shadow-[0_0_15px_rgba(139,61,255,0.05)]">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#00E676] flex items-center justify-center font-bold text-sm text-white shadow-[0_0_15px_rgba(139,92,246,0.35)] shrink-0">
+        <div className="flex items-center gap-3 px-3 py-2.5 mb-3 bg-[#000000] border border-white/10 rounded-xl shadow-none">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#00E676] flex items-center justify-center font-bold text-sm text-white shadow-none shrink-0">
             {user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold truncate text-theme-text">{user?.displayName || 'Admin User'}</p>
+            <p className="text-xs font-bold truncate text-white">{user?.displayName || 'Admin User'}</p>
             <p className="text-[11px] text-theme-text-muted truncate">{user?.email || 'admin@fuelflow.io'}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={logout}
-            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-300 border border-red-500/20 hover:border-red-500/40 hover:shadow-[0_0_15px_rgba(239,68,68,0.15)] cursor-pointer"
+            className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-300 border border-red-500/20 hover:border-red-500/40 cursor-pointer"
           >
             <LogOut className="w-3.5 h-3.5 text-red-400" />
             Logout

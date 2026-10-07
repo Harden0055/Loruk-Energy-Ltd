@@ -7,6 +7,18 @@ import { format } from 'date-fns';
 import { Payment } from '../types';
 import AIInputModal from '../components/AIInputModal';
 
+const parseDateToTimestamp = (dateStr: string): number => {
+  if (!dateStr) return Date.now();
+  const parts = dateStr.split('-');
+  if (parts.length === 3) {
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    const d = parseInt(parts[2], 10);
+    return new Date(y, m, d, 12, 0, 0).getTime();
+  }
+  return new Date(dateStr).getTime() || Date.now();
+};
+
 export default function Payments({ onViewCustomer, initialAction }: { onViewCustomer?: (id: string) => void; initialAction?: string }) {
   const { user } = useAuth();
   const isAdmin = (user as any)?.role === 'admin' || user?.email?.includes('admin');
@@ -199,7 +211,7 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
     setLoading(true);
     try {
       const amountVal = parseFloat(form.amount);
-      const newTimestamp = new Date(form.date).getTime() || Date.now();
+      const newTimestamp = parseDateToTimestamp(form.date);
 
       if (isEditing) {
         const oldAmount = parseFloat(initialData.amount);
