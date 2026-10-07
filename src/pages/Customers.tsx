@@ -163,23 +163,23 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
           <select 
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value as any)}
-            className="w-full px-4 py-2.5 bg-sky-500/5 border border-theme-border rounded-lg text-base text-sky-300 dark:text-sky-300 font-semibold focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors cursor-pointer"
+            className="w-full px-4 py-2.5 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-base text-emerald-400 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-colors cursor-pointer dropdown-green"
           >
-            <option value="all" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">All Statuses</option>
-            <option value="active" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Active</option>
-            <option value="credit_risk" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Credit Risk</option>
+            <option value="all" className="bg-[#08080C] text-gray-100">All Statuses</option>
+            <option value="active" className="bg-[#08080C] text-emerald-400">Active</option>
+            <option value="credit_risk" className="bg-[#08080C] text-purple-300">Credit Risk</option>
           </select>
         </div>
         <button 
           onClick={exportCustomers}
-          className="px-5 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-base font-semibold flex items-center gap-2 transition-colors cursor-pointer"
+          className="px-5 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-base font-semibold flex items-center gap-2 transition-colors cursor-pointer hover:border-emerald-400"
         >
           <Download className="w-5 h-5" />
           Export CSV
         </button>
         <button 
           onClick={() => setIsAdding(true)}
-          className="px-5 py-2.5 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/25 hover:shadow-[0_0_15px_rgba(56,189,248,0.15)] rounded-lg text-base font-semibold flex items-center gap-2 transition-colors cursor-pointer"
+          className="px-5 py-2.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 hover:shadow-[0_0_15px_rgba(0,230,118,0.2)] rounded-lg text-base font-semibold flex items-center gap-2 transition-colors cursor-pointer"
         >
           <Plus className="w-5 h-5" />
           Add Customer
@@ -256,7 +256,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                     {onViewCustomer ? (
                       <button 
                         onClick={() => onViewCustomer(c.id)}
-                        className="hover:underline text-sky-400 dark:text-sky-300 font-bold cursor-pointer text-left focus:outline-none glow-sky-text"
+                        className="hover:underline text-emerald-400 hover:text-emerald-300 font-bold cursor-pointer text-left focus:outline-none"
                       >
                         {c.name}
                       </button>
@@ -266,11 +266,11 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                   </td>
                   <td className="modern-td">{formatCurrency(c.creditLimit)}</td>
                   <td className="modern-td">
-                    <span className={c.openingBalanceType === 'advance' ? 'text-green-600 dark:text-green-400 font-semibold' : 'text-gray-600 dark:text-gray-400'}>
+                    <span className={c.openingBalanceType === 'advance' ? 'text-emerald-400 font-semibold' : 'text-gray-400'}>
                       {c.openingBalanceType === 'advance' ? '-' : ''}{formatCurrency(c.openingBalance || 0)}
                     </span>
                     {c.openingBalanceType === 'advance' && (
-                      <span className="block text-[10px] uppercase tracking-wider font-extrabold text-green-600 dark:text-green-400 mt-0.5">Advance</span>
+                      <span className="block text-[10px] uppercase tracking-wider font-extrabold text-emerald-400 mt-0.5">Advance</span>
                     )}
                   </td>
                   {(() => {
@@ -278,7 +278,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                     return (
                       <td className={`px-6 py-4 text-base font-mono font-bold text-right ${
                         dynamicBalance > 0 
-                          ? '!text-fuchsia-400' 
+                          ? '!text-purple-300' 
                           : dynamicBalance < 0 
                             ? '!text-emerald-400 font-semibold' 
                             : '!text-gray-300'
@@ -294,8 +294,8 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                   <td className="modern-td">
                     <span className={`inline-flex items-center px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${
                       c.status === 'active' 
-                        ? 'rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/45 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900 shadow-[inset_0_0_8px_rgba(16,185,129,0.6)]' 
-                        : 'rounded-md bg-red-100 text-red-800 dark:bg-red-950/45 dark:text-red-400 border border-red-200 dark:border-red-900'
+                        ? 'rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
+                        : 'rounded-md bg-purple-500/15 text-purple-300 border border-purple-500/30'
                     }`}>
                       {c.status.replace('_', ' ')}
                     </span>
@@ -305,7 +305,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                       {onViewCustomer && (
                         <button 
                           onClick={() => onViewCustomer(c.id)}
-                          className="p-2 text-gray-500 dark:text-gray-400 hover:text-sky-400 dark:hover:text-sky-300 hover:bg-sky-500/10 transition-colors rounded-md cursor-pointer"
+                          className="p-2 text-gray-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors rounded-md cursor-pointer"
                           title="View Customer Dashboard"
                           id={`btn-view-${c.id}`}
                         >
@@ -314,7 +314,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                       )}
                       <button 
                         onClick={() => setAdjustingCustomer(c)}
-                        className="p-2 text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors rounded-md"
+                        className="p-2 text-gray-400 hover:text-purple-300 hover:bg-purple-500/10 transition-colors rounded-md cursor-pointer"
                         title="Credit / Debit Adjustment"
                         id={`btn-adjust-${c.id}`}
                       >

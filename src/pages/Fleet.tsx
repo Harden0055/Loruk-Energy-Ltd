@@ -587,20 +587,15 @@ export default function Fleet({
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-blue-900">
             {filteredExpenses.map(e => (
-              <tr key={e.id} className="hover:bg-white/5 dark:hover:bg-blue-900/50 transition-colors duration-300">
+              <tr key={e.id} className="hover:bg-white/5 transition-colors duration-300">
                 <td className="modern-td">{format(e.date, 'MMM d, yyyy')}</td>
-                <td className="px-4 py-3 font-semibold text-blue-500 dark:text-blue-400 cursor-pointer hover:underline glow-blue-text" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
+                <td className="px-4 py-3 font-semibold text-emerald-400 hover:text-emerald-300 cursor-pointer hover:underline font-bold transition-colors" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
                 <td className="modern-td">
                   {e.station && (
                     <button
                       type="button"
                       onClick={() => onNavigateToStation?.(e.station, e.station)}
-                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold hover:opacity-80 transition-opacity cursor-pointer ${
-                        e.station === 'Gel - Bungoma' ? 'bg-pink-100 dark:bg-pink-900/50 text-pink-800 dark:text-pink-200' 
-                        : e.station === 'Gel - Kapenguria' ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200' 
-                        : e.station === 'Kengas' ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200'
-                        : 'bg-blue-500/10 text-blue-400 border border-blue-500/25'
-                      }`}
+                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/20 transition-all cursor-pointer"
                       title={`Open ${e.station} Dashboard`}
                     >
                       <span>{STATION_OPTIONS.find(opt => opt.value === e.station)?.label || e.station}</span>
@@ -608,7 +603,7 @@ export default function Fleet({
                   )}
                 </td>
                 <td className="modern-td">{e.litres ? `${e.litres.toLocaleString()} L` : '-'}</td>
-                <td className="modern-td">{formatCurrency(e.amount)}</td>
+                <td className="modern-td !text-purple-300 font-mono font-bold text-base">{formatCurrency(e.amount)}</td>
                 <td className="modern-td">
                   <div className="flex items-center justify-end gap-1.5">
                     <button 

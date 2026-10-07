@@ -280,13 +280,13 @@ export default function ExpensesView() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.25)]">
+          <div className="w-12 h-12 rounded-2xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.25)]">
             <ReceiptText className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-slate-100">Expenses & Recurring Costs</h1>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/30">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/15 text-purple-300 border border-purple-500/30">
                 {activeStation === 'Combined Total' ? 'All Stations' : activeStation}
               </span>
             </div>

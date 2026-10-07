@@ -370,28 +370,28 @@ export default function Dashboard({
                       >
                         <td className="modern-td">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center glow-blue-wrapper" title="Fleet Expense">
-                              <CarFront className="w-4 h-4 glow-blue-icon" />
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-purple-500/15 border border-purple-500/30 text-purple-300" title="Fleet Expense">
+                              <CarFront className="w-4 h-4" />
                             </div>
                             <div>
-                              <span className="text-xs font-bold uppercase px-1.5 py-0.5 rounded bg-blue-100/10 text-blue-400 border border-blue-500/15">
+                              <span className="text-xs font-bold uppercase px-1.5 py-0.5 rounded bg-purple-500/15 text-purple-300 border border-purple-500/30">
                                 Fleet Expense
                               </span>
                             </div>
                           </div>
                         </td>
-                        <td className="modern-td cursor-pointer hover:bg-white/10 dark:hover:bg-blue-800" onClick={() => onNavigateToTruck?.(act.carRegistration)}>
-                          <div className="font-bold text-blue-500 dark:text-blue-400 hover:underline glow-blue-text">{act.carRegistration}</div>
+                        <td className="modern-td cursor-pointer hover:bg-white/10" onClick={() => onNavigateToTruck?.(act.carRegistration)}>
+                          <div className="font-bold text-emerald-400 hover:text-emerald-300 hover:underline">{act.carRegistration}</div>
                         </td>
                         <td className="modern-td">
                           {act.station ? (
                             <button
                               type="button"
                               onClick={() => onNavigateToStation?.(act.station, act.station)}
-                              className="inline-flex items-center gap-1 font-bold text-blue-400 hover:text-blue-300 hover:underline cursor-pointer focus:outline-none transition-colors"
+                              className="inline-flex items-center gap-1 font-bold text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer focus:outline-none transition-colors"
                               title={`Open ${act.station} Dashboard`}
                             >
-                              <Building2 className="w-3.5 h-3.5 text-blue-400/80" />
+                              <Building2 className="w-3.5 h-3.5 text-emerald-400/80" />
                               <span>{act.station}</span>
                               <ExternalLink className="w-3 h-3 opacity-60" />
                             </button>
@@ -400,7 +400,7 @@ export default function Dashboard({
                           )}
                         </td>
                         <td className="modern-td">
-                          <span className="!text-rose-400 font-mono font-bold text-base">{formatCurrency(act.amount)}</span>
+                          <span className="!text-purple-300 font-mono font-bold text-base">{formatCurrency(act.amount)}</span>
                         </td>
                         <td className="modern-td text-xs font-mono font-medium text-gray-500 dark:text-gray-400 select-all max-w-[120px] truncate" title={act.createdBy}>
                           {act.createdBy || 'System'}

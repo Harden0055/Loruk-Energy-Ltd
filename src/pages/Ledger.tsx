@@ -586,36 +586,36 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
               ) : filteredEntries.length === 0 ? (
                 <tr className="modern-tr"><td colSpan={selectedCustomerId === 'all' ? 7 : 6} className="px-4 py-8 text-center text-gray-500 text-base">No transactions found.</td></tr>
               ) : [...filteredEntries].reverse().map(e => (
-                <tr key={e.id} className="hover:bg-white/5 dark:hover:bg-blue-900/50 transition-colors duration-300">
+                <tr key={e.id} className="hover:bg-white/5 transition-colors duration-300">
                   <td className="modern-td">{format(e.date, 'MMM d, yyyy HH:mm')}</td>
-                  {selectedCustomerId === 'all' && <td className="modern-td"><button className="hover:underline text-sky-400 dark:text-sky-300 cursor-pointer glow-sky-text font-bold" onClick={() => onViewCustomer?.(e.customerId)}>{e.customerName}</button></td>}
+                  {selectedCustomerId === 'all' && <td className="modern-td"><button className="hover:underline text-emerald-400 hover:text-emerald-300 cursor-pointer font-bold transition-colors" onClick={() => onViewCustomer?.(e.customerId)}>{e.customerName}</button></td>}
                   <td className="modern-td">
                     <span className="flex items-center gap-2">
                        {e.type === 'delivery' || e.type === 'adjustment_debit' ? (
-                         <ArrowUp className="w-5 h-5 text-red-500 dark:text-red-400 shrink-0" />
+                         <ArrowUp className="w-5 h-5 text-purple-400 shrink-0" />
                        ) : (
-                         <ArrowDown className="w-5 h-5 text-emerald-500 dark:text-emerald-400 shrink-0" />
+                         <ArrowDown className="w-5 h-5 text-emerald-400 shrink-0" />
                        )}
                        <span>{e.note}</span>
                     </span>
                   </td>
                   <td className="modern-td text-right font-mono font-bold text-sm">
-                    {e.debit > 0 ? <span className="!text-fuchsia-400">{formatCurrency(e.debit)}</span> : '-'}
+                    {e.debit > 0 ? <span className="!text-purple-300">{formatCurrency(e.debit)}</span> : '-'}
                   </td>
                   <td className="modern-td text-right font-mono font-bold text-sm">
                     {e.credit > 0 ? <span className="!text-emerald-400">{formatCurrency(e.credit)}</span> : '-'}
                   </td>
-                  <td className={`modern-td text-right font-mono font-bold text-sm ${e.runningBalance > 0 ? '!text-fuchsia-400' : e.runningBalance < 0 ? '!text-emerald-400' : '!text-theme-text-muted'}`}>
+                  <td className={`modern-td text-right font-mono font-bold text-sm ${e.runningBalance > 0 ? '!text-purple-300' : e.runningBalance < 0 ? '!text-emerald-400' : '!text-theme-text-muted'}`}>
                     {formatCurrency(e.runningBalance)}
                   </td>
                   <td className="modern-td">
                     <button 
                       onClick={() => setDeletingEntry(e)}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors rounded-md inline-flex items-center justify-center cursor-pointer"
+                      className="p-2 text-gray-400 hover:text-purple-300 hover:bg-purple-500/10 transition-colors rounded-md inline-flex items-center justify-center cursor-pointer"
                       title="Delete Transaction"
                       id={`btn-delete-entry-${e.id}`}
                     >
-                      <Trash2 className="w-5 h-5 text-gray-400 hover:text-red-605 dark:hover:text-red-400" />
+                      <Trash2 className="w-5 h-5 text-gray-400 hover:text-purple-300" />
                     </button>
                   </td>
                 </tr>

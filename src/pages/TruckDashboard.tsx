@@ -110,7 +110,7 @@ export default function TruckDashboard({
           )}
           <h2 className="text-2xl font-bold tracking-tight text-theme-text">Truck Fleet Performance Dashboard</h2>
         </div>
-        <button className="bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 cursor-pointer transition-colors shadow-sm">
+        <button className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 cursor-pointer transition-colors shadow-sm">
            <Download className="w-4 h-4" /> Export Report
         </button>
       </div>
@@ -119,19 +119,19 @@ export default function TruckDashboard({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div className="glass-panel border border-theme-border p-5 rounded-xl">
            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Total Spent</p>
-           <h3 className="text-2xl font-black font-mono text-blue-500 dark:text-blue-400 mt-2">{formatCurrency(totalExpense)}</h3>
+           <h3 className="text-2xl font-black font-mono text-purple-300 mt-2">{formatCurrency(totalExpense)}</h3>
         </div>
         <div className="glass-panel border border-theme-border p-5 rounded-xl">
            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Total Litres</p>
-           <h3 className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400 mt-2">{totalLitres.toLocaleString()} <span className="text-xs font-sans font-bold">L</span></h3>
+           <h3 className="text-2xl font-black font-mono text-emerald-400 mt-2">{totalLitres.toLocaleString()} <span className="text-xs font-sans font-bold">L</span></h3>
         </div>
         <div className="glass-panel border border-theme-border p-5 rounded-xl">
            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Avg Fuel Cost</p>
-           <h3 className="text-2xl font-black font-mono text-blue-600 dark:text-blue-400 mt-2">{avgCostPerLitre > 0 ? `${formatCurrency(avgCostPerLitre)}/L` : 'N/A'}</h3>
+           <h3 className="text-2xl font-black font-mono text-purple-300 mt-2">{avgCostPerLitre > 0 ? `${formatCurrency(avgCostPerLitre)}/L` : 'N/A'}</h3>
         </div>
         <div className="glass-panel border border-theme-border p-5 rounded-xl">
            <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Active Fleet</p>
-           <h3 className="text-2xl font-black font-mono text-amber-600 dark:text-amber-400 mt-2">{activeTrucksCount} <span className="text-xs font-sans font-bold">Trucks</span></h3>
+           <h3 className="text-2xl font-black font-mono text-emerald-400 mt-2">{activeTrucksCount} <span className="text-xs font-sans font-bold">Trucks</span></h3>
         </div>
       </div>
 
@@ -203,17 +203,15 @@ export default function TruckDashboard({
                                 : '';
               
               return (
-                <tr key={e.id} className="hover:bg-white/5 dark:hover:bg-blue-800/10">
+                <tr key={e.id} className="hover:bg-white/5 transition-colors">
                   <td className="modern-td">{format(e.date, 'MMM d, yyyy')}</td>
-                  <td className="px-4 py-3 font-semibold text-blue-500 dark:text-blue-400 cursor-pointer hover:underline glow-blue-text" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
+                  <td className="px-4 py-3 font-semibold text-emerald-400 hover:text-emerald-300 cursor-pointer hover:underline font-bold transition-colors" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
                   <td className="modern-td">
                     {e.station && (
                       <button
                         type="button"
                         onClick={() => onNavigateToStation?.(e.station, e.station)}
-                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold hover:opacity-80 transition-opacity cursor-pointer ${
-                          badgeClass || 'bg-blue-500/10 text-blue-400 border border-blue-500/25'
-                        }`}
+                        className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/20 transition-all cursor-pointer"
                         title={`Open ${e.station} Dashboard`}
                       >
                         <span>{e.station}</span>
@@ -221,7 +219,7 @@ export default function TruckDashboard({
                     )}
                   </td>
                   <td className="modern-td">{e.litres ? `${e.litres.toLocaleString()} L` : '-'}</td>
-                  <td className="modern-td"><span className="text-rose-400 font-mono font-bold text-base">{formatCurrency(e.amount)}</span></td>
+                  <td className="modern-td"><span className="!text-purple-300 font-mono font-bold text-base">{formatCurrency(e.amount)}</span></td>
                 </tr>
               );
             })}

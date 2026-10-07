@@ -39,270 +39,48 @@
   --theme-glow-accent: 0 0 15px rgba(139, 92, 246, 0.15);
 }
 
-.theme-high-contrast, [data-theme="high-contrast"] {
+.theme-high-contrast, [data-theme="high-contrast"],
+.theme-dark-blue, [data-theme="dark-blue"],
+.theme-emerald-aurora, [data-theme="emerald-aurora"],
+.theme-cyber-purple, [data-theme="cyber-purple"],
+.theme-sunset-amber, [data-theme="sunset-amber"],
+.theme-crimson-ruby, [data-theme="crimson-ruby"],
+.theme-slate-titanium, [data-theme="slate-titanium"] {
   --color-theme-bg: #000000;
   --color-theme-bg-dark: #000000;
-  --color-theme-panel: #070D1E;
-  --color-theme-panel-dark: #070D1E;
-  --color-theme-panel-elevated: #0E1A3C;
-  --color-theme-border: rgba(0, 229, 255, 0.28);
-  --color-theme-border-dark: rgba(0, 229, 255, 0.28);
+  --color-theme-panel: #000000;
+  --color-theme-panel-dark: #000000;
+  --color-theme-panel-elevated: #020204;
+  --color-theme-border: rgba(139, 92, 246, 0.18);
+  --color-theme-border-dark: rgba(139, 92, 246, 0.18);
   --color-theme-text: #FFFFFF;
   --color-theme-text-dark: #FFFFFF;
   --color-theme-text-muted: #94A3B8;
   --color-theme-text-muted-dark: #94A3B8;
-  --color-theme-primary: #00E5FF;
-  --color-theme-secondary: #3B82F6;
+  --color-theme-primary: #00E676;
+  --color-theme-secondary: #8B5CF6;
   --color-theme-tertiary: #A855F7;
-  --color-theme-spark: #38BDF8;
-  --color-theme-accent: #3B82F6;
-  --color-theme-highlight: #E0F2FE;
-  --color-theme-highlight-glow: #00E5FF;
+  --color-theme-spark: #10B981;
+  --color-theme-accent: #8B5CF6;
+  --color-theme-highlight: #E9D5FF;
+  --color-theme-highlight-glow: #00E676;
 
   --theme-canvas-bg: #000000;
   --theme-gradient-start: #000000;
   --theme-gradient-end: #000000;
   --theme-glass-bg: #000000;
-  --theme-glass-border: rgba(0, 229, 255, 0.24);
-  --theme-glass-hover-border: rgba(0, 229, 255, 0.55);
-  --theme-glass-hover-shadow: rgba(0, 229, 255, 0.3);
+  --theme-glass-border: rgba(139, 92, 246, 0.18);
+  --theme-glass-hover-border: rgba(0, 230, 118, 0.4);
+  --theme-glass-hover-shadow: rgba(0, 0, 0, 0.9);
   --theme-input-bg: #000000;
-  --theme-input-border: rgba(0, 229, 255, 0.25);
+  --theme-input-border: rgba(139, 92, 246, 0.18);
   --theme-header-bg: #000000;
   --theme-sidebar-bg: #000000;
-  --theme-sidebar-border: rgba(0, 229, 255, 0.25);
+  --theme-sidebar-border: rgba(139, 92, 246, 0.14);
 
-  --theme-accent-gradient: linear-gradient(135deg, #00E5FF 0%, #3B82F6 50%, #9333EA 100%);
+  --theme-accent-gradient: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 35%, #00E676 100%);
   --theme-card-gradient: #000000;
-  --theme-glow-accent: 0 0 24px rgba(0, 229, 255, 0.25);
-}
-
-.theme-dark-blue, [data-theme="dark-blue"] {
-  --color-theme-bg: #000000;
-  --color-theme-bg-dark: #000000;
-  --color-theme-panel: #0D1A38;
-  --color-theme-panel-dark: #0D1A38;
-  --color-theme-panel-elevated: #132752;
-  --color-theme-border: rgba(56, 189, 248, 0.26);
-  --color-theme-border-dark: rgba(56, 189, 248, 0.26);
-  --color-theme-text: #F8FAFC;
-  --color-theme-text-dark: #F8FAFC;
-  --color-theme-text-muted: #94A3B8;
-  --color-theme-text-muted-dark: #94A3B8;
-  --color-theme-primary: #38BDF8;
-  --color-theme-secondary: #2563EB;
-  --color-theme-tertiary: #2DD4BF;
-  --color-theme-spark: #818CF8;
-  --color-theme-accent: #2563EB;
-  --color-theme-highlight: #BAE6FD;
-  --color-theme-highlight-glow: #38BDF8;
-
-  --theme-canvas-bg: #000000;
-  --theme-gradient-start: #000000;
-  --theme-gradient-end: #000000;
-  --theme-glass-bg: #000000;
-  --theme-glass-border: rgba(56, 189, 248, 0.24);
-  --theme-glass-hover-border: rgba(56, 189, 248, 0.52);
-  --theme-glass-hover-shadow: rgba(56, 189, 248, 0.28);
-  --theme-input-bg: #000000;
-  --theme-input-border: rgba(56, 189, 248, 0.24);
-  --theme-header-bg: #000000;
-  --theme-sidebar-bg: #000000;
-  --theme-sidebar-border: rgba(56, 189, 248, 0.24);
-
-  --theme-accent-gradient: linear-gradient(135deg, #38BDF8 0%, #2563EB 50%, #4338CA 100%);
-  --theme-card-gradient: #000000;
-  --theme-glow-accent: 0 0 24px rgba(56, 189, 248, 0.25);
-}
-
-.theme-emerald-aurora, [data-theme="emerald-aurora"] {
-  --color-theme-bg: #000000;
-  --color-theme-bg-dark: #000000;
-  --color-theme-panel: #08251B;
-  --color-theme-panel-dark: #08251B;
-  --color-theme-panel-elevated: #0D3728;
-  --color-theme-border: rgba(52, 211, 153, 0.26);
-  --color-theme-border-dark: rgba(52, 211, 153, 0.26);
-  --color-theme-text: #F0FDF4;
-  --color-theme-text-dark: #F0FDF4;
-  --color-theme-text-muted: #86EFAC;
-  --color-theme-text-muted-dark: #86EFAC;
-  --color-theme-primary: #34D399;
-  --color-theme-secondary: #059669;
-  --color-theme-tertiary: #84CC16;
-  --color-theme-spark: #06B6D4;
-  --color-theme-accent: #10B981;
-  --color-theme-highlight: #A7F3D0;
-  --color-theme-highlight-glow: #34D399;
-
-  --theme-canvas-bg: #000000;
-  --theme-gradient-start: #000000;
-  --theme-gradient-end: #000000;
-  --theme-glass-bg: #000000;
-  --theme-glass-border: rgba(52, 211, 153, 0.24);
-  --theme-glass-hover-border: rgba(52, 211, 153, 0.52);
-  --theme-glass-hover-shadow: rgba(16, 185, 129, 0.28);
-  --theme-input-bg: #000000;
-  --theme-input-border: rgba(52, 211, 153, 0.24);
-  --theme-header-bg: #000000;
-  --theme-sidebar-bg: #000000;
-  --theme-sidebar-border: rgba(52, 211, 153, 0.24);
-
-  --theme-accent-gradient: linear-gradient(135deg, #34D399 0%, #10B981 50%, #047857 100%);
-  --theme-card-gradient: #000000;
-  --theme-glow-accent: 0 0 24px rgba(52, 211, 153, 0.25);
-}
-
-.theme-cyber-purple, [data-theme="cyber-purple"] {
-  --color-theme-bg: #000000;
-  --color-theme-bg-dark: #000000;
-  --color-theme-panel: #1A0A32;
-  --color-theme-panel-dark: #1A0A32;
-  --color-theme-panel-elevated: #280F4A;
-  --color-theme-border: rgba(192, 132, 252, 0.28);
-  --color-theme-border-dark: rgba(192, 132, 252, 0.28);
-  --color-theme-text: #FAF5FF;
-  --color-theme-text-dark: #FAF5FF;
-  --color-theme-text-muted: #D8B4FE;
-  --color-theme-text-muted-dark: #D8B4FE;
-  --color-theme-primary: #C084FC;
-  --color-theme-secondary: #9333EA;
-  --color-theme-tertiary: #F43F5E;
-  --color-theme-spark: #38BDF8;
-  --color-theme-accent: #9333EA;
-  --color-theme-highlight: #F0ABFC;
-  --color-theme-highlight-glow: #C084FC;
-
-  --theme-canvas-bg: #000000;
-  --theme-gradient-start: #000000;
-  --theme-gradient-end: #000000;
-  --theme-glass-bg: #000000;
-  --theme-glass-border: rgba(192, 132, 252, 0.24);
-  --theme-glass-hover-border: rgba(192, 132, 252, 0.52);
-  --theme-glass-hover-shadow: rgba(192, 132, 252, 0.3);
-  --theme-input-bg: #000000;
-  --theme-input-border: rgba(192, 132, 252, 0.24);
-  --theme-header-bg: #000000;
-  --theme-sidebar-bg: #000000;
-  --theme-sidebar-border: rgba(192, 132, 252, 0.24);
-
-  --theme-accent-gradient: linear-gradient(135deg, #C084FC 0%, #9333EA 50%, #E11D48 100%);
-  --theme-card-gradient: #000000;
-  --theme-glow-accent: 0 0 24px rgba(192, 132, 252, 0.25);
-}
-
-.theme-sunset-amber, [data-theme="sunset-amber"] {
-  --color-theme-bg: #000000;
-  --color-theme-bg-dark: #000000;
-  --color-theme-panel: #261105;
-  --color-theme-panel-dark: #261105;
-  --color-theme-panel-elevated: #3A1B09;
-  --color-theme-border: rgba(251, 191, 36, 0.28);
-  --color-theme-border-dark: rgba(251, 191, 36, 0.28);
-  --color-theme-text: #FFFBEB;
-  --color-theme-text-dark: #FFFBEB;
-  --color-theme-text-muted: #FCD34D;
-  --color-theme-text-muted-dark: #FCD34D;
-  --color-theme-primary: #FBBF24;
-  --color-theme-secondary: #EA580C;
-  --color-theme-tertiary: #E11D48;
-  --color-theme-spark: #FDE047;
-  --color-theme-accent: #EA580C;
-  --color-theme-highlight: #FEF08A;
-  --color-theme-highlight-glow: #FBBF24;
-
-  --theme-canvas-bg: #000000;
-  --theme-gradient-start: #000000;
-  --theme-gradient-end: #000000;
-  --theme-glass-bg: #000000;
-  --theme-glass-border: rgba(251, 191, 36, 0.24);
-  --theme-glass-hover-border: rgba(251, 191, 36, 0.52);
-  --theme-glass-hover-shadow: rgba(245, 158, 11, 0.28);
-  --theme-input-bg: #000000;
-  --theme-input-border: rgba(251, 191, 36, 0.24);
-  --theme-header-bg: #000000;
-  --theme-sidebar-bg: #000000;
-  --theme-sidebar-border: rgba(251, 191, 36, 0.24);
-
-  --theme-accent-gradient: linear-gradient(135deg, #FDE047 0%, #F59E0B 50%, #EA580C 100%);
-  --theme-card-gradient: #000000;
-  --theme-glow-accent: 0 0 24px rgba(251, 191, 36, 0.25);
-}
-
-.theme-crimson-ruby, [data-theme="crimson-ruby"] {
-  --color-theme-bg: #000000;
-  --color-theme-bg-dark: #000000;
-  --color-theme-panel: #260912;
-  --color-theme-panel-dark: #260912;
-  --color-theme-panel-elevated: #3A0F1D;
-  --color-theme-border: rgba(251, 113, 133, 0.28);
-  --color-theme-border-dark: rgba(251, 113, 133, 0.28);
-  --color-theme-text: #FFF1F2;
-  --color-theme-text-dark: #FFF1F2;
-  --color-theme-text-muted: #FDA4AF;
-  --color-theme-text-muted-dark: #FDA4AF;
-  --color-theme-primary: #FB7185;
-  --color-theme-secondary: #E11D48;
-  --color-theme-tertiary: #FB923C;
-  --color-theme-spark: #FDA4AF;
-  --color-theme-accent: #E11D48;
-  --color-theme-highlight: #FECDD3;
-  --color-theme-highlight-glow: #FB7185;
-
-  --theme-canvas-bg: #000000;
-  --theme-gradient-start: #000000;
-  --theme-gradient-end: #000000;
-  --theme-glass-bg: #000000;
-  --theme-glass-border: rgba(251, 113, 133, 0.24);
-  --theme-glass-hover-border: rgba(251, 113, 133, 0.52);
-  --theme-glass-hover-shadow: rgba(244, 63, 94, 0.28);
-  --theme-input-bg: #000000;
-  --theme-input-border: rgba(251, 113, 133, 0.24);
-  --theme-header-bg: #000000;
-  --theme-sidebar-bg: #000000;
-  --theme-sidebar-border: rgba(251, 113, 133, 0.24);
-
-  --theme-accent-gradient: linear-gradient(135deg, #FB7185 0%, #E11D48 50%, #9F1239 100%);
-  --theme-card-gradient: #000000;
-  --theme-glow-accent: 0 0 24px rgba(251, 113, 133, 0.25);
-}
-
-.theme-slate-titanium, [data-theme="slate-titanium"] {
-  --color-theme-bg: #000000;
-  --color-theme-bg-dark: #000000;
-  --color-theme-panel: #121926;
-  --color-theme-panel-dark: #121926;
-  --color-theme-panel-elevated: #1A2536;
-  --color-theme-border: rgba(226, 232, 240, 0.24);
-  --color-theme-border-dark: rgba(226, 232, 240, 0.24);
-  --color-theme-text: #F8FAFC;
-  --color-theme-text-dark: #F8FAFC;
-  --color-theme-text-muted: #94A3B8;
-  --color-theme-text-muted-dark: #94A3B8;
-  --color-theme-primary: #E2E8F0;
-  --color-theme-secondary: #94A3B8;
-  --color-theme-tertiary: #38BDF8;
-  --color-theme-spark: #F8FAFC;
-  --color-theme-accent: #64748B;
-  --color-theme-highlight: #FFFFFF;
-  --color-theme-highlight-glow: #CBD5E1;
-
-  --theme-canvas-bg: #000000;
-  --theme-gradient-start: #000000;
-  --theme-gradient-end: #000000;
-  --theme-glass-bg: #000000;
-  --theme-glass-border: rgba(226, 232, 240, 0.22);
-  --theme-glass-hover-border: rgba(226, 232, 240, 0.48);
-  --theme-glass-hover-shadow: rgba(148, 163, 184, 0.25);
-  --theme-input-bg: #000000;
-  --theme-input-border: rgba(226, 232, 240, 0.22);
-  --theme-header-bg: #000000;
-  --theme-sidebar-bg: #000000;
-  --theme-sidebar-border: rgba(226, 232, 240, 0.22);
-
-  --theme-accent-gradient: linear-gradient(135deg, #F8FAFC 0%, #94A3B8 50%, #475569 100%);
-  --theme-card-gradient: #000000;
-  --theme-glow-accent: 0 0 24px rgba(226, 232, 240, 0.22);
+  --theme-glow-accent: 0 0 15px rgba(139, 92, 246, 0.15);
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -856,8 +634,208 @@ svg.lucide {
 }
 
 .recharts-tooltip-label {
-  color: #3B82F6 !important;
+  color: #00E676 !important;
   font-weight: 700 !important;
+}
+
+/* ==========================================================================
+   DEEPCHARTS ACCOUNTING DUALITY SYSTEM:
+   1. All hyperlinks green in color (customers, trucks, stations, and any link)
+   2. All dropdowns green or purple depending on meaning
+   3. All buttons green or purple depending on meaning
+   4. All hover border lines and hover background colors green or purple
+   5. Green = positive transactions (revenue, payments, cash inflow, receipts)
+      Purple = negative transactions (expenses, deliveries, invoices, debits)
+   ========================================================================== */
+
+/* 1. Universal Green Hyperlinks across the entire system */
+a, 
+.link-green,
+a.font-bold,
+button.hover\:underline,
+td button.hover\:underline,
+table button.hover\:underline,
+button[data-link="true"],
+.glow-blue-text,
+.glow-sky-text,
+.text-sky-400.hover\:underline,
+.text-blue-500.hover\:underline,
+.text-blue-400.hover\:underline {
+  color: #00E676 !important;
+  text-decoration-color: #00E676 !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+a:hover, 
+.link-green:hover,
+a.font-bold:hover,
+button.hover\:underline:hover,
+td button.hover\:underline:hover,
+table button.hover\:underline:hover,
+button[data-link="true"]:hover,
+.glow-blue-text:hover,
+.glow-sky-text:hover,
+.text-sky-400.hover\:underline:hover,
+.text-blue-500.hover\:underline:hover,
+.text-blue-400.hover\:underline:hover {
+  color: #34D399 !important;
+  text-decoration-color: #34D399 !important;
+  text-shadow: 0 0 12px rgba(0, 230, 118, 0.55) !important;
+}
+
+/* 2. Dropdown styling (green or purple depending on meaning) */
+select, 
+.glass-select {
+  background-color: #000000 !important;
+  color: #F4F4F5 !important;
+  border: 1px solid rgba(139, 92, 246, 0.35) !important;
+  border-radius: 10px !important;
+  transition: all 0.2s ease !important;
+}
+
+select:hover,
+.glass-select:hover {
+  border-color: rgba(0, 230, 118, 0.5) !important;
+}
+
+select:focus,
+.glass-select:focus {
+  border-color: #00E676 !important;
+  box-shadow: 0 0 16px rgba(0, 230, 118, 0.35) !important;
+  outline: none !important;
+}
+
+/* Positive dropdowns (Payments, Status, Sales, Customers) */
+select.dropdown-green,
+select.select-positive,
+select[data-type="positive"],
+.select-positive {
+  border-color: rgba(0, 230, 118, 0.4) !important;
+  color: #00E676 !important;
+}
+select.dropdown-green:focus,
+select.select-positive:focus,
+select[data-type="positive"]:focus,
+.select-positive:focus {
+  border-color: #00E676 !important;
+  box-shadow: 0 0 18px rgba(0, 230, 118, 0.4) !important;
+}
+
+/* Negative dropdowns (Deliveries, Products, Expenses, Invoices, Debits) */
+select.dropdown-purple,
+select.select-negative,
+select[data-type="negative"],
+.select-negative {
+  border-color: rgba(139, 92, 246, 0.45) !important;
+  color: #C084FC !important;
+}
+select.dropdown-purple:focus,
+select.select-negative:focus,
+select[data-type="negative"]:focus,
+.select-negative:focus {
+  border-color: #A855F7 !important;
+  box-shadow: 0 0 18px rgba(168, 85, 247, 0.4) !important;
+}
+
+select option {
+  background-color: #050508 !important;
+  color: #FFFFFF !important;
+}
+
+/* 3. Button green or purple depending on meaning */
+.btn-positive,
+.btn-green,
+.deepcharts-btn-green {
+  background: linear-gradient(135deg, #00E676 0%, #10B981 100%) !important;
+  color: #000000 !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(0, 230, 118, 0.6) !important;
+  box-shadow: 0 0 20px rgba(0, 230, 118, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.btn-positive:hover,
+.btn-green:hover,
+.deepcharts-btn-green:hover {
+  background: linear-gradient(135deg, #34D399 0%, #00E676 100%) !important;
+  box-shadow: 0 0 32px rgba(0, 230, 118, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+.btn-positive-ghost {
+  background: rgba(0, 230, 118, 0.1) !important;
+  color: #00E676 !important;
+  border: 1px solid rgba(0, 230, 118, 0.35) !important;
+  transition: all 0.2s ease !important;
+}
+.btn-positive-ghost:hover {
+  background: rgba(0, 230, 118, 0.2) !important;
+  border-color: #00E676 !important;
+  color: #34D399 !important;
+  box-shadow: 0 0 18px rgba(0, 230, 118, 0.35) !important;
+}
+
+.btn-negative,
+.btn-purple,
+.deepcharts-btn-purple {
+  background: linear-gradient(135deg, #7C3AED 0%, #8B5CF6 50%, #9333EA 100%) !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(168, 85, 247, 0.5) !important;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+.btn-negative:hover,
+.btn-purple:hover,
+.deepcharts-btn-purple:hover {
+  background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%) !important;
+  box-shadow: 0 0 32px rgba(168, 85, 247, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
+  transform: translateY(-1px);
+}
+
+.btn-negative-ghost {
+  background: rgba(139, 92, 246, 0.12) !important;
+  color: #C084FC !important;
+  border: 1px solid rgba(139, 92, 246, 0.35) !important;
+  transition: all 0.2s ease !important;
+}
+.btn-negative-ghost:hover {
+  background: rgba(139, 92, 246, 0.24) !important;
+  border-color: #A855F7 !important;
+  color: #E9D5FF !important;
+  box-shadow: 0 0 18px rgba(168, 85, 247, 0.35) !important;
+}
+
+/* 4. Hover border lines or background colors: strictly green or purple depending on meaning */
+.hover-positive:hover,
+tr.hover-positive:hover,
+.hover\:border-emerald-500\/50:hover {
+  border-color: rgba(0, 230, 118, 0.5) !important;
+  background-color: rgba(0, 230, 118, 0.08) !important;
+}
+
+.hover-negative:hover,
+tr.hover-negative:hover,
+.hover\:border-purple-500\/50:hover {
+  border-color: rgba(168, 85, 247, 0.5) !important;
+  background-color: rgba(139, 92, 246, 0.08) !important;
+}
+
+/* 5. DeepCharts table row hover */
+.modern-tr:hover {
+  background: rgba(139, 92, 246, 0.04) !important;
+  border-bottom-color: rgba(0, 230, 118, 0.2) !important;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar-track {
+  background: #000000 !important;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3) !important;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 230, 118, 0.5) !important;
 }
 
 /* Chart Styles */

@@ -195,7 +195,7 @@ export default function Trucks({ onNavigateToTruck }: TrucksProps) {
 
         <button
           onClick={handleAddClick}
-          className="flex items-center justify-center gap-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer"
+          className="flex items-center justify-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 hover:shadow-[0_0_15px_rgba(0,230,118,0.2)] px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Add Truck
@@ -234,9 +234,21 @@ export default function Trucks({ onNavigateToTruck }: TrucksProps) {
                   <tr key={truck.id} className="hover:bg-white/5 transition-colors">
                     <td className="modern-td">
                       <div className="flex items-center gap-3">
-                        <div className="px-3 py-1.5 bg-yellow-400/90 text-slate-900 rounded-md font-mono text-base font-extrabold border-2 border-slate-900 shadow-sm inline-block select-all">
+                        <button
+                          type="button"
+                          onClick={() => onNavigateToTruck(truck.registration)}
+                          className="px-3 py-1.5 bg-yellow-400/90 hover:bg-yellow-400 text-slate-900 rounded-md font-mono text-base font-extrabold border-2 border-slate-900 shadow-sm inline-block select-all cursor-pointer hover:scale-105 transition-transform"
+                          title={`View Dashboard for ${truck.registration}`}
+                        >
                           {truck.registration}
-                        </div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onNavigateToTruck(truck.registration)}
+                          className="text-emerald-400 hover:text-emerald-300 font-bold hover:underline cursor-pointer text-sm hidden sm:inline"
+                        >
+                          View Dashboard &rarr;
+                        </button>
                       </div>
                     </td>
                     <td className="modern-td">
@@ -252,7 +264,7 @@ export default function Trucks({ onNavigateToTruck }: TrucksProps) {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => onNavigateToTruck(truck.registration)}
-                          className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-white/10 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                          className="p-1.5 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
                           title="View Dashboard"
                         >
                           <LineChart className="w-4 h-4" />
@@ -260,14 +272,14 @@ export default function Trucks({ onNavigateToTruck }: TrucksProps) {
                         </button>
                         <button
                           onClick={() => handleEditClick(truck)}
-                          className="p-1.5 text-gray-400 hover:text-blue-400 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+                          className="p-1.5 text-gray-400 hover:text-emerald-400 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
                           title="Edit Truck"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setDeletingTruck(truck)}
-                          className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+                          className="p-1.5 text-gray-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-lg transition-colors cursor-pointer"
                           title="Delete Truck"
                         >
                           <Trash2 className="w-4 h-4" />

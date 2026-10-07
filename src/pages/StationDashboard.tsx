@@ -579,26 +579,26 @@ export default function StationDashboard({
             </button>
           )}
 
-          <div className="w-12 h-12 rounded-2xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400 shadow-[0_0_20px_rgba(59,130,246,0.25)] shrink-0">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-[0_0_20px_rgba(0,230,118,0.25)] shrink-0">
             <Building2 className="w-6 h-6" />
           </div>
 
           <div>
             <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="font-mono text-xs uppercase tracking-widest bg-blue-500/10 text-blue-400 px-2.5 py-0.5 rounded-md font-bold border border-blue-500/25">
+              <span className="font-mono text-xs uppercase tracking-widest bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-md font-bold border border-emerald-500/25">
                 {currentStation.code || 'ST-001'}
               </span>
               <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold border ${
                 currentStation.status === 'active' 
                   ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' 
-                  : 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+                  : 'bg-purple-500/15 text-purple-300 border-purple-500/30'
               }`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${currentStation.status === 'active' ? 'bg-emerald-400 shadow-[0_0_8px_#34D399]' : 'bg-rose-400'}`} />
+                <span className={`w-1.5 h-1.5 rounded-full ${currentStation.status === 'active' ? 'bg-emerald-400 shadow-[0_0_8px_#34D399]' : 'bg-purple-400'}`} />
                 {currentStation.status === 'active' ? 'OPERATING STATION' : 'INACTIVE'}
               </span>
               {currentStation.location && (
                 <span className="inline-flex items-center gap-1 text-xs text-theme-text-muted font-medium">
-                  <MapPin className="w-3.5 h-3.5 text-blue-400" />
+                  <MapPin className="w-3.5 h-3.5 text-emerald-400" />
                   {currentStation.location}
                 </span>
               )}
@@ -617,7 +617,7 @@ export default function StationDashboard({
         <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
           {/* Station selector dropdown */}
           <div className="flex items-center gap-2 bg-theme-panel border border-theme-border rounded-xl px-3 py-2 shadow-inner">
-            <Building2 className="w-4 h-4 text-blue-400 shrink-0" />
+            <Building2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <select
               value={currentStation.id || currentStation.name}
               onChange={(e) => {
@@ -626,7 +626,7 @@ export default function StationDashboard({
                   onNavigateToStation(selected.id!, selected.name);
                 }
               }}
-              className="bg-transparent text-xs font-bold text-theme-text focus:outline-none cursor-pointer pr-2"
+              className="bg-transparent text-xs font-bold text-theme-text focus:outline-none cursor-pointer pr-2 dropdown-green"
               title="Switch Station"
             >
               {stations.map(st => (
@@ -645,7 +645,7 @@ export default function StationDashboard({
                 onClick={() => setDateRange(range)}
                 className={`px-2.5 py-1 text-xs font-bold rounded-lg uppercase tracking-wider transition-all cursor-pointer ${
                   dateRange === range
-                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30 shadow-sm'
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-sm'
                     : 'text-theme-text-muted hover:text-theme-text'
                 }`}
               >
@@ -656,10 +656,10 @@ export default function StationDashboard({
 
           <button
             onClick={handlePrintDossier}
-            className="px-3.5 py-2 bg-white/[0.04] hover:bg-white/[0.08] text-theme-text border border-theme-border rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+            className="px-3.5 py-2 bg-white/[0.04] hover:bg-white/[0.08] text-theme-text border border-theme-border rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm hover:border-emerald-500/40"
             title="Print Station Dossier"
           >
-            <Printer className="w-4 h-4 text-blue-400" />
+            <Printer className="w-4 h-4 text-emerald-400" />
             <span className="hidden sm:inline">Print Report</span>
           </button>
         </div>
@@ -667,41 +667,41 @@ export default function StationDashboard({
 
       {/* KPI Stats Cards Dashboard (6 Metrics) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
-        {/* Metric 1: Total Gross Revenue */}
-        <div className="glass-panel rounded-xl p-4 border border-blue-500/30 bg-blue-500/[0.03] shadow-[0_0_20px_rgba(59,130,246,0.08)]">
+        {/* Metric 1: Total Gross Deliveries (Negative/Invoice) */}
+        <div className="glass-panel rounded-xl p-4 border border-purple-500/30 bg-purple-500/[0.03] shadow-[0_0_20px_rgba(139,92,246,0.08)]">
           <div className="flex justify-between items-start">
             <p className="text-[11px] font-extrabold text-theme-text-muted uppercase tracking-wider">Deliveries Value</p>
-            <div className="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
+            <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2.5">
             <div className="flex items-baseline">
-              <span className="text-xs font-bold text-blue-400/80 mr-1">Ksh</span>
-              <h3 className="text-xl sm:text-2xl font-black font-mono text-blue-400 tracking-tight leading-none">
+              <span className="text-xs font-bold text-purple-400/80 mr-1">Ksh</span>
+              <h3 className="text-xl sm:text-2xl font-black font-mono text-purple-300 tracking-tight leading-none">
                 {totalDeliveriesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </h3>
             </div>
             <p className="text-[10px] text-theme-text-muted font-medium mt-1.5 truncate">
-              Fuel Deliveries: <span className="font-bold text-blue-300">Ksh {totalDeliveriesValue.toLocaleString()}</span>
+              Fuel Deliveries: <span className="font-bold text-purple-300">Ksh {totalDeliveriesValue.toLocaleString()}</span>
             </p>
           </div>
         </div>
 
         {/* Metric 2: Fuel Volume Dispensed */}
-        <div className="glass-panel rounded-xl p-4 border border-sky-500/30 bg-sky-500/[0.03] shadow-[0_0_20px_rgba(56,189,248,0.08)]">
+        <div className="glass-panel rounded-xl p-4 border border-purple-500/30 bg-purple-500/[0.03] shadow-[0_0_20px_rgba(139,92,246,0.08)]">
           <div className="flex justify-between items-start">
             <p className="text-[11px] font-extrabold text-theme-text-muted uppercase tracking-wider">Total Dispensed</p>
-            <div className="w-8 h-8 rounded-lg bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400">
+            <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400">
               <Fuel className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2.5">
             <div className="flex items-baseline">
-              <h3 className="text-xl sm:text-2xl font-black font-mono text-sky-400 tracking-tight leading-none">
+              <h3 className="text-xl sm:text-2xl font-black font-mono text-purple-300 tracking-tight leading-none">
                 {fuelMetrics.totalLitres.toLocaleString('en-US', { maximumFractionDigits: 1 })}
               </h3>
-              <span className="text-xs font-bold text-sky-400/80 ml-1">L</span>
+              <span className="text-xs font-bold text-purple-300/80 ml-1">L</span>
             </div>
             <p className="text-[10px] text-theme-text-muted font-medium mt-1.5 truncate">
               PMS: {fuelMetrics.superLitres.toLocaleString()}L • AGO: {fuelMetrics.dieselLitres.toLocaleString()}L
@@ -709,18 +709,18 @@ export default function StationDashboard({
           </div>
         </div>
 
-        {/* Metric 3: Station Operating Expenses */}
-        <div className="glass-panel rounded-xl p-4 border border-rose-500/30 bg-rose-500/[0.03] shadow-[0_0_20px_rgba(244,63,94,0.08)]">
+        {/* Metric 3: Station Operating Expenses (Negative Outflow) */}
+        <div className="glass-panel rounded-xl p-4 border border-purple-500/30 bg-purple-500/[0.03] shadow-[0_0_20px_rgba(139,92,246,0.08)]">
           <div className="flex justify-between items-start">
             <p className="text-[11px] font-extrabold text-theme-text-muted uppercase tracking-wider">Operating Expenses</p>
-            <div className="w-8 h-8 rounded-lg bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400">
+            <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400">
               <ReceiptText className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2.5">
             <div className="flex items-baseline">
-              <span className="text-xs font-bold text-rose-400/80 mr-1">Ksh</span>
-              <h3 className="text-xl sm:text-2xl font-black font-mono text-rose-400 tracking-tight leading-none">
+              <span className="text-xs font-bold text-purple-400/80 mr-1">Ksh</span>
+              <h3 className="text-xl sm:text-2xl font-black font-mono text-purple-300 tracking-tight leading-none">
                 {totalExpensesAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </h3>
             </div>
@@ -730,7 +730,7 @@ export default function StationDashboard({
           </div>
         </div>
 
-        {/* Metric 4: Net Operating Profit */}
+        {/* Metric 4: Net Operating Profit (Positive) */}
         <div className="glass-panel rounded-xl p-4 border border-emerald-500/30 bg-emerald-500/[0.03] shadow-[0_0_20px_rgba(16,185,129,0.08)]">
           <div className="flex justify-between items-start">
             <p className="text-[11px] font-extrabold text-theme-text-muted uppercase tracking-wider">Deliveries vs Expenses</p>
@@ -751,18 +751,18 @@ export default function StationDashboard({
           </div>
         </div>
 
-        {/* Metric 5: Liquid Cash & M-Pesa */}
-        <div className="glass-panel rounded-xl p-4 border border-purple-500/30 bg-purple-500/[0.03] shadow-[0_0_20px_rgba(168,85,247,0.08)]">
+        {/* Metric 5: Liquid Cash & M-Pesa (Positive Receipts) */}
+        <div className="glass-panel rounded-xl p-4 border border-emerald-500/30 bg-emerald-500/[0.03] shadow-[0_0_20px_rgba(0,230,118,0.08)]">
           <div className="flex justify-between items-start">
             <p className="text-[11px] font-extrabold text-theme-text-muted uppercase tracking-wider">Cash & M-Pesa</p>
-            <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
               <Wallet className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2.5">
             <div className="flex items-baseline">
-              <span className="text-xs font-bold text-purple-400/80 mr-1">Ksh</span>
-              <h3 className="text-xl sm:text-2xl font-black font-mono text-purple-400 tracking-tight leading-none">
+              <span className="text-xs font-bold text-emerald-400/80 mr-1">Ksh</span>
+              <h3 className="text-xl sm:text-2xl font-black font-mono text-emerald-400 tracking-tight leading-none">
                 {totalLiquidCash.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </h3>
             </div>

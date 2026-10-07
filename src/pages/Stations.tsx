@@ -253,7 +253,7 @@ export default function Stations({ onNavigateToStation }: StationsProps) {
                         className="text-left group cursor-pointer focus:outline-none"
                         title={`Open ${station.name} Dashboard`}
                       >
-                        <div className="flex items-center gap-1.5 font-bold text-blue-400 group-hover:text-blue-300 group-hover:underline text-base transition-colors">
+                        <div className="flex items-center gap-1.5 font-bold text-emerald-400 group-hover:text-emerald-300 group-hover:underline text-base transition-colors">
                           <span>{station.name}</span>
                           <ExternalLink className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
                         </div>
@@ -262,7 +262,7 @@ export default function Stations({ onNavigateToStation }: StationsProps) {
                     </td>
                     <td className="modern-td">
                       <span className="inline-flex items-center gap-1.5 glass-panel px-2 py-1 rounded-md text-xs text-theme-text-muted">
-                        <MapPin className="w-3.5 h-3.5 text-blue-400" />
+                        <MapPin className="w-3.5 h-3.5 text-emerald-400" />
                         {station.location || 'N/A'}
                       </span>
                     </td>
@@ -275,8 +275,8 @@ export default function Stations({ onNavigateToStation }: StationsProps) {
                     <td className="modern-td">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-2xs font-bold ${
                         station.status === 'active' 
-                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 border border-emerald-200/55' 
-                          : 'bg-gray-50 dark:bg-gray-900 text-gray-500 border border-theme-border/55'
+                          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
+                          : 'bg-purple-500/15 text-purple-300 border border-purple-500/30'
                       }`}>
                         {station.status === 'active' ? 'ACTIVE' : 'INACTIVE'}
                       </span>
@@ -286,7 +286,7 @@ export default function Stations({ onNavigateToStation }: StationsProps) {
                         {onNavigateToStation && (
                           <button
                             onClick={() => onNavigateToStation(station.id || '', station.name)}
-                            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg transition-all cursor-pointer shadow-sm"
+                            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 rounded-lg transition-all cursor-pointer shadow-sm"
                             title="Open Station Dashboard"
                           >
                             <BarChart3 className="w-3.5 h-3.5" />
@@ -295,14 +295,14 @@ export default function Stations({ onNavigateToStation }: StationsProps) {
                         )}
                         <button
                           onClick={() => handleEditClick(station)}
-                          className="p-1.5 text-gray-600 dark:text-gray-300 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-white/10 dark:hover:bg-blue-900/40 rounded-lg transition-colors cursor-pointer"
+                          className="p-1.5 text-gray-400 hover:text-emerald-400 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
                           title="Edit Station"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setDeletingStation(station)}
-                          className="p-1.5 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 hover:bg-white/10 dark:hover:bg-blue-900/40 rounded-lg transition-colors cursor-pointer"
+                          className="p-1.5 text-gray-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-lg transition-colors cursor-pointer"
                           title="Delete Station"
                         >
                           <Trash2 className="w-4 h-4" />

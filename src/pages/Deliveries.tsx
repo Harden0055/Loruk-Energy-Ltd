@@ -596,11 +596,11 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
             )}
           </button>
         </div>
-        <div className="flex items-center gap-3 w-full lg:w-auto p-2 bg-gradient-to-r from-blue-900/20 to-blue-900/10 border border-blue-800/30 rounded-xl shadow-inner">
+        <div className="flex items-center gap-3 w-full lg:w-auto p-2 bg-gradient-to-r from-purple-950/20 to-purple-900/10 border border-purple-800/30 rounded-xl shadow-inner">
           {selectedIds.length > 0 && (
             <button
               onClick={() => setShowBulkDeleteModal(true)}
-              className="w-full sm:w-auto bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              className="w-full sm:w-auto bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               <Trash2 className="w-4 h-4" />
               Delete Selected ({selectedIds.length})
@@ -608,14 +608,14 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
           )}
           <button 
             onClick={exportDeliveries}
-            className="w-full sm:w-auto bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full sm:w-auto bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <Download className="w-4 h-4" />
             Export CSV
           </button>
           <button 
             onClick={() => setShowAIModal(true)}
-            className="w-full sm:w-auto bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors"
+            className="w-full sm:w-auto bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:border-purple-400 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <Bot className="w-4 h-4" />
             AI Auto-Fill
@@ -625,7 +625,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
               setInitialForm(null);
               setIsAdding(true);
             }}
-            className="w-full sm:w-auto bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full sm:w-auto bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/40 hover:border-purple-400 hover:shadow-[0_0_15px_rgba(168,85,247,0.25)] px-4 py-2 rounded-lg text-lg font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             New Delivery
@@ -812,7 +812,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
         <div className="glass-panel border border-theme-border rounded-xl p-5 shadow-sm transition-colors flex items-start justify-between">
           <div className="space-y-1.5 overflow-hidden">
             <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider block truncate overflow-ellipsis">Total Delivered Value</span>
-            <div className="text-2xl font-extrabold font-mono text-blue-500 dark:text-blue-400 truncate">
+            <div className="text-2xl font-extrabold font-mono text-purple-400 truncate">
               {formatCurrency(stats.totalValue)}
             </div>
             <p className="text-2xs text-gray-400 dark:text-gray-500 truncate">Based on {filtered.length} filtered records</p>
@@ -1001,7 +1001,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
                         <>
                           <button 
                             onClick={() => onViewCustomer?.(d.customerId)}
-                            className="hover:underline text-sky-400 dark:text-sky-300 font-bold cursor-pointer text-left focus:outline-none glow-sky-text"
+                            className="hover:underline text-emerald-400 hover:text-emerald-300 font-bold cursor-pointer text-left focus:outline-none"
                           >
                             {customers.find(c => c.id === d.customerId)?.name || 'Unknown'}
                           </button>
@@ -1075,7 +1075,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
                           className="px-2 py-1 glass-panel border border-theme-border rounded-lg text-sm text-theme-text text-right focus:outline-none focus:ring-2 focus:ring-blue-500 w-28 font-mono font-bold"
                         />
                       ) : (
-                        <span className="!text-fuchsia-400 font-mono font-bold text-base">{formatCurrency(d.totalAmount)}</span>
+                        <span className="!text-purple-300 font-mono font-bold text-base">{formatCurrency(d.totalAmount)}</span>
                       )}
                     </td>
                     <td className="modern-td">
