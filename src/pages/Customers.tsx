@@ -266,7 +266,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                   </td>
                   <td className="modern-td">{formatCurrency(c.creditLimit)}</td>
                   <td className="modern-td">
-                    <span className={c.openingBalanceType === 'advance' ? 'text-emerald-400 font-semibold' : 'text-gray-400'}>
+                    <span className={c.openingBalanceType === 'advance' ? '!text-emerald-400 font-semibold' : (c.openingBalance || 0) > 0 ? '!text-[#9333EA] font-semibold' : 'text-gray-400'}>
                       {c.openingBalanceType === 'advance' ? '-' : ''}{formatCurrency(c.openingBalance || 0)}
                     </span>
                     {c.openingBalanceType === 'advance' && (
@@ -278,7 +278,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                     return (
                       <td className={`px-6 py-4 text-base font-mono font-bold text-right ${
                         dynamicBalance > 0 
-                          ? '!text-purple-300' 
+                          ? '!text-[#9333EA]' 
                           : dynamicBalance < 0 
                             ? '!text-emerald-400 font-semibold' 
                             : '!text-gray-300'
@@ -290,7 +290,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                       </td>
                     );
                   })()}
-                  <td className="modern-td">{formatCurrency(c.totalPurchases)}</td>
+                  <td className="modern-td !text-[#9333EA] font-mono font-bold">{formatCurrency(c.totalPurchases)}</td>
                   <td className="modern-td">
                     <span className={`inline-flex items-center px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${
                       c.status === 'active' 
@@ -876,15 +876,15 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
   return (
     <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-50 animate-fade-in" id="adjust-balance-modal">
       <div className="bg-[#0E0E12] rounded-xl shadow-2xl border border-theme-border w-full max-w-sm overflow-hidden transform transition-all duration-300">
-        <div className="px-6 py-4 border-b border-theme-border bg-sky-500/5 dark:bg-sky-500/5 flex justify-between items-center">
+        <div className="px-6 py-4 border-b border-theme-border bg-[#000000] flex justify-between items-center">
           <div>
-            <h3 className="text-lg font-bold text-sky-300">Adjust Customer Balance</h3>
-            <p className="text-xs text-sky-400/80 font-medium pb-1">Customer: {customer.name} ({customer.customerId})</p>
+            <h3 className="text-lg font-bold text-white">Adjust Customer Balance</h3>
+            <p className="text-xs text-theme-text-muted font-medium pb-1">Customer: {customer.name} ({customer.customerId})</p>
           </div>
           <button 
             type="button" 
             onClick={onClose}
-            className="p-1.5 text-sky-400 hover:text-sky-300 rounded-lg transition-colors cursor-pointer"
+            className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -899,22 +899,24 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
           )}
 
           <div>
-            <label className="block text-sm font-semibold text-sky-300 mb-1.5">Current Balance</label>
-            <div className="px-4 py-2 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base font-mono font-bold text-pink-600 dark:text-pink-400 shadow-sm">
+            <label className="block text-sm font-semibold text-white mb-1.5">Current Balance</label>
+            <div className={`px-4 py-2 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base font-mono font-bold shadow-sm ${
+              customer.balance > 0 ? 'text-[#9333EA]' : customer.balance < 0 ? 'text-emerald-400' : 'text-gray-300'
+            }`}>
               {formatCurrency(customer.balance)}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-sky-300 mb-1.5">Adjustment Type</label>
+            <label className="block text-sm font-semibold text-white mb-1.5">Adjustment Type</label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => setType('credit')}
                 className={`py-2 px-4 rounded-lg border text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer ${
                   type === 'credit'
-                    ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 ring-2 ring-emerald-500/10'
-                    : 'border-theme-border dark:border-theme-border glass-panel text-sky-400 dark:text-sky-300 hover:bg-sky-500/5'
+                    ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400 shadow-[0_0_15px_rgba(0,230,118,0.25)]'
+                    : 'border-white/10 text-gray-400 bg-white/[0.03] hover:text-white'
                 }`}
               >
                 Credit (-)
@@ -924,14 +926,14 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
                 onClick={() => setType('debit')}
                 className={`py-2 px-4 rounded-lg border text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer ${
                   type === 'debit'
-                    ? 'border-red-500 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 ring-2 ring-red-500/10'
-                    : 'border-theme-border dark:border-theme-border glass-panel text-sky-400 dark:text-sky-300 hover:bg-sky-500/5'
+                    ? 'border-purple-500 bg-purple-500/20 text-[#9333EA] shadow-[0_0_15px_rgba(147,51,234,0.25)]'
+                    : 'border-white/10 text-gray-400 bg-white/[0.03] hover:text-white'
                 }`}
               >
                 Debit (+)
               </button>
             </div>
-            <p className="mt-1 text-xs text-sky-400 italic">
+            <p className="mt-1 text-xs text-theme-text-muted italic">
               {type === 'credit' 
                 ? 'Credits deduct from outstanding balance (e.g., discounts, waivers, payment adjustments).' 
                 : 'Debits add to outstanding balance (e.g., surcharges, handling fees).'}
@@ -939,24 +941,30 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-sky-300 mb-1.5">Adjustment Date *</label>
+            <label className="block text-sm font-semibold text-white mb-1.5">Adjustment Date *</label>
             <input
               type="date"
               required
-              className="w-full px-4 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-theme-text dark:text-sky-100 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors shadow-sm"
+              className="w-full px-4 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-base text-white focus:outline-none focus:border-emerald-500 transition-colors shadow-sm"
               value={date}
               onChange={e => setDate(e.target.value)}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-sky-300 mb-1.5">Adjustment Amount (KES)</label>
+            <label className={`block text-sm font-semibold mb-1.5 transition-colors ${type === 'credit' ? 'text-emerald-400' : 'text-[#9333EA]'}`}>
+              Adjustment Amount (KES) * {type === 'credit' ? '(Credit - Deduct)' : '(Debit - Add)'}
+            </label>
             <input
               type="number"
               step="0.01"
               min="0.01"
               required
-              className="w-full px-4 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-theme-text dark:text-sky-100 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors placeholder:text-sky-500/55 shadow-sm"
+              className={`w-full px-4 py-2.5 bg-[#000000] rounded-lg text-base font-mono font-bold outline-none shadow-sm transition-all border ${
+                type === 'credit'
+                  ? 'text-emerald-400 border-emerald-500/50 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/50 shadow-[0_0_15px_rgba(0,230,118,0.15)]'
+                  : 'text-[#9333EA] border-purple-500/50 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 shadow-[0_0_15px_rgba(147,51,234,0.15)]'
+              }`}
               placeholder="0.00"
               value={amount}
               onChange={e => setAmount(e.target.value)}
@@ -964,11 +972,11 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-sky-300 mb-1.5">Reason / Description</label>
+            <label className="block text-sm font-semibold text-white mb-1.5">Reason / Description</label>
             <textarea
               required
               rows={3}
-              className="w-full px-4 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-theme-text dark:text-sky-100 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors placeholder:text-sky-500/55 resize-none shadow-sm"
+              className="w-full px-4 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-base text-white focus:outline-none focus:border-emerald-500 transition-colors placeholder:text-gray-500 resize-none shadow-sm"
               placeholder="E.g., Special weekend delivery fee waiver..."
               value={description}
               onChange={e => setDescription(e.target.value)}
@@ -980,14 +988,18 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="px-4 py-2 font-semibold text-sky-400 hover:text-sky-300 transition-colors cursor-pointer"
+              className="px-4 py-2 font-semibold text-gray-400 hover:text-white transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 hover:shadow-[0_0_15px_rgba(56,189,248,0.15)] rounded-lg text-sm font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-md shadow-sky-950/10"
+              className={`px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-md ${
+                type === 'credit'
+                  ? 'bg-emerald-500 hover:bg-emerald-400 text-black'
+                  : 'bg-purple-600 hover:bg-purple-500 text-white'
+              }`}
             >
               {loading ? 'Processing...' : 'Save Adjustment'}
             </button>

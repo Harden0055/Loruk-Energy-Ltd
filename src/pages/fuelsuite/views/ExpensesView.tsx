@@ -720,7 +720,7 @@ export default function ExpensesView() {
                           {t.paymentMethod || 'Cash'}
                         </span>
                       </Td>
-                      <Td className="text-right font-mono font-bold text-rose-400 text-sm">
+                      <Td className="text-right font-mono font-bold text-[#9333EA] text-sm">
                         KES {Number(t.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </Td>
                       <Td>

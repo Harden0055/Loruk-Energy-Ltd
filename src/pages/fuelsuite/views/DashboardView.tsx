@@ -676,7 +676,7 @@ export default function DashboardView() {
                         <td className="py-2 px-3 text-right text-purple-300">KES {Math.round(row.fuelRevenue).toLocaleString()}</td>
                         <td className="py-2 px-3 text-right text-purple-200">KES {Math.round(row.lpgRevenue).toLocaleString()}</td>
                         <td className="py-2 px-3 text-right font-bold text-white">KES {Math.round(row.totalGrossRevenue).toLocaleString()}</td>
-                        <td className="py-2 px-3 text-right text-rose-300">KES {Math.round(row.expenses).toLocaleString()}</td>
+                        <td className="py-2 px-3 text-right text-[#9333EA]">KES {Math.round(row.expenses).toLocaleString()}</td>
                         <td className={`py-2 px-3 text-right font-bold ${row.netMargin >= 0 ? 'text-emerald-400' : 'text-rose-300'}`}>
                           KES {Math.round(row.netMargin).toLocaleString()}
                         </td>
@@ -692,7 +692,7 @@ export default function DashboardView() {
                       <td className="py-2.5 px-3 text-right text-purple-300">KES {Math.round(reportTotals.fuelRevenue).toLocaleString()}</td>
                       <td className="py-2.5 px-3 text-right text-purple-200">KES {Math.round(reportTotals.lpgRevenue).toLocaleString()}</td>
                       <td className="py-2.5 px-3 text-right text-white">KES {Math.round(reportTotals.totalGrossRevenue).toLocaleString()}</td>
-                      <td className="py-2.5 px-3 text-right text-rose-300">KES {Math.round(reportTotals.expenses).toLocaleString()}</td>
+                      <td className="py-2.5 px-3 text-right text-[#9333EA]">KES {Math.round(reportTotals.expenses).toLocaleString()}</td>
                       <td className={`py-2.5 px-3 text-right ${reportTotals.netMargin >= 0 ? 'text-emerald-400' : 'text-rose-300'}`}>
                         KES {Math.round(reportTotals.netMargin).toLocaleString()}
                       </td>

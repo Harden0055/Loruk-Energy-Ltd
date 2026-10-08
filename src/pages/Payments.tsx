@@ -278,7 +278,7 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
                 required
                 value={form.customerId}
                 onChange={e => setForm({...form, customerId: e.target.value})}
-                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-theme-text dark:text-blue-50 text-base shadow-sm font-semibold cursor-pointer"
+                className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-white font-semibold cursor-pointer outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm transition-colors text-base customer-select"
               >
                 <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="" disabled>Select a customer...</option>
                 {customers.map(c => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={c.id} value={c.id}>{c.name}</option>)}
@@ -291,7 +291,7 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
                 required
                 value={form.date}
                 onChange={e => setForm({...form, date: e.target.value})}
-                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-theme-text dark:text-blue-50 text-base shadow-sm"
+                className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-white text-base shadow-sm"
               />
             </div>
             <div>
@@ -299,13 +299,13 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
               <input 
                 type="number" step="0.01" required
                 value={form.amount} onChange={e => setForm({...form, amount: e.target.value})}
-                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-theme-text dark:text-blue-50 text-base shadow-sm"
+                className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-white text-base shadow-sm font-mono font-bold"
               />
             </div>
           </div>
-          <div className="px-6 py-4 bg-emerald-500/5 dark:bg-emerald-500/5 border-t border-theme-border flex justify-end gap-3">
-             <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer">Cancel</button>
-             <button type="submit" disabled={loading} className="px-5 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:shadow-[0_0_15px_rgba(16,185,129,0.15)] rounded-lg text-base font-semibold transition-colors cursor-pointer">Save Payment</button>
+          <div className="px-6 py-4 bg-[#000000] border-t border-white/10 flex justify-end gap-3">
+             <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-gray-400 hover:text-white transition-colors cursor-pointer">Cancel</button>
+             <button type="submit" disabled={loading} className="px-5 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-lg text-base transition-colors cursor-pointer shadow-md shadow-emerald-500/25">Record Payment</button>
           </div>
         </form>
       </div>

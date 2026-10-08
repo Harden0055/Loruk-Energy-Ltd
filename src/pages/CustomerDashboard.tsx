@@ -1398,18 +1398,18 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       </td>
                       <td className="px-4 sm:px-6 py-3.5 text-right font-mono font-bold text-sm whitespace-nowrap">
                         {isOpening ? (
-                          <span className={customer?.openingBalanceType === 'advance' ? '!text-emerald-400' : '!text-purple-300'}>
+                          <span className={customer?.openingBalanceType === 'advance' ? '!text-emerald-400' : '!text-[#9333EA]'}>
                             {customer?.openingBalanceType === 'advance' ? '-' : '+'}Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         ) : (
-                          <span className={isPurpleAmount ? '!text-purple-300' : '!text-emerald-400'}>
+                          <span className={isPurpleAmount ? '!text-[#9333EA]' : '!text-emerald-400'}>
                             {isPurpleAmount ? '+' : '-'}Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         )}
                       </td>
                       <td className="px-4 sm:px-6 py-3.5 text-right font-mono font-bold text-sm whitespace-nowrap">
                         {e.balanceAfter > 0 ? (
-                          <span className="!text-purple-300">
+                          <span className="!text-[#9333EA]">
                             Ksh {e.balanceAfter.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         ) : e.balanceAfter < 0 ? (
@@ -1434,11 +1434,11 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 </td>
                 <td className="px-4 sm:px-6 py-4 text-right font-mono text-xs text-theme-text-muted whitespace-nowrap">
                   <span className="block text-[10px] uppercase font-sans tracking-widest text-slate-400">Total Purchases</span>
-                  Ksh {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  <span className="!text-[#9333EA] font-mono font-bold">Ksh {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </td>
                 <td className="px-4 sm:px-6 py-4 text-right font-mono font-black text-sm sm:text-base whitespace-nowrap">
                   <span className="block text-[10px] uppercase font-sans tracking-widest text-slate-400">Final Closing Balance</span>
-                  <span className={calculatedBalance > 0 ? '!text-purple-400' : calculatedBalance < 0 ? '!text-emerald-400' : '!text-white'}>
+                  <span className={calculatedBalance > 0 ? '!text-[#9333EA]' : calculatedBalance < 0 ? '!text-emerald-400' : '!text-white'}>
                     {calculatedBalance < 0 ? '-' : ''}Ksh {Math.abs(calculatedBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </td>
@@ -1463,33 +1463,52 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                  <div>
                   <label className="block text-sm font-semibold text-white mb-1.5">Adjustment Action *</label>
                   <div className="grid grid-cols-2 gap-3">
-                    <button type="button" onClick={() => setAdjustType('credit')} className={`px-4 py-3 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${adjustType === 'credit' ? 'bg-pink-500/15 border-pink-500/50 text-pink-400 shadow-[0_0_15px_rgba(236,72,153,0.15)]' : 'bg-white/[0.03] border-white/10 text-gray-400 hover:text-white'}`}>
-                       Balance Credit
+                    <button type="button" onClick={() => setAdjustType('credit')} className={`px-4 py-3 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${adjustType === 'credit' ? 'bg-emerald-500/15 border-emerald-500 text-emerald-400 shadow-[0_0_15px_rgba(0,230,118,0.25)]' : 'bg-white/[0.03] border-white/10 text-gray-400 hover:text-white'}`}>
+                       Credit (-)
                     </button>
-                    <button type="button" onClick={() => setAdjustType('debit')} className={`px-4 py-3 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${adjustType === 'debit' ? 'bg-emerald-500/15 border-emerald-500/50 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'bg-white/[0.03] border-white/10 text-gray-400 hover:text-white'}`}>
-                       Balance Debit
+                    <button type="button" onClick={() => setAdjustType('debit')} className={`px-4 py-3 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${adjustType === 'debit' ? 'bg-purple-500/15 border-purple-500 text-[#9333EA] shadow-[0_0_15px_rgba(147,51,234,0.25)]' : 'bg-white/[0.03] border-white/10 text-gray-400 hover:text-white'}`}>
+                       Debit (+)
                     </button>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-white mb-1.5">Override Amount (KES) *</label>
+                  <label className={`block text-sm font-semibold mb-1.5 transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#9333EA]'}`}>
+                    Override Amount (KES) * {adjustType === 'credit' ? '(Credit - Deduct)' : '(Debit - Add)'}
+                  </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-emerald-400 font-bold">KSh</span>
-                    <input type="number" required min="0" step="0.01" value={adjustAmount} onChange={e => setAdjustAmount(e.target.value)} className="w-full pl-12 pr-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-lg font-mono font-bold text-white outline-none focus:border-purple-500 shadow-sm" placeholder="0.00" />
+                    <span className={`absolute left-3.5 top-2.5 font-bold font-mono transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#9333EA]'}`}>KSh</span>
+                    <input 
+                      type="number" 
+                      required 
+                      min="0" 
+                      step="0.01" 
+                      value={adjustAmount} 
+                      onChange={e => setAdjustAmount(e.target.value)} 
+                      className={`w-full pl-14 pr-3.5 py-2.5 bg-[#000000] rounded-lg text-lg font-mono font-bold outline-none shadow-sm transition-all border ${
+                        adjustType === 'credit' 
+                          ? 'text-emerald-400 border-emerald-500/50 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/50 shadow-[0_0_15px_rgba(0,230,118,0.15)]' 
+                          : 'text-[#9333EA] border-purple-500/50 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 shadow-[0_0_15px_rgba(147,51,234,0.15)]'
+                      }`} 
+                      placeholder="0.00" 
+                    />
                   </div>
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-white mb-1.5">Date *</label>
-                  <input type="date" required value={adjustDate} onChange={e => setAdjustDate(e.target.value)} className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-base text-white outline-none focus:border-purple-500 shadow-sm" />
+                  <input type="date" required value={adjustDate} onChange={e => setAdjustDate(e.target.value)} className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-base text-white outline-none focus:border-emerald-500 shadow-sm" />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-white mb-1.5">Reason for Override *</label>
-                  <textarea required value={adjustReason} onChange={e => setAdjustReason(e.target.value)} rows={3} className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-sm text-white outline-none focus:border-purple-500 shadow-sm resize-none" placeholder="Explain why this ledger override is necessary..."></textarea>
+                  <textarea required value={adjustReason} onChange={e => setAdjustReason(e.target.value)} rows={3} className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-sm text-white outline-none focus:border-emerald-500 shadow-sm resize-none" placeholder="Explain why this ledger override is necessary..."></textarea>
                 </div>
               </div>
               <div className="px-6 py-4 border-t border-white/10 bg-[#000000] flex justify-end gap-3">
                  <button type="button" onClick={() => { setActiveModal(null); setEditingAdjustment(null); }} className="px-4 py-2 text-sm font-semibold text-gray-400 hover:text-white rounded-lg transition-colors cursor-pointer">Cancel</button>
-                 <button type="submit" disabled={modalLoading} className="px-5 py-2 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-bold rounded-lg shadow-sm transition-all cursor-pointer">
+                 <button type="submit" disabled={modalLoading} className={`px-5 py-2 disabled:opacity-50 text-sm font-bold rounded-lg shadow-sm transition-all cursor-pointer ${
+                   adjustType === 'credit'
+                     ? 'bg-emerald-500 hover:bg-emerald-400 text-black'
+                     : 'bg-purple-600 hover:bg-purple-500 text-white'
+                 }`}>
                    {modalLoading ? 'Saving...' : 'Update'}
                  </button>
               </div>
@@ -1525,7 +1544,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   <select 
                     value={deliveryProduct}
                     onChange={e => handleProductTypeChange(e.target.value as any)}
-                    className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold cursor-pointer outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-white font-semibold cursor-pointer outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm transition-colors"
                   >
                     {uniqueProducts.map(p => (
                       <option key={p.id} value={p.name} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{p.name}</option>
@@ -1739,7 +1758,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       onClick={() => setAdjustType('credit')}
                       className={`py-2 px-3 rounded-lg border text-sm font-bold transition-all shadow-sm cursor-pointer ${
                         adjustType === 'credit'
-                          ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-400'
+                          ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400 shadow-[0_0_15px_rgba(0,230,118,0.25)]'
                           : 'border-white/10 text-gray-400 bg-white/[0.03] hover:text-white'
                       }`}
                     >
@@ -1750,7 +1769,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       onClick={() => setAdjustType('debit')}
                       className={`py-2 px-3 rounded-lg border text-sm font-bold transition-all shadow-sm cursor-pointer ${
                         adjustType === 'debit'
-                          ? 'border-purple-500/50 bg-purple-500/15 text-purple-300'
+                          ? 'border-purple-500 bg-purple-500/20 text-[#9333EA] shadow-[0_0_15px_rgba(147,51,234,0.25)]'
                           : 'border-white/10 text-gray-400 bg-white/[0.03] hover:text-white'
                       }`}
                     >
@@ -1765,11 +1784,13 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     required
                     value={adjustDate}
                     onChange={e => setAdjustDate(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-base text-white outline-none focus:border-purple-500 shadow-sm"
+                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-base text-white outline-none focus:border-emerald-500 shadow-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-white mb-1.5">Override Amount (KES) *</label>
+                  <label className={`block text-sm font-semibold mb-1.5 transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#9333EA]'}`}>
+                    Override Amount (KES) * {adjustType === 'credit' ? '(Credit - Deduct)' : '(Debit - Add)'}
+                  </label>
                   <input 
                     type="number"
                     step="0.01"
@@ -1777,7 +1798,11 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     placeholder="0.00"
                     value={adjustAmount}
                     onChange={e => setAdjustAmount(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-base text-white outline-none focus:border-purple-500 shadow-sm"
+                    className={`w-full px-3.5 py-2.5 bg-[#000000] rounded-lg text-base font-mono font-bold outline-none shadow-sm transition-all border ${
+                      adjustType === 'credit'
+                        ? 'text-emerald-400 border-emerald-500/50 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/50 shadow-[0_0_15px_rgba(0,230,118,0.15)]'
+                        : 'text-[#9333EA] border-purple-500/50 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 shadow-[0_0_15px_rgba(147,51,234,0.15)]'
+                    }`}
                   />
                 </div>
                 <div>

@@ -1022,18 +1022,18 @@ export default function InvoicesView() {
                             </td>
 
                             {/* Total Invoiced */}
-                            <td className="py-3.5 px-3 text-right font-mono text-xs text-[#00D4FF]">
+                            <td className="py-3.5 px-3 text-right font-mono text-xs text-[#9333EA] font-bold">
                               KES {totalInvoiced.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </td>
 
                             {/* Total Paid */}
-                            <td className="py-3.5 px-3 text-right font-mono text-xs text-emerald-400">
+                            <td className="py-3.5 px-3 text-right font-mono text-xs text-emerald-400 font-bold">
                               KES {totalPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </td>
 
                             {/* Receivables / Net Balance */}
                             <td className="py-3.5 px-3 text-right font-mono text-xs font-bold">
-                              <span className={fin?.isOverLimit ? 'text-rose-400 drop-shadow-[0_0_8px_rgba(244,63,94,0.3)]' : netBalance > 0 ? 'text-[#A855F7]' : 'text-emerald-400'}>
+                              <span className={fin?.isOverLimit ? 'text-[#9333EA] drop-shadow-[0_0_8px_rgba(147,51,234,0.3)]' : netBalance > 0 ? 'text-[#9333EA]' : 'text-emerald-400'}>
                                 KES {netBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                               </span>
                             </td>
@@ -1461,7 +1461,7 @@ export default function InvoicesView() {
                 </div>
                 <div>
                   <p className="text-[10px] uppercase font-bold text-slate-500">Total Invoiced</p>
-                  <p className="text-sm font-bold font-mono text-[#00D4FF] mt-0.5">
+                  <p className="text-sm font-bold font-mono text-[#A855F7] mt-0.5">
                     KES {(customerFinancials.get(statementCustomer.id)?.totalInvoiced || 0).toLocaleString()}
                   </p>
                 </div>
@@ -1499,9 +1499,9 @@ export default function InvoicesView() {
                           <tr key={inv.id} className="hover:bg-slate-800/30">
                             <td className="p-3 font-mono text-slate-300">{inv.date}</td>
                             <td className="p-3 text-slate-400">{inv.station}</td>
-                            <td className="p-3 text-right font-mono text-[#00D4FF]">{(Number(inv.totalAmount) || 0).toLocaleString()}</td>
-                            <td className="p-3 text-right font-mono text-emerald-400">{(Number(inv.paidAmount) || 0).toLocaleString()}</td>
-                            <td className="p-3 text-right font-mono font-bold text-purple-400">{runningBal.toLocaleString()}</td>
+                            <td className="p-3 text-right font-mono text-[#9333EA] font-semibold">{(Number(inv.totalAmount) || 0).toLocaleString()}</td>
+                            <td className="p-3 text-right font-mono text-emerald-400 font-semibold">{(Number(inv.paidAmount) || 0).toLocaleString()}</td>
+                            <td className="p-3 text-right font-mono font-bold text-[#9333EA]">{runningBal.toLocaleString()}</td>
                             <td className="p-3 text-center">
                               {renderStatusBadge(invBal <= 0 ? 'PAID' : Number(inv.paidAmount) > 0 ? 'PARTIAL' : 'UNPAID', invBal)}
                             </td>

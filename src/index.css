@@ -483,7 +483,7 @@ svg.lucide {
   }
 
   .sidebar-item:hover {
-    background: rgba(139, 92, 246, 0.08) !important;
+    background: transparent !important;
     color: #00E676 !important;
   }
 
@@ -694,12 +694,20 @@ select,
 }
 
 select:hover,
-.glass-select:hover {
-  border-color: rgba(0, 230, 118, 0.5) !important;
+.glass-select:hover,
+select.customer-select:hover,
+select.product-select:hover,
+select[name*="customer"]:hover,
+select[name*="product"]:hover {
+  border-color: #00E676 !important;
+  color: #00E676 !important;
+  box-shadow: 0 0 14px rgba(0, 230, 118, 0.25) !important;
 }
 
 select:focus,
-.glass-select:focus {
+.glass-select:focus,
+select.customer-select:focus,
+select.product-select:focus {
   border-color: #00E676 !important;
   box-shadow: 0 0 16px rgba(0, 230, 118, 0.35) !important;
   outline: none !important;
@@ -721,20 +729,19 @@ select[data-type="positive"]:focus,
   box-shadow: 0 0 18px rgba(0, 230, 118, 0.4) !important;
 }
 
-/* Negative dropdowns (Deliveries, Products, Expenses, Invoices, Debits) */
-select.dropdown-purple,
-select.select-negative,
-select[data-type="negative"],
-.select-negative {
-  border-color: rgba(139, 92, 246, 0.45) !important;
-  color: #C084FC !important;
+/* Table debits strictly deep purple #9333EA, and credits green #00E676 */
+.debit-amount,
+.table-debit,
+[data-type="debit"],
+.text-debit {
+  color: #9333EA !important;
 }
-select.dropdown-purple:focus,
-select.select-negative:focus,
-select[data-type="negative"]:focus,
-.select-negative:focus {
-  border-color: #A855F7 !important;
-  box-shadow: 0 0 18px rgba(168, 85, 247, 0.4) !important;
+
+.credit-amount,
+.table-credit,
+[data-type="credit"],
+.text-credit {
+  color: #00E676 !important;
 }
 
 select option {

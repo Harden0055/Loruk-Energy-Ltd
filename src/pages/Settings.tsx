@@ -190,7 +190,7 @@ export default function Settings() {
               Interface Theme & Surface Styling
             </h3>
             <p className="text-xs text-theme-text-muted mt-1">
-              Select your favorite aesthetic color combination and toggle between solid matte and luminous solid-to-gradient surfaces.
+              DeepCharts Black with green and purple accounting duality. Toggle between solid matte, ambient gradient, and cosmic mesh surfaces.
             </p>
           </div>
           <ThemeToggle variant="button" />

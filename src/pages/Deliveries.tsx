@@ -666,7 +666,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
               <select
                 value={filterCustomerId}
                 onChange={e => setFilterCustomerId(e.target.value)}
-                className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border text-sm text-theme-text rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                className="w-full px-3 py-2 bg-[#000000] border border-theme-border text-sm text-theme-text rounded-lg outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors cursor-pointer customer-select"
               >
                 <option value="All" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">All Customers</option>
                 {customers.map(c => (
@@ -681,7 +681,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
               <select
                 value={filterProductType}
                 onChange={e => setFilterProductType(e.target.value as any)}
-                className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border text-sm text-theme-text rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                className="w-full px-3 py-2 bg-[#000000] border border-theme-border text-sm text-theme-text rounded-lg outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors cursor-pointer product-select"
               >
                 <option value="All" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">All Products</option>
                 {uniqueProducts.map(p => (
@@ -704,7 +704,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
               <select
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value)}
-                className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border text-sm text-theme-text rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                className="w-full px-3 py-2 bg-[#000000] border border-theme-border text-sm text-theme-text rounded-lg outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors cursor-pointer"
               >
                 <option value="date-desc" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Newest First</option>
                 <option value="date-asc" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Oldest First</option>
@@ -1075,7 +1075,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
                           className="px-2 py-1 glass-panel border border-theme-border rounded-lg text-sm text-theme-text text-right focus:outline-none focus:ring-2 focus:ring-blue-500 w-28 font-mono font-bold"
                         />
                       ) : (
-                        <span className="!text-purple-300 font-mono font-bold text-base">{formatCurrency(d.totalAmount)}</span>
+                        <span className="!text-[#9333EA] font-mono font-bold text-base">{formatCurrency(d.totalAmount)}</span>
                       )}
                     </td>
                     <td className="modern-td">
@@ -1415,23 +1415,23 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
           </div>
           <div className="p-6 space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Customer</label>
+              <label className="block text-sm font-semibold text-white mb-1.5">Customer</label>
               <select 
                 required
                 value={form.customerId}
                 onChange={e => setForm({...form, customerId: e.target.value})}
-                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
+                className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-white font-semibold cursor-pointer outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm transition-colors text-base customer-select"
               >
                 <option value="" disabled className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Select a customer</option>
                 {customers.map(c => <option key={c.id} value={c.id} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{c.name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Product Type</label>
+              <label className="block text-sm font-semibold text-white mb-1.5">Product Type</label>
               <select 
                 value={form.productType}
                 onChange={e => handleProductTypeChange(e.target.value)}
-                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
+                className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-white font-semibold cursor-pointer outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm transition-colors text-base product-select"
               >
                 {uniqueProducts.map(p => (
                   <option key={p.id} value={p.name} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{p.name}</option>
@@ -1549,7 +1549,7 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
           </div>
           <div className="px-6 py-4 bg-[#000000] border-t border-white/10 flex justify-end gap-3">
              <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-gray-400 hover:text-white transition-colors cursor-pointer">Cancel</button>
-             <button type="submit" disabled={loading} className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-base font-semibold transition-colors cursor-pointer shadow-sm">Record Delivery</button>
+             <button type="submit" disabled={loading} className="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-base font-semibold transition-colors cursor-pointer shadow-md shadow-purple-600/30">Record Delivery</button>
           </div>
         </form>
       </div>

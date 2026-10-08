@@ -78,10 +78,13 @@ export default function Sidebar({
   const { user, logout } = useAuth();
   const { theme } = useTheme();
 
-  // Hover and Pin expansion state
-  const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
-  const [pinnedItemId, setPinnedItemId] = useState<string | null>(null);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Click-only expansion state (no hover expansion)
+  const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+
+  const toggleExpand = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setExpandedItemId(prev => prev === id ? null : id);
+  };
 
   const navItems: NavParentItem[] = [
     { 
@@ -242,39 +245,9 @@ export default function Sidebar({
     return false;
   };
 
-  // Check if a parent item is expanded
+  // Check if a parent item is expanded (click-to-toggle only)
   const isExpanded = (parentId: string) => {
-    if (hoveredItemId !== null) {
-      return hoveredItemId === parentId;
-    }
-    if (pinnedItemId !== null) {
-      return pinnedItemId === parentId;
-    }
-    return isParentActive(parentId);
-  };
-
-  // Hover handlers with slight debounce for smooth navigation
-  const handleMouseEnter = (id: string) => {
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-      hoverTimeoutRef.current = null;
-    }
-    setHoveredItemId(id);
-  };
-
-  const handleMouseLeave = () => {
-    if (hoverTimeoutRef.current) {
-      clearTimeout(hoverTimeoutRef.current);
-    }
-    hoverTimeoutRef.current = setTimeout(() => {
-      setHoveredItemId(null);
-    }, 180);
-  };
-
-  // Toggle manual pin
-  const handleTogglePin = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setPinnedItemId(prev => prev === id ? null : id);
+    return expandedItemId === parentId;
   };
 
   // Helper to check active sub-page
@@ -304,37 +277,47 @@ export default function Sidebar({
     const Icon = item.icon;
     const isActive = isParentActive(item.id);
     const expanded = isExpanded(item.id);
+    const isDashboard = item.id === 'dashboard';
 
     return (
       <div 
         key={item.id} 
         className="relative group/parent transition-all"
-        onMouseEnter={() => handleMouseEnter(item.id)}
-        onMouseLeave={handleMouseLeave}
       >
         <div className="flex items-center">
           <button
             onClick={() => {
+              if (item.subPages && item.subPages.length > 0) {
+                toggleExpand(item.id);
+              }
               onNavigate(item.id);
               if (onClose) onClose();
             }}
             className={cn(
-              "flex-1 flex items-center gap-3 px-3.5 py-2.5 text-sm font-semibold rounded-xl sidebar-item cursor-pointer text-left transition-all duration-200",
-              isActive 
-                ? item.id === 'payments'
-                  ? "sidebar-item-active-green font-bold shadow-lg"
-                  : "sidebar-item-active font-bold shadow-lg"
-                : item.id === 'fuelsuite'
-                  ? "text-[#00E676] bg-[#00E676]/10 hover:bg-[#00E676]/15 border border-[#00E676]/30 shadow-[0_0_12px_rgba(0,230,118,0.15)]"
-                  : "text-theme-text-muted hover:bg-white/[0.06] hover:text-white"
+              "flex-1 flex items-center gap-3 px-3.5 py-2.5 text-sm font-semibold rounded-xl sidebar-item cursor-pointer text-left transition-colors duration-200",
+              isDashboard
+                ? isActive
+                  ? "!bg-transparent text-white border border-transparent hover:!text-[#00E676] hover:!bg-transparent"
+                  : "!bg-transparent text-theme-text-muted hover:!text-[#00E676] hover:!bg-transparent border border-transparent"
+                : isActive 
+                  ? item.id === 'payments'
+                    ? "sidebar-item-active-green font-bold shadow-lg"
+                    : "sidebar-item-active font-bold shadow-lg"
+                  : item.id === 'fuelsuite'
+                    ? "text-[#00E676] bg-[#00E676]/10 hover:bg-[#00E676]/15 border border-[#00E676]/30 shadow-[0_0_12px_rgba(0,230,118,0.15)]"
+                    : "text-theme-text-muted hover:!text-[#00E676] hover:bg-white/[0.04]"
             )}
             title={`Go to ${item.label}`}
           >
             <Icon className={cn(
-              "w-5 h-5 shrink-0 transition-transform duration-200 group-hover/parent:scale-110", 
-              isActive 
-                ? item.id === 'payments' ? "text-emerald-400 stroke-emerald-400" : "" 
-                : item.id === 'fuelsuite' ? "text-[#00E676]" : ""
+              "w-5 h-5 shrink-0 transition-colors duration-200", 
+              isDashboard
+                ? isActive
+                  ? "text-white group-hover/parent:!text-[#00E676]"
+                  : "text-theme-text-muted group-hover/parent:!text-[#00E676]"
+                : isActive 
+                  ? item.id === 'payments' ? "text-emerald-400 stroke-emerald-400" : "" 
+                  : item.id === 'fuelsuite' ? "text-[#00E676]" : "group-hover/parent:!text-[#00E676]"
             )} />
             <span className="truncate">{item.label}</span>
             {item.badge && (
@@ -348,16 +331,16 @@ export default function Sidebar({
           {item.subPages && item.subPages.length > 0 && (
             <button
               type="button"
-              onClick={(e) => handleTogglePin(item.id, e)}
+              onClick={(e) => toggleExpand(item.id, e)}
               className={cn(
-                "p-1.5 rounded-lg text-theme-text-muted hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0 ml-1",
-                expanded ? "text-theme-primary bg-white/[0.04]" : ""
+                "p-1.5 rounded-lg text-theme-text-muted hover:text-[#00E676] hover:bg-[#00E676]/10 transition-colors cursor-pointer shrink-0 ml-1",
+                expanded ? "text-[#00E676] bg-white/[0.04]" : ""
               )}
               title={expanded ? "Collapse sub-pages" : "Expand sub-pages"}
             >
               <ChevronDown className={cn(
                 "w-4 h-4 transition-transform duration-250 ease-out",
-                expanded ? "transform rotate-180 text-theme-primary" : "transform rotate-0"
+                expanded ? "transform rotate-180 text-[#00E676]" : "transform rotate-0"
               )} />
             </button>
           )}

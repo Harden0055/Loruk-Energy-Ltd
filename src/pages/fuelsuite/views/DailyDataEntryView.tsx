@@ -2782,13 +2782,13 @@ export default function DailyDataEntryView() {
                                 <td className="p-3 text-blue-400 font-bold">
                                   {invoiceDisplayNumber}
                                 </td>
-                                <td className="p-3 text-right text-slate-200 font-bold">
+                                <td className="p-3 text-right text-[#9333EA] font-bold">
                                   {invTotal > 0 ? `KES ${invTotal.toLocaleString()}` : '-'}
                                 </td>
                                 <td className="p-3 text-right text-emerald-400 font-bold">
                                   {invPaid > 0 ? `KES ${invPaid.toLocaleString()}` : '-'}
                                 </td>
-                                <td className={`p-3 text-right font-bold ${remainingDebt > 0 ? 'text-amber-400' : 'text-slate-500'}`}>
+                                <td className={`p-3 text-right font-bold ${remainingDebt > 0 ? 'text-[#9333EA]' : 'text-slate-500'}`}>
                                   {remainingDebt > 0 ? `KES ${remainingDebt.toLocaleString()}` : 'KES 0'}
                                 </td>
                                 <td className="p-3 text-center font-sans">
@@ -2823,7 +2823,7 @@ export default function DailyDataEntryView() {
               {/* Modal Footer */}
               <div className="p-4 border-t border-theme-border bg-slate-950/80 flex items-center justify-between">
                 <div className="text-xs text-slate-400">
-                  Total Customer Ledger Balance: <strong className={custData.netBalance > 0 ? 'text-amber-400 font-mono text-sm' : 'text-emerald-400 font-mono text-sm'}>KES {Math.round(custData.netBalance).toLocaleString()}</strong>
+                  Total Customer Ledger Balance: <strong className={custData.netBalance > 0 ? 'text-[#9333EA] font-mono text-sm' : 'text-emerald-400 font-mono text-sm'}>KES {Math.round(custData.netBalance).toLocaleString()}</strong>
                 </div>
                 <Button 
                   type="button" 

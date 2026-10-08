@@ -417,7 +417,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
           <select
             value={selectedCustomerId}
             onChange={(e) => setSelectedCustomerId(e.target.value)}
-            className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-theme-text cursor-pointer"
+            className="w-full px-3 py-2 bg-[#000000] border border-theme-border rounded-lg outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-theme-text cursor-pointer customer-select"
           >
             <option value="all" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">All Customers</option>
             {customers.map(c => (
@@ -430,7 +430,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value as any)}
-            className="w-full px-3 py-2 bg-blue-50/50 dark:bg-white/5 border border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-theme-text cursor-pointer"
+            className="w-full px-3 py-2 bg-[#000000] border border-theme-border rounded-lg outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-theme-text cursor-pointer"
           >
             <option value="all" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">All Transactions</option>
             <option value="delivery" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Deliveries (Debit)</option>
@@ -459,13 +459,13 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-[#000000] border border-white/[0.08] hover:border-red-500/30 p-6 rounded-xl shadow-sm flex items-center justify-between transition-colors">
+        <div className="bg-[#000000] border border-white/[0.08] hover:border-purple-500/30 p-6 rounded-xl shadow-sm flex items-center justify-between transition-colors">
           <div>
             <p className="text-sm font-semibold text-gray-400 mb-1">Filtered Debits (Deliveries)</p>
-            <h3 className="text-2xl font-bold text-white">{formatCurrency(totalDebits)}</h3>
+            <h3 className="text-2xl font-bold text-[#9333EA]">{formatCurrency(totalDebits)}</h3>
           </div>
-          <div className="w-12 h-12 bg-red-500/10 border border-red-500/20 rounded-full shadow-sm flex items-center justify-center">
-            <ArrowUp className="w-6 h-6 text-red-400" />
+          <div className="w-12 h-12 bg-purple-500/15 border border-purple-500/30 rounded-full shadow-sm flex items-center justify-center">
+            <ArrowUp className="w-6 h-6 text-[#9333EA]" />
           </div>
         </div>
         <div className="bg-[#000000] border border-white/[0.08] hover:border-emerald-500/30 p-6 rounded-xl shadow-sm flex items-center justify-between transition-colors">
@@ -600,12 +600,12 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
                     </span>
                   </td>
                   <td className="modern-td text-right font-mono font-bold text-sm">
-                    {e.debit > 0 ? <span className="!text-purple-300">{formatCurrency(e.debit)}</span> : '-'}
+                    {e.debit > 0 ? <span className="!text-[#9333EA]">{formatCurrency(e.debit)}</span> : '-'}
                   </td>
                   <td className="modern-td text-right font-mono font-bold text-sm">
                     {e.credit > 0 ? <span className="!text-emerald-400">{formatCurrency(e.credit)}</span> : '-'}
                   </td>
-                  <td className={`modern-td text-right font-mono font-bold text-sm ${e.runningBalance > 0 ? '!text-purple-300' : e.runningBalance < 0 ? '!text-emerald-400' : '!text-theme-text-muted'}`}>
+                  <td className={`modern-td text-right font-mono font-bold text-sm ${e.runningBalance > 0 ? '!text-[#9333EA]' : e.runningBalance < 0 ? '!text-emerald-400' : '!text-theme-text-muted'}`}>
                     {formatCurrency(e.runningBalance)}
                   </td>
                   <td className="modern-td">

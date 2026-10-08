@@ -1,14 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-export type Theme = 
-  | 'deepcharts'
-  | 'high-contrast' 
-  | 'dark-blue' 
-  | 'emerald-aurora' 
-  | 'cyber-purple' 
-  | 'sunset-amber' 
-  | 'crimson-ruby' 
-  | 'slate-titanium';
+export type Theme = 'deepcharts';
 
 export type SurfaceStyle = 'solid' | 'gradient' | 'mesh';
 
@@ -42,219 +34,30 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
   'deepcharts': {
     id: 'deepcharts',
     name: 'DeepCharts Black',
-    category: 'Pitch Black & Neon Purple/Green',
+    category: 'Pitch Black & Accounting Duality',
     badge: 'DeepCharts ⚡',
-    tagline: 'Pure pitch-black canvas with electric candlestick green for positive revenue/payments and royal purple for negative expenses/deliveries.',
+    tagline: 'Pure pitch-black canvas with candlestick green for positive revenue/payments and deep purple for negative expenses/deliveries.',
     accentColor: '#00E676',
     primaryColor: '#00E676',
-    secondaryColor: '#8B5CF6',
+    secondaryColor: '#9333EA',
     tertiaryColor: '#A855F7',
     sparkColor: '#10B981',
     gradientFrom: '#00E676',
-    gradientVia: '#8B5CF6',
+    gradientVia: '#9333EA',
     gradientTo: '#7C3AED',
     solidPreview: '#000000',
     gradientPreview: 'radial-gradient(ellipse 90% 65% at 50% 0%, #4C1D95 0%, #1E0838 45%, #000000 100%)',
-    borderClass: 'border-purple-500/40 shadow-[0_0_25px_rgba(139,92,246,0.3)]',
+    borderClass: 'border-purple-500/40 shadow-[0_0_25px_rgba(147,51,234,0.3)]',
     textAccentClass: 'text-emerald-400',
     harmonicPalette: [
       { name: 'Candle Green', hex: '#00E676', role: 'Positive (Revenue / Inflow)' },
-      { name: 'Smart Violet', hex: '#8B5CF6', role: 'Negative (Expense / Outflow)' },
+      { name: 'Deep Purple', hex: '#9333EA', role: 'Negative (Expense / Outflow)' },
       { name: 'Royal Orchid', hex: '#A855F7', role: 'Negative Accent' },
       { name: 'Mint Specular', hex: '#10B981', role: 'Positive Glow' },
       { name: 'Pitch Black', hex: '#000000', role: 'Deep Canvas' }
     ],
-    chartColors: ['#00E676', '#8B5CF6', '#10B981', '#A855F7', '#34D399'],
-  },
-  'high-contrast': {
-    id: 'high-contrast',
-    name: 'DeepCharts High Contrast',
-    category: 'Pitch Black & Neon Purple/Green',
-    badge: 'DeepCharts ⚡',
-    tagline: 'High contrast green and purple duality on pure black canvas.',
-    accentColor: '#00E676',
-    primaryColor: '#00E676',
-    secondaryColor: '#8B5CF6',
-    tertiaryColor: '#A855F7',
-    sparkColor: '#10B981',
-    gradientFrom: '#00E676',
-    gradientVia: '#8B5CF6',
-    gradientTo: '#7C3AED',
-    solidPreview: '#000000',
-    gradientPreview: 'radial-gradient(ellipse 90% 65% at 50% 0%, #4C1D95 0%, #1E0838 45%, #000000 100%)',
-    borderClass: 'border-emerald-500/40 shadow-[0_0_20px_rgba(0,230,118,0.25)]',
-    textAccentClass: 'text-emerald-400',
-    harmonicPalette: [
-      { name: 'Candle Green', hex: '#00E676', role: 'Positive' },
-      { name: 'Smart Violet', hex: '#8B5CF6', role: 'Negative' },
-      { name: 'Royal Orchid', hex: '#A855F7', role: 'Negative' },
-      { name: 'Mint Specular', hex: '#10B981', role: 'Positive' },
-      { name: 'Pitch Black', hex: '#000000', role: 'Deep Canvas' }
-    ],
-    chartColors: ['#00E676', '#8B5CF6', '#10B981', '#A855F7', '#34D399'],
-  },
-  'dark-blue': {
-    id: 'dark-blue',
-    name: 'DeepCharts Black',
-    category: 'Pitch Black & Neon Purple/Green',
-    badge: 'DeepCharts ⚡',
-    tagline: 'Pure pitch-black canvas with green and purple financial duality.',
-    accentColor: '#00E676',
-    primaryColor: '#00E676',
-    secondaryColor: '#8B5CF6',
-    tertiaryColor: '#A855F7',
-    sparkColor: '#10B981',
-    gradientFrom: '#00E676',
-    gradientVia: '#8B5CF6',
-    gradientTo: '#7C3AED',
-    solidPreview: '#000000',
-    gradientPreview: 'radial-gradient(ellipse 90% 65% at 50% 0%, #4C1D95 0%, #1E0838 45%, #000000 100%)',
-    borderClass: 'border-purple-500/40 shadow-[0_0_20px_rgba(139,92,246,0.25)]',
-    textAccentClass: 'text-emerald-400',
-    harmonicPalette: [
-      { name: 'Candle Green', hex: '#00E676', role: 'Positive' },
-      { name: 'Smart Violet', hex: '#8B5CF6', role: 'Negative' },
-      { name: 'Royal Orchid', hex: '#A855F7', role: 'Negative' },
-      { name: 'Mint Specular', hex: '#10B981', role: 'Positive' },
-      { name: 'Pitch Black', hex: '#000000', role: 'Deep Canvas' }
-    ],
-    chartColors: ['#00E676', '#8B5CF6', '#10B981', '#A855F7', '#34D399'],
-  },
-  'emerald-aurora': {
-    id: 'emerald-aurora',
-    name: 'DeepCharts Emerald',
-    category: 'Pitch Black & Neon Purple/Green',
-    badge: 'DeepCharts ⚡',
-    tagline: 'Pure pitch-black canvas with green and purple financial duality.',
-    accentColor: '#00E676',
-    primaryColor: '#00E676',
-    secondaryColor: '#8B5CF6',
-    tertiaryColor: '#A855F7',
-    sparkColor: '#10B981',
-    gradientFrom: '#00E676',
-    gradientVia: '#8B5CF6',
-    gradientTo: '#7C3AED',
-    solidPreview: '#000000',
-    gradientPreview: 'radial-gradient(ellipse 90% 65% at 50% 0%, #4C1D95 0%, #1E0838 45%, #000000 100%)',
-    borderClass: 'border-emerald-400/40 shadow-[0_0_20px_rgba(16,185,129,0.25)]',
-    textAccentClass: 'text-emerald-400',
-    harmonicPalette: [
-      { name: 'Candle Green', hex: '#00E676', role: 'Positive' },
-      { name: 'Smart Violet', hex: '#8B5CF6', role: 'Negative' },
-      { name: 'Royal Orchid', hex: '#A855F7', role: 'Negative' },
-      { name: 'Mint Specular', hex: '#10B981', role: 'Positive' },
-      { name: 'Pitch Black', hex: '#000000', role: 'Deep Canvas' }
-    ],
-    chartColors: ['#00E676', '#8B5CF6', '#10B981', '#A855F7', '#34D399'],
-  },
-  'cyber-purple': {
-    id: 'cyber-purple',
-    name: 'DeepCharts Purple',
-    category: 'Pitch Black & Neon Purple/Green',
-    badge: 'DeepCharts ⚡',
-    tagline: 'Pure pitch-black canvas with green and purple financial duality.',
-    accentColor: '#8B5CF6',
-    primaryColor: '#00E676',
-    secondaryColor: '#8B5CF6',
-    tertiaryColor: '#A855F7',
-    sparkColor: '#10B981',
-    gradientFrom: '#8B5CF6',
-    gradientVia: '#7C3AED',
-    gradientTo: '#00E676',
-    solidPreview: '#000000',
-    gradientPreview: 'radial-gradient(ellipse 90% 65% at 50% 0%, #4C1D95 0%, #1E0838 45%, #000000 100%)',
-    borderClass: 'border-purple-400/40 shadow-[0_0_20px_rgba(139,92,246,0.25)]',
-    textAccentClass: 'text-purple-400',
-    harmonicPalette: [
-      { name: 'Candle Green', hex: '#00E676', role: 'Positive' },
-      { name: 'Smart Violet', hex: '#8B5CF6', role: 'Negative' },
-      { name: 'Royal Orchid', hex: '#A855F7', role: 'Negative' },
-      { name: 'Mint Specular', hex: '#10B981', role: 'Positive' },
-      { name: 'Pitch Black', hex: '#000000', role: 'Deep Canvas' }
-    ],
-    chartColors: ['#00E676', '#8B5CF6', '#10B981', '#A855F7', '#34D399'],
-  },
-  'sunset-amber': {
-    id: 'sunset-amber',
-    name: 'DeepCharts Black',
-    category: 'Pitch Black & Neon Purple/Green',
-    badge: 'DeepCharts ⚡',
-    tagline: 'Pure pitch-black canvas with green and purple financial duality.',
-    accentColor: '#00E676',
-    primaryColor: '#00E676',
-    secondaryColor: '#8B5CF6',
-    tertiaryColor: '#A855F7',
-    sparkColor: '#10B981',
-    gradientFrom: '#00E676',
-    gradientVia: '#8B5CF6',
-    gradientTo: '#7C3AED',
-    solidPreview: '#000000',
-    gradientPreview: 'radial-gradient(ellipse 90% 65% at 50% 0%, #4C1D95 0%, #1E0838 45%, #000000 100%)',
-    borderClass: 'border-emerald-500/40 shadow-[0_0_20px_rgba(0,230,118,0.25)]',
-    textAccentClass: 'text-emerald-400',
-    harmonicPalette: [
-      { name: 'Candle Green', hex: '#00E676', role: 'Positive' },
-      { name: 'Smart Violet', hex: '#8B5CF6', role: 'Negative' },
-      { name: 'Royal Orchid', hex: '#A855F7', role: 'Negative' },
-      { name: 'Mint Specular', hex: '#10B981', role: 'Positive' },
-      { name: 'Pitch Black', hex: '#000000', role: 'Deep Canvas' }
-    ],
-    chartColors: ['#00E676', '#8B5CF6', '#10B981', '#A855F7', '#34D399'],
-  },
-  'crimson-ruby': {
-    id: 'crimson-ruby',
-    name: 'DeepCharts Black',
-    category: 'Pitch Black & Neon Purple/Green',
-    badge: 'DeepCharts ⚡',
-    tagline: 'Pure pitch-black canvas with green and purple financial duality.',
-    accentColor: '#8B5CF6',
-    primaryColor: '#00E676',
-    secondaryColor: '#8B5CF6',
-    tertiaryColor: '#A855F7',
-    sparkColor: '#10B981',
-    gradientFrom: '#00E676',
-    gradientVia: '#8B5CF6',
-    gradientTo: '#7C3AED',
-    solidPreview: '#000000',
-    gradientPreview: 'radial-gradient(ellipse 90% 65% at 50% 0%, #4C1D95 0%, #1E0838 45%, #000000 100%)',
-    borderClass: 'border-purple-500/40 shadow-[0_0_20px_rgba(139,92,246,0.25)]',
-    textAccentClass: 'text-purple-400',
-    harmonicPalette: [
-      { name: 'Candle Green', hex: '#00E676', role: 'Positive' },
-      { name: 'Smart Violet', hex: '#8B5CF6', role: 'Negative' },
-      { name: 'Royal Orchid', hex: '#A855F7', role: 'Negative' },
-      { name: 'Mint Specular', hex: '#10B981', role: 'Positive' },
-      { name: 'Pitch Black', hex: '#000000', role: 'Deep Canvas' }
-    ],
-    chartColors: ['#00E676', '#8B5CF6', '#10B981', '#A855F7', '#34D399'],
-  },
-  'slate-titanium': {
-    id: 'slate-titanium',
-    name: 'DeepCharts Black',
-    category: 'Pitch Black & Neon Purple/Green',
-    badge: 'DeepCharts ⚡',
-    tagline: 'Pure pitch-black canvas with green and purple financial duality.',
-    accentColor: '#00E676',
-    primaryColor: '#00E676',
-    secondaryColor: '#8B5CF6',
-    tertiaryColor: '#A855F7',
-    sparkColor: '#10B981',
-    gradientFrom: '#00E676',
-    gradientVia: '#8B5CF6',
-    gradientTo: '#7C3AED',
-    solidPreview: '#000000',
-    gradientPreview: 'radial-gradient(ellipse 90% 65% at 50% 0%, #4C1D95 0%, #1E0838 45%, #000000 100%)',
-    borderClass: 'border-emerald-500/40 shadow-[0_0_20px_rgba(0,230,118,0.25)]',
-    textAccentClass: 'text-emerald-400',
-    harmonicPalette: [
-      { name: 'Candle Green', hex: '#00E676', role: 'Positive' },
-      { name: 'Smart Violet', hex: '#8B5CF6', role: 'Negative' },
-      { name: 'Royal Orchid', hex: '#A855F7', role: 'Negative' },
-      { name: 'Mint Specular', hex: '#10B981', role: 'Positive' },
-      { name: 'Pitch Black', hex: '#000000', role: 'Deep Canvas' }
-    ],
-    chartColors: ['#00E676', '#8B5CF6', '#10B981', '#A855F7', '#34D399'],
-  },
+    chartColors: ['#00E676', '#9333EA', '#10B981', '#A855F7', '#34D399'],
+  }
 };
 
 interface ThemeContextType {
@@ -274,14 +77,7 @@ const THEME_STORAGE_KEY = 'loruk_ui_theme_mode';
 const SURFACE_STORAGE_KEY = 'loruk_ui_surface_style';
 
 const ALL_THEME_CLASSES = [
-  'theme-deepcharts',
-  'theme-high-contrast',
-  'theme-dark-blue',
-  'theme-emerald-aurora',
-  'theme-cyber-purple',
-  'theme-sunset-amber',
-  'theme-crimson-ruby',
-  'theme-slate-titanium'
+  'theme-deepcharts'
 ];
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -364,18 +160,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setSurfaceStyle(nextStyle);
   };
 
-  const activeConfig = THEME_CONFIGS[theme] || THEME_CONFIGS['high-contrast'];
+  const activeConfig = THEME_CONFIGS[theme] || THEME_CONFIGS['deepcharts'];
 
   return (
     <ThemeContext.Provider value={{ 
       theme, 
       setTheme, 
-      surfaceStyle,
-      setSurfaceStyle,
-      toggleTheme,
-      toggleSurfaceStyle,
-      isDarkBlue: theme === 'dark-blue',
-      activeConfig
+      surfaceStyle, 
+      setSurfaceStyle, 
+      toggleTheme, 
+      toggleSurfaceStyle, 
+      isDarkBlue: false, 
+      activeConfig 
     }}>
       {children}
     </ThemeContext.Provider>
