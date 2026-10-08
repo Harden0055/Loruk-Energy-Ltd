@@ -11,23 +11,13 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { 
   Users, 
   TrendingUp, 
-  AlertCircle, 
   Truck, 
   Fuel, 
   Activity, 
   DollarSign, 
   CarFront, 
   Building2, 
-  ExternalLink,
-  ArrowUpRight,
-  ArrowDownLeft,
-  CheckCircle2,
-  Clock,
-  Radio,
-  Layers,
-  ChevronRight,
-  ShieldCheck,
-  Zap
+  ExternalLink 
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSync } from '../lib/sync';
@@ -62,6 +52,7 @@ export default function Dashboard({
 
   const [isWiping, setIsWiping] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [liveTab, setLiveTab] = useState<'transactions' | 'customers' | 'trucks'>('transactions');
   const [txFilter, setTxFilter] = useState<'all' | 'delivery' | 'payment' | 'fleet'>('all');
 
   const handleClearDemoData = async () => {
@@ -90,17 +81,16 @@ export default function Dashboard({
   if (custLoad || expLoad || delLoad || payLoad || truckLoad) {
     return (
       <div className="animate-pulse space-y-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="h-28 bg-white/5 rounded-[20px]"></div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div className="h-28 bg-white/5 rounded-[20px]"></div>
           <div className="h-28 bg-white/5 rounded-[20px]"></div>
           <div className="h-28 bg-white/5 rounded-[20px]"></div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="h-72 bg-white/5 rounded-[20px]"></div>
+        <div className="h-64 bg-white/5 rounded-[20px]"></div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="h-72 bg-white/5 rounded-[20px] lg:col-span-2"></div>
           <div className="h-72 bg-white/5 rounded-[20px]"></div>
         </div>
-        <div className="h-80 bg-white/5 rounded-[20px]"></div>
       </div>
     );
   }
@@ -110,7 +100,73 @@ export default function Dashboard({
   const outstandingBalanceColor = outstandingBalance < 0 ? 'text-emerald-400' : 'text-purple-400';
   
   const totalFleetExpenses = expenses.reduce((acc, curr) => acc + curr.amount, 0);
-  const totalDeliveredValue = deliveries.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0);
+  const activeTrucksCount = new Set(expenses.map(e => e.carRegistration)).size;
+  const avgExpensePerTruck = activeTrucksCount > 0 ? totalFleetExpenses / activeTrucksCount : 0;
+
+  // --- Fleet Fueling Comparison Horizontal Bar Graph Data ---
+  const fleetExpensesSummary = expenses.reduce((acc, curr) => {
+    let car = acc.find(c => c.carRegistration === curr.carRegistration);
+    if (!car) {
+      car = { carRegistration: curr.carRegistration, totalAmount: 0, totalLitres: 0 };
+      acc.push(car);
+    }
+    car.totalAmount += curr.amount;
+    car.totalLitres += (curr.litres || 0);
+    return acc;
+  }, [] as { carRegistration: string, totalAmount: number, totalLitres: number }[])
+  .map(c => ({
+    ...c,
+    avgCostPerLitre: c.totalLitres > 0 ? c.totalAmount / c.totalLitres : 0
+  }))
+  .sort((a,b) => b.totalAmount - a.totalAmount);
+
+  // --- Top Customer Balances Horizontal Bar Graph Data ---
+  const sortedCustomers = [...customers].sort((a,b) => b.balance - a.balance);
+  const topDebtorsList = sortedCustomers.length > 10 
+    ? [...sortedCustomers.slice(0, 5), ...sortedCustomers.slice(-5)]
+    : sortedCustomers;
+
+  const topDebtors = topDebtorsList.map(c => ({
+    name: c.name,
+    Debt: c.balance
+  }));
+
+  const TruckTick = (props: any) => {
+    const { x, y, payload } = props;
+    return (
+      <text 
+        x={x} 
+        y={y} 
+        dy={4} 
+        textAnchor="end" 
+        fill="#9ca3af" 
+        fontSize={10} 
+        onClick={() => onNavigateToTruck?.(payload.value)} 
+        className="cursor-pointer hover:fill-emerald-400"
+      >
+        {payload.value}
+      </text>
+    );
+  };
+
+  const CustomerTick = (props: any) => {
+    const { x, y, payload } = props;
+    const customer = customers.find(c => c.name === payload.value);
+    return (
+      <text 
+        x={x} 
+        y={y} 
+        dy={4} 
+        textAnchor="end" 
+        fill="#9ca3af" 
+        fontSize={10} 
+        onClick={() => customer && onNavigateToCustomer?.(customer.id)} 
+        className="cursor-pointer hover:fill-emerald-400"
+      >
+        {payload.value}
+      </text>
+    );
+  };
 
   // --- Top Customers Live ---
   const topCustomersLive = [...customers]
@@ -144,7 +200,6 @@ export default function Dashboard({
     status: 'active' | 'inactive';
   }> = {};
 
-  // Register known trucks
   dbTrucks.forEach(t => {
     if (t.registration) {
       const reg = t.registration.trim().toUpperCase();
@@ -160,7 +215,6 @@ export default function Dashboard({
     }
   });
 
-  // Accumulate fleet expenses
   expenses.forEach(e => {
     const reg = (e.carRegistration || 'TRUCK').trim().toUpperCase();
     if (!regMap[reg]) {
@@ -195,9 +249,7 @@ export default function Dashboard({
       isLiveOperating: (now - t.lastDate) < FORTY_EIGHT_HOURS && t.lastDate > 0
     }));
 
-  const activeTrucksLiveCount = liveTrucks.filter(t => t.isLiveOperating).length;
-
-  // --- Very Recent Transactions (Live Stream) ---
+  // --- Very Recent Transactions Live Stream ---
   interface RecentTransaction {
     id: string;
     kind: 'delivery' | 'payment' | 'fleet';
@@ -215,7 +267,7 @@ export default function Dashboard({
   }
 
   const allRecentTransactions: RecentTransaction[] = [
-    // 1. Deliveries (Customer fuel sales)
+    // Deliveries
     ...deliveries.map(d => {
       const cust = customerMap[d.customerId];
       const prodName = d.productType ? `${d.productType} Fuel` : 'Fuel Delivery';
@@ -235,7 +287,7 @@ export default function Dashboard({
         createdBy: d.createdBy || 'Cashier'
       };
     }),
-    // 2. Payments (Customer settlements)
+    // Payments
     ...payments.map(p => {
       const cust = customerMap[p.customerId];
       return {
@@ -254,7 +306,7 @@ export default function Dashboard({
         createdBy: p.createdBy || 'Cashier'
       };
     }),
-    // 3. Fleet Fueling (Truck expenses)
+    // Fleet Fueling
     ...expenses.map(e => ({
       id: `exp-${e.id}`,
       kind: 'fleet' as const,
@@ -282,26 +334,6 @@ export default function Dashboard({
     payment: allRecentTransactions.filter(t => t.kind === 'payment').length,
     fleet: allRecentTransactions.filter(t => t.kind === 'fleet').length,
   };
-
-  const CustomerTick = (props: any) => {
-    const { x, y, payload } = props;
-    const customer = customers.find(c => c.name === payload.value);
-    return (
-      <text x={x} y={y} dy={4} textAnchor="end" fill="#9ca3af" fontSize={10} onClick={() => customer && onNavigateToCustomer?.(customer.id)} className="cursor-pointer hover:fill-emerald-400">
-        {payload.value}
-      </text>
-    );
-  };
-
-  const sortedCustomers = [...customers].sort((a,b) => b.balance - a.balance);
-  const topDebtorsList = sortedCustomers.length > 8 
-    ? [...sortedCustomers.slice(0, 4), ...sortedCustomers.slice(-4)]
-    : sortedCustomers;
-
-  const topDebtors = topDebtorsList.map(c => ({
-    name: c.name,
-    Debt: c.balance
-  }));
 
   return (
     <div className="space-y-6">
@@ -333,19 +365,13 @@ export default function Dashboard({
         </div>
       )}
 
-      {/* Summary Metrics (Figures fit cleanly into borders) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Summary Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <MetricCard 
           title="Total Outstanding Balances" 
           value={formatCurrency(outstandingBalance)} 
           icon={DollarSign} 
           color={outstandingBalanceColor} 
-        />
-        <MetricCard 
-          title="Delivered Customer Sales" 
-          value={formatCurrency(totalDeliveredValue)} 
-          icon={Fuel} 
-          color="text-emerald-400" 
         />
         <MetricCard 
           title="Total Fleet Fueling" 
@@ -354,162 +380,248 @@ export default function Dashboard({
           color="text-purple-400" 
         />
         <MetricCard 
-          title="Trucks Live (Operating)" 
-          value={`${activeTrucksLiveCount} / ${liveTrucks.length} Units`} 
-          icon={Truck} 
+          title="Average Expense per Truck" 
+          value={formatCurrency(avgExpensePerTruck)} 
+          icon={CarFront} 
           color="text-emerald-400" 
         />
       </div>
 
-      {/* Top Customers Live & Trucks Live Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Customer Credits and Debits Overview (Horizontal Bar Graph - RESTORED) */}
+      <div className="glass-panel p-6 rounded-[20px] flex flex-col transition-all duration-300 border border-theme-border shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold text-[#A1A1AA] uppercase tracking-wider flex items-center gap-2">
+            <span 
+              className="w-2 h-2 rounded-full shadow-sm"
+              style={{ backgroundColor: activeConfig.primaryColor, boxShadow: `0 0 8px ${activeConfig.primaryColor}` }}
+            />
+            Top Customer Balances
+          </h2>
+          <span className="text-xs text-gray-500 font-mono">Live Customer Credits & Debits</span>
+        </div>
+        <div className="h-[220px] w-full text-xs relative overflow-hidden">
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+            <BarChart data={topDebtors} layout="vertical" margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.03)" horizontal={false} />
+              <XAxis type="number" stroke="#71717A" tickLine={false} axisLine={false} hide />
+              <YAxis dataKey="name" type="category" tick={<CustomerTick />} stroke="#71717A" tickLine={false} axisLine={false} width={160} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: 'rgba(10, 10, 14, 0.98)', color: '#FFFFFF', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '12px' }} 
+                cursor={{fill: `${activeConfig.primaryColor}15`, opacity: 0.2}} 
+                formatter={(value: number) => [`${value >= 0 ? 'Debt: ' : 'Advance: '}${formatCurrency(Math.abs(value))}`, 'Balance']}
+              />
+              <Bar dataKey="Debt" fill={activeConfig.primaryColor} radius={[0, 4, 4, 0]} barSize={10} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
 
-        {/* Top Customers Live */}
-        <div className="glass-panel p-5 rounded-[20px] flex flex-col transition-all duration-300 border border-theme-border shadow-sm">
-          <div className="flex items-center justify-between mb-4 pb-3 border-b border-theme-border">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/25 flex items-center justify-center">
-                <Users className="w-4 h-4 text-purple-400" />
-              </div>
-              <div>
-                <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  Top Customers Live
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#00E676]" />
-                    LIVE
-                  </span>
-                </h2>
-                <p className="text-[11px] text-gray-400">Leading accounts by purchases & activity</p>
-              </div>
+      {/* Middle Grid: Replaced Zigzag Graph with Live Operations (Col 2) + Kept Fleet Horizontal Bar Graph (Col 1) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* REPLACED FLEET FUELING TREND (ZIGZAG GRAPH) WITH: Very Recent Transactions, Top Customers & Trucks Live */}
+        <div className="glass-panel p-5 rounded-[20px] flex flex-col transition-all duration-300 lg:col-span-2 border border-theme-border shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-theme-border">
+            <div className="flex items-center gap-2">
+              <span 
+                className="w-2 h-2 rounded-full shadow-sm"
+                style={{ backgroundColor: activeConfig.secondaryColor, boxShadow: `0 0 8px ${activeConfig.secondaryColor}` }}
+              />
+              <h2 className="text-sm font-semibold text-[#A1A1AA] uppercase tracking-wider flex items-center gap-2">
+                Live Operations
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#00E676]" />
+                  LIVE
+                </span>
+              </h2>
             </div>
-            <span className="text-xs font-mono text-purple-400 font-semibold">
-              {customers.length} total
-            </span>
+
+            {/* View Selector Tabs */}
+            <div className="flex items-center gap-1 p-0.5 rounded-lg bg-white/5 border border-white/10 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setLiveTab('transactions')}
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  liveTab === 'transactions' 
+                    ? 'bg-purple-600 text-white shadow-sm' 
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Activity className="w-3 h-3" />
+                <span>Recent Transactions</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLiveTab('customers')}
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  liveTab === 'customers' 
+                    ? 'bg-purple-600 text-white shadow-sm' 
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Users className="w-3 h-3" />
+                <span>Top Customers</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLiveTab('trucks')}
+                className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  liveTab === 'trucks' 
+                    ? 'bg-purple-600 text-white shadow-sm' 
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Truck className="w-3 h-3" />
+                <span>Trucks Live</span>
+              </button>
+            </div>
           </div>
 
-          <div className="space-y-2.5 flex-1">
-            {topCustomersLive.length === 0 ? (
-              <div className="text-center text-sm text-gray-500 py-8">
-                No customer accounts found.
-              </div>
-            ) : (
-              topCustomersLive.map((cust, idx) => {
-                const isOwing = (cust.balance || 0) > 0;
-                const isAdvance = (cust.balance || 0) < 0;
-                const isSettled = (cust.balance || 0) === 0;
-
-                return (
+          {/* TAB CONTENT: VERY RECENT TRANSACTIONS */}
+          {liveTab === 'transactions' && (
+            <div className="space-y-2 overflow-y-auto max-h-[220px] pr-1">
+              {allRecentTransactions.slice(0, 5).length === 0 ? (
+                <div className="text-center text-sm text-gray-500 py-8">No recent transactions recorded yet.</div>
+              ) : (
+                allRecentTransactions.slice(0, 5).map((tx) => (
                   <div
-                    key={cust.id}
-                    onClick={() => onNavigateToCustomer?.(cust.id)}
-                    className="p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-purple-500/40 transition-all duration-200 cursor-pointer flex items-center justify-between gap-3 group"
+                    key={tx.id}
+                    className="p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 transition-all flex items-center justify-between gap-3 text-xs"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold font-mono shrink-0 ${
-                        idx === 0 
-                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' 
-                          : idx === 1 
-                            ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40' 
-                            : 'bg-white/5 text-gray-400 border border-white/10'
-                      }`}>
-                        #{idx + 1}
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0">
+                        {tx.kind === 'delivery' && (
+                          <div className="w-7 h-7 rounded-lg bg-purple-500/15 border border-purple-500/30 text-purple-300 flex items-center justify-center">
+                            <Fuel className="w-3.5 h-3.5" />
+                          </div>
+                        )}
+                        {tx.kind === 'payment' && (
+                          <div className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 flex items-center justify-center">
+                            <DollarSign className="w-3.5 h-3.5" />
+                          </div>
+                        )}
+                        {tx.kind === 'fleet' && (
+                          <div className="w-7 h-7 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 flex items-center justify-center">
+                            <Truck className="w-3.5 h-3.5" />
+                          </div>
+                        )}
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-white group-hover:text-emerald-400 transition-colors truncate">
-                            {cust.name}
-                          </span>
-                          <span className={`text-[10px] font-bold uppercase px-1.5 py-0.2 rounded border ${
-                            cust.status === 'active' 
-                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
-                              : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                          }`}>
-                            {cust.status === 'active' ? 'Active' : 'Risk'}
-                          </span>
-                        </div>
-                        <div className="text-[11px] text-gray-400 flex items-center gap-2 mt-0.5 font-mono">
-                          <span>{cust.customerId || 'CUST'}</span>
-                          <span>•</span>
-                          <span className="text-gray-300">Purchases: {formatCurrency(cust.effectivePurchases)}</span>
-                          {cust.deliveryLitres > 0 && (
-                            <>
-                              <span>•</span>
-                              <span className="text-gray-400">{formatLitres(cust.deliveryLitres)}</span>
-                            </>
+                          {tx.isCustomer ? (
+                            <button
+                              type="button"
+                              onClick={() => tx.partyId && onNavigateToCustomer?.(tx.partyId)}
+                              className="font-bold text-white hover:text-emerald-400 hover:underline cursor-pointer truncate text-left"
+                            >
+                              {tx.partyName}
+                            </button>
+                          ) : tx.isTruck ? (
+                            <button
+                              type="button"
+                              onClick={() => tx.partyId && onNavigateToTruck?.(tx.partyId)}
+                              className="font-bold text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer truncate text-left"
+                            >
+                              {tx.partyName}
+                            </button>
+                          ) : (
+                            <span className="font-bold text-white truncate">{tx.partyName}</span>
                           )}
+                          <span className="text-[10px] text-gray-400 font-mono">({tx.detail})</span>
+                        </div>
+                        <div className="text-[10px] text-gray-400 flex items-center gap-1.5 mt-0.5 font-mono">
+                          <span>{tx.station}</span>
+                          <span>•</span>
+                          <span>{tx.date > 0 ? format(tx.date, 'HH:mm • MMM d') : 'Recent'}</span>
                         </div>
                       </div>
                     </div>
-
-                    <div className="text-right shrink-0 flex items-center gap-2.5">
-                      <div>
-                        <div className="text-[10px] uppercase font-semibold text-gray-400">Balance</div>
-                        <div className={`font-mono font-bold text-sm ${
-                          isOwing 
-                            ? '!text-[#9333EA]' 
-                            : isAdvance 
-                              ? '!text-[#00E676]' 
-                              : 'text-gray-400'
-                        }`}>
-                          {isAdvance && 'Adv '}
-                          {formatCurrency(Math.abs(cust.balance || 0))}
-                        </div>
+                    <div className="text-right shrink-0">
+                      <div className={`font-mono font-bold text-xs ${
+                        tx.kind === 'payment' ? '!text-[#00E676]' : '!text-[#9333EA]'
+                      }`}>
+                        {tx.kind === 'payment' ? '+ ' : ''}{formatCurrency(tx.amount)}
                       </div>
-                      <ExternalLink className="w-4 h-4 text-gray-500 group-hover:text-emerald-400 transition-colors shrink-0" />
+                      {tx.litres && tx.litres > 0 && (
+                        <div className="text-[10px] text-gray-400 font-mono">{formatLitres(tx.litres)}</div>
+                      )}
                     </div>
                   </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* Trucks Live */}
-        <div className="glass-panel p-5 rounded-[20px] flex flex-col transition-all duration-300 border border-theme-border shadow-sm">
-          <div className="flex items-center justify-between mb-4 pb-3 border-b border-theme-border">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center">
-                <Truck className="w-4 h-4 text-emerald-400" />
-              </div>
-              <div>
-                <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  Trucks Live Fleet
-                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#00E676]" />
-                    LIVE
-                  </span>
-                </h2>
-                <p className="text-[11px] text-gray-400">Live operational status & fuel consumption</p>
-              </div>
+                ))
+              )}
             </div>
-            <span className="text-xs font-mono text-emerald-400 font-semibold">
-              {liveTrucks.length} vehicles
-            </span>
-          </div>
+          )}
 
-          <div className="space-y-2.5 flex-1">
-            {liveTrucks.length === 0 ? (
-              <div className="text-center text-sm text-gray-500 py-8">
-                No fleet trucks registered yet.
-              </div>
-            ) : (
-              liveTrucks.map((truck) => {
-                return (
+          {/* TAB CONTENT: TOP CUSTOMERS LIVE */}
+          {liveTab === 'customers' && (
+            <div className="space-y-2 overflow-y-auto max-h-[220px] pr-1">
+              {topCustomersLive.length === 0 ? (
+                <div className="text-center text-sm text-gray-500 py-8">No customer accounts logged yet.</div>
+              ) : (
+                topCustomersLive.map((cust, idx) => {
+                  const isOwing = (cust.balance || 0) > 0;
+                  const isAdvance = (cust.balance || 0) < 0;
+                  return (
+                    <div
+                      key={cust.id}
+                      onClick={() => onNavigateToCustomer?.(cust.id)}
+                      className="p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 transition-all flex items-center justify-between gap-3 text-xs cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold font-mono shrink-0 ${
+                          idx === 0 ? 'bg-amber-500/20 text-amber-300' : 'bg-white/5 text-gray-400'
+                        }`}>
+                          #{idx + 1}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-bold text-white group-hover:text-emerald-400 transition-colors truncate">
+                            {cust.name}
+                          </div>
+                          <div className="text-[10px] text-gray-400 font-mono mt-0.5">
+                            Purchases: {formatCurrency(cust.effectivePurchases)}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0 flex items-center gap-2">
+                        <div>
+                          <div className="text-[9px] uppercase font-semibold text-gray-400">Balance</div>
+                          <div className={`font-mono font-bold text-xs ${
+                            isOwing ? '!text-[#9333EA]' : isAdvance ? '!text-[#00E676]' : 'text-gray-400'
+                          }`}>
+                            {isAdvance && 'Adv '}{formatCurrency(Math.abs(cust.balance || 0))}
+                          </div>
+                        </div>
+                        <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-emerald-400 transition-colors shrink-0" />
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+
+          {/* TAB CONTENT: TRUCKS LIVE */}
+          {liveTab === 'trucks' && (
+            <div className="space-y-2 overflow-y-auto max-h-[220px] pr-1">
+              {liveTrucks.length === 0 ? (
+                <div className="text-center text-sm text-gray-500 py-8">No fleet trucks logged yet.</div>
+              ) : (
+                liveTrucks.map((truck) => (
                   <div
                     key={truck.registration}
                     onClick={() => onNavigateToTruck?.(truck.registration)}
-                    className="p-3 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 hover:border-emerald-500/40 transition-all duration-200 cursor-pointer flex items-center justify-between gap-3 group"
+                    className="p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 transition-all flex items-center justify-between gap-3 text-xs cursor-pointer group"
                   >
-                    <div className="flex items-center gap-3 min-w-0">
-                      <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
-                        <Truck className="w-4 h-4" />
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
+                        <Truck className="w-3.5 h-3.5" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-white group-hover:text-emerald-400 transition-colors truncate">
+                          <span className="font-bold text-emerald-400 group-hover:text-emerald-300 transition-colors truncate">
                             {truck.registration}
                           </span>
-                          <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-1.5 py-0.2 rounded border ${
+                          <span className={`inline-flex items-center gap-1 text-[9px] font-bold uppercase px-1 py-0.2 rounded border ${
                             truck.isLiveOperating 
                               ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
                               : 'bg-white/5 text-gray-400 border-white/10'
@@ -518,39 +630,62 @@ export default function Dashboard({
                             {truck.isLiveOperating ? 'Operating' : 'Standby'}
                           </span>
                         </div>
-                        <div className="text-[11px] text-gray-400 flex items-center gap-2 mt-0.5 font-mono">
-                          <span className="text-gray-300">{truck.lastStation}</span>
-                          <span>•</span>
-                          <span>{truck.lastDate > 0 ? format(truck.lastDate, 'MMM d, HH:mm') : 'No recent logs'}</span>
-                          {truck.totalLitres > 0 && (
-                            <>
-                              <span>•</span>
-                              <span className="text-gray-400">{formatLitres(truck.totalLitres)}</span>
-                            </>
-                          )}
+                        <div className="text-[10px] text-gray-400 font-mono mt-0.5">
+                          {truck.lastStation} • {truck.lastDate > 0 ? format(truck.lastDate, 'MMM d, HH:mm') : 'No logs'}
                         </div>
                       </div>
                     </div>
-
-                    <div className="text-right shrink-0 flex items-center gap-2.5">
+                    <div className="text-right shrink-0 flex items-center gap-2">
                       <div>
-                        <div className="text-[10px] uppercase font-semibold text-gray-400">Total Fuel</div>
-                        <div className="font-mono font-bold text-sm !text-[#9333EA]">
+                        <div className="text-[9px] uppercase font-semibold text-gray-400">Total Fuel</div>
+                        <div className="font-mono font-bold text-xs !text-[#9333EA]">
                           {formatCurrency(truck.totalAmount)}
                         </div>
                       </div>
-                      <ExternalLink className="w-4 h-4 text-gray-500 group-hover:text-emerald-400 transition-colors shrink-0" />
+                      <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-emerald-400 transition-colors shrink-0" />
                     </div>
                   </div>
-                );
-              })
-            )}
+                ))
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Fleet Fueling Comparison Widget (Horizontal Bar Graph - RESTORED) */}
+        <div className="glass-panel p-6 rounded-[20px] flex flex-col transition-all duration-300 border border-theme-border shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-[#A1A1AA] uppercase tracking-wider flex items-center gap-2">
+              <span 
+                className="w-2 h-2 rounded-full shadow-sm"
+                style={{ backgroundColor: activeConfig.tertiaryColor, boxShadow: `0 0 8px ${activeConfig.tertiaryColor}` }}
+              />
+              Fleet Fueling Comparison
+            </h2>
+          </div>
+          <div className="h-[220px] w-full text-xs relative overflow-hidden">
+             {fleetExpensesSummary.length === 0 ? (
+               <div className="text-center text-sm text-[#71717A] py-8">No fleet fueling logged yet.</div>
+             ) : (
+               <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                 <BarChart data={fleetExpensesSummary} layout="vertical" margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
+                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.03)" horizontal={false} />
+                   <XAxis type="number" stroke="#71717A" tickLine={false} axisLine={false} hide />
+                   <YAxis dataKey="carRegistration" type="category" tick={<TruckTick />} stroke="#71717A" tickLine={false} axisLine={false} width={80} />
+                   <Tooltip 
+                     contentStyle={{ backgroundColor: 'rgba(10, 10, 14, 0.98)', color: '#FFFFFF', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '12px' }} 
+                     cursor={{fill: `${activeConfig.secondaryColor}15`, opacity: 0.2}} 
+                     formatter={(value: number) => [formatCurrency(value), 'Total Amount']}
+                   />
+                   <Bar dataKey="totalAmount" fill={activeConfig.secondaryColor} radius={[0, 4, 4, 0]} barSize={10} name="Total Amount" />
+                 </BarChart>
+               </ResponsiveContainer>
+             )}
           </div>
         </div>
 
       </div>
 
-      {/* Very Recent Transactions (Live Stream) */}
+      {/* Very Recent Transactions Feed (Full Width at Bottom) */}
       <div className="glass-panel border border-theme-border p-5 rounded-[20px] shadow-sm flex flex-col transition-colors">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-3 border-b border-theme-border">
           <div className="flex items-center gap-2.5">
@@ -717,7 +852,7 @@ export default function Dashboard({
                         {tx.litres && tx.litres > 0 ? formatLitres(tx.litres) : '-'}
                       </td>
 
-                      {/* Amount (Debits deep purple, Credits/Payments green) */}
+                      {/* Amount */}
                       <td className="modern-td">
                         <span className={`font-mono font-bold text-sm ${
                           tx.kind === 'payment'
@@ -744,35 +879,6 @@ export default function Dashboard({
               )}
             </tbody>
           </table>
-        </div>
-      </div>
-
-      {/* Customer Balances Distribution Chart */}
-      <div className="glass-panel p-6 rounded-[20px] flex flex-col transition-all duration-300 border border-theme-border shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-[#A1A1AA] uppercase tracking-wider flex items-center gap-2">
-            <span 
-              className="w-2 h-2 rounded-full shadow-sm"
-              style={{ backgroundColor: activeConfig.primaryColor, boxShadow: `0 0 8px ${activeConfig.primaryColor}` }}
-            />
-            Customer Balances Overview
-          </h2>
-          <span className="text-xs text-gray-500">Live Ledger Position</span>
-        </div>
-        <div className="h-[200px] w-full text-xs relative overflow-hidden">
-          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-            <BarChart data={topDebtors} layout="vertical" margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.03)" horizontal={false} />
-              <XAxis type="number" stroke="#71717A" tickLine={false} axisLine={false} hide />
-              <YAxis dataKey="name" type="category" tick={<CustomerTick />} stroke="#71717A" tickLine={false} axisLine={false} width={160} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: 'rgba(10, 10, 14, 0.98)', color: '#FFFFFF', border: '1px solid rgba(255, 255, 255, 0.12)', borderRadius: '12px' }} 
-                cursor={{fill: `${activeConfig.primaryColor}15`, opacity: 0.2}} 
-                formatter={(value: number) => [`${value >= 0 ? 'Debt: ' : 'Advance: '}${formatCurrency(Math.abs(value))}`, 'Balance']}
-              />
-              <Bar dataKey="Debt" fill={activeConfig.primaryColor} radius={[0, 4, 4, 0]} barSize={10} />
-            </BarChart>
-          </ResponsiveContainer>
         </div>
       </div>
 
