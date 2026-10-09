@@ -14,7 +14,7 @@ import { setupPdfHeader, addPdfFooter } from '../lib/pdfTemplate';
 import { useStations } from '../lib/operationsDb';
 
 const FALLBACK_REGISTRATIONS = ['KDE 179Y', 'KDL 019S', 'KCY 842Y', 'KCF 119R', 'KDW 028Y'];
-const FALLBACK_STATIONS = ['Loruk - Ndalu', 'Loruk - Junction', 'Gel - Bungoma', 'Gel - Kapenguria', 'Kengas', 'Luqman'];
+const FALLBACK_STATIONS = ['Loruk - Ndalu', 'Loruk - Junction', 'Gel - Bungoma', 'Bendera', 'Gel - Kapenguria', 'Kengas', 'Luqman'];
 type Station = string;
 
 export default function Fleet({ 
@@ -176,6 +176,40 @@ export default function Fleet({
   const [dateTo, setDateTo] = useState('');
   // const [showAIModal, setShowAIModal] = useState(false); // Commented out to reduce complexity if unused
 
+  // Calculate truck fueling counts per station for dynamic green intensity
+  const stationTruckCounts = useMemo(() => {
+    const counts: Record<string, Set<string>> = {
+      'ndalu': new Set(),
+      'junction': new Set()
+    };
+    expenses.forEach(e => {
+      const s = (e.station || '').toLowerCase();
+      if (s.includes('ndalu') && e.carRegistration) {
+        counts.ndalu.add(e.carRegistration);
+      } else if (s.includes('junction') && e.carRegistration) {
+        counts.junction.add(e.carRegistration);
+      }
+    });
+    return {
+      ndaluCount: counts.ndalu.size,
+      junctionCount: counts.junction.size,
+    };
+  }, [expenses]);
+
+  const getStationBadgeStyle = (stationName: string) => {
+    const s = (stationName || '').toLowerCase();
+    // Gel-Bungoma and Bendera: deep purple
+    if (s.includes('bungoma') || s.includes('bendera')) {
+      return 'bg-[#7C3AED]/20 text-[#7C3AED] border border-[#7C3AED]/40 shadow-[0_0_10px_rgba(124,58,237,0.25)]';
+    }
+    // Ndalu and Junction: slightly purple after Gel-Bungoma and Bendera
+    if (s.includes('ndalu') || s.includes('junction')) {
+      return 'bg-purple-500/15 text-purple-300 border border-purple-500/30 shadow-[0_0_8px_rgba(168,85,247,0.15)]';
+    }
+    // The rest: slightly green
+    return 'bg-emerald-500/15 text-[#059669] border border-emerald-500/30';
+  };
+
   const filteredExpenses = useMemo(() => {
     let result = expenses;
     if (selectedCar !== 'all') result = result.filter(e => e.carRegistration === selectedCar);
@@ -201,7 +235,7 @@ export default function Fleet({
   const TruckTick = (props: any) => {
     const { x, y, payload } = props;
     return (
-      <text x={x} y={y} dy={4} textAnchor="end" fill="#9ca3af" fontSize={10} onClick={() => onNavigateToTruck?.(payload.value)} className="cursor-pointer hover:fill-blue-500 dark:hover:fill-blue-400">
+      <text x={x} y={y} dy={4} textAnchor="end" fill="#9ca3af" fontSize={10} onClick={() => onNavigateToTruck?.(payload.value)} className="cursor-pointer hover:fill-purple-400">
         {payload.value}
       </text>
     );
@@ -364,23 +398,25 @@ export default function Fleet({
   };
 
   return (
-    <div className="space-y-6 font-sans">
-      <div className="flex justify-between items-center">
+    <div className="space-y-3 font-sans">
+      <div className="flex flex-wrap justify-between items-center gap-2">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-theme-text">Fleet Fueling</h2>
-          <p className="text-gray-500">Track fuel consumption logs</p>
+          <h2 className="text-xl font-bold tracking-tight text-theme-text">Fleet Fueling</h2>
+          <p className="text-xs text-gray-500">Track fuel consumption logs</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-2">
           {onNavigate && (
             <button 
               onClick={() => onNavigate('truckDashboard')}
-              className="px-5 py-2.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg text-base font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              className="px-3 py-1.5 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
-               <Truck className="w-5 h-5" />
+               <Truck className="w-4 h-4 text-purple-400" />
                Truck Dashboard
             </button>
           )}
-          <button onClick={generatePDF} className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-5 py-2.5 rounded-lg font-semibold flex items-center gap-2 transition-colors cursor-pointer"><Download className="w-5 h-5" /> Export</button>
+          <button onClick={generatePDF} className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer">
+            <Download className="w-4 h-4" /> Export
+          </button>
           <button 
             onClick={() => {
               if (editingExpenseId) {
@@ -396,52 +432,52 @@ export default function Fleet({
                 setIsAdding(!isAdding);
               }
             }} 
-            className="px-5 py-2.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg text-base font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer w-full sm:w-auto"
+            className="px-3 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
-            <Plus className="w-5 h-5" /> Add Expense
+            <Plus className="w-4 h-4" /> Add Expense
           </button>
         </div>
       </div>
       {isAdding && (
-        <div id="add-expense-form-container" className="glass-panel p-6 border border-theme-border rounded-xl shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-theme-text">{editingExpenseId ? 'Edit' : 'Add'} Expense</h3>
-            <span className="text-xs text-blue-400 font-medium bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded-md">
+        <div id="add-expense-form-container" className="glass-panel p-3.5 border border-theme-border rounded-xl shadow-sm">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-bold text-theme-text">{editingExpenseId ? 'Edit' : 'Add'} Expense</h3>
+            <span className="text-[10px] text-purple-300 font-medium bg-purple-500/15 border border-purple-500/25 px-2 py-0.5 rounded">
               ⚡ Rate × Litres = Amount auto-calculation
             </span>
           </div>
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3 items-end">
+          <form onSubmit={handleSubmit} className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 items-end">
             <div>
-              <label className="block text-xs font-semibold text-gray-400 mb-1">Date</label>
-              <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm" />
+              <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Date</label>
+              <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-white font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-400 mb-1">Vehicle</label>
-              <select value={carReg} onChange={(e) => setCarReg(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm">{CAR_REGISTRATIONS.map(r => <option key={r} value={r} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{r}</option>)}</select>
+              <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Vehicle</label>
+              <select value={carReg} onChange={(e) => setCarReg(e.target.value)} className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-white font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs">{CAR_REGISTRATIONS.map(r => <option key={r} value={r} className="bg-black text-white">{r}</option>)}</select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-400 mb-1">Station</label>
-              <select value={station} onChange={(e) => setStation(e.target.value as Station)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm">{STATION_OPTIONS.map(s => <option key={s.value} value={s.value} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{s.label}</option>)}</select>
+              <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Station</label>
+              <select value={station} onChange={(e) => setStation(e.target.value as Station)} className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-white font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs">{STATION_OPTIONS.map(s => <option key={s.value} value={s.value} className="bg-black text-white">{s.label}</option>)}</select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-400 mb-1">Litres (L)</label>
-              <input type="number" min="0" step="0.01" value={litres} onChange={(e) => handleLitresChange(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm font-mono" placeholder="Litres (L)" />
+              <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Litres (L)</label>
+              <input type="number" min="0" step="0.01" value={litres} onChange={(e) => handleLitresChange(e.target.value)} className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-white font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs font-mono" placeholder="Litres" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-blue-400 mb-1 flex items-center justify-between">
+              <label className="block text-[10px] font-semibold text-purple-400 mb-0.5 flex items-center justify-between">
                 <span>Rate (KES/L)</span>
-                <span className="text-[10px] text-gray-400 font-normal">Auto</span>
+                <span className="text-[9px] text-gray-400 font-normal">Auto</span>
               </label>
-              <input type="number" min="0" step="0.01" value={rate} onChange={(e) => handleRateChange(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-blue-500/40 rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm font-mono placeholder:text-gray-500" placeholder="Rate (KES/L)" />
+              <input type="number" min="0" step="0.01" value={rate} onChange={(e) => handleRateChange(e.target.value)} className="w-full px-2.5 py-1.5 glass-panel border border-purple-500/40 rounded-md text-white font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs font-mono placeholder:text-gray-500" placeholder="Rate" />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-400 mb-1">Amount (KES)</label>
-              <input type="number" required min="0" step="0.01" value={amount} onChange={(e) => handleAmountChange(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-blue-900 dark:text-blue-50 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm text-sm font-mono" placeholder="Amount (KES)" />
+              <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Amount (KES)</label>
+              <input type="number" required min="0" step="0.01" value={amount} onChange={(e) => handleAmountChange(e.target.value)} className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-white font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs font-mono" placeholder="Amount" />
             </div>
-            <div className="flex gap-2 w-full">
+            <div className="flex gap-1.5 w-full col-span-2 sm:col-span-1">
               <button 
                 type="submit" 
-                className="flex-1 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] px-4 py-2.5 rounded-lg font-semibold transition-colors cursor-pointer text-sm"
+                className="flex-1 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)] px-3 py-1.5 rounded-md font-semibold transition-colors cursor-pointer text-xs"
               >
                 {editingExpenseId ? 'Update' : 'Save'}
               </button>
@@ -455,7 +491,7 @@ export default function Fleet({
                   setRate('');
                   setDate(format(new Date(), 'yyyy-MM-dd'));
                 }}
-                className="px-3.5 py-2.5 bg-gray-100 hover:bg-white/10 dark:bg-white/5 dark:hover:bg-blue-900/50 text-gray-700 dark:text-gray-300 border border-theme-border rounded-lg font-semibold transition-colors cursor-pointer text-sm"
+                className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-gray-300 border border-theme-border rounded-md font-semibold transition-colors cursor-pointer text-xs"
               >
                 Cancel
               </button>
@@ -464,8 +500,8 @@ export default function Fleet({
         </div>
       )}
 
-      {/* Individual Trucks Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      {/* Individual Trucks Summary - Compact */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
         {(() => {
           const stats = CAR_REGISTRATIONS.map(reg => {
             const totalConsumption = expenses.filter(e => e.carRegistration === reg).reduce((acc, e) => acc + e.amount, 0);
@@ -474,31 +510,27 @@ export default function Fleet({
             return { reg, totalConsumption, isInactive };
           }).sort((a, b) => b.totalConsumption - a.totalConsumption);
           
-          const textColors = [
-            'text-blue-500 dark:text-blue-400',
-            'text-emerald-600 dark:text-emerald-400',
-            'text-blue-600 dark:text-blue-400',
-            'text-orange-600 dark:text-orange-400',
-            'text-yellow-600 dark:text-yellow-400',
-          ];
-
           return stats.map(({ reg, totalConsumption, isInactive }, index) => {
-            const colorClass = textColors[index] || textColors[textColors.length - 1];
+            // Strict deepcharts theme: only purple or green alternating
+            const isPurple = index % 2 === 0;
+            const colorClass = isPurple ? 'text-[#7C3AED]' : 'text-[#059669]';
+            const bgClass = isPurple ? 'bg-purple-500/[0.04] border-purple-500/25' : 'bg-emerald-500/[0.04] border-emerald-500/25';
             return (
               <div 
                 key={reg} 
-                className="p-5 border rounded-xl shadow-sm relative bg-blue-50/50 dark:bg-white/5 border-theme-border"
+                className={`px-3 py-2 border rounded-lg shadow-sm relative ${bgClass} cursor-pointer hover:scale-[1.02] transition-transform`}
+                onClick={() => onNavigateToTruck?.(reg)}
               >
-                <div className="flex items-center justify-between mb-2 text-gray-500 dark:text-gray-400">
-                  <p className="text-xs font-bold uppercase tracking-widest">{reg}</p>
+                <div className="flex items-center justify-between mb-1 text-gray-400">
+                  <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#7C3AED] hover:underline truncate">{reg}</p>
                   {isInactive && (
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-purple-500"></span>
                     </span>
                   )}
                 </div>
-                <h3 className={`text-2xl font-black font-mono ${colorClass}`}>
+                <h3 className={`text-sm sm:text-base font-black font-mono ${colorClass} truncate`}>
                   {formatCurrency(totalConsumption)}
                 </h3>
               </div>
@@ -507,65 +539,67 @@ export default function Fleet({
         })()}
       </div>
 
-
-      {/* Mini Dashboard */}
-      <div className="glass-panel p-6 border border-theme-border rounded-xl shadow-sm mb-6 flex flex-col md:flex-row gap-6">
+      {/* Mini Dashboard & KPI Graph - Compact */}
+      <div className="glass-panel p-3 sm:p-3.5 border border-theme-border rounded-xl shadow-sm mb-3 flex flex-col lg:flex-row gap-3">
         {/* Left Column: Filters & Summary */}
-        <div className="flex-1 flex flex-col gap-6">
+        <div className="flex-1 flex flex-col justify-between gap-2.5">
           {/* Filters */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Car</label>
-                <select value={selectedCar} onChange={e => setSelectedCar(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-sm text-blue-900 dark:text-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
-                  <option value="all" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">All Cars</option>
-                  {CAR_REGISTRATIONS.map(r => <option key={r} value={r} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{r}</option>)}
+                <label className="block text-[10px] font-medium text-gray-400 mb-0.5">Car</label>
+                <select value={selectedCar} onChange={e => setSelectedCar(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm">
+                  <option value="all" className="bg-black text-white">All Cars</option>
+                  {CAR_REGISTRATIONS.map(r => <option key={r} value={r} className="bg-black text-white">{r}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Station</label>
-                <select value={selectedStation} onChange={e => setSelectedStation(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-sm text-blue-900 dark:text-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
-                  <option value="all" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">All Stations</option>
-                  {STATION_OPTIONS.map(s => <option key={s.value} value={s.value} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{s.label}</option>)}
+                <label className="block text-[10px] font-medium text-gray-400 mb-0.5">Station</label>
+                <select value={selectedStation} onChange={e => setSelectedStation(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm">
+                  <option value="all" className="bg-black text-white">All Stations</option>
+                  {STATION_OPTIONS.map(s => <option key={s.value} value={s.value} className="bg-black text-white">{s.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">From Date</label>
-                <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-sm text-blue-900 dark:text-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" />
+                <label className="block text-[10px] font-medium text-gray-400 mb-0.5">From Date</label>
+                <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">To Date</label>
-                <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-sm text-blue-900 dark:text-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" />
+                <label className="block text-[10px] font-medium text-gray-400 mb-0.5">To Date</label>
+                <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm" />
               </div>
           </div>
           {/* Consumption Summary */}
-          <div className="w-full bg-blue-50 dark:bg-white/5 p-4 rounded-lg flex flex-col justify-center border border-theme-border">
-             <p className="text-sm font-medium text-blue-500 dark:text-blue-400 mb-1">Filtered Consumption</p>
-             <h3 className="text-2xl font-bold text-blue-900 dark:text-theme-text">
+          <div className="w-full bg-purple-500/[0.04] px-3 py-2 rounded-lg flex items-center justify-between border border-purple-500/25">
+             <div>
+               <p className="text-xs font-semibold text-purple-300">Filtered Total</p>
+               <p className="text-[10px] text-emerald-400 font-semibold">{filteredExpenses.length} logs</p>
+             </div>
+             <h3 className="text-base sm:text-lg font-black font-mono text-[#7C3AED]">
                {formatCurrency(filteredExpenses.reduce((acc, e) => acc + e.amount, 0))}
              </h3>
-             <p className="text-xs text-blue-500 mt-1">{filteredExpenses.length} logs</p>
           </div>
         </div>
         
-        <div className="flex-1 min-w-[300px] glass-panel p-4 rounded-lg border border-theme-border flex flex-col transition-colors">
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
-             <Truck className="w-4 h-4" /> Fleet Fueling Comparison
+        {/* Right Column: KPI Comparison Graph (Retained & Compact) */}
+        <div className="lg:w-[380px] xl:w-[420px] glass-panel p-2.5 rounded-lg border border-theme-border flex flex-col justify-between">
+          <h3 className="text-xs font-semibold text-gray-400 mb-1 flex items-center gap-1.5">
+             <Truck className="w-3.5 h-3.5 text-purple-400" /> Fleet Fueling Comparison
           </h3>
-          <div className="h-64 w-full text-xs relative overflow-hidden" >
+          <div className="h-32 sm:h-36 w-full text-xs relative overflow-hidden">
              {fleetExpensesSummary.length === 0 ? (
-               <div className="text-center text-sm text-gray-400 py-8">No fleet fueling logs yet.</div>
+               <div className="text-center text-xs text-gray-400 py-6">No fleet fueling logs yet.</div>
              ) : (
-               <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
-                 <BarChart data={fleetExpensesSummary} layout="vertical" margin={{ left: 10, right: 10, top: 0, bottom: 0 }}>
-                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.3} horizontal={false} />
+               <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                 <BarChart data={fleetExpensesSummary} layout="vertical" margin={{ left: 5, right: 10, top: 0, bottom: 0 }}>
+                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.15} horizontal={false} />
                    <XAxis type="number" stroke="#9ca3af" tickLine={false} axisLine={false} hide />
-                   <YAxis dataKey="carRegistration" type="category" tick={<TruckTick />} stroke="#9ca3af" tickLine={false} axisLine={false} width={80} />
+                   <YAxis dataKey="carRegistration" type="category" tick={<TruckTick />} stroke="#9ca3af" tickLine={false} axisLine={false} width={75} />
                    <Tooltip 
-                     contentStyle={{ backgroundColor: '#1e3a8a', color: '#f3f4f6', border: '1px solid #3b82f6', borderRadius: '4px', fontSize: '12px' }} 
-                     cursor={{fill: '#1e40af', opacity: 0.2}} 
+                     contentStyle={{ backgroundColor: '#09090b', color: '#f3f4f6', border: '1px solid rgba(124,58,237,0.4)', borderRadius: '8px', fontSize: '11px', padding: '4px 8px' }} 
+                     cursor={{fill: 'rgba(124,58,237,0.15)'}} 
                      formatter={(value: number) => [formatCurrency(value), 'Total Amount']}
                    />
-                   <Bar dataKey="Amount" fill="#3b82f6" radius={0} barSize={12} />
+                   <Bar dataKey="Amount" fill="#7C3AED" radius={[0, 4, 4, 0]} barSize={10} />
                  </BarChart>
                </ResponsiveContainer>
              )}
@@ -573,7 +607,7 @@ export default function Fleet({
         </div>
       </div>
 
-      <div className="glass-panel rounded border border-theme-border shadow-[0_0_15px_rgba(59,130,246,0.3)] overflow-x-auto overflow-y-hidden">
+      <div className="glass-panel rounded border border-theme-border shadow-[0_0_15px_rgba(124,58,237,0.15)] overflow-x-auto overflow-y-hidden">
         <table className="modern-table">
           <thead>
             <tr className="modern-tr">
@@ -585,17 +619,17 @@ export default function Fleet({
               <th className="modern-th">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-blue-900">
+          <tbody className="divide-y divide-white/5">
             {filteredExpenses.map(e => (
               <tr key={e.id} className="hover:bg-white/5 transition-colors duration-300">
                 <td className="modern-td">{format(e.date, 'MMM d, yyyy')}</td>
-                <td className="px-4 py-3 font-semibold text-emerald-400 hover:text-emerald-300 cursor-pointer hover:underline font-bold transition-colors" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
+                <td className="px-4 py-3 font-semibold text-[#7C3AED] hover:text-purple-300 cursor-pointer hover:underline font-bold transition-colors" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
                 <td className="modern-td">
                   {e.station && (
                     <button
                       type="button"
                       onClick={() => onNavigateToStation?.(e.station, e.station)}
-                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/20 transition-all cursor-pointer"
+                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold transition-all cursor-pointer ${getStationBadgeStyle(e.station)}`}
                       title={`Open ${e.station} Dashboard`}
                     >
                       <span>{STATION_OPTIONS.find(opt => opt.value === e.station)?.label || e.station}</span>
@@ -603,7 +637,7 @@ export default function Fleet({
                   )}
                 </td>
                 <td className="modern-td">{e.litres ? `${e.litres.toLocaleString()} L` : '-'}</td>
-                <td className="modern-td !text-purple-300 font-mono font-bold text-base">{formatCurrency(e.amount)}</td>
+                <td className="modern-td !text-[#7C3AED] font-mono font-bold text-base">{formatCurrency(e.amount)}</td>
                 <td className="modern-td">
                   <div className="flex items-center justify-end gap-1.5">
                     <button 
@@ -634,17 +668,17 @@ export default function Fleet({
                           document.getElementById('add-expense-form-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         }, 50);
                       }} 
-                      className="p-1 text-blue-500 hover:text-blue-800 transition-colors cursor-pointer" 
+                      className="p-1 text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer" 
                       title="Edit Expense"
                     >
-                      <Pencil className="w-4 h-4" />
+                      <Pencil className="w-4 h-4 text-emerald-400" />
                     </button>
                     <button 
                       onClick={() => setDeleteDialog({ isOpen: true, id: e.id! })} 
-                      className="p-1 text-red-500 hover:text-red-700 transition-colors cursor-pointer" 
+                      className="p-1 text-pink-400 hover:text-pink-300 transition-colors cursor-pointer" 
                       title="Delete Expense"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4 text-pink-400" />
                     </button>
                   </div>
                 </td>

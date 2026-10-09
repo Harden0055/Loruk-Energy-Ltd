@@ -253,7 +253,7 @@ export default function Stations({ onNavigateToStation }: StationsProps) {
                         className="text-left group cursor-pointer focus:outline-none"
                         title={`Open ${station.name} Dashboard`}
                       >
-                        <div className="flex items-center gap-1.5 font-bold text-emerald-400 group-hover:text-emerald-300 group-hover:underline text-base transition-colors">
+                        <div className="flex items-center gap-1.5 font-bold text-[#7C3AED] group-hover:text-purple-300 group-hover:underline text-base transition-colors">
                           <span>{station.name}</span>
                           <ExternalLink className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
                         </div>
@@ -286,7 +286,7 @@ export default function Stations({ onNavigateToStation }: StationsProps) {
                         {onNavigateToStation && (
                           <button
                             onClick={() => onNavigateToStation(station.id || '', station.name)}
-                            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 rounded-lg transition-all cursor-pointer shadow-sm"
+                            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold bg-purple-500/10 hover:bg-purple-500/20 text-[#7C3AED] hover:text-purple-300 border border-purple-500/30 hover:border-purple-400 rounded-lg transition-all cursor-pointer shadow-sm"
                             title="Open Station Dashboard"
                           >
                             <BarChart3 className="w-3.5 h-3.5" />

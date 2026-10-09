@@ -488,11 +488,11 @@ svg.lucide {
   }
 
   .sidebar-item-active {
-    background: linear-gradient(90deg, rgba(124, 58, 237, 0.85) 0%, rgba(16, 185, 129, 0.85) 100%) !important;
-    border: 1px solid rgba(139, 92, 246, 0.45) !important;
-    color: #FFFFFF !important;
+    background: rgba(16, 185, 129, 0.12) !important;
+    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    color: #34D399 !important;
     font-weight: 600 !important;
-    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3) !important;
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.12) !important;
   }
   
   .sidebar-item-active svg.lucide {
@@ -503,15 +503,16 @@ svg.lucide {
     width: 20px !important;
     height: 20px !important;
     margin-right: 0px;
-    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
+    color: #34D399 !important;
+    filter: drop-shadow(0 0 6px rgba(52, 211, 153, 0.4));
   }
 
   .sidebar-item-active-blue {
-    background: linear-gradient(90deg, rgba(37, 99, 235, 0.85) 0%, rgba(67, 56, 202, 0.85) 100%) !important;
-    border: 1px solid rgba(99, 102, 241, 0.4) !important;
-    color: #FFFFFF !important;
+    background: rgba(16, 185, 129, 0.12) !important;
+    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    color: #34D399 !important;
     font-weight: 600 !important;
-    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.25) !important;
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.12) !important;
   }
   .sidebar-item-active-blue svg.lucide {
     background: transparent;
@@ -521,15 +522,16 @@ svg.lucide {
     width: 20px !important;
     height: 20px !important;
     margin-right: 0px;
-    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
+    color: #34D399 !important;
+    filter: drop-shadow(0 0 6px rgba(52, 211, 153, 0.4));
   }
 
   .sidebar-item-active-purple {
-    background: linear-gradient(90deg, rgba(147, 51, 234, 0.85) 0%, rgba(79, 70, 229, 0.85) 100%) !important;
-    border: 1px solid rgba(168, 85, 247, 0.4) !important;
-    color: #FFFFFF !important;
+    background: rgba(147, 51, 234, 0.14) !important;
+    border: 1px solid rgba(168, 85, 247, 0.35) !important;
+    color: #C084FC !important;
     font-weight: 600 !important;
-    box-shadow: 0 4px 20px rgba(147, 51, 234, 0.25) !important;
+    box-shadow: 0 0 16px rgba(147, 51, 234, 0.14) !important;
   }
   .sidebar-item-active-purple svg.lucide {
     background: transparent;
@@ -539,15 +541,16 @@ svg.lucide {
     width: 20px !important;
     height: 20px !important;
     margin-right: 0px;
-    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
+    color: #C084FC !important;
+    filter: drop-shadow(0 0 6px rgba(192, 132, 252, 0.4));
   }
 
   .sidebar-item-active-green {
-    background: linear-gradient(90deg, rgba(16, 185, 129, 0.85) 0%, rgba(4, 120, 87, 0.85) 100%) !important;
-    border: 1px solid rgba(52, 211, 153, 0.4) !important;
-    color: #FFFFFF !important;
+    background: rgba(16, 185, 129, 0.12) !important;
+    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    color: #34D399 !important;
     font-weight: 600 !important;
-    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.25) !important;
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.12) !important;
   }
   .sidebar-item-active-green svg.lucide {
     background: transparent;
@@ -557,7 +560,8 @@ svg.lucide {
     width: 20px !important;
     height: 20px !important;
     margin-right: 0px;
-    filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
+    color: #34D399 !important;
+    filter: drop-shadow(0 0 6px rgba(52, 211, 153, 0.4));
   }
 
   .sidebar-subnav-grid {

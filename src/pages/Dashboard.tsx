@@ -97,7 +97,7 @@ export default function Dashboard({
 
   // --- Base Metrics ---
   const outstandingBalance = customers.reduce((acc, c) => acc + (c.balance || 0), 0);
-  const outstandingBalanceColor = outstandingBalance < 0 ? 'text-emerald-400' : 'text-purple-400';
+  const outstandingBalanceColor = outstandingBalance < 0 ? 'text-[#059669]' : 'text-purple-400';
   
   const totalFleetExpenses = expenses.reduce((acc, curr) => acc + curr.amount, 0);
   const activeTrucksCount = new Set(expenses.map(e => e.carRegistration)).size;
@@ -142,7 +142,7 @@ export default function Dashboard({
         fill="#9ca3af" 
         fontSize={10} 
         onClick={() => onNavigateToTruck?.(payload.value)} 
-        className="cursor-pointer hover:fill-emerald-400"
+        className="cursor-pointer hover:fill-purple-400"
       >
         {payload.value}
       </text>
@@ -161,7 +161,7 @@ export default function Dashboard({
         fill="#9ca3af" 
         fontSize={10} 
         onClick={() => customer && onNavigateToCustomer?.(customer.id)} 
-        className="cursor-pointer hover:fill-emerald-400"
+        className="cursor-pointer hover:fill-purple-400 font-medium"
       >
         {payload.value}
       </text>
@@ -512,7 +512,7 @@ export default function Dashboard({
                             <button
                               type="button"
                               onClick={() => tx.partyId && onNavigateToCustomer?.(tx.partyId)}
-                              className="font-bold text-white hover:text-emerald-400 hover:underline cursor-pointer truncate text-left"
+                              className="font-bold text-[#7C3AED] hover:text-purple-300 hover:underline cursor-pointer truncate text-left"
                             >
                               {tx.partyName}
                             </button>
@@ -520,7 +520,7 @@ export default function Dashboard({
                             <button
                               type="button"
                               onClick={() => tx.partyId && onNavigateToTruck?.(tx.partyId)}
-                              className="font-bold text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer truncate text-left"
+                              className="font-bold text-[#7C3AED] hover:text-purple-300 hover:underline cursor-pointer truncate text-left"
                             >
                               {tx.partyName}
                             </button>
@@ -538,7 +538,7 @@ export default function Dashboard({
                     </div>
                     <div className="text-right shrink-0">
                       <div className={`font-mono font-bold text-xs ${
-                        tx.kind === 'payment' ? '!text-[#00E676]' : '!text-[#9333EA]'
+                        tx.kind === 'payment' ? '!text-[#059669]' : '!text-[#9333EA]'
                       }`}>
                         {tx.kind === 'payment' ? '+ ' : ''}{formatCurrency(tx.amount)}
                       </div>
@@ -574,7 +574,7 @@ export default function Dashboard({
                           #{idx + 1}
                         </div>
                         <div className="min-w-0">
-                          <div className="font-bold text-white group-hover:text-emerald-400 transition-colors truncate">
+                          <div className="font-bold text-[#7C3AED] group-hover:text-purple-300 hover:underline transition-colors truncate">
                             {cust.name}
                           </div>
                           <div className="text-[10px] text-gray-400 font-mono mt-0.5">
@@ -586,12 +586,12 @@ export default function Dashboard({
                         <div>
                           <div className="text-[9px] uppercase font-semibold text-gray-400">Balance</div>
                           <div className={`font-mono font-bold text-xs ${
-                            isOwing ? '!text-[#9333EA]' : isAdvance ? '!text-[#00E676]' : 'text-gray-400'
+                            isOwing ? '!text-[#9333EA]' : isAdvance ? '!text-[#059669]' : 'text-gray-400'
                           }`}>
                             {isAdvance && 'Adv '}{formatCurrency(Math.abs(cust.balance || 0))}
                           </div>
                         </div>
-                        <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-emerald-400 transition-colors shrink-0" />
+                        <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-purple-400 transition-colors shrink-0" />
                       </div>
                     </div>
                   );
@@ -613,12 +613,12 @@ export default function Dashboard({
                     className="p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 transition-all flex items-center justify-between gap-3 text-xs cursor-pointer group"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
-                        <Truck className="w-3.5 h-3.5" />
+                      <div className="w-7 h-7 rounded-lg bg-purple-500/15 border border-purple-500/30 text-[#7C3AED] flex items-center justify-center shrink-0">
+                        <Truck className="w-3.5 h-3.5 text-[#7C3AED]" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-emerald-400 group-hover:text-emerald-300 transition-colors truncate">
+                          <span className="font-bold text-[#7C3AED] group-hover:text-purple-300 hover:underline transition-colors truncate">
                             {truck.registration}
                           </span>
                           <span className={`inline-flex items-center gap-1 text-[9px] font-bold uppercase px-1 py-0.2 rounded border ${
@@ -642,7 +642,7 @@ export default function Dashboard({
                           {formatCurrency(truck.totalAmount)}
                         </div>
                       </div>
-                      <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-emerald-400 transition-colors shrink-0" />
+                      <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-purple-400 transition-colors shrink-0" />
                     </div>
                   </div>
                 ))
@@ -807,19 +807,19 @@ export default function Dashboard({
                           <button
                             type="button"
                             onClick={() => tx.partyId && onNavigateToCustomer?.(tx.partyId)}
-                            className="font-bold text-white hover:text-emerald-400 hover:underline cursor-pointer text-left transition-colors flex items-center gap-1"
+                            className="font-bold text-[#7C3AED] hover:text-purple-300 hover:underline cursor-pointer text-left transition-colors flex items-center gap-1"
                           >
                             <span>{tx.partyName}</span>
-                            <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-purple-400" />
                           </button>
                         ) : tx.isTruck ? (
                           <button
                             type="button"
                             onClick={() => tx.partyId && onNavigateToTruck?.(tx.partyId)}
-                            className="font-bold text-emerald-400 hover:text-emerald-300 hover:underline cursor-pointer text-left transition-colors flex items-center gap-1"
+                            className="font-bold text-[#7C3AED] hover:text-purple-300 hover:underline cursor-pointer text-left transition-colors flex items-center gap-1"
                           >
                             <span>{tx.partyName}</span>
-                            <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-purple-400" />
                           </button>
                         ) : (
                           <span className="font-semibold text-white">{tx.partyName}</span>
@@ -837,9 +837,9 @@ export default function Dashboard({
                           <button
                             type="button"
                             onClick={() => onNavigateToStation?.(tx.station, tx.station)}
-                            className="inline-flex items-center gap-1 font-semibold text-gray-300 hover:text-emerald-300 hover:underline cursor-pointer text-xs"
+                            className="inline-flex items-center gap-1 font-bold text-[#7C3AED] hover:text-purple-300 hover:underline cursor-pointer text-xs"
                           >
-                            <Building2 className="w-3 h-3 text-emerald-400/80" />
+                            <Building2 className="w-3 h-3 text-[#7C3AED]" />
                             <span>{tx.station}</span>
                           </button>
                         ) : (
@@ -856,7 +856,7 @@ export default function Dashboard({
                       <td className="modern-td">
                         <span className={`font-mono font-bold text-sm ${
                           tx.kind === 'payment'
-                            ? '!text-[#00E676]'
+                            ? '!text-[#059669]'
                             : '!text-[#9333EA]'
                         }`}>
                           {tx.kind === 'payment' ? '+ ' : ''}

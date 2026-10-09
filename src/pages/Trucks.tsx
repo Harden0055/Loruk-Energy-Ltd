@@ -237,7 +237,7 @@ export default function Trucks({ onNavigateToTruck }: TrucksProps) {
                         <button
                           type="button"
                           onClick={() => onNavigateToTruck(truck.registration)}
-                          className="px-3 py-1.5 bg-yellow-400/90 hover:bg-yellow-400 text-slate-900 rounded-md font-mono text-base font-extrabold border-2 border-slate-900 shadow-sm inline-block select-all cursor-pointer hover:scale-105 transition-transform"
+                          className="px-3 py-1.5 bg-purple-500/15 hover:bg-purple-500/25 text-[#7C3AED] hover:text-purple-300 rounded-lg font-mono text-base font-extrabold border border-purple-500/40 shadow-sm inline-block select-all cursor-pointer hover:underline hover:scale-105 transition-all"
                           title={`View Dashboard for ${truck.registration}`}
                         >
                           {truck.registration}
@@ -245,26 +245,26 @@ export default function Trucks({ onNavigateToTruck }: TrucksProps) {
                         <button
                           type="button"
                           onClick={() => onNavigateToTruck(truck.registration)}
-                          className="text-emerald-400 hover:text-emerald-300 font-bold hover:underline cursor-pointer text-sm hidden sm:inline"
+                          className="text-[#7C3AED] hover:text-purple-300 font-bold hover:underline cursor-pointer text-sm hidden sm:inline"
                         >
                           View Dashboard &rarr;
                         </button>
                       </div>
                     </td>
                     <td className="modern-td">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-2xs font-bold ${
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-2xs font-extrabold ${
                         truck.status === 'active'
-                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-500 border border-emerald-500/20'
-                          : 'bg-gray-50 dark:bg-gray-900 text-gray-400 border border-theme-border/55'
+                          ? 'bg-emerald-500/20 text-[#059669] border border-emerald-500/50 shadow-[0_0_12px_rgba(5,150,105,0.6)] animate-pulse'
+                          : 'bg-white/5 text-gray-400 border border-white/10'
                       }`}>
-                        {truck.status === 'active' ? 'ACTIVE' : 'INACTIVE'}
+                        {truck.status === 'active' ? '● ACTIVE' : 'INACTIVE'}
                       </span>
                     </td>
                     <td className="modern-td">
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => onNavigateToTruck(truck.registration)}
-                          className="p-1.5 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                          className="p-1.5 text-[#7C3AED] hover:text-purple-300 hover:bg-purple-500/10 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
                           title="View Dashboard"
                         >
                           <LineChart className="w-4 h-4" />

@@ -256,7 +256,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                     {onViewCustomer ? (
                       <button 
                         onClick={() => onViewCustomer(c.id)}
-                        className="hover:underline text-emerald-400 hover:text-emerald-300 font-bold cursor-pointer text-left focus:outline-none"
+                        className="hover:underline text-[#7C3AED] hover:text-purple-300 font-bold cursor-pointer text-left focus:outline-none"
                       >
                         {c.name}
                       </button>
@@ -266,11 +266,11 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                   </td>
                   <td className="modern-td">{formatCurrency(c.creditLimit)}</td>
                   <td className="modern-td">
-                    <span className={c.openingBalanceType === 'advance' ? '!text-emerald-400 font-semibold' : (c.openingBalance || 0) > 0 ? '!text-[#9333EA] font-semibold' : 'text-gray-400'}>
+                    <span className={c.openingBalanceType === 'advance' ? '!text-[#059669] font-bold' : (c.openingBalance || 0) > 0 ? '!text-[#9333EA] font-semibold' : 'text-gray-400'}>
                       {c.openingBalanceType === 'advance' ? '-' : ''}{formatCurrency(c.openingBalance || 0)}
                     </span>
                     {c.openingBalanceType === 'advance' && (
-                      <span className="block text-[10px] uppercase tracking-wider font-extrabold text-emerald-400 mt-0.5">Advance</span>
+                      <span className="block text-[10px] uppercase tracking-wider font-extrabold text-[#059669] mt-0.5">Advance</span>
                     )}
                   </td>
                   {(() => {
@@ -280,12 +280,12 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                         dynamicBalance > 0 
                           ? '!text-[#9333EA]' 
                           : dynamicBalance < 0 
-                            ? '!text-emerald-400 font-semibold' 
+                            ? '!text-[#059669] font-bold' 
                             : '!text-gray-300'
                       }`}>
                         {formatCurrency(dynamicBalance)}
                         {dynamicBalance < 0 && (
-                          <span className="block text-[10px] uppercase tracking-wider font-extrabold !text-emerald-400 mt-0.5">Advance Balance</span>
+                          <span className="block text-[10px] uppercase tracking-wider font-extrabold !text-[#059669] mt-0.5">Advance Balance</span>
                         )}
                       </td>
                     );
@@ -305,7 +305,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                       {onViewCustomer && (
                         <button 
                           onClick={() => onViewCustomer(c.id)}
-                          className="p-2 text-gray-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors rounded-md cursor-pointer"
+                          className="p-2 text-gray-400 hover:text-[#7C3AED] hover:bg-purple-500/10 transition-colors rounded-md cursor-pointer"
                           title="View Customer Dashboard"
                           id={`btn-view-${c.id}`}
                         >

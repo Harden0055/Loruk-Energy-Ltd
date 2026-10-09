@@ -98,6 +98,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [sortStrategy, setSortStrategy] = useState<'newest' | 'oldest'>('newest');
+  const [showCharts, setShowCharts] = useState(false);
 
   // Verify balance utility
   const verifyBalance = () => {
@@ -865,401 +866,338 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const isCreditRisk = customer.status === 'credit_risk' || calculatedBalance > customer.creditLimit;
 
   return (
-    <div className="space-y-6">
-      {/* Back & Export Statement navigation */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <button 
-          onClick={onBack}
-          className="px-4 py-2 glass-panel hover:bg-white/5 dark:hover:bg-blue-900 border border-theme-border text-theme-text-muted text-base font-semibold rounded-lg flex items-center gap-2 transition-colors cursor-pointer shadow-sm"
-          id="btn-customer-dash-back"
-        >
-          <ChevronLeft className="w-5 h-5" />
-          Back to list
-        </button>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleExportStatement}
-            className="px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-base font-semibold flex items-center gap-2 transition-colors cursor-pointer"
-            id="btn-customer-dash-export-pdf"
+    <div className="space-y-3">
+      {/* Compressed Customer Profile Header & Quick Actions Bar */}
+      <div className="glass-panel border border-white/[0.08] bg-[#000000] rounded-xl px-4 py-2.5 shadow-sm flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0 flex-wrap">
+          <button 
+            onClick={onBack}
+            className="px-2.5 py-1.5 glass-panel hover:bg-white/10 border border-theme-border text-theme-text-muted hover:text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+            id="btn-customer-dash-back"
+            title="Return to customer list"
           >
-            <Download className="w-5 h-5" />
-            Export Statement
+            <ChevronLeft className="w-4 h-4" />
+            <span>Back</span>
           </button>
-        </div>
-      </div>
 
-      {/* Customer Header Section */}
-      <div className="glass-panel border border-white/[0.08] bg-[#000000] rounded-xl p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-colors">
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-xs uppercase tracking-widest bg-purple-500/10 text-purple-300 px-3 py-1 rounded-lg font-bold border border-purple-500/25 shadow-sm">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-mono text-xs uppercase tracking-wider bg-purple-500/15 text-purple-300 px-2 py-0.5 rounded-md font-bold border border-purple-500/30 shrink-0">
               {customer.customerId}
             </span>
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border ${
+            <h2 className="text-base sm:text-xl font-black text-white tracking-tight truncate">
+              {customer.name}
+            </h2>
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border shrink-0 ${
               customer.status === 'active' 
-                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)]' 
-                : 'bg-rose-500/15 text-rose-400 border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.15)]'
+                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' 
+                : 'bg-rose-500/15 text-rose-400 border-rose-500/30'
             }`}>
-              <span className={`w-2 h-2 rounded-full ${customer.status === 'active' ? 'bg-emerald-400 shadow-[0_0_8px_#34D399]' : 'bg-rose-400 shadow-[0_0_8px_#F87171]'}`} />
-              {customer.status === 'active' ? 'Active Account' : 'Credit Risk'}
+              <span className={`w-1.5 h-1.5 rounded-full ${customer.status === 'active' ? 'bg-emerald-400 shadow-[0_0_6px_#34D399]' : 'bg-rose-400'}`} />
+              {customer.status === 'active' ? 'Active' : 'Credit Risk'}
             </span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">{customer.name}</h2>
-          <p className="text-xs sm:text-sm text-theme-text-muted font-medium">
-            Account activated: <span className="text-theme-text font-semibold">{format(customer.createdAt || Date.now(), 'PPP')}</span>
-          </p>
         </div>
 
-        {/* Action triggers */}
-        <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto p-2 bg-[#000000] border border-white/[0.08] rounded-xl">
+        {/* Action Triggers & PDF Export */}
+        <div className="flex items-center gap-1.5 flex-wrap">
           <button
             onClick={() => setActiveModal('delivery')}
-            className="w-full sm:w-auto px-4 py-2.5 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:border-purple-400 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+            className="px-2.5 py-1.5 bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 hover:border-purple-400 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
           >
-            <Plus className="w-4 h-4 text-purple-400" />
-            Log Delivery
+            <Plus className="w-3.5 h-3.5 text-purple-400" />
+            <span>Log Delivery</span>
           </button>
           <button
             onClick={() => setActiveModal('payment')}
-            className="w-full sm:w-auto px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+            className="px-2.5 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
           >
-            <Plus className="w-4 h-4 text-emerald-400" />
-            Record Payment
+            <Plus className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Record Payment</span>
           </button>
           <button
             onClick={() => setActiveModal('adjustment')}
-            className="w-full sm:w-auto px-4 py-2.5 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:border-purple-400 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+            className="px-2.5 py-1.5 bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 hover:border-purple-400 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
           >
-            <ArrowUpDown className="w-4 h-4 text-purple-400" />
-            Adjust Balance
+            <ArrowUpDown className="w-3.5 h-3.5 text-purple-400" />
+            <span>Adjust</span>
+          </button>
+          <button
+            onClick={handleExportStatement}
+            className="px-2.5 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+            id="btn-customer-dash-export-pdf"
+            title="Download statement PDF"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Export Statement</span>
           </button>
         </div>
       </div>
 
-      {/* Stats Cards Dashboard */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Compressed Stats Row (4 compact columns) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
         {/* Card 1: Outstanding Balance */}
-        <div className={`glass-panel rounded-xl p-5 shadow-sm transition-all duration-300 border ${
+        <div className={`glass-panel rounded-xl px-3.5 py-2.5 shadow-sm border ${
           calculatedBalance < 0 
-            ? 'border-emerald-500/40 bg-emerald-500/[0.04] shadow-[0_0_20px_rgba(0,230,118,0.1)]' 
+            ? 'border-emerald-500/40 bg-emerald-500/[0.04]' 
             : calculatedBalance > 0
-              ? 'border-purple-500/40 bg-purple-500/[0.04] shadow-[0_0_20px_rgba(139,92,246,0.12)]'
+              ? 'border-purple-500/40 bg-purple-500/[0.04]'
               : 'border-white/[0.08] bg-[#000000]'
         }`}>
-          <div className="flex justify-between items-start">
-            <div className="flex items-center gap-2">
-              <p className="text-xs font-extrabold text-theme-text-muted uppercase tracking-wider">Outstanding Balance</p>
-              <button
-                 onClick={verifyBalance}
-                 className="text-[10px] text-purple-300 hover:text-purple-200 font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-purple-500/15 border border-purple-500/30 cursor-pointer transition-colors"
-                 title="Verify Balance Calculation"
-              >
-                Verify
-              </button>
-            </div>
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center border shadow-sm ${
-              calculatedBalance < 0 
-                ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(0,230,118,0.25)]' 
-                : calculatedBalance > 0
-                  ? 'bg-purple-500/15 border-purple-500/30 text-purple-300 shadow-[0_0_15px_rgba(139,92,246,0.25)]'
-                  : 'bg-white/5 border-white/10 text-white'
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-extrabold text-theme-text-muted uppercase tracking-wider">Outstanding Balance</span>
+            <button
+              onClick={verifyBalance}
+              className="text-[9px] text-purple-300 hover:text-purple-200 font-bold px-1.5 py-0.5 rounded bg-purple-500/15 border border-purple-500/30 cursor-pointer"
+              title="Verify Balance Calculation"
+            >
+              Verify
+            </button>
+          </div>
+          <div className="flex items-baseline gap-1 mt-1">
+            <span className="text-xs font-bold text-theme-text-muted">Ksh</span>
+            <span className={`text-base sm:text-lg font-black font-mono tracking-tight leading-none ${
+              calculatedBalance < 0 ? 'text-[#059669]' : isCreditRisk ? 'text-rose-400' : calculatedBalance > 0 ? 'text-[#7C3AED]' : 'text-slate-400'
             }`}>
-              <DollarSign className="w-5 h-5" />
-            </div>
+              {Math.abs(calculatedBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
           </div>
-          <div className="mt-4">
-            <div className="flex items-baseline flex-wrap">
-              <span className={`text-base font-bold mr-1.5 ${
-                calculatedBalance < 0 
-                  ? 'text-emerald-400/80' 
-                  : isCreditRisk 
-                    ? 'text-rose-400/80' 
-                    : calculatedBalance > 0 
-                      ? 'text-purple-400/80' 
-                      : 'text-theme-text-muted'
-              }`}>Ksh</span>
-              <h3 className={`text-2xl sm:text-3xl font-black font-mono tracking-tight leading-none ${
-                calculatedBalance < 0 
-                  ? 'text-emerald-400 text-glow-green' 
-                  : isCreditRisk 
-                    ? 'text-rose-400' 
-                    : calculatedBalance > 0 
-                      ? 'text-purple-400' 
-                      : 'text-theme-text'
-              }`}>
-                {Math.abs(calculatedBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </h3>
-            </div>
-            <div className="mt-3">
-              {calculatedBalance < 0 ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm">
-                  <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span>ADVANCE BALANCE CREDIT</span>
-                </span>
-              ) : isCreditRisk ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-500/15 text-rose-400 border border-rose-500/30 animate-pulse shadow-sm">
-                  <ShieldAlert className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-                  <span>CREDIT LIMIT ALERT</span>
-                </span>
-              ) : calculatedBalance > 0 ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-purple-500/15 text-purple-300 border border-purple-500/30 shadow-sm">
-                  <span>RECEIVABLE BALANCE OWED</span>
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-500/15 text-slate-300 border border-slate-500/30 shadow-sm">
-                  <CheckCircle className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  <span>SETTLED / NIL BALANCE</span>
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Card 2: Credit Limit & remaining space */}
-        <div className="glass-panel rounded-xl p-5 shadow-sm transition-all duration-300 border border-purple-500/30 bg-purple-500/[0.03] shadow-[0_0_20px_rgba(139,92,246,0.1)]">
-          <div className="flex justify-between items-start">
-            <p className="text-xs font-extrabold text-theme-text-muted uppercase tracking-wider">Credit Allocation</p>
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center border bg-purple-500/15 border-purple-500/30 text-purple-300 shadow-[0_0_15px_rgba(139,92,246,0.25)]">
-              <FileText className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <div className="flex items-baseline flex-wrap">
-              <span className="text-base font-bold text-purple-300/80 mr-1.5">Ksh</span>
-              <h3 className="text-2xl sm:text-3xl font-black font-mono text-purple-300 tracking-tight leading-none">
-                {(customer.creditLimit || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </h3>
-            </div>
-            <div className="mt-3 space-y-1.5">
-              <div className="flex justify-between items-center text-xs font-semibold">
-                <span className="text-theme-text-muted">Remaining credit power</span>
-                <span className={`font-mono font-bold px-2 py-0.5 rounded text-xs border ${
-                  remainingCredit > (customer.creditLimit || 1) * 0.5
-                    ? 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30'
-                    : remainingCredit > (customer.creditLimit || 1) * 0.2
-                      ? 'text-purple-300 bg-purple-500/15 border-purple-500/30'
-                      : 'text-rose-400 bg-rose-500/15 border-rose-500/30'
-                }`}>
-                  Ksh {remainingCredit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="h-2 bg-theme-panel rounded-full overflow-hidden border border-theme-border/60">
-                <div 
-                  className={`h-full rounded-full transition-all duration-500 ${
-                    isCreditRisk 
-                      ? 'bg-gradient-to-r from-rose-600 to-red-500 shadow-[0_0_10px_rgba(244,63,94,0.4)]' 
-                      : remainingCredit > (customer.creditLimit || 1) * 0.5
-                        ? 'bg-gradient-to-r from-purple-500 to-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
-                        : 'bg-gradient-to-r from-purple-600 to-purple-400'
-                  }`} 
-                  style={{ width: `${Math.min(100, Math.max(0, (remainingCredit / (customer.creditLimit || 1)) * 100))}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: Total Purchases / Deliveries */}
-        <div className="glass-panel rounded-xl p-5 shadow-sm transition-all duration-300 border border-purple-500/30 bg-purple-500/[0.03] shadow-[0_0_20px_rgba(139,92,246,0.1)]">
-          <div className="flex justify-between items-start">
-            <p className="text-xs font-extrabold text-theme-text-muted uppercase tracking-wider">Total Deliveries</p>
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center border bg-purple-500/15 border-purple-500/30 text-purple-300 shadow-[0_0_15px_rgba(139,92,246,0.25)]">
-              <Truck className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <div className="flex items-baseline flex-wrap">
-              <span className="text-base font-bold text-purple-300/80 mr-1.5">Ksh</span>
-              <h3 className="text-2xl sm:text-3xl font-black font-mono text-purple-300 tracking-tight leading-none">
-                {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </h3>
-            </div>
-            <div className="mt-3 flex items-center gap-1.5 text-xs text-theme-text-muted font-medium flex-wrap">
-              <span>Dispensed total</span>
-              <span className="font-mono font-bold text-purple-300 bg-purple-500/15 border border-purple-500/30 px-2 py-0.5 rounded-md text-xs shadow-sm">
-                {totalFuelLitres.toLocaleString()} Litres
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 4: Total Payments Received */}
-        <div className="glass-panel rounded-xl p-5 shadow-sm transition-all duration-300 border border-emerald-500/30 bg-emerald-500/[0.03] shadow-[0_0_20px_rgba(16,185,129,0.1)]">
-          <div className="flex justify-between items-start">
-            <p className="text-xs font-extrabold text-theme-text-muted uppercase tracking-wider">Total Received Payments</p>
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center border bg-emerald-500/15 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.25)]">
-              <CheckCircle className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <div className="flex items-baseline flex-wrap">
-              <span className="text-base font-bold text-emerald-400/80 mr-1.5">Ksh</span>
-              <h3 className="text-2xl sm:text-3xl font-black font-mono text-emerald-400 text-glow-green tracking-tight leading-none">
-                {totalPaymentsValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </h3>
-            </div>
-            <div className="mt-3 flex items-center gap-1.5 text-xs text-theme-text-muted font-medium flex-wrap">
-              <span>Combined statements with</span>
-              <span className="font-mono font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-md text-xs shadow-sm">
-                {customerPayments.length} receipts
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Visual Analytics Segment */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Chart 1: Cumulative Running Balance Trend */}
-        <div className="lg:col-span-2 glass-panel border border-theme-border rounded-xl p-6 shadow-sm transition-colors">
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h3 className="text-lg font-black text-theme-text tracking-tight">Statement Ledger Trend Line</h3>
-              <p className="text-xs text-theme-text-muted">Time-series tracking of outstanding balance evolution</p>
-            </div>
-            <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/25 px-3 py-1.5 rounded-lg shadow-sm">
-              <TrendingUp className="w-4 h-4 text-emerald-400" />
-              <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">Balance Scale</span>
-            </div>
-          </div>
-          
-          <div className="h-72 w-full relative overflow-hidden">
-            {chartData.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-sm text-theme-text-muted bg-white/[0.02] rounded-xl border border-dashed border-theme-border">
-                Not enough transactions to map chart data
-              </div>
+          <div className="mt-1 text-[10px] truncate">
+            {calculatedBalance < 0 ? (
+              <span className="text-[#059669] font-bold">Advance Balance Credit</span>
+            ) : isCreditRisk ? (
+              <span className="text-rose-400 font-bold animate-pulse">Credit Limit Exceeded</span>
+            ) : calculatedBalance > 0 ? (
+              <span className="text-[#7C3AED] font-bold">Receivable Balance Owed</span>
             ) : (
-              <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="balanceGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#00E676" stopOpacity={0.05}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.07)" />
-                  <XAxis dataKey="name" fontSize={11} stroke="#94A3B8" tickLine={false} />
-                  <YAxis fontSize={11} stroke="#94A3B8" tickFormatter={(v) => `K${Math.round(v/1000)}k`} tickLine={false} />
-                  <Tooltip 
-                    formatter={(val: any) => [`KES ${Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 'Ledger Balance']}
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(0, 0, 0, 0.95)', 
-                      borderColor: 'rgba(0, 230, 118, 0.4)',
-                      borderRadius: '12px', 
-                      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.8)',
-                      color: '#F8FAFC',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      zIndex: 100 
-                    }}
-                  />
-                  <Area type="monotone" dataKey="Running Balance" stroke="#00E676" strokeWidth={2.5} fillOpacity={1} fill="url(#balanceGrad)" />
-                </AreaChart>
-              </ResponsiveContainer>
+              <span className="text-slate-400 font-bold">Settled (Nil Balance)</span>
             )}
           </div>
         </div>
 
-        {/* Chart 2: Transaction Volume Distribution */}
-        <div className="glass-panel border border-theme-border rounded-xl p-6 shadow-sm transition-colors flex flex-col justify-between">
-          <div>
-            <div className="mb-5">
-              <h3 className="text-lg font-black text-theme-text tracking-tight">Recent Activity Distribution</h3>
-              <p className="text-xs text-theme-text-muted">Magnitude comparing customer payments to fuel orders</p>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex justify-between items-center p-3.5 glass-panel rounded-xl border border-theme-border bg-white/[0.02]">
-                <span className="text-xs font-bold text-theme-text-muted uppercase tracking-wider">Opening Balance Context</span>
-                <span className={`text-xs sm:text-sm font-mono font-bold px-2.5 py-1 rounded-lg border ${
-                  customer.openingBalanceType === 'advance'
-                    ? 'text-emerald-400 bg-emerald-500/15 border-emerald-500/30'
-                    : 'text-purple-300 bg-purple-500/15 border-purple-500/30'
-                }`}>
-                  {customer.openingBalanceType === 'advance' ? '-' : '+'}Ksh {(customer.openingBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
-              </div>
-              
-              <div className="pt-2">
-                <p className="text-[11px] font-extrabold text-theme-text-muted uppercase mb-3 tracking-wider">Summary Indicators</p>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-xs font-semibold mb-1.5">
-                      <span className="text-theme-text-muted">Average Delivery Size</span>
-                      <span className="font-mono font-bold text-purple-300">
-                        {customerDeliveries.length ? `Ksh ${(totalSalesValue / customerDeliveries.length).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'}
-                      </span>
-                    </div>
-                    <div className="h-2 bg-theme-panel rounded-full overflow-hidden border border-theme-border/60">
-                      <div className="h-full bg-gradient-to-r from-purple-800 via-purple-600 to-purple-400 rounded-full shadow-[0_0_10px_rgba(168,85,247,0.3)]" style={{ width: '65%' }} />
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-xs font-semibold mb-1.5">
-                      <span className="text-theme-text-muted">Average Payment Size</span>
-                      <span className="font-mono font-bold text-emerald-400">
-                        {customerPayments.length ? `Ksh ${(totalPaymentsValue / customerPayments.length).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'}
-                      </span>
-                    </div>
-                    <div className="h-2 bg-theme-panel rounded-full overflow-hidden border border-theme-border/60">
-                      <div className="h-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.3)]" style={{ width: '45%' }} />
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center pt-1">
-                    <span className="text-xs font-semibold text-theme-text-muted">Total Activity Index</span>
-                    <span className="font-mono font-bold text-xs text-purple-300 bg-purple-500/15 border border-purple-500/30 px-2.5 py-1 rounded-lg">
-                      {timelineEvents.length} items logged
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+        {/* Card 2: Credit Allocation - Neutral Grey */}
+        <div className="glass-panel rounded-xl px-3.5 py-2.5 shadow-sm border border-white/10 bg-white/[0.02]">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-extrabold text-theme-text-muted uppercase tracking-wider">Credit Limit</span>
+            <span className="text-[10px] font-mono text-gray-400 font-bold">
+              Rem: Ksh {remainingCredit.toLocaleString()}
+            </span>
           </div>
-          
-          <div className="pt-4 mt-4 border-t border-theme-border text-center">
-            <button 
-              type="button"
-              className="text-xs text-emerald-400 hover:text-emerald-300 font-bold hover:underline cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 transition-all" 
-              onClick={handleExportStatement}
-            >
-              <Calendar className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Open printable timeline report</span>
-            </button>
+          <div className="flex items-baseline gap-1 mt-1">
+            <span className="text-xs font-bold text-gray-400">Ksh</span>
+            <span className="text-base sm:text-lg font-black font-mono text-gray-400 tracking-tight leading-none">
+              {(customer.creditLimit || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+          <div className="mt-1.5 h-1.5 bg-theme-panel rounded-full overflow-hidden border border-theme-border/60">
+            <div 
+              className={`h-full rounded-full transition-all duration-500 ${
+                isCreditRisk 
+                  ? 'bg-rose-500' 
+                  : remainingCredit > (customer.creditLimit || 1) * 0.5 
+                    ? 'bg-gradient-to-r from-purple-500 to-emerald-400' 
+                    : 'bg-purple-500'
+              }`}
+              style={{ width: `${Math.min(100, Math.max(0, (remainingCredit / (customer.creditLimit || 1)) * 100))}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Card 3: Total Deliveries - Purple */}
+        <div className="glass-panel rounded-xl px-3.5 py-2.5 shadow-sm border border-purple-500/30 bg-purple-500/[0.03]">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-extrabold text-theme-text-muted uppercase tracking-wider">Total Deliveries</span>
+            <span className="text-[10px] font-mono text-purple-300 font-bold bg-purple-500/15 px-1.5 py-0.5 rounded border border-purple-500/25">
+              {totalFuelLitres.toLocaleString()} L
+            </span>
+          </div>
+          <div className="flex items-baseline gap-1 mt-1">
+            <span className="text-xs font-bold text-[#7C3AED]">Ksh</span>
+            <span className="text-base sm:text-lg font-black font-mono text-[#7C3AED] tracking-tight leading-none">
+              {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+          <div className="mt-1 text-[10px] text-theme-text-muted font-medium">
+            {customerDeliveries.length} orders dispensed
+          </div>
+        </div>
+
+        {/* Card 4: Total Payments Received - Deep Green */}
+        <div className="glass-panel rounded-xl px-3.5 py-2.5 shadow-sm border border-emerald-500/30 bg-emerald-500/[0.03]">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-extrabold text-theme-text-muted uppercase tracking-wider">Total Received</span>
+            <span className="text-[10px] font-mono text-[#059669] font-bold bg-emerald-500/15 px-1.5 py-0.5 rounded border border-emerald-500/25">
+              {customerPayments.length} receipts
+            </span>
+          </div>
+          <div className="flex items-baseline gap-1 mt-1">
+            <span className="text-xs font-bold text-[#059669]">Ksh</span>
+            <span className="text-base sm:text-lg font-black font-mono text-[#059669] tracking-tight leading-none">
+              {totalPaymentsValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </span>
+          </div>
+          <div className="mt-1 text-[10px] text-[#059669]/90 font-medium">
+            Settled via till & bank
           </div>
         </div>
       </div>
 
-      {/* Filter Options & Transaction Log */}
-      <div className="glass-panel border border-theme-border rounded-xl overflow-hidden shadow-sm transition-colors">
-        <div className="p-6 border-b border-theme-border">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      {/* Collapsible Visual Analytics Segment (Expandable on click so it doesn't push the table down) */}
+      <div className="flex items-center justify-between px-1">
+        <button 
+          type="button"
+          onClick={() => setShowCharts(prev => !prev)}
+          className="inline-flex items-center gap-1.5 text-xs text-theme-text-muted hover:text-emerald-400 font-semibold transition-colors cursor-pointer py-0.5"
+          title="Toggle chart visualization"
+        >
+          <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+          <span>{showCharts ? 'Hide Visual Charts' : 'View Visual Analytics & Trend Charts'}</span>
+          <span className="text-[10px] text-theme-text-muted/70">({showCharts ? '▲ Click to collapse' : '▼ Click to expand'})</span>
+        </button>
+      </div>
+
+      {showCharts && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          {/* Chart 1: Cumulative Running Balance Trend */}
+          <div className="lg:col-span-2 glass-panel border border-theme-border rounded-xl p-4 shadow-sm transition-colors">
+            <div className="flex justify-between items-center mb-3">
+              <div>
+                <h3 className="text-sm font-black text-theme-text tracking-tight">Statement Ledger Trend Line</h3>
+                <p className="text-[11px] text-theme-text-muted">Time-series tracking of outstanding balance evolution</p>
+              </div>
+              <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-1 rounded-lg shadow-sm">
+                <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-wider">Balance Scale</span>
+              </div>
+            </div>
+            
+            <div className="h-52 w-full relative overflow-hidden">
+              {chartData.length === 0 ? (
+                <div className="h-full flex items-center justify-center text-xs text-theme-text-muted bg-white/[0.02] rounded-xl border border-dashed border-theme-border">
+                  Not enough transactions to map chart data
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="balanceGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor="#00E676" stopOpacity={0.05}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.07)" />
+                    <XAxis dataKey="name" fontSize={10} stroke="#94A3B8" tickLine={false} />
+                    <YAxis fontSize={10} stroke="#94A3B8" tickFormatter={(v) => `K${Math.round(v/1000)}k`} tickLine={false} />
+                    <Tooltip 
+                      formatter={(val: any) => [`KES ${Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 'Ledger Balance']}
+                      contentStyle={{ 
+                        backgroundColor: 'rgba(0, 0, 0, 0.95)', 
+                        borderColor: 'rgba(0, 230, 118, 0.4)',
+                        borderRadius: '12px', 
+                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.8)',
+                        color: '#F8FAFC',
+                        fontSize: '11px',
+                        fontWeight: 'bold',
+                        zIndex: 100 
+                      }}
+                    />
+                    <Area type="monotone" dataKey="Running Balance" stroke="#00E676" strokeWidth={2.5} fillOpacity={1} fill="url(#balanceGrad)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </div>
+
+          {/* Chart 2: Transaction Volume Distribution */}
+          <div className="glass-panel border border-theme-border rounded-xl p-4 shadow-sm transition-colors flex flex-col justify-between">
             <div>
-              <h3 className="text-lg font-black text-theme-text tracking-tight">Audit Statement & Transaction Timeline</h3>
-              <p className="text-xs text-theme-text-muted">Detailed list of every payment, fuel delivery, and ledger override</p>
+              <div className="mb-3">
+                <h3 className="text-sm font-black text-theme-text tracking-tight">Recent Activity Distribution</h3>
+                <p className="text-[11px] text-theme-text-muted">Magnitude comparing customer payments to fuel orders</p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex justify-between items-center p-2.5 glass-panel rounded-xl border border-theme-border bg-white/[0.02]">
+                  <span className="text-[11px] font-bold text-theme-text-muted uppercase tracking-wider">Opening Context</span>
+                  <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-md border ${
+                    customer.openingBalanceType === 'advance'
+                      ? 'text-[#059669] bg-emerald-500/15 border-emerald-500/30'
+                      : 'text-purple-300 bg-purple-500/15 border-purple-500/30'
+                  }`}>
+                    {customer.openingBalanceType === 'advance' ? '-' : '+'}Ksh {(customer.openingBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+                
+                <div className="space-y-2">
+                  <div>
+                    <div className="flex justify-between text-[11px] font-semibold mb-1">
+                      <span className="text-theme-text-muted">Avg Delivery</span>
+                      <span className="font-mono font-bold text-purple-300">
+                        {customerDeliveries.length ? `Ksh ${(totalSalesValue / customerDeliveries.length).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-theme-panel rounded-full overflow-hidden border border-theme-border/60">
+                      <div className="h-full bg-gradient-to-r from-purple-800 via-purple-600 to-purple-400 rounded-full" style={{ width: '65%' }} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between text-[11px] font-semibold mb-1">
+                      <span className="text-theme-text-muted">Avg Payment</span>
+                      <span className="font-mono font-bold text-emerald-400">
+                        {customerPayments.length ? `Ksh ${(totalPaymentsValue / customerPayments.length).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'}
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-theme-panel rounded-full overflow-hidden border border-theme-border/60">
+                      <div className="h-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400 rounded-full" style={{ width: '45%' }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="pt-2.5 mt-2.5 border-t border-theme-border text-center">
+              <button 
+                type="button"
+                className="text-xs text-[#7C3AED] hover:text-purple-300 font-bold hover:underline cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/25 transition-all" 
+                onClick={handleExportStatement}
+              >
+                <Calendar className="w-3.5 h-3.5 text-[#7C3AED]" />
+                <span>Open statement PDF report</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Filter Options & Transaction Log Table - Compressed Header Toolbar */}
+      <div className="glass-panel border border-theme-border rounded-xl overflow-hidden shadow-sm transition-colors">
+        <div className="p-3 border-b border-theme-border bg-white/[0.02]">
+          <div className="flex flex-wrap items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-black text-theme-text tracking-tight">Statement & Transaction Timeline</h3>
+              <span className="text-xs font-mono font-bold text-purple-300 bg-purple-500/15 border border-purple-500/30 px-2 py-0.5 rounded-md">
+                {timelineEvents.length} items
+              </span>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
               {/* Strategy toggle */}
-              <div className="bg-theme-panel border border-theme-border p-1 rounded-xl flex items-center">
-                <button
-                  type="button"
-                  onClick={() => setSortStrategy(prev => prev === 'newest' ? 'oldest' : 'newest')}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-lg uppercase tracking-wider transition-all cursor-pointer border flex items-center gap-1.5 ${
-                    sortStrategy === 'newest'
-                      ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 font-extrabold shadow-[0_0_15px_rgba(0,230,118,0.2)]'
-                      : 'border-transparent text-theme-text-muted hover:text-theme-text hover:bg-white/5'
-                  }`}
-                  title="Toggle chronological sorting. Currently showing latest transactions at the top."
-                >
-                  <ArrowUpDown className="w-3.5 h-3.5" />
-                  <span>{sortStrategy === 'newest' ? 'Latest First (Newest at Top)' : 'Oldest First (FIFO)'}</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setSortStrategy(prev => prev === 'newest' ? 'oldest' : 'newest')}
+                className={`px-2.5 py-1 text-xs font-bold rounded-lg uppercase tracking-wider transition-all cursor-pointer border flex items-center gap-1.5 ${
+                  sortStrategy === 'newest'
+                    ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 font-extrabold shadow-[0_0_15px_rgba(0,230,118,0.2)]'
+                    : 'border-transparent text-theme-text-muted hover:text-theme-text hover:bg-white/5'
+                }`}
+                title="Toggle chronological sorting. Currently showing latest transactions at the top."
+              >
+                <ArrowUpDown className="w-3.5 h-3.5" />
+                <span>{sortStrategy === 'newest' ? 'Latest First' : 'Oldest First'}</span>
+              </button>
 
               {/* Quick type filter */}
-              <div className="flex flex-wrap gap-1.5 bg-theme-panel border border-theme-border p-1 rounded-xl">
+              <div className="flex flex-wrap gap-1 bg-theme-panel border border-theme-border p-0.5 rounded-lg">
                 {(['all', 'delivery', 'payment', 'adjustment'] as const).map(f => {
                   const isActive = filterType === f;
                   let activeStyle = 'bg-white/10 text-white border-white/20 shadow-sm';
@@ -1271,7 +1209,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     <button
                        key={f}
                        onClick={() => setFilterType(f)}
-                       className={`px-3 py-1.5 text-xs font-bold rounded-lg uppercase tracking-wider transition-all cursor-pointer border ${
+                       className={`px-2.5 py-0.5 text-xs font-bold rounded-md uppercase tracking-wider transition-all cursor-pointer border ${
                          isActive 
                            ? `${activeStyle} font-extrabold`
                            : 'border-transparent text-theme-text-muted hover:text-theme-text hover:bg-white/5'
@@ -1286,40 +1224,37 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           </div>
 
           {/* Advanced filters: search, date range */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 py-2 border-t border-theme-border">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-400" />
+          <div className="flex flex-wrap items-center gap-2 mt-2 pt-2 border-t border-theme-border/60">
+            <div className="relative flex-1 min-w-[200px] max-w-sm">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-emerald-400" />
               <input 
                 type="text"
                 placeholder="Search description, author..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-white/[0.03] border border-theme-border rounded-xl text-xs sm:text-sm text-theme-text focus:outline-none focus:ring-1 focus:ring-emerald-500 placeholder:text-theme-text-muted"
+                className="w-full pl-8 pr-2.5 py-1 bg-white/[0.04] border border-theme-border rounded-lg text-xs text-theme-text focus:outline-none focus:ring-1 focus:ring-emerald-500 placeholder:text-theme-text-muted"
               />
             </div>
             
-            <div className="relative">
+            <div className="flex items-center gap-1.5 text-xs text-theme-text-muted">
+              <span>Date:</span>
               <input 
                 type="date"
                 value={startDate}
                 onChange={e => setStartDate(e.target.value)}
-                className="w-full px-3 py-2 bg-white/[0.03] border border-theme-border rounded-xl text-xs sm:text-sm text-theme-text focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                className="px-2 py-1 bg-white/[0.04] border border-theme-border rounded-lg text-xs text-theme-text focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 placeholder="Start Date"
                 title="Start Date"
               />
-              <span className="absolute right-3 top-2.5 text-[9px] uppercase font-mono tracking-widest text-emerald-400 pointer-events-none font-bold">Start</span>
-            </div>
-
-            <div className="relative">
+              <span>to</span>
               <input 
                 type="date"
                 value={endDate}
                 onChange={e => setEndDate(e.target.value)}
-                className="w-full px-3 py-2 bg-white/[0.03] border border-theme-border rounded-xl text-xs sm:text-sm text-theme-text focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                className="px-2 py-1 bg-white/[0.04] border border-theme-border rounded-lg text-xs text-theme-text focus:outline-none focus:ring-1 focus:ring-emerald-500"
                 placeholder="End Date"
                 title="End Date"
               />
-              <span className="absolute right-3 top-2.5 text-[9px] uppercase font-mono tracking-widest text-emerald-400 pointer-events-none font-bold">End</span>
             </div>
           </div>
         </div>
@@ -1386,7 +1321,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                           </div>
                           <span className={`text-sm font-bold ${
                             isOpening 
-                              ? (customer?.openingBalanceType === 'advance' ? 'text-emerald-400' : 'text-purple-300') 
+                              ? (customer?.openingBalanceType === 'advance' ? 'text-[#059669]' : 'text-purple-300') 
                               : 'text-theme-text'
                           }`}>
                             {e.title}
@@ -1398,11 +1333,15 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       </td>
                       <td className="px-4 sm:px-6 py-3.5 text-right font-mono font-bold text-sm whitespace-nowrap">
                         {isOpening ? (
-                          <span className={customer?.openingBalanceType === 'advance' ? '!text-emerald-400' : '!text-[#9333EA]'}>
+                          <span className={customer?.openingBalanceType === 'advance' ? '!text-[#059669]' : '!text-[#9333EA]'}>
                             {customer?.openingBalanceType === 'advance' ? '-' : '+'}Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
+                        ) : e.type === 'payment' ? (
+                          <span className="!text-[#059669]">
+                            -Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
                         ) : (
-                          <span className={isPurpleAmount ? '!text-[#9333EA]' : '!text-emerald-400'}>
+                          <span className={isPurpleAmount ? '!text-[#9333EA]' : '!text-[#059669]'}>
                             {isPurpleAmount ? '+' : '-'}Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         )}
@@ -1413,7 +1352,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                             Ksh {e.balanceAfter.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         ) : e.balanceAfter < 0 ? (
-                          <span className="!text-emerald-400">
+                          <span className="!text-[#059669]">
                             -Ksh {Math.abs(e.balanceAfter).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         ) : (
@@ -1438,7 +1377,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 </td>
                 <td className="px-4 sm:px-6 py-4 text-right font-mono font-black text-sm sm:text-base whitespace-nowrap">
                   <span className="block text-[10px] uppercase font-sans tracking-widest text-slate-400">Final Closing Balance</span>
-                  <span className={calculatedBalance > 0 ? '!text-[#9333EA]' : calculatedBalance < 0 ? '!text-emerald-400' : '!text-white'}>
+                  <span className={calculatedBalance > 0 ? '!text-[#9333EA]' : calculatedBalance < 0 ? '!text-[#059669]' : '!text-white'}>
                     {calculatedBalance < 0 ? '-' : ''}Ksh {Math.abs(calculatedBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </td>

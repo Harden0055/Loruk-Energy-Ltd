@@ -115,75 +115,83 @@ export default function TruckDashboard({
         </button>
       </div>
       
-      {/* Metrics */}
+       {/* Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="glass-panel border border-theme-border p-5 rounded-xl">
-           <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Total Spent</p>
-           <h3 className="text-2xl font-black font-mono text-purple-300 mt-2">{formatCurrency(totalExpense)}</h3>
+        <div className="glass-panel border border-purple-500/25 bg-purple-500/[0.03] p-5 rounded-xl">
+           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Spent</p>
+           <h3 className="text-2xl font-black font-mono text-[#7C3AED] mt-2">{formatCurrency(totalExpense)}</h3>
         </div>
-        <div className="glass-panel border border-theme-border p-5 rounded-xl">
-           <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Total Litres</p>
-           <h3 className="text-2xl font-black font-mono text-emerald-400 mt-2">{totalLitres.toLocaleString()} <span className="text-xs font-sans font-bold">L</span></h3>
+        <div className="glass-panel border border-emerald-500/25 bg-emerald-500/[0.03] p-5 rounded-xl">
+           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Litres</p>
+           <h3 className="text-2xl font-black font-mono text-[#059669] mt-2">{totalLitres.toLocaleString()} <span className="text-xs font-sans font-bold">L</span></h3>
         </div>
-        <div className="glass-panel border border-theme-border p-5 rounded-xl">
-           <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Avg Fuel Cost</p>
-           <h3 className="text-2xl font-black font-mono text-purple-300 mt-2">{avgCostPerLitre > 0 ? `${formatCurrency(avgCostPerLitre)}/L` : 'N/A'}</h3>
+        <div className="glass-panel border border-purple-500/25 bg-purple-500/[0.03] p-5 rounded-xl">
+           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Avg Fuel Cost</p>
+           <h3 className="text-2xl font-black font-mono text-[#7C3AED] mt-2">{avgCostPerLitre > 0 ? `${formatCurrency(avgCostPerLitre)}/L` : 'N/A'}</h3>
         </div>
-        <div className="glass-panel border border-theme-border p-5 rounded-xl">
-           <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Active Fleet</p>
-           <h3 className="text-2xl font-black font-mono text-emerald-400 mt-2">{activeTrucksCount} <span className="text-xs font-sans font-bold">Trucks</span></h3>
+        <div className="glass-panel border border-emerald-500/25 bg-emerald-500/[0.03] p-5 rounded-xl">
+           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Active Fleet</p>
+           <h3 className="text-2xl font-black font-mono text-[#059669] mt-2">{activeTrucksCount} <span className="text-xs font-sans font-bold">Trucks</span></h3>
         </div>
       </div>
 
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-panel border p-5 rounded-xl">
-            <h3 className="font-bold text-lg mb-4">Fuel Spend by Vehicle</h3>
+        <div className="glass-panel border border-purple-500/20 p-5 rounded-xl">
+            <h3 className="font-bold text-lg mb-4 text-[#7C3AED]">Fuel Spend by Vehicle</h3>
             <div className="h-64 relative overflow-hidden" >
                 <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
                     <BarChart data={vehicleSpendData}>
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                        <Bar dataKey="amount">
+                        <XAxis dataKey="name" stroke="#9ca3af" tickLine={false} />
+                        <YAxis stroke="#9ca3af" tickLine={false} />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#09090b', color: '#f3f4f6', border: '1px solid rgba(124,58,237,0.4)', borderRadius: '8px', fontSize: '12px' }}
+                          formatter={(value: number) => [formatCurrency(value), 'Spend']} 
+                        />
+                        <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
                           {vehicleSpendData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.isCurrent ? "#93c5fd" : "#1e40af"} />
+                              <Cell key={`cell-${index}`} fill={entry.isCurrent ? "#059669" : "#7C3AED"} />
                           ))}
                         </Bar>
                     </BarChart>
                 </ResponsiveContainer>
             </div>
         </div>
-        <div className="glass-panel border p-5 rounded-xl">
-            <h3 className="font-bold text-lg mb-4">Expenditure Trend</h3>
+        <div className="glass-panel border border-purple-500/20 p-5 rounded-xl">
+            <h3 className="font-bold text-lg mb-4 text-[#059669]">Expenditure Trend</h3>
             <div className="h-64 relative overflow-hidden" >
                 <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
                     <AreaChart data={timelineChartData}>
-                        <XAxis dataKey="dateStr" />
-                        <YAxis />
-                        <Tooltip />
-                        <Area dataKey="amount" fill="#2563eb" />
+                        <XAxis dataKey="dateStr" stroke="#9ca3af" tickLine={false} />
+                        <YAxis stroke="#9ca3af" tickLine={false} />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#09090b', color: '#f3f4f6', border: '1px solid rgba(5,150,105,0.4)', borderRadius: '8px', fontSize: '12px' }}
+                          formatter={(value: number) => [formatCurrency(value), 'Expenditure']}
+                        />
+                        <Area dataKey="amount" fill="rgba(124,58,237,0.35)" stroke="#7C3AED" strokeWidth={2} />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>
         </div>
-        <div className="glass-panel border p-5 rounded-xl lg:col-span-2">
-            <h3 className="font-bold text-lg mb-4">Fuel Efficiency Trend (L/KES)</h3>
+        <div className="glass-panel border border-emerald-500/20 p-5 rounded-xl lg:col-span-2">
+            <h3 className="font-bold text-lg mb-4 text-[#059669]">Fuel Efficiency Trend (L/KES)</h3>
             <div className="h-64 relative overflow-hidden" >
                 <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
                     <LineChart data={efficiencyTrendData}>
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <Tooltip />
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <Line type="monotone" dataKey="efficiency" stroke="#10b981" strokeWidth={2} />
+                        <XAxis dataKey="date" stroke="#9ca3af" tickLine={false} />
+                        <YAxis stroke="#9ca3af" tickLine={false} />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#09090b', color: '#f3f4f6', border: '1px solid rgba(5,150,105,0.4)', borderRadius: '8px', fontSize: '12px' }}
+                        />
+                        <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+                        <Line type="monotone" dataKey="efficiency" stroke="#059669" strokeWidth={2.5} dot={{ fill: '#059669', r: 4 }} />
                     </LineChart>
                 </ResponsiveContainer>
             </div>
         </div>
        </div>
 
-       <div className="glass-panel rounded border overflow-hidden mt-6">
-        <h3 className="font-bold text-lg p-4 border-b">Historic Fueling</h3>
+       <div className="glass-panel rounded border border-theme-border overflow-hidden mt-6 shadow-[0_0_15px_rgba(124,58,237,0.15)]">
+        <h3 className="font-bold text-lg p-4 border-b border-theme-border">Historic Fueling</h3>
         <div className="overflow-x-auto">
           <table className="modern-table">
             <thead>
@@ -195,23 +203,28 @@ export default function TruckDashboard({
                 <th className="modern-th">Amount</th>
               </tr>
             </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-blue-900">
+          <tbody className="divide-y divide-white/5">
             {expenses.sort((a, b) => b.date - a.date).map(e => {
-              const badgeClass = e.station === 'Gel - Bungoma' ? 'bg-pink-100 dark:bg-pink-900/50 text-pink-800 dark:text-pink-200' 
-                                : e.station === 'Gel - Kapenguria' ? 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200' 
-                                : e.station === 'Kengas' ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200'
-                                : '';
+              const s = (e.station || '').toLowerCase();
+              let stationClass = 'bg-purple-500/15 text-purple-300 border-purple-500/30';
+              if (s.includes('kapenguria')) {
+                stationClass = 'bg-[#059669]/20 text-[#059669] border-[#059669]/40';
+              } else if (s.includes('bungoma')) {
+                stationClass = 'bg-[#7C3AED]/20 text-[#7C3AED] border-[#7C3AED]/40';
+              } else if (s.includes('ndalu') || s.includes('junction')) {
+                stationClass = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
+              }
               
               return (
                 <tr key={e.id} className="hover:bg-white/5 transition-colors">
                   <td className="modern-td">{format(e.date, 'MMM d, yyyy')}</td>
-                  <td className="px-4 py-3 font-semibold text-emerald-400 hover:text-emerald-300 cursor-pointer hover:underline font-bold transition-colors" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
+                  <td className="px-4 py-3 font-semibold text-[#7C3AED] hover:text-purple-300 cursor-pointer hover:underline font-bold transition-colors" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
                   <td className="modern-td">
                     {e.station && (
                       <button
                         type="button"
                         onClick={() => onNavigateToStation?.(e.station, e.station)}
-                        className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/20 transition-all cursor-pointer"
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border transition-all cursor-pointer ${stationClass}`}
                         title={`Open ${e.station} Dashboard`}
                       >
                         <span>{e.station}</span>
@@ -219,7 +232,7 @@ export default function TruckDashboard({
                     )}
                   </td>
                   <td className="modern-td">{e.litres ? `${e.litres.toLocaleString()} L` : '-'}</td>
-                  <td className="modern-td"><span className="!text-purple-300 font-mono font-bold text-base">{formatCurrency(e.amount)}</span></td>
+                  <td className="modern-td"><span className="!text-[#7C3AED] font-mono font-bold text-base">{formatCurrency(e.amount)}</span></td>
                 </tr>
               );
             })}

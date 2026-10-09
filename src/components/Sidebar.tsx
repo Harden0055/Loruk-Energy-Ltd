@@ -294,30 +294,20 @@ export default function Sidebar({
               if (onClose) onClose();
             }}
             className={cn(
-              "flex-1 flex items-center gap-3 px-3.5 py-2.5 text-sm font-semibold rounded-xl sidebar-item cursor-pointer text-left transition-colors duration-200",
-              isDashboard
-                ? isActive
-                  ? "!bg-transparent text-white border border-transparent hover:!text-[#00E676] hover:!bg-transparent"
-                  : "!bg-transparent text-theme-text-muted hover:!text-[#00E676] hover:!bg-transparent border border-transparent"
-                : isActive 
-                  ? item.id === 'payments'
-                    ? "sidebar-item-active-green font-bold shadow-lg"
-                    : "sidebar-item-active font-bold shadow-lg"
-                  : item.id === 'fuelsuite'
-                    ? "text-[#00E676] bg-[#00E676]/10 hover:bg-[#00E676]/15 border border-[#00E676]/30 shadow-[0_0_12px_rgba(0,230,118,0.15)]"
-                    : "text-theme-text-muted hover:!text-[#00E676] hover:bg-white/[0.04]"
+              "flex-1 flex items-center gap-3 px-3.5 py-2.5 text-sm font-semibold rounded-xl sidebar-item cursor-pointer text-left transition-all duration-200",
+              isActive 
+                ? "sidebar-item-active bg-emerald-500/12 text-emerald-400 border border-emerald-500/35 font-bold shadow-[0_0_16px_rgba(16,185,129,0.12)]"
+                : item.id === 'fuelsuite'
+                  ? "text-[#00E676] bg-[#00E676]/10 hover:bg-[#00E676]/15 border border-[#00E676]/30 shadow-[0_0_12px_rgba(0,230,118,0.15)]"
+                  : "text-theme-text-muted hover:text-[#00E676] hover:bg-emerald-500/[0.04]"
             )}
             title={`Go to ${item.label}`}
           >
             <Icon className={cn(
               "w-5 h-5 shrink-0 transition-colors duration-200", 
-              isDashboard
-                ? isActive
-                  ? "text-white group-hover/parent:!text-[#00E676]"
-                  : "text-theme-text-muted group-hover/parent:!text-[#00E676]"
-                : isActive 
-                  ? item.id === 'payments' ? "text-emerald-400 stroke-emerald-400" : "" 
-                  : item.id === 'fuelsuite' ? "text-[#00E676]" : "group-hover/parent:!text-[#00E676]"
+              isActive 
+                ? "text-emerald-400" 
+                : item.id === 'fuelsuite' ? "text-[#00E676]" : "group-hover/parent:text-[#00E676]"
             )} />
             <span className="truncate">{item.label}</span>
             {item.badge && (
@@ -367,19 +357,19 @@ export default function Sidebar({
                       className={cn(
                         "w-full flex items-center gap-2.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-150 cursor-pointer text-left group/sub",
                         isSubItemActive
-                          ? "bg-theme-primary/15 text-theme-primary font-bold border border-theme-primary/30 shadow-[0_0_12px_rgba(0,229,255,0.15)]"
+                          ? "bg-emerald-500/15 text-emerald-400 font-bold border border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
                           : "text-theme-text-muted hover:text-white hover:bg-white/[0.06] hover:translate-x-1"
                       )}
                     >
                       {SubIcon ? (
                         <SubIcon className={cn(
                           "w-3.5 h-3.5 shrink-0 transition-colors",
-                          isSubItemActive ? "text-theme-primary" : "text-theme-text-muted group-hover/sub:text-theme-primary"
+                          isSubItemActive ? "text-emerald-400" : "text-theme-text-muted group-hover/sub:text-emerald-400"
                         )} />
                       ) : (
                         <span className={cn(
                           "w-1.5 h-1.5 rounded-full shrink-0 transition-all",
-                          isSubItemActive ? "bg-theme-primary shadow-[0_0_8px_var(--color-theme-primary)] scale-125" : "bg-theme-text-muted/50 group-hover/sub:bg-theme-primary"
+                          isSubItemActive ? "bg-emerald-400 shadow-[0_0_8px_#34D399] scale-125" : "bg-theme-text-muted/50 group-hover/sub:bg-emerald-400"
                         )} />
                       )}
                       <span className="truncate">{sub.label}</span>

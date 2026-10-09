@@ -1001,7 +1001,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
                         <>
                           <button 
                             onClick={() => onViewCustomer?.(d.customerId)}
-                            className="hover:underline text-emerald-400 hover:text-emerald-300 font-bold cursor-pointer text-left focus:outline-none"
+                            className="hover:underline text-[#7C3AED] hover:text-purple-300 font-bold cursor-pointer text-left focus:outline-none"
                           >
                             {customers.find(c => c.id === d.customerId)?.name || 'Unknown'}
                           </button>
