@@ -644,7 +644,7 @@ svg.lucide {
 
 /* ==========================================================================
    DEEPCHARTS ACCOUNTING DUALITY SYSTEM:
-   1. All hyperlinks green in color (customers, trucks, stations, and any link)
+   1. All hyperlinks deep purple in color (customers, trucks, stations, and any link)
    2. All dropdowns green or purple depending on meaning
    3. All buttons green or purple depending on meaning
    4. All hover border lines and hover background colors green or purple
@@ -652,9 +652,9 @@ svg.lucide {
       Purple = negative transactions (expenses, deliveries, invoices, debits)
    ========================================================================== */
 
-/* 1. Universal Green Hyperlinks across the entire system */
+/* 1. Universal Deep Purple Hyperlinks across the entire system */
 a, 
-.link-green,
+.link-purple,
 a.font-bold,
 button.hover\:underline,
 td button.hover\:underline,
@@ -665,13 +665,13 @@ button[data-link="true"],
 .text-sky-400.hover\:underline,
 .text-blue-500.hover\:underline,
 .text-blue-400.hover\:underline {
-  color: #00E676 !important;
-  text-decoration-color: #00E676 !important;
+  color: #7C3AED !important;
+  text-decoration-color: #7C3AED !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 a:hover, 
-.link-green:hover,
+.link-purple:hover,
 a.font-bold:hover,
 button.hover\:underline:hover,
 td button.hover\:underline:hover,
@@ -682,9 +682,9 @@ button[data-link="true"]:hover,
 .text-sky-400.hover\:underline:hover,
 .text-blue-500.hover\:underline:hover,
 .text-blue-400.hover\:underline:hover {
-  color: #34D399 !important;
-  text-decoration-color: #34D399 !important;
-  text-shadow: 0 0 12px rgba(0, 230, 118, 0.55) !important;
+  color: #C084FC !important;
+  text-decoration-color: #C084FC !important;
+  text-shadow: 0 0 12px rgba(124, 58, 237, 0.55) !important;
 }
 
 /* 2. Dropdown styling (green or purple depending on meaning) */
