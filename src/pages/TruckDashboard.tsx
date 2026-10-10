@@ -11,11 +11,8 @@ import {
   XAxis, 
   YAxis, 
   Tooltip, 
-  CartesianGrid, 
   AreaChart,
-  Area,
-  LineChart,
-  Line
+  Area
 } from 'recharts';
 
 const FALLBACK_REGISTRATIONS = [
@@ -78,23 +75,6 @@ export default function TruckDashboard({
 
     return Object.values(grouped).slice(-10);
   }, [expenses]);
-
-  const efficiencyTrendData = useMemo(() => {
-    const last30Days = Date.now() - 30 * 24 * 60 * 60 * 1000;
-    const recent = expenses.filter(e => e.date >= last30Days);
-    const groups: Record<string, { totalLitres: number, totalAmount: number }> = {};
-    recent.forEach(e => {
-      const d = format(e.date, 'MMM dd');
-      if (!groups[d]) groups[d] = { totalLitres: 0, totalAmount: 0 };
-      groups[d].totalLitres += e.litres || 0;
-      groups[d].totalAmount += e.amount;
-    });
-    return Object.entries(groups).map(([date, data]) => ({
-      date,
-      efficiency: data.totalAmount > 0 ? data.totalLitres / data.totalAmount : 0
-    })).sort((a, b) => a.date.localeCompare(b.date));
-  }, [expenses]);
-
   return (
     <div className="space-y-6 animate-fade-in font-sans p-2">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -138,7 +118,7 @@ export default function TruckDashboard({
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="glass-panel border border-purple-500/20 p-5 rounded-xl">
             <h3 className="font-bold text-lg mb-4 text-[#7C3AED]">Fuel Spend by Vehicle</h3>
-            <div className="h-64 relative overflow-hidden" >
+            <div className="h-56 relative overflow-hidden" >
                 <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
                     <BarChart data={vehicleSpendData}>
                         <XAxis dataKey="name" stroke="#9ca3af" tickLine={false} />
@@ -158,7 +138,7 @@ export default function TruckDashboard({
         </div>
         <div className="glass-panel border border-purple-500/20 p-5 rounded-xl">
             <h3 className="font-bold text-lg mb-4 text-[#059669]">Expenditure Trend</h3>
-            <div className="h-64 relative overflow-hidden" >
+            <div className="h-56 relative overflow-hidden" >
                 <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
                     <AreaChart data={timelineChartData}>
                         <XAxis dataKey="dateStr" stroke="#9ca3af" tickLine={false} />
@@ -169,22 +149,6 @@ export default function TruckDashboard({
                         />
                         <Area dataKey="amount" fill="rgba(124,58,237,0.35)" stroke="#7C3AED" strokeWidth={2} />
                     </AreaChart>
-                </ResponsiveContainer>
-            </div>
-        </div>
-        <div className="glass-panel border border-emerald-500/20 p-5 rounded-xl lg:col-span-2">
-            <h3 className="font-bold text-lg mb-4 text-[#059669]">Fuel Efficiency Trend (L/KES)</h3>
-            <div className="h-64 relative overflow-hidden" >
-                <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
-                    <LineChart data={efficiencyTrendData}>
-                        <XAxis dataKey="date" stroke="#9ca3af" tickLine={false} />
-                        <YAxis stroke="#9ca3af" tickLine={false} />
-                        <Tooltip 
-                          contentStyle={{ backgroundColor: '#09090b', color: '#f3f4f6', border: '1px solid rgba(5,150,105,0.4)', borderRadius: '8px', fontSize: '12px' }}
-                        />
-                        <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
-                        <Line type="monotone" dataKey="efficiency" stroke="#059669" strokeWidth={2.5} dot={{ fill: '#059669', r: 4 }} />
-                    </LineChart>
                 </ResponsiveContainer>
             </div>
         </div>
