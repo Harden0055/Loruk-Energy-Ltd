@@ -1013,10 +1013,31 @@ export async function replaceProductsWithStandard(existingProducts: ProductDef[]
         
         if (Object.keys(updates).length > 0) {
           await setDoc(doc(db, col, d.id), updates, { merge: true });
-        }
       }
     }
   } catch (err) {
     console.warn('Error during product linking', err);
   }
+}
+
+export async function addProduct(data: { name: string; category?: string; sortOrder?: number }) {
+  const payload = {
+    name: data.name.trim(),
+    category: data.category || 'Fuel',
+    sortOrder: data.sortOrder || 10,
+    createdAt: Date.now(),
+    createdBy: auth.currentUser?.email || auth.currentUser?.uid || 'User'
+  };
+  return executeMutation(
+    'products',
+    () => addDoc(collection(db, 'products'), payload),
+    () => addLocalDoc('products', payload),
+    OperationType.CREATE,
+    'products',
+    (id) => {
+      const list = getLocalCollection('products');
+      list.push({ id, ...payload });
+      saveLocalCollection('products', list);
+    }
+  );
 }

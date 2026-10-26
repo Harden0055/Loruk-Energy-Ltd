@@ -358,7 +358,7 @@ export default function Sidebar({
                         "w-full flex items-center gap-2.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-150 cursor-pointer text-left group/sub",
                         isSubItemActive
                           ? "bg-emerald-500/15 text-emerald-400 font-bold border border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
-                          : "text-theme-text-muted hover:text-white hover:bg-white/[0.06] hover:translate-x-1"
+                          : "text-theme-text-muted hover:text-slate-200 hover:bg-slate-800/40 hover:translate-x-1"
                       )}
                     >
                       {SubIcon ? (
@@ -390,14 +390,14 @@ export default function Sidebar({
   };
 
   return (
-    <aside className="h-full w-64 border-r border-white/[0.08] flex flex-col bg-[#000000] text-theme-text transition-all duration-300 relative select-none">
+    <aside className="h-full w-64 border-r border-slate-800 flex flex-col bg-[#000000] text-theme-text transition-all duration-300 relative select-none">
       {/* Brand Header */}
-      <div className="px-5 py-5 flex items-center justify-between border-b border-white/[0.08] mb-2 shrink-0 bg-[#000000]">
+      <div className="px-5 py-5 flex items-center justify-between border-b border-slate-800 mb-2 shrink-0 bg-[#000000]">
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-10 h-10 bg-gradient-to-br from-[#8B5CF6] to-[#00E676] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.25)] transition-all duration-300 hover:scale-105 shrink-0">
             <FireLEIcon className="w-7 h-7 text-white" />
           </div>
-          <span className="font-bold text-lg tracking-tight text-white transition-colors truncate">Loruk Energy</span>
+          <span className="font-bold text-lg tracking-tight text-slate-200 transition-colors truncate">Loruk Energy</span>
         </div>
 
         <div className="flex items-center gap-1">
@@ -405,7 +405,7 @@ export default function Sidebar({
           {onToggleCollapse && (
             <button
               onClick={onToggleCollapse}
-              className="hidden lg:flex p-1.5 text-theme-text-muted hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+              className="hidden lg:flex p-1.5 text-theme-text-muted hover:text-slate-200 rounded-lg hover:bg-slate-800/40 transition-colors cursor-pointer"
               title="Hide Sidebar (Ctrl+B)"
             >
               <PanelLeftClose className="w-5 h-5" />
@@ -416,7 +416,7 @@ export default function Sidebar({
           {onClose && (
             <button
               onClick={onClose}
-              className="lg:hidden p-1.5 text-theme-text-muted hover:text-white rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+              className="lg:hidden p-1.5 text-theme-text-muted hover:text-slate-200 rounded-lg hover:bg-slate-800/40 transition-colors cursor-pointer"
               title="Close Menu"
             >
               <X className="w-5 h-5" />
@@ -431,7 +431,7 @@ export default function Sidebar({
       </nav>
 
       {/* Footer Nav with Expandable Sub Pages & User Profile */}
-      <div className="p-4 border-t border-white/[0.08] mt-auto shrink-0 bg-[#000000]">
+      <div className="p-4 border-t border-slate-800 mt-auto shrink-0 bg-[#000000]">
         <div className="mb-3 space-y-1.5">
           {bottomItems.map(renderNavParent)}
         </div>
@@ -440,12 +440,12 @@ export default function Sidebar({
           <ThemeToggle variant="pill" className="w-full justify-between" />
         </div>
 
-        <div className="flex items-center gap-3 px-3 py-2.5 mb-3 bg-[#000000] border border-white/10 rounded-xl shadow-none">
+        <div className="flex items-center gap-3 px-3 py-2.5 mb-3 bg-[#000000] border border-slate-800 rounded-xl shadow-none">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#00E676] flex items-center justify-center font-bold text-sm text-white shadow-none shrink-0">
             {user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold truncate text-white">{user?.displayName || 'Admin User'}</p>
+            <p className="text-xs font-bold truncate text-slate-200">{user?.displayName || 'Admin User'}</p>
             <p className="text-[11px] text-theme-text-muted truncate">{user?.email || 'admin@fuelflow.io'}</p>
           </div>
         </div>

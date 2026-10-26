@@ -115,15 +115,20 @@ export default function DailyDataEntryView() {
     }, station);
   }, [pumpReadings, lpgTransactions, inventoryItems, expenses, invoices, cashPositions, station]);
 
-  const [date, setDate] = useState<string>(() => autoSequentialDate);
-  const [userHasOverriddenDate, setUserHasOverriddenDate] = useState<boolean>(false);
+  const [date, setDate] = useState<string>(() => {
+    return localStorage.getItem('daily_data_entry_last_date') || autoSequentialDate || new Date().toISOString().split('T')[0];
+  });
+  const [userHasOverriddenDate, setUserHasOverriddenDate] = useState<boolean>(() => {
+    return Boolean(localStorage.getItem('daily_data_entry_last_date'));
+  });
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [dedupeSuccessMsg, setDedupeSuccessMsg] = useState<string | null>(null);
 
-  // Automatically synchronize date with sequential following day unless manually edited by user
+  // Maintain static entered date; only synchronize if user has not stored a previous static date
   useEffect(() => {
-    if (!userHasOverriddenDate && autoSequentialDate) {
+    const saved = localStorage.getItem('daily_data_entry_last_date');
+    if (!saved && !userHasOverriddenDate && autoSequentialDate) {
       setDate(autoSequentialDate);
     }
   }, [autoSequentialDate, userHasOverriddenDate]);
@@ -1086,6 +1091,7 @@ export default function DailyDataEntryView() {
                     onClick={() => {
                       setUserHasOverriddenDate(false);
                       setDate(autoSequentialDate);
+                      localStorage.setItem('daily_data_entry_last_date', autoSequentialDate);
                     }}
                     className="text-[11px] font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer bg-amber-950/40 px-2 py-0.5 rounded border border-amber-500/30"
                     title="Reset to sequential following day"
@@ -1103,8 +1109,10 @@ export default function DailyDataEntryView() {
                 <Button
                   type="button"
                   onClick={() => {
-                    setDate(prev => addDays(prev, -1));
+                    const newD = addDays(date, -1);
+                    setDate(newD);
                     setUserHasOverriddenDate(true);
+                    localStorage.setItem('daily_data_entry_last_date', newD);
                   }}
                   className="px-2.5 py-2 bg-slate-900 hover:bg-slate-800 border border-theme-border text-slate-300 text-xs font-bold"
                   title="Previous Day (-1 Day)"
@@ -1118,6 +1126,7 @@ export default function DailyDataEntryView() {
                   onChange={(e) => {
                     setDate(e.target.value);
                     setUserHasOverriddenDate(true);
+                    localStorage.setItem('daily_data_entry_last_date', e.target.value);
                   }} 
                   className="bg-slate-900 border-theme-border text-slate-100 font-mono text-sm flex-1"
                 />
@@ -1125,8 +1134,10 @@ export default function DailyDataEntryView() {
                 <Button
                   type="button"
                   onClick={() => {
-                    setDate(prev => addDays(prev, 1));
+                    const newD = addDays(date, 1);
+                    setDate(newD);
                     setUserHasOverriddenDate(true);
+                    localStorage.setItem('daily_data_entry_last_date', newD);
                   }}
                   className="px-2.5 py-2 bg-slate-900 hover:bg-slate-800 border border-theme-border text-slate-300 text-xs font-bold"
                   title="Next Day (+1 Day)"

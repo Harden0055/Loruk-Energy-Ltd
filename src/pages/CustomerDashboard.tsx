@@ -872,7 +872,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         <div className="flex items-center gap-2.5 min-w-0 flex-wrap">
           <button 
             onClick={onBack}
-            className="px-2.5 py-1.5 glass-panel hover:bg-white/10 border border-theme-border text-theme-text-muted hover:text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="px-2.5 py-1.5 glass-panel hover:bg-white/10 border border-theme-border text-theme-text-muted hover:text-slate-200 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
             id="btn-customer-dash-back"
             title="Return to customer list"
           >
@@ -884,7 +884,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             <span className="font-mono text-xs uppercase tracking-wider bg-purple-500/15 text-purple-300 px-2 py-0.5 rounded-md font-bold border border-purple-500/30 shrink-0">
               {customer.customerId}
             </span>
-            <h2 className="text-base sm:text-xl font-black text-white tracking-tight truncate">
+            <h2 className="text-base sm:text-xl font-black text-slate-200 tracking-tight truncate">
               {customer.name}
             </h2>
             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border shrink-0 ${

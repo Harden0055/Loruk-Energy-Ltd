@@ -109,7 +109,7 @@ export default function PumpReadingsView() {
           <div className="flex-1">
             <label className="block text-xs text-theme-text-muted mb-1">Station</label>
             <Select value={filterStation} onChange={e => setFilterStation(e.target.value as Station)} className="h-9">
-              {['Combined Total', ...stations.map(s=>s.name)].map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
+              {Array.from(new Set(['Combined Total', ...stations.map(s => s.name)])).map((s, idx) => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={`pump-filter-${s}-${idx}`} value={s}>{s}</option>)}
             </Select>
           </div>
         </div>
@@ -136,7 +136,7 @@ export default function PumpReadingsView() {
                 <div>
                   <label className="block text-xs text-theme-text-muted mb-1">Station</label>
                   <Select value={form.station} onChange={e => setForm({...form, station: e.target.value as any})}>
-                    {stations.map(s => { const name = s.name; return name; }).map(s => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={s} value={s}>{s}</option>)}
+                    {Array.from(new Set(stations.map(s => s.name))).map((s, idx) => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={`pump-form-${s}-${idx}`} value={s}>{s}</option>)}
                   </Select>
                 </div>
                 <div>

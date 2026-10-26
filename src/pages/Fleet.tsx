@@ -10,6 +10,7 @@ import AIInputModal from '../components/AIInputModal';
 import { FleetExpense } from '../types';
 import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { setupPdfHeader, addPdfFooter } from '../lib/pdfTemplate';
+import { QuickAddTruckModal, QuickAddStationModal } from '../components/QuickAddModal';
 
 import { useStations } from '../lib/operationsDb';
 
@@ -31,11 +32,14 @@ export default function Fleet({
   const { trucks } = useTrucks();
 
   const CAR_REGISTRATIONS = useMemo(() => {
-    return trucks.length > 0 ? trucks.map(t => t.registration) : FALLBACK_REGISTRATIONS;
+    const regs = trucks.length > 0 ? trucks.map(t => t.registration.trim()) : FALLBACK_REGISTRATIONS;
+    return Array.from(new Set(regs.filter(Boolean)));
   }, [trucks]);
 
   const [isAdding, setIsAdding] = useState(false);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
+  const [showAddTruckModal, setShowAddTruckModal] = useState(false);
+  const [showAddStationModal, setShowAddStationModal] = useState(false);
   
   const [carReg, setCarReg] = useState('');
   
@@ -50,7 +54,7 @@ export default function Fleet({
     const activeStations = stations.filter(s => s.status === 'active');
     
     const formatLabel = (label: string) => {
-      let l = label.replace(/^T\/A\s+/i, '');
+      let l = (label || '').replace(/^T\/A\s+/i, '').trim();
       if (l.toLowerCase() === 'gel kapenguria') return 'Gel - Kapenguria';
       if (l.toLowerCase() === 'gel bungoma') return 'Gel - Bungoma';
       if (l.toLowerCase() === 'loruk ndalu') return 'Loruk - Ndalu';
@@ -58,21 +62,29 @@ export default function Fleet({
       return l;
     };
 
-    let options = activeStations.length > 0 
-      ? activeStations.map(s => {
-          const name = formatLabel(s.tradingAs || s.name);
-          return { value: name, label: name };
-        })
-      : FALLBACK_STATIONS.map(s => {
-          const name = formatLabel(s);
-          return { value: name, label: name };
-        });
+    const seen = new Set<string>();
+    const options: { value: string; label: string }[] = [];
 
-    const existingValues = new Set(options.map(o => o.value));
+    const addOption = (rawName: string) => {
+      if (!rawName) return;
+      const formatted = formatLabel(rawName);
+      if (formatted && !seen.has(formatted)) {
+        seen.add(formatted);
+        options.push({ value: formatted, label: formatted });
+      }
+    };
+
+    activeStations.forEach(s => {
+      addOption(s.tradingAs || s.name);
+    });
+
+    if (options.length === 0) {
+      FALLBACK_STATIONS.forEach(s => addOption(s));
+    }
+
     expenses.forEach(e => {
-      if (e.station && !existingValues.has(e.station)) {
-        options.push({ value: e.station, label: formatLabel(e.station) });
-        existingValues.add(e.station);
+      if (e.station) {
+        addOption(e.station);
       }
     });
 
@@ -91,7 +103,9 @@ export default function Fleet({
   const [amount, setAmount] = useState('');
   const [litres, setLitres] = useState('');
   const [rate, setRate] = useState('');
-  const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [date, setDate] = useState(() => {
+    return localStorage.getItem('fleet_last_entered_date') || format(new Date(), 'yyyy-MM-dd');
+  });
 
   useEffect(() => {
     if (isAdding && carReg && station) {
@@ -266,7 +280,7 @@ export default function Fleet({
       setAmount(''); 
       setLitres(''); 
       setRate('');
-      setDate(format(new Date(), 'yyyy-MM-dd'));
+      // Keep static date so user can record multiple expenses on the same date without it resetting!
     } catch (e) {
       console.error(e);
       alert('Failed to save expense: ' + (e instanceof Error ? e.message : String(e)));
@@ -424,9 +438,9 @@ export default function Fleet({
                 setAmount(''); 
                 setLitres(''); 
                 setRate('');
-                setDate(format(new Date(), 'yyyy-MM-dd'));
-                setCarReg(CAR_REGISTRATIONS[0]);
-                setStation(STATIONS[0]);
+                // Keep static date intact
+                setCarReg(CAR_REGISTRATIONS[0] || '');
+                setStation(STATIONS[0] || '');
                 setIsAdding(true);
               } else {
                 setIsAdding(!isAdding);
@@ -441,38 +455,106 @@ export default function Fleet({
       {isAdding && (
         <div id="add-expense-form-container" className="glass-panel p-3.5 border border-theme-border rounded-xl shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-bold text-theme-text">{editingExpenseId ? 'Edit' : 'Add'} Expense</h3>
+            <h3 className="text-sm font-bold text-slate-200">{editingExpenseId ? 'Edit' : 'Add'} Expense</h3>
             <span className="text-[10px] text-purple-300 font-medium bg-purple-500/15 border border-purple-500/25 px-2 py-0.5 rounded">
               ⚡ Rate × Litres = Amount auto-calculation
             </span>
           </div>
           <form onSubmit={handleSubmit} className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 items-end">
             <div>
-              <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Date</label>
-              <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-white font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs" />
+              <label className="block text-[10px] font-semibold text-slate-400 mb-0.5">Date</label>
+              <input 
+                type="date" 
+                required 
+                value={date} 
+                onChange={(e) => {
+                  setDate(e.target.value);
+                  localStorage.setItem('last_static_date', e.target.value);
+                  localStorage.setItem('fleet_last_entered_date', e.target.value);
+                }} 
+                className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs" 
+              />
             </div>
             <div>
-              <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Vehicle</label>
-              <select value={carReg} onChange={(e) => setCarReg(e.target.value)} className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-white font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs">{CAR_REGISTRATIONS.map(r => <option key={r} value={r} className="bg-black text-white">{r}</option>)}</select>
+              <label className="block text-[10px] font-semibold text-slate-400 mb-0.5">Vehicle</label>
+              <div className="flex items-center gap-1">
+                <select 
+                  value={carReg} 
+                  onChange={(e) => {
+                    if (e.target.value === '__ADD_NEW_TRUCK__') {
+                      setShowAddTruckModal(true);
+                    } else {
+                      setCarReg(e.target.value);
+                    }
+                  }} 
+                  className="flex-1 min-w-0 px-2 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs"
+                >
+                  <option value="__ADD_NEW_TRUCK__" className="bg-[#1e1035] text-purple-300 font-bold">
+                    + Add New Truck...
+                  </option>
+                  {CAR_REGISTRATIONS.map((r, idx) => (
+                    <option key={`opt-truck-${r}-${idx}`} value={r} className="bg-black text-slate-200">
+                      {r}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setShowAddTruckModal(true)}
+                  className="p-1.5 bg-purple-500/15 hover:bg-purple-500/25 text-purple-400 border border-purple-500/30 rounded-md shrink-0 cursor-pointer flex items-center justify-center transition-colors shadow-sm"
+                  title="Add new truck shortcut"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
             <div>
-              <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Station</label>
-              <select value={station} onChange={(e) => setStation(e.target.value as Station)} className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-white font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs">{STATION_OPTIONS.map(s => <option key={s.value} value={s.value} className="bg-black text-white">{s.label}</option>)}</select>
+              <label className="block text-[10px] font-semibold text-slate-400 mb-0.5">Station</label>
+              <div className="flex items-center gap-1">
+                <select 
+                  value={station} 
+                  onChange={(e) => {
+                    if (e.target.value === '__ADD_NEW_STATION__') {
+                      setShowAddStationModal(true);
+                    } else {
+                      setStation(e.target.value as Station);
+                    }
+                  }} 
+                  className="flex-1 min-w-0 px-2 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs"
+                >
+                  <option value="__ADD_NEW_STATION__" className="bg-[#062c1b] text-emerald-300 font-bold">
+                    + Add New Station...
+                  </option>
+                  {STATION_OPTIONS.map((s, idx) => (
+                    <option key={`opt-station-${s.value}-${idx}`} value={s.value} className="bg-black text-slate-200">
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setShowAddStationModal(true)}
+                  className="p-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-[#059669] border border-emerald-500/30 rounded-md shrink-0 cursor-pointer flex items-center justify-center transition-colors shadow-sm"
+                  title="Add new station shortcut"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
             <div>
-              <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Litres (L)</label>
-              <input type="number" min="0" step="0.01" value={litres} onChange={(e) => handleLitresChange(e.target.value)} className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-white font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs font-mono" placeholder="Litres" />
+              <label className="block text-[10px] font-semibold text-slate-400 mb-0.5">Litres (L)</label>
+              <input type="number" min="0" step="0.01" value={litres} onChange={(e) => handleLitresChange(e.target.value)} className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs font-mono" placeholder="Litres" />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-purple-400 mb-0.5 flex items-center justify-between">
                 <span>Rate (KES/L)</span>
-                <span className="text-[9px] text-gray-400 font-normal">Auto</span>
+                <span className="text-[9px] text-slate-400 font-normal">Auto</span>
               </label>
-              <input type="number" min="0" step="0.01" value={rate} onChange={(e) => handleRateChange(e.target.value)} className="w-full px-2.5 py-1.5 glass-panel border border-purple-500/40 rounded-md text-white font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs font-mono placeholder:text-gray-500" placeholder="Rate" />
+              <input type="number" min="0" step="0.01" value={rate} onChange={(e) => handleRateChange(e.target.value)} className="w-full px-2.5 py-1.5 glass-panel border border-purple-500/40 rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs font-mono placeholder:text-gray-500" placeholder="Rate" />
             </div>
             <div>
-              <label className="block text-[10px] font-semibold text-gray-400 mb-0.5">Amount (KES)</label>
-              <input type="number" required min="0" step="0.01" value={amount} onChange={(e) => handleAmountChange(e.target.value)} className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-white font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs font-mono" placeholder="Amount" />
+              <label className="block text-[10px] font-semibold text-slate-400 mb-0.5">Amount (KES)</label>
+              <input type="number" required min="0" step="0.01" value={amount} onChange={(e) => handleAmountChange(e.target.value)} className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs font-mono" placeholder="Amount" />
             </div>
             <div className="flex gap-1.5 w-full col-span-2 sm:col-span-1">
               <button 
@@ -489,9 +571,9 @@ export default function Fleet({
                   setAmount(''); 
                   setLitres(''); 
                   setRate('');
-                  setDate(format(new Date(), 'yyyy-MM-dd'));
+                  // Keep static date intact
                 }}
-                className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-gray-300 border border-theme-border rounded-md font-semibold transition-colors cursor-pointer text-xs"
+                className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 border border-theme-border rounded-md font-semibold transition-colors cursor-pointer text-xs"
               >
                 Cancel
               </button>
@@ -546,26 +628,26 @@ export default function Fleet({
           {/* Filters */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <div>
-                <label className="block text-[10px] font-medium text-gray-400 mb-0.5">Car</label>
-                <select value={selectedCar} onChange={e => setSelectedCar(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm">
-                  <option value="all" className="bg-black text-white">All Cars</option>
-                  {CAR_REGISTRATIONS.map(r => <option key={r} value={r} className="bg-black text-white">{r}</option>)}
+                <label className="block text-[10px] font-medium text-slate-400 mb-0.5">Car</label>
+                <select value={selectedCar} onChange={e => setSelectedCar(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm">
+                  <option value="all" className="bg-black text-slate-200">All Cars</option>
+                  {CAR_REGISTRATIONS.map((r, idx) => <option key={`car-filter-${r}-${idx}`} value={r} className="bg-black text-slate-200">{r}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-medium text-gray-400 mb-0.5">Station</label>
-                <select value={selectedStation} onChange={e => setSelectedStation(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm">
-                  <option value="all" className="bg-black text-white">All Stations</option>
-                  {STATION_OPTIONS.map(s => <option key={s.value} value={s.value} className="bg-black text-white">{s.label}</option>)}
+                <label className="block text-[10px] font-medium text-slate-400 mb-0.5">Station</label>
+                <select value={selectedStation} onChange={e => setSelectedStation(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm">
+                  <option value="all" className="bg-black text-slate-200">All Stations</option>
+                  {STATION_OPTIONS.map((s, idx) => <option key={`st-filter-${s.value}-${idx}`} value={s.value} className="bg-black text-slate-200">{s.label}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-[10px] font-medium text-gray-400 mb-0.5">From Date</label>
-                <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm" />
+                <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm" />
               </div>
               <div>
                 <label className="block text-[10px] font-medium text-gray-400 mb-0.5">To Date</label>
-                <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-white focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm" />
+                <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm" />
               </div>
           </div>
           {/* Consumption Summary */}
@@ -725,6 +807,23 @@ export default function Fleet({
           </div>
         </div>
       )}
+
+      {/* Quick Add Modals */}
+      <QuickAddTruckModal
+        isOpen={showAddTruckModal}
+        onClose={() => setShowAddTruckModal(false)}
+        onSuccess={(newReg) => {
+          setCarReg(newReg);
+        }}
+      />
+
+      <QuickAddStationModal
+        isOpen={showAddStationModal}
+        onClose={() => setShowAddStationModal(false)}
+        onSuccess={(newStation) => {
+          setStation(newStation);
+        }}
+      />
     </div>
   );
 }

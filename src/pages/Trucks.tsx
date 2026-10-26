@@ -178,18 +178,18 @@ export default function Trucks({ onNavigateToTruck }: TrucksProps) {
               placeholder="Search registration number..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-white"
+              className="w-full pl-9 pr-4 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-slate-200"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 min-w-[140px] text-white"
+            className="px-3 py-2 glass-panel border border-theme-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 min-w-[140px] text-slate-200"
           >
-            <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="all">All Statuses</option>
-            <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="active">Active Only</option>
-            <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="inactive">Inactive Only</option>
+            <option className="bg-white dark:bg-[#09090B] dark:text-slate-200 text-gray-900" value="all">All Statuses</option>
+            <option className="bg-white dark:bg-[#09090B] dark:text-slate-200 text-gray-900" value="active">Active Only</option>
+            <option className="bg-white dark:bg-[#09090B] dark:text-slate-200 text-gray-900" value="inactive">Inactive Only</option>
           </select>
         </div>
 

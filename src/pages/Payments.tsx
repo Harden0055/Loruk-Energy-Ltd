@@ -6,6 +6,7 @@ import { Search, Plus, Bot, Trash2, AlertTriangle, Pencil, X } from 'lucide-reac
 import { format } from 'date-fns';
 import { Payment } from '../types';
 import AIInputModal from '../components/AIInputModal';
+import { QuickAddCustomerModal } from '../components/QuickAddModal';
 
 const parseDateToTimestamp = (dateStr: string): number => {
   if (!dateStr) return Date.now();
@@ -197,7 +198,9 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
     ? (typeof initialData.date === 'number' 
         ? format(initialData.date, 'yyyy-MM-dd') 
         : initialData.date)
-    : format(new Date(), 'yyyy-MM-dd');
+    : (localStorage.getItem('last_static_date') || localStorage.getItem('payment_last_entered_date') || format(new Date(), 'yyyy-MM-dd'));
+
+  const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
 
   const [form, setForm] = useState({
     customerId: matchedCustomerId || '',
@@ -212,6 +215,8 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
     try {
       const amountVal = parseFloat(form.amount);
       const newTimestamp = parseDateToTimestamp(form.date);
+      localStorage.setItem('last_static_date', form.date);
+      localStorage.setItem('payment_last_entered_date', form.date);
 
       if (isEditing) {
         const oldAmount = parseFloat(initialData.amount);
@@ -274,15 +279,32 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
           <div className="p-6 space-y-4">
             <div>
               <label className="block text-sm font-semibold text-emerald-400 mb-1.5">Customer</label>
-              <select 
-                required
-                value={form.customerId}
-                onChange={e => setForm({...form, customerId: e.target.value})}
-                className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-white font-semibold cursor-pointer outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm transition-colors text-base customer-select"
-              >
-                <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="" disabled>Select a customer...</option>
-                {customers.map(c => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
+              <div className="flex items-center gap-2">
+                <select 
+                  required
+                  value={form.customerId}
+                  onChange={e => {
+                    if (e.target.value === '__ADD_NEW_CUSTOMER__') {
+                      setShowAddCustomerModal(true);
+                    } else {
+                      setForm({...form, customerId: e.target.value});
+                    }
+                  }}
+                  className="flex-1 min-w-0 px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-slate-200 font-semibold cursor-pointer outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm transition-colors text-base customer-select"
+                >
+                  <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="" disabled>Select a customer...</option>
+                  <option value="__ADD_NEW_CUSTOMER__" className="bg-[#062c1b] text-emerald-300 font-bold">+ Add New Customer...</option>
+                  {customers.map(c => <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setShowAddCustomerModal(true)}
+                  className="p-2.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 rounded-lg shrink-0 cursor-pointer flex items-center justify-center transition-colors shadow-sm"
+                  title="Add new customer shortcut"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
             </div>
             <div>
               <label className="block text-sm font-semibold text-emerald-400 mb-1.5">Payment Date</label>
@@ -290,8 +312,12 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
                 type="date"
                 required
                 value={form.date}
-                onChange={e => setForm({...form, date: e.target.value})}
-                className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-white text-base shadow-sm"
+                onChange={e => {
+                  setForm({...form, date: e.target.value});
+                  localStorage.setItem('last_static_date', e.target.value);
+                  localStorage.setItem('payment_last_entered_date', e.target.value);
+                }}
+                className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-slate-200 text-base shadow-sm"
               />
             </div>
             <div>
@@ -299,7 +325,7 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
               <input 
                 type="number" step="0.01" required
                 value={form.amount} onChange={e => setForm({...form, amount: e.target.value})}
-                className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-white text-base shadow-sm font-mono font-bold"
+                className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-slate-200 text-base shadow-sm font-mono font-bold"
               />
             </div>
           </div>
@@ -309,6 +335,14 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
           </div>
         </form>
       </div>
+
+      <QuickAddCustomerModal
+        isOpen={showAddCustomerModal}
+        onClose={() => setShowAddCustomerModal(false)}
+        onSuccess={(newCustId) => {
+          setForm(prev => ({ ...prev, customerId: newCustId }));
+        }}
+      />
     </div>
   );
 }

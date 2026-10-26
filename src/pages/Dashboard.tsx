@@ -525,7 +525,7 @@ export default function Dashboard({
                               {tx.partyName}
                             </button>
                           ) : (
-                            <span className="font-bold text-white truncate">{tx.partyName}</span>
+                            <span className="font-bold text-slate-200 truncate">{tx.partyName}</span>
                           )}
                           <span className="text-[10px] text-gray-400 font-mono">({tx.detail})</span>
                         </div>

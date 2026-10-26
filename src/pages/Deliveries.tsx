@@ -6,6 +6,7 @@ import { useAuth } from '../lib/auth';
 import { Search, Plus, Bot, Trash2, AlertTriangle, X, Edit2, Check, SlidersHorizontal, RotateCcw, Fuel, Users, Coins, Flame, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import AIInputModal from '../components/AIInputModal';
+import { QuickAddCustomerModal } from '../components/QuickAddModal';
 import { Delivery } from '../types';
 import Papa from 'papaparse';
 
@@ -1168,16 +1169,20 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
       totalAmount: initialData?.amount || initialData?.totalAmount ? String(initialData.amount || initialData.totalAmount) : '',
       superAmount: '',
       dieselAmount: '',
-      date: format(new Date(), 'yyyy-MM-dd')
+      date: localStorage.getItem('delivery_last_entered_date') || format(new Date(), 'yyyy-MM-dd')
     };
   });
 
+  const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
   const [rate, setRate] = useState('');
   const [superRate, setSuperRate] = useState('');
   const [dieselRate, setDieselRate] = useState('');
 
   useEffect(() => {
     localStorage.setItem('addDeliveryForm', JSON.stringify(form));
+    if (form.date) {
+      localStorage.setItem('delivery_last_entered_date', form.date);
+    }
   }, [form]);
 
   const handleProductTypeChange = (newProduct: string) => {
@@ -1415,23 +1420,40 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
           </div>
           <div className="p-6 space-y-4">
             <div>
-              <label className="block text-sm font-semibold text-white mb-1.5">Customer</label>
-              <select 
-                required
-                value={form.customerId}
-                onChange={e => setForm({...form, customerId: e.target.value})}
-                className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-white font-semibold cursor-pointer outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm transition-colors text-base customer-select"
-              >
-                <option value="" disabled className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Select a customer</option>
-                {customers.map(c => <option key={c.id} value={c.id} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{c.name}</option>)}
-              </select>
+              <label className="block text-sm font-semibold text-slate-300 mb-1.5">Customer</label>
+              <div className="flex items-center gap-2">
+                <select 
+                  required
+                  value={form.customerId}
+                  onChange={e => {
+                    if (e.target.value === '__ADD_NEW_CUSTOMER__') {
+                      setShowAddCustomerModal(true);
+                    } else {
+                      setForm({...form, customerId: e.target.value});
+                    }
+                  }}
+                  className="flex-1 min-w-0 px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-slate-200 font-semibold cursor-pointer outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm transition-colors text-base customer-select"
+                >
+                  <option value="" disabled className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Select a customer</option>
+                  <option value="__ADD_NEW_CUSTOMER__" className="bg-[#1e1035] text-purple-300 font-bold">+ Add New Customer...</option>
+                  {customers.map(c => <option key={c.id} value={c.id} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{c.name}</option>)}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setShowAddCustomerModal(true)}
+                  className="p-2.5 bg-purple-500/15 hover:bg-purple-500/25 text-purple-400 border border-purple-500/30 rounded-lg shrink-0 cursor-pointer flex items-center justify-center transition-colors shadow-sm"
+                  title="Add new customer shortcut"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-white mb-1.5">Product Type</label>
+              <label className="block text-sm font-semibold text-slate-300 mb-1.5">Product Type</label>
               <select 
                 value={form.productType}
                 onChange={e => handleProductTypeChange(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-white font-semibold cursor-pointer outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm transition-colors text-base product-select"
+                className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-slate-200 font-semibold cursor-pointer outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm transition-colors text-base product-select"
               >
                 {uniqueProducts.map(p => (
                   <option key={p.id} value={p.name} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{p.name}</option>
@@ -1448,13 +1470,17 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
               </select>
             </div>
             <div>
-              <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Delivery Date</label>
+              <label className="block text-sm font-semibold text-slate-300 mb-1.5">Delivery Date</label>
               <input 
                 type="date"
                 required
                 value={form.date}
-                onChange={e => setForm({...form, date: e.target.value})}
-                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-blue-900 dark:text-blue-50 text-base shadow-sm"
+                onChange={e => {
+                  setForm({...form, date: e.target.value});
+                  localStorage.setItem('last_static_date', e.target.value);
+                  localStorage.setItem('delivery_last_entered_date', e.target.value);
+                }}
+                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border rounded-lg text-slate-200 text-base shadow-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
               />
             </div>
             
@@ -1553,6 +1579,14 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
           </div>
         </form>
       </div>
+
+      <QuickAddCustomerModal
+        isOpen={showAddCustomerModal}
+        onClose={() => setShowAddCustomerModal(false)}
+        onSuccess={(newCustId) => {
+          setForm(prev => ({ ...prev, customerId: newCustId }));
+        }}
+      />
     </div>
   );
 }

@@ -9,10 +9,10 @@
   --color-theme-panel-elevated: #020204;
   --color-theme-border: rgba(139, 92, 246, 0.18);
   --color-theme-border-dark: rgba(139, 92, 246, 0.18);
-  --color-theme-text: #FFFFFF;
-  --color-theme-text-dark: #FFFFFF;
-  --color-theme-text-muted: #94A3B8;
-  --color-theme-text-muted-dark: #94A3B8;
+  --color-theme-text: #94A3B8;
+  --color-theme-text-dark: #94A3B8;
+  --color-theme-text-muted: #8B9BB4;
+  --color-theme-text-muted-dark: #8B9BB4;
   --color-theme-primary: #00E676;
   --color-theme-secondary: #8B5CF6;
   --color-theme-tertiary: #A855F7;
@@ -53,10 +53,10 @@
   --color-theme-panel-elevated: #020204;
   --color-theme-border: rgba(139, 92, 246, 0.18);
   --color-theme-border-dark: rgba(139, 92, 246, 0.18);
-  --color-theme-text: #FFFFFF;
-  --color-theme-text-dark: #FFFFFF;
-  --color-theme-text-muted: #94A3B8;
-  --color-theme-text-muted-dark: #94A3B8;
+  --color-theme-text: #94A3B8;
+  --color-theme-text-dark: #94A3B8;
+  --color-theme-text-muted: #8B9BB4;
+  --color-theme-text-muted-dark: #8B9BB4;
   --color-theme-primary: #00E676;
   --color-theme-secondary: #8B5CF6;
   --color-theme-tertiary: #A855F7;
@@ -98,8 +98,8 @@
   --color-theme-panel-elevated: var(--color-theme-panel-elevated, #090912);
   --color-theme-border: var(--color-theme-border, rgba(139, 92, 246, 0.22));
   --color-theme-border-dark: var(--color-theme-border-dark, rgba(139, 92, 246, 0.22));
-  --color-theme-text: var(--color-theme-text, #FFFFFF);
-  --color-theme-text-dark: var(--color-theme-text-dark, #FFFFFF);
+  --color-theme-text: var(--color-theme-text, #E2E8F0);
+  --color-theme-text-dark: var(--color-theme-text-dark, #E2E8F0);
   --color-theme-text-muted: var(--color-theme-text-muted, #94A3B8);
   --color-theme-text-muted-dark: var(--color-theme-text-muted-dark, #94A3B8);
   
@@ -140,7 +140,7 @@
 /* Custom Base Resets */
 html, body {
   background-color: var(--theme-canvas-bg, #000000) !important;
-  color: var(--color-theme-text, #FFFFFF) !important;
+  color: var(--color-theme-text, #94A3B8) !important;
   font-family: 'Plus Jakarta Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -149,12 +149,30 @@ html, body {
 
 .dark {
   background-color: var(--theme-canvas-bg, #000000) !important;
-  color: var(--color-theme-text, #FFFFFF) !important;
+  color: var(--color-theme-text, #94A3B8) !important;
 }
 
+/* Eye-comfort soft grey: spare eyes by reducing bright blinding colors to match table subtitles and descriptions */
 h1, h2, h3, h4, h5, h6 {
-  color: inherit;
+  color: #94A3B8 !important;
   letter-spacing: -0.02em;
+}
+
+.text-white,
+[class*="text-white"],
+.text-slate-200,
+.text-slate-100,
+.text-gray-100,
+.text-gray-200,
+.text-zinc-100,
+.text-zinc-200 {
+  color: #94A3B8 !important;
+}
+
+.subtitle,
+p.text-xs,
+p.text-sm {
+  color: #8B9BB4 !important;
 }
 
 p, span, div, label {
@@ -616,6 +634,7 @@ svg.lucide {
 
   .modern-td {
     padding: 0.875rem 1.25rem !important;
+    color: #94A3B8 !important;
   }
 
   .hide-scrollbar::-webkit-scrollbar {
@@ -691,7 +710,7 @@ button[data-link="true"]:hover,
 select, 
 .glass-select {
   background-color: #000000 !important;
-  color: #F4F4F5 !important;
+  color: #E2E8F0 !important;
   border: 1px solid rgba(139, 92, 246, 0.35) !important;
   border-radius: 10px !important;
   transition: all 0.2s ease !important;
@@ -750,7 +769,7 @@ select[data-type="positive"]:focus,
 
 select option {
   background-color: #050508 !important;
-  color: #FFFFFF !important;
+  color: #E2E8F0 !important;
 }
 
 /* 3. Button green or purple depending on meaning */
@@ -909,3 +928,57 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 .dark input, .dark select, .dark textarea {
   color-scheme: dark;
 }
+
+/* ==========================================================================
+   EYE-COMFORT MUTED GREY SYSTEM OVERRIDES:
+   Transitions harsh bright white text, headlines, titles, subtitles, and words
+   to comfortable eye-friendly grey (#94A3B8) matching table subtitles & descriptions.
+   Preserves intentional accounting highlights (deep purple #7C3AED and deep green #059669).
+   ========================================================================== */
+.text-white,
+[class*="text-white"] {
+  color: #94A3B8 !important;
+}
+
+.hover\:text-white:hover {
+  color: #CBD5E1 !important;
+}
+
+.border-white\/10,
+.border-white\/\[0\.08\],
+.border-white\/\[0\.06\] {
+  border-color: rgba(148, 163, 184, 0.15) !important;
+}
+
+.border-white\/20 {
+  border-color: rgba(148, 163, 184, 0.22) !important;
+}
+
+.border-white\/5 {
+  border-color: rgba(148, 163, 184, 0.08) !important;
+}
+
+.divide-white\/5 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(148, 163, 184, 0.08) !important;
+}
+
+/* Form controls soften font to comfortable grey */
+input:not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+  color: #94A3B8 !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #64748B !important;
+}
+
+/* Retain deep purple and deep green accounting colors with full fidelity */
+.text-\[\#059669\], .text-emerald-400, .text-emerald-500, span.\!text-\[\#059669\] {
+  color: #059669 !important;
+}
+.text-\[\#7C3AED\], .text-purple-400, .text-purple-500, .text-\[\#9333EA\], span.\!text-\[\#9333EA\], span.\!text-\[\#7C3AED\] {
+  color: #7C3AED !important;
+}
+

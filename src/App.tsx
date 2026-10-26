@@ -251,7 +251,7 @@ function AuthenticatedApp() {
               {/* Mobile Menu Button */}
               <button 
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="lg:hidden p-2 -ml-2 text-theme-text-muted hover:text-white hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
+                className="lg:hidden p-2 -ml-2 text-theme-text-muted hover:text-slate-200 hover:bg-slate-800/40 rounded-lg transition-colors cursor-pointer"
                 title="Open Menu"
               >
                 <Menu className="w-6 h-6" />
@@ -262,8 +262,8 @@ function AuthenticatedApp() {
                 onClick={toggleSidebarCollapsed}
                 className={`hidden lg:flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all cursor-pointer text-xs font-semibold ${
                   isSidebarCollapsed 
-                    ? 'bg-white/[0.04] border-white/20 text-white hover:bg-white/[0.08]' 
-                    : 'bg-white/[0.04] border-white/10 text-theme-text-muted hover:text-white hover:bg-white/[0.08]'
+                    ? 'bg-white/[0.04] border-slate-700/60 text-slate-200 hover:bg-slate-800/40' 
+                    : 'bg-white/[0.04] border-slate-800 text-theme-text-muted hover:text-slate-200 hover:bg-slate-800/40'
                 }`}
                 title={isSidebarCollapsed ? "Show Sidebar (Ctrl+B)" : "Hide Sidebar (Ctrl+B)"}
               >
@@ -271,7 +271,7 @@ function AuthenticatedApp() {
                 <span className="hidden xl:inline">{isSidebarCollapsed ? "Show Sidebar" : "Hide Sidebar"}</span>
               </button>
 
-              <h1 className="text-2xl md:text-3xl font-extrabold capitalize tracking-tight text-white">
+              <h1 className="text-2xl md:text-3xl font-extrabold capitalize tracking-tight text-slate-200">
                 {currentPage === 'customerDashboard' ? 'Customer Profile' : currentPage === 'truckDashboard' && selectedTruckReg ? `Dashboard: ${selectedTruckReg}` : currentPage === 'stationDashboard' ? (selectedStationName ? `Station Dashboard: ${selectedStationName}` : 'Station Dashboard') : currentPage.replace(/([A-Z])/g, ' $1').trim()}
               </h1>
             </div>
@@ -279,22 +279,22 @@ function AuthenticatedApp() {
           
           {/* Station Selection Filter */}
           {currentPage === 'operations' && (
-            <div className="flex items-center gap-1.5 bg-[#000000] p-1 rounded-xl border border-white/10">
+            <div className="flex items-center gap-1.5 bg-[#000000] p-1 rounded-xl border border-slate-800">
               <button 
                 onClick={() => setSelectedStation('Combined')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Combined' ? 'bg-white/10 text-white border border-white/20 shadow-sm' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Combined' ? 'bg-slate-800/60 text-slate-200 border border-slate-700/60 shadow-sm' : 'text-[#A1A1AA] hover:text-slate-200 hover:bg-slate-800/30'}`}
               >
                 Combined Total
               </button>
               <button 
                 onClick={() => setSelectedStation('Ndalu')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Ndalu' ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-sm' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Ndalu' ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 shadow-sm' : 'text-[#A1A1AA] hover:text-slate-200 hover:bg-slate-800/30'}`}
               >
                 Ndalu Station
               </button>
               <button 
                 onClick={() => setSelectedStation('Junction')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Junction' ? 'bg-purple-500/15 text-purple-300 border border-purple-500/30 shadow-sm' : 'text-[#A1A1AA] hover:text-white hover:bg-white/5'}`}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Junction' ? 'bg-purple-500/15 text-purple-300 border border-purple-500/30 shadow-sm' : 'text-[#A1A1AA] hover:text-slate-200 hover:bg-slate-800/30'}`}
               >
                 Junction Station
               </button>
@@ -305,13 +305,13 @@ function AuthenticatedApp() {
             <ThemeToggle variant="button" />
             <button 
               onClick={() => setIsProfileOpen(true)}
-              className="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl bg-white/[0.04] text-purple-300 hover:bg-white/[0.08] transition-all duration-300 border border-purple-500/20 cursor-pointer"
+              className="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl bg-white/[0.04] text-purple-300 hover:bg-slate-800/40 transition-all duration-300 border border-purple-500/20 cursor-pointer"
               title="Profile & Summary Dashboard"
             >
               <User className="w-4 h-4 text-purple-300" />
             </button>
             {lastSync && (
-              <div className="flex items-center gap-2 text-xs text-[#A1A1AA] bg-[#000000] border border-white/10 px-3 py-1.5 rounded-full shrink-0">
+              <div className="flex items-center gap-2 text-xs text-[#A1A1AA] bg-[#000000] border border-slate-800 px-3 py-1.5 rounded-full shrink-0">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#00E676]" />
                 Last Sync: {format(lastSync, 'HH:mm:ss')}
               </div>
@@ -325,10 +325,10 @@ function AuthenticatedApp() {
                   window.print();
                 }
               }}
-              className="flex items-center gap-2 text-sm font-semibold text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl border border-white/10 transition-all duration-300 cursor-pointer shadow-sm hover:scale-102"
+              className="flex items-center gap-2 text-sm font-semibold text-slate-200 bg-slate-800/40 hover:bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700/50 transition-all duration-300 cursor-pointer shadow-sm hover:scale-102"
               title="Print Page"
             >
-              <Printer className="w-4 h-4 text-[#A1A1AA]" />
+              <Printer className="w-4 h-4 text-slate-300" />
               <span className="hidden sm:inline">Print</span>
             </button>
           </div>
