@@ -361,6 +361,22 @@
         "updatedAt": { "type": "number" }
       },
       "required": ["date", "station", "totalSales", "totalExpenses", "bankableCash", "variance", "stationId", "createdAt", "updatedAt"]
+    },
+    "FleetExpense": {
+      "title": "Fleet Expense",
+      "description": "Truck fueling and consumables log",
+      "type": "object",
+      "properties": {
+        "carRegistration": { "type": "string" },
+        "station": { "type": "string" },
+        "product": { "type": "string", "enum": ["Diesel", "Engine Oil", "Brake Fluid", "Greasing"] },
+        "amount": { "type": "number" },
+        "litres": { "type": "number" },
+        "rate": { "type": "number" },
+        "date": { "type": "number" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["carRegistration", "station", "product", "amount", "date", "createdBy"]
     }
   },
   "firestore": {
@@ -459,6 +475,10 @@
     "trucks/{truckId}": {
       "schema": { "$ref": "#/entities/Truck" },
       "description": "Dynamic company trucks fleet registrations"
+    },
+    "fleetExpenses/{expenseId}": {
+      "schema": { "$ref": "#/entities/FleetExpense" },
+      "description": "Truck consumables and fueling logs"
     }
   }
 }

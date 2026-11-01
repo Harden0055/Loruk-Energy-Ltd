@@ -100,20 +100,18 @@ export default function Sidebar({
     },
     { 
       id: 'fuelsuite', 
-      label: 'FuelSuite Pro', 
+      label: 'Fuel Suite', 
       icon: Settings,
-      badge: 'NEW',
+      badge: 'REPORT',
       subPages: [
+        { id: 'fs-daily', label: 'Daily Report Entry', icon: ClipboardList, page: 'fuelsuite', params: { fuelsuiteView: 'Daily Report Entry' }, badge: 'DAILY' },
+        { id: 'fs-archive', label: 'Station Reports Archive', icon: Layers, page: 'fuelsuite', params: { fuelsuiteView: 'Station Reports Archive' }, badge: 'AUDIT' },
         { id: 'fs-dash', label: 'Operations Dashboard', icon: LayoutDashboard, page: 'fuelsuite', params: { fuelsuiteView: 'Dashboard' } },
-        { id: 'fs-daily', label: 'Daily Data Entry', icon: ClipboardList, page: 'fuelsuite', params: { fuelsuiteView: 'Daily Data Entry' }, badge: 'DAILY' },
-        { id: 'fs-whiteoils', label: 'White Oils & Pumps', icon: Fuel, page: 'fuelsuite', params: { fuelsuiteView: 'White Oils' } },
-        { id: 'fs-lpg', label: 'LPG Gas Dispense', icon: Flame, page: 'fuelsuite', params: { fuelsuiteView: 'LPG' } },
-        { id: 'fs-inv', label: 'Tanks & Inventory Dip', icon: Box, page: 'fuelsuite', params: { fuelsuiteView: 'Inventory' } },
+        { id: 'fs-whiteoils', label: 'White Oils Reconciliation', icon: Fuel, page: 'fuelsuite', params: { fuelsuiteView: 'White Oils' } },
+        { id: 'fs-lpg', label: 'LPG & Purchases', icon: Flame, page: 'fuelsuite', params: { fuelsuiteView: 'LPG & Purchases' } },
         { id: 'fs-exp', label: 'Station Expenses', icon: Receipt, page: 'fuelsuite', params: { fuelsuiteView: 'Expenses' } },
-        { id: 'fs-invs', label: 'Invoices & Billing', icon: FileText, page: 'fuelsuite', params: { fuelsuiteView: 'Invoices' } },
-        { id: 'fs-cash', label: 'Cash Position & Till', icon: DollarSign, page: 'fuelsuite', params: { fuelsuiteView: 'Cash Position' } },
-        { id: 'fs-report', label: 'Daily Shift Report', icon: Layers, page: 'fuelsuite', params: { fuelsuiteView: 'Daily Report' } },
-        { id: 'fs-master', label: 'Master Records', icon: Database, page: 'fuelsuite', params: { fuelsuiteView: 'Master Records' } },
+        { id: 'fs-invs', label: 'Invoices & Debts', icon: FileText, page: 'fuelsuite', params: { fuelsuiteView: 'Invoices & Debts' } },
+        { id: 'fs-cash', label: 'Where the Money Is', icon: DollarSign, page: 'fuelsuite', params: { fuelsuiteView: 'Where the Money Is' } },
       ]
     },
     { 

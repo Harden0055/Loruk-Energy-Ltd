@@ -149,11 +149,186 @@ async function startServer() {
 
       const jsonStr = response.text?.trim() || "{}";
       const result = JSON.parse(jsonStr);
-
       res.json(result);
     } catch (error) {
       console.error("Gemini API Error:", error);
       res.status(500).json({ error: "Failed to process text/image." });
+    }
+  });
+
+  // API Route: Extract structured Daily Station Report from paper shift sheet photo or scan
+  app.post("/api/gemini/extract-daily-report", async (req, res) => {
+    try {
+      const { text, inlineData } = req.body;
+      if (!text && !inlineData) {
+        return res.status(400).json({ error: "No text or image data provided" });
+      }
+
+      const prompt = `
+You are an expert fuel station auditor for Loruk Energy Ltd.
+Extract all data from this station daily paper report scan or image into the exact JSON format.
+There are two stations: "ndalu" (Loruk Ndalu Filling Station) and "junction" (Loruk Junction Filling Station).
+
+Report Structure:
+1. Station: identify if this is "ndalu" or "junction" based on heading or letterhead. Default to "ndalu" if ambiguous.
+2. Report Date: format as YYYY-MM-DD.
+3. Attendant Name: person who prepared or signed the report.
+4. White-oil nozzle readings (exactly two nozzles: Diesel/AGO and Super/PMS):
+   - salesStart, salesStop (money meter readings)
+   - litresStart, litresStop (volume meter readings)
+   - ratePerLitre (price per litre)
+   - manualSubtract (any manual cash/deduction subtracted, 0 if none)
+5. Other sales (LPG cylinders, burners, grills):
+   - item name (e.g. 13kg refill, 6kg refill, burner, grill), quantity, unitPrice, reportedAmount
+6. Purchases (LPG, burners, and grills purchases ONLY - do not mix fuel):
+   - item, quantity, unit, unitCost, totalCost, supplier, invoiceRef, paymentStatus ("paid" or "debt"), amountPaid, amountOutstanding
+7. Reported Total Sales: the total sales figure written on the paper report
+8. Invoices / Debts:
+   - customerOrDescription, type ("debt" for credit given, "paid_invoice" for settled customer invoices), amount, reference
+9. Expenses:
+   - category (e.g. Lunch, Generator Fuel, Rent, Wi-Fi, Electricity, etc.), description, amount
+10. Where the money is:
+    - mpesaAmount, cashAtHand
+11. Closing fuel balance in litres:
+    - pmsLitres (Super), agoLitres (Diesel)
+12. Confidence Notes:
+    - list any fields that were blurry, faint, smeared, or ambiguous so human staff can verify them.
+
+Do NOT invent numbers. If a field is missing, unreadable, or illegible, set it to 0 or empty string and add an entry to confidenceNotes describing what was unclear.
+`;
+
+      const parts: any[] = [{ text: prompt }];
+      if (text) parts.push({ text: `Additional Staff Notes: ${text}` });
+      if (inlineData) parts.push({ inlineData });
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.8-flash",
+        contents: { parts },
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              stationId: { type: Type.STRING, description: "'ndalu' or 'junction'" },
+              reportDate: { type: Type.STRING, description: "YYYY-MM-DD" },
+              attendantName: { type: Type.STRING },
+              nozzles: {
+                type: Type.OBJECT,
+                properties: {
+                  diesel: {
+                    type: Type.OBJECT,
+                    properties: {
+                      salesStart: { type: Type.NUMBER },
+                      salesStop: { type: Type.NUMBER },
+                      litresStart: { type: Type.NUMBER },
+                      litresStop: { type: Type.NUMBER },
+                      ratePerLitre: { type: Type.NUMBER },
+                      manualSubtract: { type: Type.NUMBER }
+                    }
+                  },
+                  super: {
+                    type: Type.OBJECT,
+                    properties: {
+                      salesStart: { type: Type.NUMBER },
+                      salesStop: { type: Type.NUMBER },
+                      litresStart: { type: Type.NUMBER },
+                      litresStop: { type: Type.NUMBER },
+                      ratePerLitre: { type: Type.NUMBER },
+                      manualSubtract: { type: Type.NUMBER }
+                    }
+                  }
+                }
+              },
+              otherSales: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    item: { type: Type.STRING },
+                    quantity: { type: Type.NUMBER },
+                    unitPrice: { type: Type.NUMBER },
+                    reportedAmount: { type: Type.NUMBER }
+                  }
+                }
+              },
+              purchases: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    item: { type: Type.STRING },
+                    quantity: { type: Type.NUMBER },
+                    unit: { type: Type.STRING },
+                    unitCost: { type: Type.NUMBER },
+                    totalCost: { type: Type.NUMBER },
+                    supplier: { type: Type.STRING },
+                    invoiceRef: { type: Type.STRING },
+                    paymentStatus: { type: Type.STRING },
+                    amountPaid: { type: Type.NUMBER },
+                    amountOutstanding: { type: Type.NUMBER }
+                  }
+                }
+              },
+              reportedTotalSales: { type: Type.NUMBER },
+              invoices: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    customerOrDescription: { type: Type.STRING },
+                    type: { type: Type.STRING, description: "'debt' or 'paid_invoice'" },
+                    amount: { type: Type.NUMBER },
+                    reference: { type: Type.STRING }
+                  }
+                }
+              },
+              expenses: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    category: { type: Type.STRING },
+                    description: { type: Type.STRING },
+                    amount: { type: Type.NUMBER }
+                  }
+                }
+              },
+              moneyLocation: {
+                type: Type.OBJECT,
+                properties: {
+                  mpesaAmount: { type: Type.NUMBER },
+                  cashAtHand: { type: Type.NUMBER }
+                }
+              },
+              closingFuelBalance: {
+                type: Type.OBJECT,
+                properties: {
+                  pmsLitres: { type: Type.NUMBER },
+                  agoLitres: { type: Type.NUMBER }
+                }
+              },
+              confidenceNotes: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    field: { type: Type.STRING },
+                    issue: { type: Type.STRING }
+                  }
+                }
+              }
+            },
+            required: ["stationId", "reportDate", "nozzles", "reportedTotalSales"]
+          }
+        }
+      });
+
+      const jsonStr = response.text?.trim() || "{}";
+      const result = JSON.parse(jsonStr);
+      res.json(result);
+    } catch (error) {
+      console.error("Gemini Daily Report Extraction Error:", error);
+      res.status(500).json({ error: "Failed to extract daily report from image/text." });
     }
   });
 

@@ -106,6 +106,8 @@ export interface StationReport {
   createdBy: string;
 }
 
+export type FleetProduct = 'Diesel' | 'Engine Oil' | 'Brake Fluid' | 'Greasing';
+
 export interface FleetExpense {
   id: string;
   carRegistration: string;
@@ -115,6 +117,7 @@ export interface FleetExpense {
   litres?: number;
   rate?: number;
   station: string;
+  product?: FleetProduct | string;
 }
 
 export interface UserProfile {

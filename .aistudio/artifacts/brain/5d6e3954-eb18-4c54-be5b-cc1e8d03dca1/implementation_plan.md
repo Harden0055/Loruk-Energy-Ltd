@@ -1,84 +1,158 @@
-# Implementation Plan: Global Soft Silver Grey Theme Transition
+# Fleet Fueling: Consumed Product Selection (Diesel, Engine Oil, Brake Fluid, Greasing)
 
-## Executive Summary
-This plan outlines the systematic transition from harsh high-contrast bright white (`#FFFFFF`, `text-white`, `border-white/*`) to an eye-friendly, elegant **Soft Silver Grey** palette across the entire Loruk Energy web application. This change directly addresses visual fatigue while preserving the deep purple hyperlinks/headers, deep green indicators, and dark dashboard aesthetic established in previous turns.
+Introduce product selection to the Fleet Fueling expense tracking workflow so fleet managers can accurately log and audit whether a truck consumed Diesel, Engine Oil, Brake Fluid, or Greasing, complete with table filtering and PDF export reporting.
 
----
+## User Review & Critical Decisions
 
-## User Review & Critical Decisions Confirmed
-The following choices were confirmed in the planning phase:
-1. **Grey Shade**: **Soft Silver Grey** (`#E2E8F0` / `#D1D5DB` / `rgb(226, 232, 240)`), providing smooth, glare-free readability with optimal WCAG AA contrast on dark surfaces.
-2. **Scope**: **Full Application Scope** — applying across all text elements, main & subheadings, navigation items, icons, card borders, table dividers, input fields, and hover states.
+> [!IMPORTANT]
+> The following design decisions were confirmed during Phase 1 clarification:
+> - **Default Product**: Newly opened expense forms will default to **Diesel** automatically for rapid entry.
+> - **Calculation & Quantity Flexibility**: Allows entering either Quantity (Litres/Units) × Rate for auto-calculating Amount, or entering the Amount directly for fixed-fee services like Greasing.
+> - **Visibility & Reporting**: Consumed product will be displayed as a dedicated column in the logs table, available in the top filter bar as a product dropdown, and included in the PDF export.
 
----
-
-## Section 1: Overview & Core Concept
-- **Problem Statement**: Pure bright white (`#FFFFFF`) against pitch black or dark slate backgrounds produces high visual glare and eye strain during prolonged operational monitoring.
-- **Solution**: Replace pure white tokens and CSS root variables with a calibrated **Soft Silver Grey hierarchy**:
-  - **Primary Text & Headings**: Soft Silver (`#E2E8F0` / Tailwind `text-slate-200`) instead of `#FFFFFF`.
-  - **Secondary & Muted Labels**: Cool Silver Mist (`#94A3B8` / Tailwind `text-slate-400`).
-  - **Icons & Controls**: Silver Pearl (`#CBD5E1` / Tailwind `text-slate-300`).
-  - **Borders & Dividers**: Subdued Silver Slate (`rgba(226, 232, 240, 0.12)` / `border-slate-700/60`) instead of harsh `border-white/10` or `border-white/20`.
-  - **Accents Retained**: Deep purple (`#9333EA`, `#7E22CE`, `#6B21A8`) for customer/truck/station hyperlinks and totals; deep green (`#15803D`, `#166534`, `#047857`) for advance balances, payments, and active status indicators.
+- **Confirmed Decision 1**: Supported products are `Diesel`, `Engine Oil`, `Brake Fluid`, and `Greasing`.
+- **Confirmed Decision 2**: Existing logs without an explicit product will gracefully fallback to `Diesel` in displays and reports.
 
 ---
 
-## Section 2: UX & Visual Design Specs
+## 1. Overview & Core Concept
 
-### Color Token Mapping
-| Element Type | Previous Bright White | New Eye-Friendly Soft Silver Grey |
-| :--- | :--- | :--- |
-| **Global Body & Reset** | `--color-theme-text: #FFFFFF` | `--color-theme-text: #E2E8F0` |
-| **Card / Container Text** | `--color-theme-text-dark: #FFFFFF` | `--color-theme-text-dark: #E2E8F0` |
-| **Page & Section Headings** | `text-white font-bold` | `text-slate-200 font-bold` |
-| **Card Titles & Metric Labels** | `text-white`, `text-white/90` | `text-slate-200`, `text-slate-300` |
-| **Borders & Dividers** | `border-white/10`, `border-white/20` | `border-slate-700/50`, `border-slate-800` |
-| **UI Icons (Lucide)** | `text-white`, `text-white/80` | `text-slate-300`, `text-slate-400` |
-| **Hover States** | `hover:text-white`, `hover:bg-white/10` | `hover:text-slate-100`, `hover:bg-slate-800/60` |
-| **Form Inputs & Modals** | `text-white placeholder-white/40` | `text-slate-200 placeholder-slate-500` |
-
-### Retained Functional Accents
-- **Deep Purple Links & Totals**: Retains user-directed `#9333EA` / `#7E22CE` for all customer names, truck numbers, stations, and delivery figures.
-- **Deep Green Status & Inflows**: Retains `#15803D` / `#166534` for advance balances, payment records, and truck active glow indicators.
+- **What It Does**: Enhances the "Add Expense" form in Fleet Fueling by adding a **Product** dropdown selector alongside Vehicle and Station. Logs and displays the exact item consumed (`Diesel`, `Engine Oil`, `Brake Fluid`, or `Greasing`), allows filtering logs by product, and includes the product breakdown in PDF summaries.
+- **Target Audience / Persona**: Fleet managers, station attendants, and operations auditors monitoring fleet consumables and maintenance costs per vehicle.
+- **Key Value**: Prevents non-fuel maintenance consumables (engine oil, lubricants, brake fluid) from being misattributed solely as fuel litres, enabling accurate per-product cost accounting across trucks and stations.
 
 ---
 
-## Section 3: Key Product Decisions & Trade-Offs
-1. **Global CSS Reset vs. Component-Level Precision**:
-   - *Decision*: Both. Update CSS theme variables in `src/index.css` (`--color-theme-text`, base body styles, typography resets) so all fallback texts inherit soft silver grey automatically, and concurrently update explicit Tailwind `text-white` and `border-white/*` utility classes across key components.
-   - *Benefit*: Guarantees zero residual bright-white glare even in nested dynamically-rendered modals or third-party wrappers.
-2. **Contrast & Readability (WCAG Compliance)**:
-   - *Decision*: `#E2E8F0` against dark backgrounds (`#0B0F17` / `#111827` / `#000000`) provides a contrast ratio exceeding **12:1**, well above the WCAG AAA requirement (7:1), ensuring maximum readability with significantly less visual fatigue.
+## 2. User Experience & Visual Design
+
+### Key User Flows
+
+1. **Adding a Fleet Expense**:
+   - The user clicks **Add Expense** on the Fleet Fueling page.
+   - The form displays Date, Vehicle, Station, and a new **Product** selector defaulted to `Diesel`.
+   - The user can select `Diesel`, `Engine Oil`, `Brake Fluid`, or `Greasing`.
+   - When `Diesel` or oils are chosen, entering Litres and Rate auto-computes Amount (or vice versa). When `Greasing` or fixed maintenance is chosen, the user can either enter Litres/Units or type Amount directly without being blocked.
+   - Clicking **Save** persists the record with its chosen product.
+
+2. **Editing an Existing Expense**:
+   - Clicking the edit pencil on any row populates the form with the expense's saved product, car, station, date, rate, and amount.
+   - The user can change the product and click **Update**.
+
+3. **Filtering & Searching**:
+   - A new **Product** filter dropdown (`All Products`, `Diesel`, `Engine Oil`, `Brake Fluid`, `Greasing`) sits in the filter toolbar alongside Car, Station, and Date Range.
+   - The summary card dynamically recalculates the filtered count and total KES for the selected product.
+
+4. **Table & PDF Export**:
+   - A **Product** column is added to the historical table with thematic badges matching the DeepCharts visual language (e.g. emerald for Diesel, violet for Engine Oil, amber for Brake Fluid, cyan for Greasing).
+   - Exporting the PDF includes the Product column in the tabular breakdown and itemizes consumption by product in the executive summary.
+
+### Visual Identity & Theme Alignment
+
+- **Theme Compliance**: Adheres to DeepCharts Black (`#000000` canvas, `#121212` / `#18181B` surface panels, `#94A3B8` soft silver-grey labels and typography).
+- **Subdued Accents**: Deep purple (`#7C3AED`) and emerald green (`#059669`) consistent with existing controls and badges.
+- **Zero-Pill Restraint**: Clean text and unboxed typographic separators for metadata; subtle pill tags reserved only for functional category badges.
+- **Tabular Figures**: All currency, quantities, and rates formatted with `tabular-nums` and monospace styling.
 
 ---
 
-## Section 4: Technical Architecture & Execution Plan
+## 3. Key Product Decisions & Trade-Offs
 
-### Step 1: Core Theme & Global Stylesheet (`src/index.css`)
-- Update CSS custom properties for all active theme blocks (`:root`, `.dark`, theme selectors):
-  - Change `--color-theme-text` from `#FFFFFF` to `#E2E8F0`.
-  - Change `--color-theme-text-dark` from `#FFFFFF` to `#E2E8F0`.
-  - Update `html, body, .dark` default text color from pure white to `#E2E8F0`.
-  - Update global table borders, scrollbars, and card container defaults to soft slate/silver.
+- **Decision 1: Flexible Quantity / Amount Entry for Maintenance Items**
+  - *Chosen Approach*: Allow entering quantity and rate, OR entering amount directly without requiring litres/units for greasing.
+  - *Why*: Greasing is typically charged as a flat service fee per axle or truck, whereas oil and diesel are charged per litre.
+- **Decision 2: Backwards Compatibility for Historical Records**
+  - *Chosen Approach*: If an existing record lacks a `product` property, treat it as `Diesel` by default (`e.product || 'Diesel'`).
+  - *Why*: Historical records in `fleetExpenses` were recorded prior to this feature and represent diesel fuelings.
+- **Decision 3: Non-Destructive Extension**
+  - *Chosen Approach*: Add `product?: string` to `FleetExpense` interface in `src/types.ts` and update mutations in `src/lib/db.ts` and `src/pages/Fleet.tsx` without changing existing collections or schema invariants.
 
-### Step 2: Navigation & Shell (`src/components/Sidebar.tsx`, `src/components/Header.tsx`, `src/App.tsx`)
-- Replace `text-white` with `text-slate-200` on navigation headers, user profile text, brand typography, and system badges.
-- Replace `border-white/10` and `border-white/20` with `border-slate-800` or `border-slate-700/50`.
-- Replace bright white hover backgrounds (`hover:bg-white/5`, `hover:bg-white/10`) with softened slate highlights (`hover:bg-slate-800/60`).
+---
 
-### Step 3: Primary Views & Dashboards
-- **Fleet Fueling (`src/pages/FleetFueling.tsx` & subcomponents)**:
-  - Transition table headers, metrics, card titles, and filter panels to `text-slate-200` / `text-slate-300`.
-  - Retain the station-specific green/purple coloring, deep purple amounts, green edit / pink delete icons.
-- **Customers & Profiles (`src/pages/Customers.tsx`, `src/components/CustomerProfile.tsx`, `src/components/CustomerLedger.tsx`)**:
-  - Convert summary card labels, table headers, and modal text from `text-white` to `text-slate-200`.
-  - Preserve deep purple customer hyperlinks, deep purple delivery totals, deep green advances and payments, and neutral grey credit limit.
-- **Trucks & Truck Dashboard (`src/pages/Trucks.tsx`, `src/pages/TruckDashboard.tsx`)**:
-  - Keep purple truck hyperlinks and green active glow.
-  - Convert truck detail labels, KPI card numbers, table data, and modal fields to soft silver grey.
-- **Stations, Ledgers, Reports & Analytics (`src/pages/Stations.tsx`, `src/pages/Ledger.tsx`, `src/pages/Analytics.tsx`, etc.)**:
-  - Apply soft silver grey across summary cards, table grids, search inputs, and dropdown selectors.
+## 4. Technical Architecture & Data Strategy
 
-### Step 4: Verification & Linting
-- Execute `compile_applet` to ensure syntax, imports, and builds compile without warnings or errors.
-- Verify color contrast consistency across all main routes.
+### Component Hierarchy & Data Flow
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Fleet Page (Fleet.tsx)               │
+├─────────────────────────────────────────────────────────┤
+│  Top Action Bar                                         │
+│   ├── Truck Dashboard Link                              │
+│   ├── Export PDF (Includes Product Column & Summary)    │
+│   └── Add Expense Toggle                                │
+├─────────────────────────────────────────────────────────┤
+│  Add / Edit Expense Form                                │
+│   ├── Date Picker (Sticky static date)                  │
+│   ├── Vehicle Select + Quick Add Modal Shortcut         │
+│   ├── Station Select + Quick Add Modal Shortcut         │
+│   ├── [NEW] Product Select (Diesel, Oil, Brake, Grease) │
+│   ├── Litres / Qty Input (Flexible)                     │
+│   ├── Rate (KES/L) Input (Auto Rate × Qty)              │
+│   ├── Amount (KES) Input                                │
+│   └── Save / Update & Cancel Buttons                    │
+├─────────────────────────────────────────────────────────┤
+│  Filter Bar & Analytics Strip                           │
+│   ├── Car Filter                                        │
+│   ├── Station Filter                                    │
+│   ├── [NEW] Product Filter Dropdown                     │
+│   ├── Date Range Filter (From / To)                     │
+│   └── Filtered Total Summary & Fleet Comparison Chart   │
+├─────────────────────────────────────────────────────────┤
+│  Historical Fleet Logs Table                            │
+│   ├── Date                                              │
+│   ├── Car                                               │
+│   ├── Station                                           │
+│   ├── [NEW] Product Badge Column                        │
+│   ├── Litres / Qty                                      │
+│   ├── Amount (KES)                                      │
+│   └── Actions (Edit / Delete)                           │
+└─────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+              ┌───────────────────────────┐
+              │ Firestore: fleetExpenses  │
+              │  - carRegistration: string│
+              │  - station: string        │
+              │  - product: string        │
+              │  - litres?: number        │
+              │  - rate?: number          │
+              │  - amount: number         │
+              │  - date: number           │
+              │  - createdBy: string      │
+              └───────────────────────────┘
+```
+
+### Proposed Changes
+
+1. **`src/types.ts`**:
+   - Update `FleetExpense` interface to include `product?: 'Diesel' | 'Engine Oil' | 'Brake Fluid' | 'Greasing' | string`.
+
+2. **`src/pages/Fleet.tsx`**:
+   - Add `product` state in the component (`Diesel` by default).
+   - Insert Product `<select>` into the Add Expense grid:
+     - Options: `Diesel`, `Engine Oil`, `Brake Fluid`, `Greasing`.
+   - Update `handleLitresChange`, `handleRateChange`, and `handleAmountChange` to allow optional quantity when greasing is selected.
+   - Update `handleSubmit` to save `product` on both create and update operations.
+   - Update edit handler to restore `e.product || 'Diesel'` into the form state.
+   - Add `selectedProduct` filter state and dropdown in the filter controls bar (`All Products`, `Diesel`, `Engine Oil`, `Brake Fluid`, `Greasing`).
+   - Add `Product` column to the table header and body rows with styled badges.
+   - Update `generatePDF` to include `Product` in table columns and summary breakdown.
+
+3. **`src/pages/TruckDashboard.tsx`**:
+   - Display the `Product` column in the Historic Fueling table for complete cross-view consistency.
+
+---
+
+## 5. Verification Plan
+
+1. **Lint & Compilation**: Run `lint_applet` and `compile_applet` to verify zero TypeScript or syntax errors.
+2. **Form Interaction**:
+   - Open Add Expense form, verify product defaults to `Diesel`.
+   - Switch product to `Engine Oil`, `Brake Fluid`, and `Greasing`.
+   - Enter Litres and Rate; verify Amount calculates correctly.
+   - Enter Amount directly for Greasing; verify form submits cleanly.
+3. **Table & Filtering**:
+   - Verify saved logs show the appropriate product badge in the table.
+   - Filter by product in the filter dropdown; verify only matching records display and totals recompute.
+4. **PDF Export**:
+   - Trigger PDF download and verify the PDF table includes the Product column.

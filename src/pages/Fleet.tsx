@@ -16,6 +16,8 @@ import { useStations } from '../lib/operationsDb';
 
 const FALLBACK_REGISTRATIONS = ['KDE 179Y', 'KDL 019S', 'KCY 842Y', 'KCF 119R', 'KDW 028Y'];
 const FALLBACK_STATIONS = ['Loruk - Ndalu', 'Loruk - Junction', 'Gel - Bungoma', 'Bendera', 'Gel - Kapenguria', 'Kengas', 'Luqman'];
+export const FLEET_PRODUCTS = ['Diesel', 'Engine Oil', 'Brake Fluid', 'Greasing'] as const;
+export type FleetProduct = typeof FLEET_PRODUCTS[number];
 type Station = string;
 
 export default function Fleet({ 
@@ -42,6 +44,7 @@ export default function Fleet({
   const [showAddStationModal, setShowAddStationModal] = useState(false);
   
   const [carReg, setCarReg] = useState('');
+  const [product, setProduct] = useState<string>('Diesel');
   
   useEffect(() => {
     if (CAR_REGISTRATIONS.length > 0 && (!carReg || !CAR_REGISTRATIONS.includes(carReg))) {
@@ -109,18 +112,24 @@ export default function Fleet({
 
   useEffect(() => {
     if (isAdding && carReg && station) {
-      const savedRate = localStorage.getItem(`fleet_rate_${carReg}_${station}`);
+      const savedRateWithProd = localStorage.getItem(`fleet_rate_${carReg}_${station}_${product}`);
+      const savedRate = savedRateWithProd || (product === 'Diesel' ? localStorage.getItem(`fleet_rate_${carReg}_${station}`) : null);
       if (savedRate) {
         setRate(savedRate);
+      } else if (product === 'Greasing') {
+        setRate('');
       }
     }
-  }, [carReg, station, isAdding]);
+  }, [carReg, station, product, isAdding]);
 
   useEffect(() => {
     if (carReg && station && rate && isAdding) {
-      localStorage.setItem(`fleet_rate_${carReg}_${station}`, rate);
+      localStorage.setItem(`fleet_rate_${carReg}_${station}_${product}`, rate);
+      if (product === 'Diesel') {
+        localStorage.setItem(`fleet_rate_${carReg}_${station}`, rate);
+      }
     }
-  }, [carReg, station, rate, isAdding]);
+  }, [carReg, station, product, rate, isAdding]);
 
   const roundVal = (num: number) => {
     if (isNaN(num) || !isFinite(num)) return '';
@@ -186,6 +195,7 @@ export default function Fleet({
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedCar, setSelectedCar] = useState<string>('all');
   const [selectedStation, setSelectedStation] = useState<string>('all');
+  const [selectedProduct, setSelectedProduct] = useState<string>('all');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
   // const [showAIModal, setShowAIModal] = useState(false); // Commented out to reduce complexity if unused
@@ -224,14 +234,35 @@ export default function Fleet({
     return 'bg-emerald-500/15 text-[#059669] border border-emerald-500/30';
   };
 
+  const getProductBadgeStyle = (productName?: string) => {
+    const p = (productName || 'Diesel').toLowerCase();
+    if (p.includes('engine oil')) {
+      return 'bg-purple-500/15 text-purple-300 border border-purple-500/30 shadow-[0_0_6px_rgba(168,85,247,0.15)]';
+    }
+    if (p.includes('brake fluid')) {
+      return 'bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-[0_0_6px_rgba(245,158,11,0.15)]';
+    }
+    if (p.includes('greasing')) {
+      return 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shadow-[0_0_6px_rgba(6,182,212,0.15)]';
+    }
+    return 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-[0_0_6px_rgba(16,185,129,0.15)]';
+  };
+
   const filteredExpenses = useMemo(() => {
     let result = expenses;
     if (selectedCar !== 'all') result = result.filter(e => e.carRegistration === selectedCar);
     if (selectedStation !== 'all') result = result.filter(e => e.station === selectedStation);
+    if (selectedProduct !== 'all') {
+      const target = selectedProduct.toLowerCase().trim();
+      result = result.filter(e => {
+        const prod = (e.product || 'Diesel').toLowerCase().trim();
+        return prod === target;
+      });
+    }
     if (dateFrom) result = result.filter(e => e.date >= new Date(dateFrom).getTime());
     if (dateTo) result = result.filter(e => e.date <= new Date(dateTo).getTime() + 86399999);
     return result.sort((a, b) => b.date - a.date);
-  }, [expenses, selectedCar, selectedStation, dateFrom, dateTo]);
+  }, [expenses, selectedCar, selectedStation, selectedProduct, dateFrom, dateTo]);
 
   const fleetExpensesSummary = useMemo(() => {
     return filteredExpenses.reduce((acc, curr) => {
@@ -262,6 +293,7 @@ export default function Fleet({
       const data: any = {
         carRegistration: carReg, 
         station, 
+        product: product || 'Diesel',
         amount: Number(amount), 
         date: new Date(date).getTime(), 
         createdBy: user?.email || 'Unknown'
@@ -280,6 +312,7 @@ export default function Fleet({
       setAmount(''); 
       setLitres(''); 
       setRate('');
+      setProduct('Diesel');
       // Keep static date so user can record multiple expenses on the same date without it resetting!
     } catch (e) {
       console.error(e);
@@ -311,12 +344,15 @@ export default function Fleet({
     const carTotals: Record<string, number> = {};
     const carLitres: Record<string, number> = {};
     const stationTotals: Record<string, number> = {};
+    const productTotals: Record<string, number> = {};
     filteredExpenses.forEach(e => {
       carTotals[e.carRegistration] = (carTotals[e.carRegistration] || 0) + e.amount;
       carLitres[e.carRegistration] = (carLitres[e.carRegistration] || 0) + (e.litres || 0);
       if (e.station) {
         stationTotals[e.station] = (stationTotals[e.station] || 0) + e.amount;
       }
+      const prod = e.product || 'Diesel';
+      productTotals[prod] = (productTotals[prod] || 0) + e.amount;
     });
 
     // Small elegant box for total
@@ -348,7 +384,23 @@ export default function Fleet({
     doc.setTextColor(0, 0, 0);
     currentY += 21;
 
-    // Summary block
+    // Summary block by Product
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text('Summary by Product:', 14, currentY);
+    doc.setFont("helvetica", "normal");
+    currentY += 6;
+    
+    Object.entries(productTotals)
+      .sort(([, a], [, b]) => b - a)
+      .forEach(([prod, amt]) => {
+        doc.text(`${prod}: ${formatCurrency(amt)}`, 14, currentY);
+        currentY += 6;
+      });
+
+    currentY += 2;
+
+    // Summary block by Car
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
     doc.text('Summary by Car:', 14, currentY);
@@ -388,15 +440,16 @@ export default function Fleet({
       headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
       bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] },
       footStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
-      head: [['Date', 'Car Reg', 'Station', 'Litres', 'Amount']],
+      head: [['Date', 'Car Reg', 'Station', 'Product', 'Litres / Qty', 'Amount']],
       body: [...filteredExpenses].sort((a,b) => a.date - b.date).map(e => [
         format(e.date, 'MMM d, yyyy'), 
         e.carRegistration, 
         e.station ? (STATION_OPTIONS.find(opt => opt.value === e.station)?.label || e.station) : '-', 
+        e.product || 'Diesel',
         e.litres ? `${e.litres} L` : '-',
         `${e.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KES`
       ]),
-      foot: [['', '', 'Total', `${totalLitres.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L`, `${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KES`]],
+      foot: [['', '', '', 'Total', `${totalLitres.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} L`, `${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} KES`]],
     });
 
     // Footer section
@@ -438,12 +491,16 @@ export default function Fleet({
                 setAmount(''); 
                 setLitres(''); 
                 setRate('');
+                setProduct('Diesel');
                 // Keep static date intact
                 setCarReg(CAR_REGISTRATIONS[0] || '');
                 setStation(STATIONS[0] || '');
                 setIsAdding(true);
               } else {
                 setIsAdding(!isAdding);
+                if (!isAdding) {
+                  setProduct('Diesel');
+                }
               }
             }} 
             className="px-3 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
@@ -460,7 +517,7 @@ export default function Fleet({
               ⚡ Rate × Litres = Amount auto-calculation
             </span>
           </div>
-          <form onSubmit={handleSubmit} className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 items-end">
+          <form onSubmit={handleSubmit} className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 items-end">
             <div>
               <label className="block text-[10px] font-semibold text-slate-400 mb-0.5">Date</label>
               <input 
@@ -542,15 +599,47 @@ export default function Fleet({
               </div>
             </div>
             <div>
-              <label className="block text-[10px] font-semibold text-slate-400 mb-0.5">Litres (L)</label>
-              <input type="number" min="0" step="0.01" value={litres} onChange={(e) => handleLitresChange(e.target.value)} className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs font-mono" placeholder="Litres" />
+              <label className="block text-[10px] font-semibold text-purple-400 mb-0.5">Product</label>
+              <select 
+                value={product} 
+                onChange={(e) => setProduct(e.target.value)} 
+                className="w-full px-2.5 py-1.5 glass-panel border border-purple-500/40 rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs"
+              >
+                {FLEET_PRODUCTS.map((p) => (
+                  <option key={`opt-prod-${p}`} value={p} className="bg-black text-slate-200">
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-slate-400 mb-0.5">
+                {product === 'Greasing' ? 'Qty / Serv' : 'Litres (L)'}
+              </label>
+              <input 
+                type="number" 
+                min="0" 
+                step="0.01" 
+                value={litres} 
+                onChange={(e) => handleLitresChange(e.target.value)} 
+                className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs font-mono" 
+                placeholder={product === 'Greasing' ? 'Qty (opt)' : 'Litres'} 
+              />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-purple-400 mb-0.5 flex items-center justify-between">
-                <span>Rate (KES/L)</span>
+                <span>{product === 'Greasing' ? 'Rate/Unit' : 'Rate (KES/L)'}</span>
                 <span className="text-[9px] text-slate-400 font-normal">Auto</span>
               </label>
-              <input type="number" min="0" step="0.01" value={rate} onChange={(e) => handleRateChange(e.target.value)} className="w-full px-2.5 py-1.5 glass-panel border border-purple-500/40 rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs font-mono placeholder:text-gray-500" placeholder="Rate" />
+              <input 
+                type="number" 
+                min="0" 
+                step="0.01" 
+                value={rate} 
+                onChange={(e) => handleRateChange(e.target.value)} 
+                className="w-full px-2.5 py-1.5 glass-panel border border-purple-500/40 rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs font-mono placeholder:text-gray-500" 
+                placeholder={product === 'Greasing' ? 'Rate (opt)' : 'Rate'} 
+              />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-slate-400 mb-0.5">Amount (KES)</label>
@@ -571,6 +660,7 @@ export default function Fleet({
                   setAmount(''); 
                   setLitres(''); 
                   setRate('');
+                  setProduct('Diesel');
                   // Keep static date intact
                 }}
                 className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 border border-theme-border rounded-md font-semibold transition-colors cursor-pointer text-xs"
@@ -586,7 +676,15 @@ export default function Fleet({
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
         {(() => {
           const stats = CAR_REGISTRATIONS.map(reg => {
-            const totalConsumption = expenses.filter(e => e.carRegistration === reg).reduce((acc, e) => acc + e.amount, 0);
+            const relevant = expenses.filter(e => {
+              if (e.carRegistration !== reg) return false;
+              if (selectedProduct !== 'all') {
+                const prod = (e.product || 'Diesel').toLowerCase().trim();
+                return prod === selectedProduct.toLowerCase().trim();
+              }
+              return true;
+            });
+            const totalConsumption = relevant.reduce((acc, e) => acc + e.amount, 0);
             const lastDate = lastActivity.get(reg) || 0;
             const isInactive = (Date.now() - lastDate) > 48 * 60 * 60 * 1000;
             return { reg, totalConsumption, isInactive };
@@ -626,7 +724,7 @@ export default function Fleet({
         {/* Left Column: Filters & Summary */}
         <div className="flex-1 flex flex-col justify-between gap-2.5">
           {/* Filters */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               <div>
                 <label className="block text-[10px] font-medium text-slate-400 mb-0.5">Car</label>
                 <select value={selectedCar} onChange={e => setSelectedCar(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm">
@@ -639,6 +737,13 @@ export default function Fleet({
                 <select value={selectedStation} onChange={e => setSelectedStation(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm">
                   <option value="all" className="bg-black text-slate-200">All Stations</option>
                   {STATION_OPTIONS.map((s, idx) => <option key={`st-filter-${s.value}-${idx}`} value={s.value} className="bg-black text-slate-200">{s.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-[10px] font-medium text-purple-400 mb-0.5">Product</label>
+                <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)} className="w-full px-2 py-1 glass-panel border border-purple-500/40 rounded text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm">
+                  <option value="all" className="bg-black text-slate-200">All Products</option>
+                  {FLEET_PRODUCTS.map(p => <option key={`prod-filter-${p}`} value={p} className="bg-black text-slate-200">{p}</option>)}
                 </select>
               </div>
               <div>
@@ -689,14 +794,91 @@ export default function Fleet({
         </div>
       </div>
 
-      <div className="glass-panel rounded border border-theme-border shadow-[0_0_15px_rgba(124,58,237,0.15)] overflow-x-auto overflow-y-hidden">
-        <table className="modern-table">
+      <div className="glass-panel rounded-xl border border-theme-border shadow-[0_0_15px_rgba(124,58,237,0.12)] overflow-hidden">
+        {/* Table Header with Product Filter Dropdown & Quick Badges */}
+        <div className="px-3.5 py-2.5 border-b border-theme-border flex flex-wrap items-center justify-between gap-2.5 bg-white/[0.02]">
+          <div className="flex items-center gap-2">
+            <h3 className="text-xs font-bold text-slate-200">Expense Transactions</h3>
+            <span className="text-[11px] font-mono text-slate-400">
+              ({filteredExpenses.length} {filteredExpenses.length === 1 ? 'log' : 'logs'})
+            </span>
+            {selectedProduct !== 'all' && (
+              <span className="text-[10px] font-semibold text-purple-300 bg-purple-500/15 border border-purple-500/25 px-2 py-0.5 rounded">
+                Viewing {selectedProduct} Only
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5">
+              <label className="text-[11px] font-semibold text-slate-400">Filter by Product:</label>
+              <select
+                value={selectedProduct}
+                onChange={(e) => setSelectedProduct(e.target.value)}
+                className="px-2.5 py-1 bg-black border border-purple-500/40 rounded-lg text-xs font-bold text-purple-300 focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm cursor-pointer"
+              >
+                <option value="all" className="bg-black text-slate-200">All Products ({expenses.length})</option>
+                {FLEET_PRODUCTS.map((p) => {
+                  const count = expenses.filter(e => (e.product || 'Diesel').toLowerCase().trim() === p.toLowerCase().trim()).length;
+                  return (
+                    <option key={`table-prod-filter-${p}`} value={p} className="bg-black text-slate-200">
+                      {p} ({count})
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+
+            {/* Quick Filter Buttons */}
+            <div className="hidden sm:flex items-center gap-1 p-0.5 bg-black/60 border border-white/10 rounded-lg">
+              <button
+                type="button"
+                onClick={() => setSelectedProduct('all')}
+                className={`px-2 py-0.5 text-[10px] font-bold rounded transition-colors cursor-pointer ${
+                  selectedProduct === 'all'
+                    ? 'bg-purple-500/25 text-purple-300 border border-purple-500/40 shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                All
+              </button>
+              {FLEET_PRODUCTS.map((p) => (
+                <button
+                  key={`pill-btn-${p}`}
+                  type="button"
+                  onClick={() => setSelectedProduct(p)}
+                  className={`px-2 py-0.5 text-[10px] font-bold rounded transition-colors cursor-pointer ${
+                    selectedProduct === p
+                      ? 'bg-purple-500/25 text-purple-300 border border-purple-500/40 shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+
+            {selectedProduct !== 'all' && (
+              <button
+                type="button"
+                onClick={() => setSelectedProduct('all')}
+                className="text-[11px] text-pink-400 hover:text-pink-300 font-semibold underline cursor-pointer ml-1"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="overflow-x-auto overflow-y-hidden">
+          <table className="modern-table">
           <thead>
             <tr className="modern-tr">
               <th className="modern-th">Date</th>
               <th className="modern-th">Car</th>
               <th className="modern-th">Station</th>
-              <th className="modern-th">Litres</th>
+              <th className="modern-th">Product</th>
+              <th className="modern-th">Litres / Qty</th>
               <th className="modern-th">Amount</th>
               <th className="modern-th">Actions</th>
             </tr>
@@ -718,6 +900,11 @@ export default function Fleet({
                     </button>
                   )}
                 </td>
+                <td className="modern-td">
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold ${getProductBadgeStyle(e.product)}`}>
+                    {e.product || 'Diesel'}
+                  </span>
+                </td>
                 <td className="modern-td">{e.litres ? `${e.litres.toLocaleString()} L` : '-'}</td>
                 <td className="modern-td !text-[#7C3AED] font-mono font-bold text-base">{formatCurrency(e.amount)}</td>
                 <td className="modern-td">
@@ -726,6 +913,7 @@ export default function Fleet({
                       onClick={() => { 
                         setEditingExpenseId(e.id); 
                         setCarReg(e.carRegistration); 
+                        setProduct(e.product || 'Diesel');
                         setAmount(e.amount.toString()); 
                         if (e.station) {
                           setStation(e.station);
@@ -768,6 +956,7 @@ export default function Fleet({
             ))}
           </tbody>
         </table>
+        </div>
       </div>
 
       {deleteDialog.isOpen && (
