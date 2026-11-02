@@ -256,7 +256,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                     {onViewCustomer ? (
                       <button 
                         onClick={() => onViewCustomer(c.id)}
-                        className="hover:underline text-[#7C3AED] hover:text-purple-300 font-bold cursor-pointer text-left focus:outline-none"
+                        className="hover:underline text-[#6D28D9] hover:text-purple-300 font-bold cursor-pointer text-left focus:outline-none"
                       >
                         {c.name}
                       </button>
@@ -266,7 +266,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                   </td>
                   <td className="modern-td">{formatCurrency(c.creditLimit)}</td>
                   <td className="modern-td">
-                    <span className={c.openingBalanceType === 'advance' ? '!text-[#059669] font-bold' : (c.openingBalance || 0) > 0 ? '!text-[#9333EA] font-semibold' : 'text-gray-400'}>
+                    <span className={c.openingBalanceType === 'advance' ? '!text-[#059669] font-bold' : (c.openingBalance || 0) > 0 ? '!text-[#6D28D9] font-semibold' : 'text-gray-400'}>
                       {c.openingBalanceType === 'advance' ? '-' : ''}{formatCurrency(c.openingBalance || 0)}
                     </span>
                     {c.openingBalanceType === 'advance' && (
@@ -278,7 +278,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                     return (
                       <td className={`px-6 py-4 text-base font-mono font-bold text-right ${
                         dynamicBalance > 0 
-                          ? '!text-[#9333EA]' 
+                          ? '!text-[#6D28D9]' 
                           : dynamicBalance < 0 
                             ? '!text-[#059669] font-bold' 
                             : '!text-gray-300'
@@ -290,7 +290,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                       </td>
                     );
                   })()}
-                  <td className="modern-td !text-[#9333EA] font-mono font-bold">{formatCurrency(c.totalPurchases)}</td>
+                  <td className="modern-td text-slate-200 font-mono">{formatCurrency(c.totalPurchases)}</td>
                   <td className="modern-td">
                     <span className={`inline-flex items-center px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${
                       c.status === 'active' 
@@ -305,7 +305,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                       {onViewCustomer && (
                         <button 
                           onClick={() => onViewCustomer(c.id)}
-                          className="p-2 text-gray-400 hover:text-[#7C3AED] hover:bg-purple-500/10 transition-colors rounded-md cursor-pointer"
+                          className="p-2 text-gray-400 hover:text-[#6D28D9] hover:bg-purple-500/10 transition-colors rounded-md cursor-pointer"
                           title="View Customer Dashboard"
                           id={`btn-view-${c.id}`}
                         >
@@ -901,7 +901,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
           <div>
             <label className="block text-sm font-semibold text-white mb-1.5">Current Balance</label>
             <div className={`px-4 py-2 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base font-mono font-bold shadow-sm ${
-              customer.balance > 0 ? 'text-[#9333EA]' : customer.balance < 0 ? 'text-emerald-400' : 'text-gray-300'
+              customer.balance > 0 ? 'text-[#6D28D9]' : customer.balance < 0 ? 'text-emerald-400' : 'text-gray-300'
             }`}>
               {formatCurrency(customer.balance)}
             </div>
@@ -926,7 +926,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
                 onClick={() => setType('debit')}
                 className={`py-2 px-4 rounded-lg border text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer ${
                   type === 'debit'
-                    ? 'border-purple-500 bg-purple-500/20 text-[#9333EA] shadow-[0_0_15px_rgba(147,51,234,0.25)]'
+                    ? 'border-purple-500 bg-purple-500/20 text-[#6D28D9] shadow-[0_0_15px_rgba(109,40,217,0.25)]'
                     : 'border-white/10 text-gray-400 bg-white/[0.03] hover:text-white'
                 }`}
               >

@@ -18,26 +18,31 @@
     <script>
       const originalError = console.error;
       console.error = (...args) => {
-        if (args[0] && typeof args[0] === 'string' && (args[0].includes('WebSocket') || args[0].includes('vite'))) return;
+        const str = args.map(a => (typeof a === 'object' ? (a?.message || a?.stack || '') : String(a))).join(' ');
+        if (str.includes('WebSocket') || str.includes('vite') || str.includes('closed without opened')) return;
         originalError.call(console, ...args);
       };
       const originalWarn = console.warn;
       console.warn = (...args) => {
-        if (args[0] && typeof args[0] === 'string' && args[0].includes('width(-1) and height(-1)')) return;
+        const str = args.map(a => String(a)).join(' ');
+        if (str.includes('width(-1) and height(-1)') || str.includes('WebSocket')) return;
         originalWarn.call(console, ...args);
       };
       window.addEventListener('unhandledrejection', (event) => {
-        if (event.reason && event.reason.message && event.reason.message.includes('WebSocket')) {
+        const msg = event?.reason?.message || String(event?.reason || '');
+        if (msg.includes('WebSocket') || msg.includes('closed without opened')) {
           event.preventDefault();
           event.stopImmediatePropagation();
         }
       });
       window.addEventListener('error', (event) => {
-        if (event.message && event.message.includes('WebSocket')) {
+        const msg = event?.message || event?.error?.message || '';
+        if (msg.includes('WebSocket') || msg.includes('closed without opened')) {
           event.preventDefault();
           event.stopImmediatePropagation();
+          return true;
         }
-      });
+      }, true);
     </script>
 </head>
   <body>
