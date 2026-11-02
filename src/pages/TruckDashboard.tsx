@@ -23,7 +23,7 @@ const FALLBACK_REGISTRATIONS = [
   'KDW 028Y'
 ];
 
-const FLEET_PRODUCTS = ['Diesel', 'Engine Oil', 'Brake Fluid', 'Greasing'] as const;
+const FLEET_PRODUCTS = ['Diesel', 'Premium', 'Engine Oil', 'Brake Fluid', 'Greasing'] as const;
 
 export default function TruckDashboard({ 
   truckReg, 
@@ -96,6 +96,9 @@ export default function TruckDashboard({
     if (p.includes('greasing')) {
       return 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30';
     }
+    if (p.includes('premium') || p.includes('super')) {
+      return 'bg-teal-500/15 text-teal-300 border border-teal-500/30';
+    }
     return 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
   };
 
@@ -131,7 +134,7 @@ export default function TruckDashboard({
         </div>
         <div className="glass-panel border border-purple-500/25 bg-purple-500/[0.03] p-5 rounded-xl">
            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Avg Fuel Cost</p>
-           <h3 className="text-2xl font-black font-mono text-[#7C3AED] mt-2">{avgCostPerLitre > 0 ? `${formatCurrency(avgCostPerLitre)}/L` : 'N/A'}</h3>
+           <h3 className="text-2xl font-black font-mono text-[#6D28D9] mt-2">{avgCostPerLitre > 0 ? `${formatCurrency(avgCostPerLitre)}/L` : 'N/A'}</h3>
         </div>
         <div className="glass-panel border border-emerald-500/25 bg-emerald-500/[0.03] p-5 rounded-xl">
            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Active Fleet</p>
@@ -141,19 +144,19 @@ export default function TruckDashboard({
 
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="glass-panel border border-purple-500/20 p-5 rounded-xl">
-            <h3 className="font-bold text-lg mb-4 text-[#7C3AED]">Fuel Spend by Vehicle</h3>
+            <h3 className="font-bold text-lg mb-4 text-[#6D28D9]">Fuel Spend by Vehicle</h3>
             <div className="h-56 relative overflow-hidden" >
                 <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
                     <BarChart data={vehicleSpendData}>
                         <XAxis dataKey="name" stroke="#9ca3af" tickLine={false} />
                         <YAxis stroke="#9ca3af" tickLine={false} />
                         <Tooltip 
-                          contentStyle={{ backgroundColor: '#09090b', color: '#f3f4f6', border: '1px solid rgba(124,58,237,0.4)', borderRadius: '8px', fontSize: '12px' }}
+                          contentStyle={{ backgroundColor: '#09090b', color: '#f3f4f6', border: '1px solid rgba(109,40,217,0.4)', borderRadius: '8px', fontSize: '12px' }}
                           formatter={(value: number) => [formatCurrency(value), 'Spend']} 
                         />
                         <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
                           {vehicleSpendData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.isCurrent ? "#059669" : "#7C3AED"} />
+                              <Cell key={`cell-${index}`} fill={entry.isCurrent ? "#059669" : "#6D28D9"} />
                           ))}
                         </Bar>
                     </BarChart>
@@ -171,7 +174,7 @@ export default function TruckDashboard({
                           contentStyle={{ backgroundColor: '#09090b', color: '#f3f4f6', border: '1px solid rgba(5,150,105,0.4)', borderRadius: '8px', fontSize: '12px' }}
                           formatter={(value: number) => [formatCurrency(value), 'Expenditure']}
                         />
-                        <Area dataKey="amount" fill="rgba(124,58,237,0.35)" stroke="#7C3AED" strokeWidth={2} />
+                        <Area dataKey="amount" fill="rgba(109,40,217,0.35)" stroke="#6D28D9" strokeWidth={2} />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>
@@ -288,7 +291,7 @@ export default function TruckDashboard({
                   if (s.includes('kapenguria')) {
                     stationClass = 'bg-[#059669]/20 text-[#059669] border-[#059669]/40';
                   } else if (s.includes('bungoma')) {
-                    stationClass = 'bg-[#7C3AED]/20 text-[#7C3AED] border-[#7C3AED]/40';
+                    stationClass = 'bg-[#6D28D9]/20 text-[#6D28D9] border-[#6D28D9]/40';
                   } else if (s.includes('ndalu') || s.includes('junction')) {
                     stationClass = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
                   }
@@ -296,7 +299,7 @@ export default function TruckDashboard({
                   return (
                     <tr key={e.id} className="hover:bg-white/5 transition-colors">
                       <td className="modern-td">{format(e.date, 'MMM d, yyyy')}</td>
-                      <td className="px-4 py-3 font-semibold text-[#7C3AED] hover:text-purple-300 cursor-pointer hover:underline font-bold transition-colors" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
+                      <td className="px-4 py-3 font-semibold text-[#6D28D9] hover:text-purple-300 cursor-pointer hover:underline font-bold transition-colors" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
                       <td className="modern-td">
                         {e.station && (
                           <button
@@ -315,7 +318,7 @@ export default function TruckDashboard({
                         </span>
                       </td>
                       <td className="modern-td">{e.litres ? `${e.litres.toLocaleString()} ${e.product === 'Greasing' ? 'serv' : 'L'}` : '-'}</td>
-                      <td className="modern-td"><span className="!text-[#7C3AED] font-mono font-bold text-base">{formatCurrency(e.amount)}</span></td>
+                      <td className="modern-td"><span className="!text-[#6D28D9] font-mono font-bold text-base">{formatCurrency(e.amount)}</span></td>
                     </tr>
                   );
                 })

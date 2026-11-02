@@ -623,7 +623,7 @@ export default function DashboardView() {
             </div>
             <div className="p-3 rounded-xl bg-black/40 border border-white/[0.06]">
               <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Total Expenses</p>
-              <p className="text-sm font-bold font-mono text-rose-300 mt-0.5">KES {Math.round(reportTotals.expenses).toLocaleString()}</p>
+              <p className="text-sm font-bold font-mono text-[#8B5CF6] mt-0.5">KES {Math.round(reportTotals.expenses).toLocaleString()}</p>
             </div>
             <div className="p-3 rounded-xl bg-black/40 border border-white/[0.06]">
               <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Net Operating Margin</p>
@@ -676,8 +676,8 @@ export default function DashboardView() {
                         <td className="py-2 px-3 text-right text-purple-300">KES {Math.round(row.fuelRevenue).toLocaleString()}</td>
                         <td className="py-2 px-3 text-right text-purple-200">KES {Math.round(row.lpgRevenue).toLocaleString()}</td>
                         <td className="py-2 px-3 text-right font-bold text-white">KES {Math.round(row.totalGrossRevenue).toLocaleString()}</td>
-                        <td className="py-2 px-3 text-right text-[#9333EA]">KES {Math.round(row.expenses).toLocaleString()}</td>
-                        <td className={`py-2 px-3 text-right font-bold ${row.netMargin >= 0 ? 'text-emerald-400' : 'text-rose-300'}`}>
+                        <td className="py-2 px-3 text-right text-[#8B5CF6] font-mono font-bold">KES {Math.round(row.expenses).toLocaleString()}</td>
+                        <td className={`py-2 px-3 text-right font-bold ${row.netMargin >= 0 ? 'text-emerald-400' : 'text-[#8B5CF6]'}`}>
                           KES {Math.round(row.netMargin).toLocaleString()}
                         </td>
                         <td className="py-2 px-3 text-right text-emerald-300">KES {Math.round(row.totalCollections).toLocaleString()}</td>
@@ -692,8 +692,8 @@ export default function DashboardView() {
                       <td className="py-2.5 px-3 text-right text-purple-300">KES {Math.round(reportTotals.fuelRevenue).toLocaleString()}</td>
                       <td className="py-2.5 px-3 text-right text-purple-200">KES {Math.round(reportTotals.lpgRevenue).toLocaleString()}</td>
                       <td className="py-2.5 px-3 text-right text-white">KES {Math.round(reportTotals.totalGrossRevenue).toLocaleString()}</td>
-                      <td className="py-2.5 px-3 text-right text-[#9333EA]">KES {Math.round(reportTotals.expenses).toLocaleString()}</td>
-                      <td className={`py-2.5 px-3 text-right ${reportTotals.netMargin >= 0 ? 'text-emerald-400' : 'text-rose-300'}`}>
+                      <td className="py-2.5 px-3 text-right text-[#8B5CF6] font-mono font-bold">KES {Math.round(reportTotals.expenses).toLocaleString()}</td>
+                      <td className={`py-2.5 px-3 text-right ${reportTotals.netMargin >= 0 ? 'text-emerald-400' : 'text-[#8B5CF6]'}`}>
                         KES {Math.round(reportTotals.netMargin).toLocaleString()}
                       </td>
                       <td className="py-2.5 px-3 text-right text-emerald-300">KES {Math.round(reportTotals.totalCollections).toLocaleString()}</td>
@@ -715,9 +715,9 @@ export default function DashboardView() {
               <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider mb-1">Purchases</p>
               <p className="text-sm font-bold text-slate-100 font-mono">KES {stationTotalPurchases.toLocaleString()}</p>
             </div>
-            <div className="glass-panel p-4 rounded-xl border border-white/[0.08] hover:border-rose-500/30 bg-[#000000] flex flex-col justify-center">
-              <p className="text-[10px] text-rose-400 font-bold uppercase tracking-wider mb-1">Expenses</p>
-              <p className="text-sm font-bold text-slate-100 font-mono">KES {stationTotalExpenses.toLocaleString()}</p>
+            <div className="glass-panel p-4 rounded-xl border border-white/[0.08] hover:border-purple-500/30 bg-[#000000] flex flex-col justify-center">
+              <p className="text-[10px] text-[#6D28D9] font-bold uppercase tracking-wider mb-1">Expenses</p>
+              <p className="text-sm font-bold text-[#6D28D9] font-mono">KES {stationTotalExpenses.toLocaleString()}</p>
             </div>
             <div className="glass-panel p-4 rounded-xl border border-white/[0.08] hover:border-purple-500/30 bg-[#000000] flex flex-col justify-center">
               <p className="text-[10px] text-purple-400 font-bold uppercase tracking-wider mb-1">Invoices Issued</p>

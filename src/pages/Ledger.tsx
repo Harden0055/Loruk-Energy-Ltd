@@ -462,10 +462,10 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
         <div className="bg-[#000000] border border-white/[0.08] hover:border-purple-500/30 p-6 rounded-xl shadow-sm flex items-center justify-between transition-colors">
           <div>
             <p className="text-sm font-semibold text-gray-400 mb-1">Filtered Debits (Deliveries)</p>
-            <h3 className="text-2xl font-bold text-[#9333EA]">{formatCurrency(totalDebits)}</h3>
+            <h3 className="text-2xl font-bold text-[#6D28D9]">{formatCurrency(totalDebits)}</h3>
           </div>
           <div className="w-12 h-12 bg-purple-500/15 border border-purple-500/30 rounded-full shadow-sm flex items-center justify-center">
-            <ArrowUp className="w-6 h-6 text-[#9333EA]" />
+            <ArrowUp className="w-6 h-6 text-[#6D28D9]" />
           </div>
         </div>
         <div className="bg-[#000000] border border-white/[0.08] hover:border-emerald-500/30 p-6 rounded-xl shadow-sm flex items-center justify-between transition-colors">
@@ -480,7 +480,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
         <div className="bg-[#000000] border border-white/[0.08] hover:border-purple-500/30 p-6 rounded-xl shadow-sm flex items-center justify-between transition-colors">
           <div>
             <p className="text-sm font-medium text-gray-400 mb-1">Net Change</p>
-            <h3 className={`text-2xl font-bold ${totalDebits - totalCredits > 0 ? 'text-purple-400' : 'text-[#059669]'}`}>
+            <h3 className={`text-2xl font-bold ${totalDebits - totalCredits > 0 ? 'text-[#6D28D9]' : 'text-[#059669]'}`}>
               {formatCurrency(Math.abs(totalDebits - totalCredits))}
               <span className="text-sm font-normal ml-1 text-gray-400">{totalDebits - totalCredits > 0 ? 'Due' : 'Credit'}</span>
             </h3>
@@ -588,11 +588,11 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
               ) : [...filteredEntries].reverse().map(e => (
                 <tr key={e.id} className="hover:bg-white/5 transition-colors duration-300">
                   <td className="modern-td">{format(e.date, 'MMM d, yyyy HH:mm')}</td>
-                  {selectedCustomerId === 'all' && <td className="modern-td"><button className="hover:underline text-[#7C3AED] hover:text-purple-300 cursor-pointer font-bold transition-colors" onClick={() => onViewCustomer?.(e.customerId)}>{e.customerName}</button></td>}
-                  <td className="modern-td">
+                  {selectedCustomerId === 'all' && <td className="modern-td"><button className="hover:underline text-[#6D28D9] hover:text-purple-300 cursor-pointer font-bold transition-colors" onClick={() => onViewCustomer?.(e.customerId)}>{e.customerName}</button></td>}
+                   <td className="modern-td">
                     <span className="flex items-center gap-2">
                        {e.type === 'delivery' || e.type === 'adjustment_debit' ? (
-                         <ArrowUp className="w-5 h-5 text-purple-400 shrink-0" />
+                         <ArrowUp className="w-5 h-5 text-[#6D28D9] shrink-0" />
                        ) : (
                          <ArrowDown className="w-5 h-5 text-emerald-400 shrink-0" />
                        )}
@@ -600,12 +600,12 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
                     </span>
                   </td>
                   <td className="modern-td text-right font-mono font-bold text-sm">
-                    {e.debit > 0 ? <span className="!text-[#9333EA]">{formatCurrency(e.debit)}</span> : '-'}
+                    {e.debit > 0 ? <span className="!text-[#6D28D9]">{formatCurrency(e.debit)}</span> : '-'}
                   </td>
                   <td className="modern-td text-right font-mono font-bold text-sm">
                     {e.credit > 0 ? <span className="!text-[#059669]">{formatCurrency(e.credit)}</span> : '-'}
                   </td>
-                  <td className={`modern-td text-right font-mono font-bold text-sm ${e.runningBalance > 0 ? '!text-[#9333EA]' : e.runningBalance < 0 ? '!text-[#059669]' : '!text-theme-text-muted'}`}>
+                  <td className={`modern-td text-right font-mono font-bold text-sm ${e.runningBalance > 0 ? '!text-[#6D28D9]' : e.runningBalance < 0 ? '!text-[#059669]' : '!text-theme-text-muted'}`}>
                     {formatCurrency(e.runningBalance)}
                   </td>
                   <td className="modern-td">

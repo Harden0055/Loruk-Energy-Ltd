@@ -956,7 +956,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           <div className="flex items-baseline gap-1 mt-1">
             <span className="text-xs font-bold text-theme-text-muted">Ksh</span>
             <span className={`text-base sm:text-lg font-black font-mono tracking-tight leading-none ${
-              calculatedBalance < 0 ? 'text-[#059669]' : isCreditRisk ? 'text-rose-400' : calculatedBalance > 0 ? 'text-[#7C3AED]' : 'text-slate-400'
+              calculatedBalance < 0 ? 'text-[#059669]' : isCreditRisk ? 'text-rose-400' : calculatedBalance > 0 ? 'text-[#6D28D9]' : 'text-slate-400'
             }`}>
               {Math.abs(calculatedBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
@@ -967,7 +967,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             ) : isCreditRisk ? (
               <span className="text-rose-400 font-bold animate-pulse">Credit Limit Exceeded</span>
             ) : calculatedBalance > 0 ? (
-              <span className="text-[#7C3AED] font-bold">Receivable Balance Owed</span>
+              <span className="text-[#6D28D9] font-bold">Receivable Balance Owed</span>
             ) : (
               <span className="text-slate-400 font-bold">Settled (Nil Balance)</span>
             )}
@@ -1011,8 +1011,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             </span>
           </div>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-xs font-bold text-[#7C3AED]">Ksh</span>
-            <span className="text-base sm:text-lg font-black font-mono text-[#7C3AED] tracking-tight leading-none">
+            <span className="text-xs font-bold text-[#6D28D9]">Ksh</span>
+            <span className="text-base sm:text-lg font-black font-mono text-[#6D28D9] tracking-tight leading-none">
               {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
@@ -1158,10 +1158,10 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             <div className="pt-2.5 mt-2.5 border-t border-theme-border text-center">
               <button 
                 type="button"
-                className="text-xs text-[#7C3AED] hover:text-purple-300 font-bold hover:underline cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/25 transition-all" 
+                className="text-xs text-[#6D28D9] hover:text-purple-300 font-bold hover:underline cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/25 transition-all" 
                 onClick={handleExportStatement}
               >
-                <Calendar className="w-3.5 h-3.5 text-[#7C3AED]" />
+                <Calendar className="w-3.5 h-3.5 text-[#6D28D9]" />
                 <span>Open statement PDF report</span>
               </button>
             </div>
@@ -1333,7 +1333,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       </td>
                       <td className="px-4 sm:px-6 py-3.5 text-right font-mono font-bold text-sm whitespace-nowrap">
                         {isOpening ? (
-                          <span className={customer?.openingBalanceType === 'advance' ? '!text-[#059669]' : '!text-[#9333EA]'}>
+                          <span className={customer?.openingBalanceType === 'advance' ? '!text-[#059669]' : '!text-[#6D28D9]'}>
                             {customer?.openingBalanceType === 'advance' ? '-' : '+'}Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         ) : e.type === 'payment' ? (
@@ -1341,14 +1341,14 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                             -Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         ) : (
-                          <span className={isPurpleAmount ? '!text-[#9333EA]' : '!text-[#059669]'}>
+                          <span className={isPurpleAmount ? '!text-[#6D28D9]' : '!text-[#059669]'}>
                             {isPurpleAmount ? '+' : '-'}Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         )}
                       </td>
                       <td className="px-4 sm:px-6 py-3.5 text-right font-mono font-bold text-sm whitespace-nowrap">
                         {e.balanceAfter > 0 ? (
-                          <span className="!text-[#9333EA]">
+                          <span className="!text-[#6D28D9]">
                             Ksh {e.balanceAfter.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         ) : e.balanceAfter < 0 ? (
@@ -1373,11 +1373,11 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 </td>
                 <td className="px-4 sm:px-6 py-4 text-right font-mono text-xs text-theme-text-muted whitespace-nowrap">
                   <span className="block text-[10px] uppercase font-sans tracking-widest text-slate-400">Total Purchases</span>
-                  <span className="!text-[#9333EA] font-mono font-bold">Ksh {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  <span className="!text-[#8B5CF6] font-mono font-bold">Ksh {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </td>
                 <td className="px-4 sm:px-6 py-4 text-right font-mono font-black text-sm sm:text-base whitespace-nowrap">
                   <span className="block text-[10px] uppercase font-sans tracking-widest text-slate-400">Final Closing Balance</span>
-                  <span className={calculatedBalance > 0 ? '!text-[#9333EA]' : calculatedBalance < 0 ? '!text-[#059669]' : '!text-white'}>
+                  <span className={calculatedBalance > 0 ? '!text-[#8B5CF6]' : calculatedBalance < 0 ? '!text-[#059669]' : '!text-white'}>
                     {calculatedBalance < 0 ? '-' : ''}Ksh {Math.abs(calculatedBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </td>
@@ -1492,8 +1492,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       <>
                         <option value="Diesel" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Diesel</option>
                         <option value="Super (Premium)" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Super (Premium)</option>
-                        <option value="Brake fluid" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Brake fluid</option>
-                        <option value="Engine oil" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Engine oil</option>
+                        <option value="Engine Oil" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Engine Oil</option>
+                        <option value="Brake Fluid" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Brake Fluid</option>
+                        <option value="Greasing" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Greasing</option>
                       </>
                     )}
                     <option value="Super/Diesel Split" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Super/Diesel Split</option>

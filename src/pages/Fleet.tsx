@@ -16,7 +16,7 @@ import { useStations } from '../lib/operationsDb';
 
 const FALLBACK_REGISTRATIONS = ['KDE 179Y', 'KDL 019S', 'KCY 842Y', 'KCF 119R', 'KDW 028Y'];
 const FALLBACK_STATIONS = ['Loruk - Ndalu', 'Loruk - Junction', 'Gel - Bungoma', 'Bendera', 'Gel - Kapenguria', 'Kengas', 'Luqman'];
-export const FLEET_PRODUCTS = ['Diesel', 'Engine Oil', 'Brake Fluid', 'Greasing'] as const;
+export const FLEET_PRODUCTS = ['Diesel', 'Premium', 'Engine Oil', 'Brake Fluid', 'Greasing'] as const;
 export type FleetProduct = typeof FLEET_PRODUCTS[number];
 type Station = string;
 
@@ -244,6 +244,9 @@ export default function Fleet({
     }
     if (p.includes('greasing')) {
       return 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shadow-[0_0_6px_rgba(6,182,212,0.15)]';
+    }
+    if (p.includes('premium') || p.includes('super')) {
+      return 'bg-teal-500/15 text-teal-300 border border-teal-500/30 shadow-[0_0_6px_rgba(20,184,166,0.15)]';
     }
     return 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-[0_0_6px_rgba(16,185,129,0.15)]';
   };
@@ -693,7 +696,7 @@ export default function Fleet({
           return stats.map(({ reg, totalConsumption, isInactive }, index) => {
             // Strict deepcharts theme: only purple or green alternating
             const isPurple = index % 2 === 0;
-            const colorClass = isPurple ? 'text-[#7C3AED]' : 'text-[#059669]';
+            const colorClass = isPurple ? 'text-[#6D28D9]' : 'text-[#059669]';
             const bgClass = isPurple ? 'bg-purple-500/[0.04] border-purple-500/25' : 'bg-emerald-500/[0.04] border-emerald-500/25';
             return (
               <div 
@@ -702,7 +705,7 @@ export default function Fleet({
                 onClick={() => onNavigateToTruck?.(reg)}
               >
                 <div className="flex items-center justify-between mb-1 text-gray-400">
-                  <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#7C3AED] hover:underline truncate">{reg}</p>
+                  <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#6D28D9] hover:underline truncate">{reg}</p>
                   {isInactive && (
                     <span className="relative flex h-1.5 w-1.5">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
@@ -761,7 +764,7 @@ export default function Fleet({
                <p className="text-xs font-semibold text-purple-300">Filtered Total</p>
                <p className="text-[10px] text-emerald-400 font-semibold">{filteredExpenses.length} logs</p>
              </div>
-             <h3 className="text-base sm:text-lg font-black font-mono text-[#7C3AED]">
+             <h3 className="text-base sm:text-lg font-black font-mono text-[#6D28D9]">
                {formatCurrency(filteredExpenses.reduce((acc, e) => acc + e.amount, 0))}
              </h3>
           </div>
@@ -782,11 +785,11 @@ export default function Fleet({
                    <XAxis type="number" stroke="#9ca3af" tickLine={false} axisLine={false} hide />
                    <YAxis dataKey="carRegistration" type="category" tick={<TruckTick />} stroke="#9ca3af" tickLine={false} axisLine={false} width={75} />
                    <Tooltip 
-                     contentStyle={{ backgroundColor: '#09090b', color: '#f3f4f6', border: '1px solid rgba(124,58,237,0.4)', borderRadius: '8px', fontSize: '11px', padding: '4px 8px' }} 
-                     cursor={{fill: 'rgba(124,58,237,0.15)'}} 
+                     contentStyle={{ backgroundColor: '#09090b', color: '#f3f4f6', border: '1px solid rgba(109,40,217,0.4)', borderRadius: '8px', fontSize: '11px', padding: '4px 8px' }} 
+                     cursor={{fill: 'rgba(109,40,217,0.15)'}} 
                      formatter={(value: number) => [formatCurrency(value), 'Total Amount']}
                    />
-                   <Bar dataKey="Amount" fill="#7C3AED" radius={[0, 4, 4, 0]} barSize={10} />
+                   <Bar dataKey="Amount" fill="#6D28D9" radius={[0, 4, 4, 0]} barSize={10} />
                  </BarChart>
                </ResponsiveContainer>
              )}
@@ -862,7 +865,7 @@ export default function Fleet({
               <button
                 type="button"
                 onClick={() => setSelectedProduct('all')}
-                className="text-[11px] text-pink-400 hover:text-pink-300 font-semibold underline cursor-pointer ml-1"
+                className="text-[11px] text-[#8B5CF6] hover:text-purple-300 font-semibold underline cursor-pointer ml-1"
               >
                 Clear
               </button>
@@ -887,7 +890,7 @@ export default function Fleet({
             {filteredExpenses.map(e => (
               <tr key={e.id} className="hover:bg-white/5 transition-colors duration-300">
                 <td className="modern-td">{format(e.date, 'MMM d, yyyy')}</td>
-                <td className="px-4 py-3 font-semibold text-[#7C3AED] hover:text-purple-300 cursor-pointer hover:underline font-bold transition-colors" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
+                <td className="px-4 py-3 font-semibold text-[#6D28D9] hover:text-purple-300 cursor-pointer hover:underline font-bold transition-colors" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
                 <td className="modern-td">
                   {e.station && (
                     <button
@@ -906,7 +909,7 @@ export default function Fleet({
                   </span>
                 </td>
                 <td className="modern-td">{e.litres ? `${e.litres.toLocaleString()} L` : '-'}</td>
-                <td className="modern-td !text-[#7C3AED] font-mono font-bold text-base">{formatCurrency(e.amount)}</td>
+                <td className="modern-td !text-[#6D28D9] font-mono font-bold text-base">{formatCurrency(e.amount)}</td>
                 <td className="modern-td">
                   <div className="flex items-center justify-end gap-1.5">
                     <button 
@@ -945,10 +948,10 @@ export default function Fleet({
                     </button>
                     <button 
                       onClick={() => setDeleteDialog({ isOpen: true, id: e.id! })} 
-                      className="p-1 text-pink-400 hover:text-pink-300 transition-colors cursor-pointer" 
+                      className="p-1 text-gray-400 hover:text-red-400 transition-colors cursor-pointer" 
                       title="Delete Expense"
                     >
-                      <Trash2 className="w-4 h-4 text-pink-400" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </td>

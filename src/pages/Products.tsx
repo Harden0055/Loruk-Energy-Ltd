@@ -13,18 +13,35 @@ export default function Products() {
   const { confirm: confirmDelete, dialog: confirmDialog } = useConfirm();
 
   useEffect(() => {
-    if (!loading && products && products.length === 0) {
-      const seed = async () => {
-        try {
-          await addProduct({ name: 'Diesel' });
-          await addProduct({ name: 'Super (Premium)' });
-          await addProduct({ name: 'Brake fluid' });
-          await addProduct({ name: 'Engine oil' });
-        } catch (e) {
-          console.error('Seed error:', e);
+    if (!loading && products) {
+      const standardList = [
+        { name: 'Diesel', category: 'White Oils', sortOrder: 1, namespace: 'fleet' as const, system: 'main' as const },
+        { name: 'Super (Premium)', category: 'White Oils', sortOrder: 2, namespace: 'fleet' as const, system: 'main' as const },
+        { name: 'Engine Oil', category: 'Lubricants', sortOrder: 3, namespace: 'fleet' as const, system: 'main' as const },
+        { name: 'Brake Fluid', category: 'Lubricants', sortOrder: 4, namespace: 'fleet' as const, system: 'main' as const },
+        { name: 'Greasing', category: 'Services', sortOrder: 5, namespace: 'fleet' as const, system: 'main' as const }
+      ];
+
+      const existingLower = products.map(p => (p.name || '').toLowerCase().trim());
+      standardList.forEach(async (sp) => {
+        const found = existingLower.some(el => 
+          el === sp.name.toLowerCase() || 
+          (sp.name.includes('Premium') && (el.includes('premium') || el.includes('super')))
+        );
+        if (!found) {
+          try {
+            await addProduct({ 
+              name: sp.name, 
+              category: sp.category, 
+              sortOrder: sp.sortOrder,
+              namespace: sp.namespace,
+              system: sp.system 
+            } as any);
+          } catch (e) {
+            console.error('Seed error:', e);
+          }
         }
-      };
-      seed();
+      });
     }
   }, [products?.length, loading]);
 
@@ -75,7 +92,7 @@ export default function Products() {
       if (editingId) {
         await updateProduct(editingId, form);
       } else {
-        await addProduct(form as any);
+        await addProduct({ ...form, namespace: 'fleet', system: 'main' } as any);
       }
       resetForm();
     } catch (err: any) {
@@ -107,18 +124,37 @@ export default function Products() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 
         <div>
-          <h1 className="text-2xl font-bold text-theme-text flex items-center gap-2">
-            <Box className="w-6 h-6 text-blue-500 dark:text-blue-400" />
+          <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
+            <Box className="w-6 h-6 text-[#7C3AED]" />
             Products Configuration
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">Manage product types available for deliveries and operations.</p>
+          <p className="text-slate-400 mt-1 text-sm">Active product catalog for Fleet, Deliveries, and Operations.</p>
         </div>
         <button 
           onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} 
-          className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg font-semibold transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 hover:shadow-[0_0_15px_rgba(124,58,237,0.2)] rounded-lg font-semibold transition-colors cursor-pointer text-sm"
         >
           {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Product</>}
         </button>
+      </div>
+
+      {/* Product Separation Info Banner */}
+      <div className="glass-panel p-4 border border-purple-500/20 bg-purple-500/[0.03] rounded-xl flex items-start gap-3">
+        <div className="w-2 h-2 rounded-full bg-emerald-400 mt-1.5 shadow-[0_0_8px_#34D399] shrink-0" />
+        <div className="text-xs space-y-1">
+          <p className="font-bold text-slate-200">Main App & Fuel Suite Product Separation</p>
+          <p className="text-slate-400 leading-relaxed">
+            The main application is restricted strictly to the 5 active operational products: 
+            <span className="text-emerald-400 font-semibold ml-1">Diesel</span>, 
+            <span className="text-teal-300 font-semibold ml-1">Super (Premium)</span>, 
+            <span className="text-purple-300 font-semibold ml-1">Engine Oil</span>, 
+            <span className="text-amber-300 font-semibold ml-1">Brake Fluid</span>, and 
+            <span className="text-cyan-300 font-semibold ml-1">Greasing</span>.
+          </p>
+          <p className="text-slate-500">
+            Station Daily Report items (<span className="text-slate-400">LPG gas cylinders, refilling, Burners, and Grills</span>) are managed independently in <strong className="text-purple-400">Fuel Suite</strong> and do not mix with deliveries or fleet records.
+          </p>
+        </div>
       </div>
 
       {error && (

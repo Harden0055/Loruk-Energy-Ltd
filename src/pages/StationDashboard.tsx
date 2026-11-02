@@ -677,13 +677,13 @@ export default function StationDashboard({
           </div>
           <div className="mt-2.5">
             <div className="flex items-baseline">
-              <span className="text-xs font-bold text-purple-400/80 mr-1">Ksh</span>
-              <h3 className="text-xl sm:text-2xl font-black font-mono text-purple-300 tracking-tight leading-none">
+              <span className="text-xs font-bold text-[#6D28D9]/80 mr-1">Ksh</span>
+              <h3 className="text-xl sm:text-2xl font-black font-mono text-[#6D28D9] tracking-tight leading-none">
                 {totalDeliveriesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </h3>
             </div>
             <p className="text-[10px] text-theme-text-muted font-medium mt-1.5 truncate">
-              Fuel Deliveries: <span className="font-bold text-purple-300">Ksh {totalDeliveriesValue.toLocaleString()}</span>
+              Fuel Deliveries: <span className="font-bold text-[#6D28D9]">Ksh {totalDeliveriesValue.toLocaleString()}</span>
             </p>
           </div>
         </div>
@@ -719,8 +719,8 @@ export default function StationDashboard({
           </div>
           <div className="mt-2.5">
             <div className="flex items-baseline">
-              <span className="text-xs font-bold text-purple-400/80 mr-1">Ksh</span>
-              <h3 className="text-xl sm:text-2xl font-black font-mono text-purple-300 tracking-tight leading-none">
+              <span className="text-xs font-bold text-[#6D28D9]/80 mr-1">Ksh</span>
+              <h3 className="text-xl sm:text-2xl font-black font-mono text-[#6D28D9] tracking-tight leading-none">
                 {totalExpensesAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </h3>
             </div>
@@ -996,7 +996,7 @@ export default function StationDashboard({
                 {expenseByCategory.slice(0, 3).map((exp, idx) => (
                   <div key={exp.name} className="flex justify-between items-center text-xs font-semibold">
                     <span className="text-theme-text-muted">{exp.name}</span>
-                    <span className="font-mono font-bold text-rose-400">Ksh {exp.value.toLocaleString()}</span>
+                    <span className="font-mono font-bold text-[#8B5CF6]">Ksh {exp.value.toLocaleString()}</span>
                   </div>
                 ))}
                 {expenseByCategory.length === 0 && (
@@ -1062,7 +1062,7 @@ export default function StationDashboard({
                 <h3 className="text-base font-black text-theme-text tracking-tight">Station Expense Vouchers</h3>
                 <p className="text-xs text-theme-text-muted">Comprehensive cost breakdown: Utilities, staff, maintenance, and supplies</p>
               </div>
-              <span className="font-mono text-xs font-bold px-3 py-1 bg-rose-500/15 text-rose-400 rounded-lg border border-rose-500/30">
+              <span className="font-mono text-xs font-bold px-3 py-1 bg-purple-500/15 text-[#8B5CF6] rounded-lg border border-purple-500/30">
                 Total: Ksh {totalExpensesAmount.toLocaleString()}
               </span>
             </div>
@@ -1091,14 +1091,14 @@ export default function StationDashboard({
                           {format(new Date(e.date), 'dd-MMM-yyyy')}
                         </td>
                         <td className="modern-td">
-                          <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/25">
+                          <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-purple-500/10 text-[#8B5CF6] border border-purple-500/25">
                             {e.category || 'General'}
                           </span>
                         </td>
                         <td className="modern-td text-theme-text-muted max-w-[280px] truncate" title={e.description}>
                           {e.description || 'No notes provided'}
                         </td>
-                        <td className="modern-td text-right font-mono font-bold text-xs text-rose-400">
+                        <td className="modern-td text-right font-mono font-bold text-xs text-[#8B5CF6]">
                           Ksh {(e.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                         </td>
                       </tr>
@@ -1185,7 +1185,7 @@ export default function StationDashboard({
                                 : e.type === 'lpg'
                                   ? 'bg-orange-500/15 border-orange-500/30 text-orange-400'
                                   : e.type === 'expense'
-                                    ? 'bg-rose-500/15 border-rose-500/30 text-rose-400'
+                                    ? 'bg-purple-500/15 border-purple-500/30 text-[#8B5CF6]'
                                     : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
                             }`}>
                               {e.type === 'fuel' && <Fuel className="w-3.5 h-3.5" />}
@@ -1204,7 +1204,7 @@ export default function StationDashboard({
                           {e.litres ? `${e.litres.toLocaleString()} L` : '—'}
                         </td>
                         <td className="modern-td text-right font-mono font-bold text-xs whitespace-nowrap">
-                          <span className={e.type === 'expense' ? 'text-rose-400' : 'text-emerald-400'}>
+                          <span className={e.type === 'expense' ? 'text-[#8B5CF6]' : 'text-emerald-400'}>
                             {e.type === 'expense' ? '-' : '+'}Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                           </span>
                         </td>

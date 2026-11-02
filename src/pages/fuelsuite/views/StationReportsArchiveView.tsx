@@ -227,7 +227,7 @@ export default function StationReportsArchiveView({ onEditReport, onNavigateToNe
 
         <div className="bg-[#000000] border border-purple-500/30 rounded-xl p-3.5 shadow-sm">
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Fuel Litres Dispensed</span>
-          <span className="text-xl font-black font-mono text-[#7C3AED] mt-1 block">
+          <span className="text-xl font-black font-mono text-[#6D28D9] mt-1 block">
             {aggregatedStats.totalFuelLitres.toLocaleString()} L
           </span>
           <span className="text-[10px] text-purple-400/80 font-mono">AGO & PMS combined</span>
@@ -241,12 +241,12 @@ export default function StationReportsArchiveView({ onEditReport, onNavigateToNe
           <span className="text-[10px] text-emerald-400/80 font-mono">Reported shift revenue</span>
         </div>
 
-        <div className="bg-[#000000] border border-rose-500/30 rounded-xl p-3.5 shadow-sm">
+        <div className="bg-[#000000] border border-purple-500/30 rounded-xl p-3.5 shadow-sm">
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Operating Expenses</span>
-          <span className="text-xl font-black font-mono text-rose-400 mt-1 block">
+          <span className="text-xl font-black font-mono text-[#6D28D9] mt-1 block">
             {formatCurrency(aggregatedStats.totalExpenses)}
           </span>
-          <span className="text-[10px] text-rose-400/80 font-mono">Station cash outflows</span>
+          <span className="text-[10px] text-[#6D28D9]/80 font-mono">Station cash outflows</span>
         </div>
 
         <div className="bg-[#000000] border border-white/10 rounded-xl p-3.5 shadow-sm col-span-2 lg:col-span-1">
@@ -379,7 +379,7 @@ export default function StationReportsArchiveView({ onEditReport, onNavigateToNe
                         <td className="py-3 px-3 text-right font-mono text-purple-400">
                           {formatCurrency(r.purchasesTotal || 0)}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono text-rose-400">
+                        <td className="py-3 px-3 text-right font-mono text-[#6D28D9]">
                           {formatCurrency(r.totalExpenses || 0)}
                         </td>
                         <td className="py-3 px-3 text-right font-mono font-bold whitespace-nowrap">
@@ -509,7 +509,7 @@ export default function StationReportsArchiveView({ onEditReport, onNavigateToNe
                                 <div className="space-y-1 font-mono text-[11px]">
                                   <div className="flex justify-between text-gray-400">
                                     <span>Customer Debts Given:</span>
-                                    <span className="text-rose-400 font-bold">{formatCurrency(r.totalDebts || 0)}</span>
+                                    <span className="text-[#8B5CF6] font-bold">{formatCurrency(r.totalDebts || 0)}</span>
                                   </div>
                                   <div className="flex justify-between text-gray-400">
                                     <span>Paid Invoices Collected:</span>

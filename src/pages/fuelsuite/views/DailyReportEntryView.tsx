@@ -1262,7 +1262,7 @@ export default function DailyReportEntryView({
                         step="0.01"
                         value={item.amountOutstanding}
                         onChange={e => updatePurchaseRow(item.id, 'amountOutstanding', e.target.value)}
-                        className="w-full px-2 py-1 bg-[#000000] border border-white/10 rounded text-rose-400 font-mono text-right"
+                        className="w-full px-2 py-1 bg-[#000000] border border-white/10 rounded text-[#6D28D9] font-mono text-right"
                       />
                     </td>
                     <td className="py-2 px-2 text-center">
@@ -1364,7 +1364,7 @@ export default function DailyReportEntryView({
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs font-mono text-rose-400 font-bold">
+            <span className="text-xs font-mono text-[#8B5CF6] font-bold">
               Debts: {formatCurrency(report.totalDebts)}
             </span>
             <span className="text-xs font-mono text-emerald-400 font-bold">
@@ -1427,7 +1427,7 @@ export default function DailyReportEntryView({
                         value={item.amount}
                         onChange={e => updateInvoiceRow(item.id, 'amount', Number(e.target.value) || 0)}
                         className={`w-full px-2 py-1 bg-[#000000] border border-white/10 rounded font-mono font-bold text-right ${
-                          item.type === 'debt' ? 'text-rose-400' : 'text-emerald-400'
+                          item.type === 'debt' ? 'text-[#8B5CF6]' : 'text-emerald-400'
                         }`}
                       />
                     </td>
@@ -1444,7 +1444,7 @@ export default function DailyReportEntryView({
                       <button
                         type="button"
                         onClick={() => setDeleteConfirmTarget({ type: 'invoice', id: item.id, label: `Invoice row: ${item.customerOrDescription || item.type}` })}
-                        className="p-1 text-gray-400 hover:text-rose-400 transition-colors"
+                        className="p-1 text-gray-400 hover:text-red-400 transition-colors"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -1461,7 +1461,7 @@ export default function DailyReportEntryView({
       <div className="bg-[#000000] border border-white/10 rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
           <div className="flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-rose-400" />
+            <DollarSign className="w-5 h-5 text-[#6D28D9]" />
             <div>
               <h2 className="text-sm font-bold text-slate-200 uppercase tracking-wider">
                 6. Operating Expenses
@@ -1472,13 +1472,13 @@ export default function DailyReportEntryView({
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs font-mono font-bold text-rose-400">
+            <span className="text-xs font-mono font-bold text-[#6D28D9]">
               Total Expenses: {formatCurrency(report.totalExpenses)}
             </span>
             <button
               type="button"
               onClick={addExpenseRow}
-              className="px-2.5 py-1.5 bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1.5 bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add Expense</span>
@@ -1538,7 +1538,7 @@ export default function DailyReportEntryView({
                         step="0.01"
                         value={item.amount}
                         onChange={e => updateExpenseRow(item.id, 'amount', Number(e.target.value) || 0)}
-                        className="w-full px-2 py-1 bg-[#000000] border border-white/10 rounded text-rose-400 font-mono font-bold text-right"
+                        className="w-full px-2 py-1 bg-[#000000] border border-white/10 rounded text-[#6D28D9] font-mono font-bold text-right"
                       />
                     </td>
                     <td className="py-2 px-2 text-center">

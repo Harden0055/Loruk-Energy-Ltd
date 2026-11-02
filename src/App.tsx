@@ -26,7 +26,7 @@ import FireLEIcon from './components/FireLEIcon';
 import ThemeToggle from './components/ThemeToggle';
 import { Fuel, LogIn, RefreshCcw, Printer, Menu, AlertTriangle, User, PanelLeft } from 'lucide-react';
 import { format } from 'date-fns';
-import { useProducts, addProduct } from './lib/operationsDb';
+import { useProducts, addProduct, deleteProduct } from './lib/operationsDb';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { OfflineIndicator } from './components/OfflineIndicator';
 
@@ -80,18 +80,38 @@ function AuthenticatedApp() {
   const { data: products, loading: productsLoading } = useProducts();
 
   useEffect(() => {
-    if (!productsLoading && products && products.length === 0) {
-      const seed = async () => {
-        try {
-          await addProduct({ name: 'Diesel' });
-          await addProduct({ name: 'Super (Premium)' });
-        } catch (e) {
-          console.error('Seed error:', e);
+    if (!productsLoading && products) {
+      // 1. Ensure all 5 standard operational products exist in the main app
+      const standardList = [
+        { name: 'Diesel', category: 'White Oils', sortOrder: 1, namespace: 'fleet' as const, system: 'main' as const },
+        { name: 'Super (Premium)', category: 'White Oils', sortOrder: 2, namespace: 'fleet' as const, system: 'main' as const },
+        { name: 'Engine Oil', category: 'Lubricants', sortOrder: 3, namespace: 'fleet' as const, system: 'main' as const },
+        { name: 'Brake Fluid', category: 'Lubricants', sortOrder: 4, namespace: 'fleet' as const, system: 'main' as const },
+        { name: 'Greasing', category: 'Services', sortOrder: 5, namespace: 'fleet' as const, system: 'main' as const }
+      ];
+
+      const existingNames = products.map(p => (p.name || '').toLowerCase().trim());
+      standardList.forEach(async (sp) => {
+        const found = existingNames.some(en => 
+          en === sp.name.toLowerCase() || 
+          (sp.name.includes('Premium') && (en.includes('premium') || en.includes('super')))
+        );
+        if (!found) {
+          try {
+            await addProduct({ 
+              name: sp.name, 
+              category: sp.category, 
+              sortOrder: sp.sortOrder,
+              namespace: sp.namespace,
+              system: sp.system 
+            } as any);
+          } catch (e) {
+            console.error('Seed error:', e);
+          }
         }
-      };
-      seed();
+      });
     }
-  }, [products?.length, productsLoading]);
+  }, [productsLoading, products?.length]);
 
   const navigateTo = (
     page: Page, 

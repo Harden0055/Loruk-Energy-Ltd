@@ -7,8 +7,52 @@ import {
   StationInfo, LPGInventory, BurnerInventory, InvoicePayment, DailyReportRecord, OpeningStock, StationCustomer, ProductDef
 } from '../types';
 
+export const FLEET_OPERATIONAL_PRODUCTS = [
+  { name: 'Diesel', category: 'White Oils', sortOrder: 1, namespace: 'fleet' as const, system: 'main' as const },
+  { name: 'Super (Premium)', category: 'White Oils', sortOrder: 2, namespace: 'fleet' as const, system: 'main' as const },
+  { name: 'Engine Oil', category: 'Lubricants', sortOrder: 3, namespace: 'fleet' as const, system: 'main' as const },
+  { name: 'Brake Fluid', category: 'Lubricants', sortOrder: 4, namespace: 'fleet' as const, system: 'main' as const },
+  { name: 'Greasing', category: 'Services', sortOrder: 5, namespace: 'fleet' as const, system: 'main' as const },
+];
+
 export function useProducts() {
-  return useGenericCollection<ProductDef>('products', 'sortOrder', 'asc');
+  const result = useGenericCollection<ProductDef>('products', 'sortOrder', 'asc');
+  
+  // STRICT NAMESPACE BOUNDARY:
+  // Fleet Accounting system products are exclusively white oils, lubricants, and greasing.
+  // Fuel Suite products (LPG cylinders, refilling, burners, grills, accessories) are completely isolated.
+  const fuelSuiteTokens = ['burner', 'grill', 'lpg', 'cylinder', 'gas', 'miko', 'regulator', 'hose', 'pipe', 'accessory'];
+  
+  const filteredData = (result.data || []).filter(p => {
+    // 1. Check explicit namespace or system property
+    if (p.namespace === 'fuelsuite' || p.system === 'fuelsuite') return false;
+    
+    // 2. Filter out any rogue non-fleet items
+    const name = (p.name || '').toLowerCase().trim();
+    if (fuelSuiteTokens.some(t => name.includes(t))) return false;
+    
+    return true;
+  });
+
+  // Clean rogue items from Firestore 'products' collection asynchronously if found
+  useEffect(() => {
+    if (result.data && result.data.length > 0) {
+      result.data.forEach(async (item) => {
+        const name = (item.name || '').toLowerCase().trim();
+        const isRogueFuelSuite = fuelSuiteTokens.some(t => name.includes(t)) || item.namespace === 'fuelsuite' || item.system === 'fuelsuite';
+        if (isRogueFuelSuite && item.id) {
+          try {
+            await deleteDoc(doc(db, 'products', item.id));
+            deleteLocalDoc('products', item.id);
+          } catch (e) {
+            // Silently ignore permission/offline errors during cleanup
+          }
+        }
+      });
+    }
+  }, [result.data]);
+
+  return { ...result, data: filteredData };
 }
 import { 
   isQuotaExceeded, markQuotaExceeded, getLocalCollection, saveLocalCollection, 
@@ -272,6 +316,8 @@ export async function addProduct(data: Omit<ProductDef, 'id' | 'createdAt'>) {
     async () => {
       const payload = { 
         ...data, 
+        namespace: data.namespace || 'fleet',
+        system: data.system || 'main',
         createdAt: Date.now(),
         createdBy: auth.currentUser?.email || auth.currentUser?.uid || 'System'
       };
@@ -281,6 +327,8 @@ export async function addProduct(data: Omit<ProductDef, 'id' | 'createdAt'>) {
     () => {
       const payload = { 
         ...data, 
+        namespace: data.namespace || 'fleet',
+        system: data.system || 'main',
         createdAt: Date.now(),
         createdBy: auth.currentUser?.email || auth.currentUser?.uid || 'System'
       };
@@ -940,16 +988,11 @@ export async function replaceProductsWithStandard(existingProducts: ProductDef[]
   }
 
   const standardProducts = [
-    { id: 'super_premium', name: 'Super (Premium)', category: 'White Oils', sortOrder: 1 },
-    { id: 'diesel', name: 'Diesel', category: 'White Oils', sortOrder: 2 },
+    { id: 'diesel', name: 'Diesel', category: 'White Oils', sortOrder: 1 },
+    { id: 'super_premium', name: 'Super (Premium)', category: 'White Oils', sortOrder: 2 },
     { id: 'engine_oil', name: 'Engine Oil', category: 'Lubricants', sortOrder: 3 },
     { id: 'brake_fluid', name: 'Brake Fluid', category: 'Lubricants', sortOrder: 4 },
-    { id: 'lpg_13kg', name: '13KG LPG', category: 'LPG', sortOrder: 5 },
-    { id: 'lpg_6kg', name: '6KG LPG', category: 'LPG', sortOrder: 6 },
-    { id: 'empty_13kg', name: '13KG LPG - Empty', category: 'Empties', sortOrder: 7 },
-    { id: 'empty_6kg', name: '6KG LPG - Empty', category: 'Empties', sortOrder: 8 },
-    { id: 'acc_burner', name: 'Burner', category: 'Burners and Grills', sortOrder: 9 },
-    { id: 'acc_grill', name: 'Grill', category: 'Burners and Grills', sortOrder: 10 },
+    { id: 'greasing', name: 'Greasing', category: 'Services', sortOrder: 5 },
   ];
 
   for (const sp of standardProducts) {
@@ -965,21 +1008,17 @@ export async function replaceProductsWithStandard(existingProducts: ProductDef[]
   }
 
 // Update past records to point to these strict names AND link productId
-  const nameToId = {
-    'Super (Premium)': 'super_premium',
-    'Super Petrol': 'super_premium',
+  const nameToId: Record<string, string> = {
     'Diesel': 'diesel',
     'Diesel Fuel': 'diesel',
+    'Super (Premium)': 'super_premium',
+    'Super Petrol': 'super_premium',
+    'Premium': 'super_premium',
     'Engine Oil': 'engine_oil',
     'Engine oil': 'engine_oil',
     'Brake Fluid': 'brake_fluid',
     'Brake fluid': 'brake_fluid',
-    '13KG LPG': 'lpg_13kg',
-    '6KG LPG': 'lpg_6kg',
-    '13KG LPG - Empty': 'empty_13kg',
-    '6KG LPG - Empty': 'empty_6kg',
-    'Burner': 'acc_burner',
-    'Grill': 'acc_grill'
+    'Greasing': 'greasing'
   };
 
   const mappings = {

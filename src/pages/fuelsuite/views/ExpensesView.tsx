@@ -720,7 +720,7 @@ export default function ExpensesView() {
                           {t.paymentMethod || 'Cash'}
                         </span>
                       </Td>
-                      <Td className="text-right font-mono font-bold text-[#9333EA] text-sm">
+                      <Td className="text-right font-mono font-bold text-[#6D28D9] text-sm">
                         KES {Number(t.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </Td>
                       <Td>
@@ -778,7 +778,7 @@ export default function ExpensesView() {
                       <tr key={e.id}>
                         <Td>{e.date}</Td>
                         <Td>{e.description}</Td>
-                        <Td className="text-right">KES {e.amount.toLocaleString()}</Td>
+                        <Td className="text-right font-mono font-bold text-[#6D28D9]">KES {e.amount.toLocaleString()}</Td>
                       </tr>
                     ))}
                 </tbody>
@@ -877,7 +877,7 @@ export default function ExpensesView() {
 
                     <div className="flex items-center justify-between text-xs bg-slate-950/60 px-3 py-2 rounded-xl border border-theme-border/40">
                       <span className="text-slate-400">Logged ({count} entries):</span>
-                      <span className="font-mono font-bold text-rose-400">KES {totalSpent.toLocaleString()}</span>
+                      <span className="font-mono font-bold text-[#6D28D9]">KES {totalSpent.toLocaleString()}</span>
                     </div>
                   </div>
 
@@ -997,7 +997,7 @@ export default function ExpensesView() {
                         <span className="font-mono font-bold text-slate-300">{tpl.code}</span>
                         <span className="text-slate-400 truncate max-w-[120px]">{tpl.name}</span>
                       </div>
-                      <span className="font-mono font-semibold text-rose-400">KES {spent.toLocaleString()}</span>
+                      <span className="font-mono font-semibold text-[#8B5CF6]">KES {spent.toLocaleString()}</span>
                     </div>
                   );
                 })}

@@ -813,7 +813,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
         <div className="glass-panel border border-theme-border rounded-xl p-5 shadow-sm transition-colors flex items-start justify-between">
           <div className="space-y-1.5 overflow-hidden">
             <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider block truncate overflow-ellipsis">Total Delivered Value</span>
-            <div className="text-2xl font-extrabold font-mono text-purple-400 truncate">
+            <div className="text-2xl font-extrabold font-mono text-[#6D28D9] truncate">
               {formatCurrency(stats.totalValue)}
             </div>
             <p className="text-2xs text-gray-400 dark:text-gray-500 truncate">Based on {filtered.length} filtered records</p>
@@ -1002,7 +1002,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
                         <>
                           <button 
                             onClick={() => onViewCustomer?.(d.customerId)}
-                            className="hover:underline text-[#7C3AED] hover:text-purple-300 font-bold cursor-pointer text-left focus:outline-none"
+                            className="hover:underline text-[#6D28D9] hover:text-purple-300 font-bold cursor-pointer text-left focus:outline-none"
                           >
                             {customers.find(c => c.id === d.customerId)?.name || 'Unknown'}
                           </button>
@@ -1023,8 +1023,9 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
                             <>
                               <option value="Diesel" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Diesel</option>
                               <option value="Super (Premium)" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Super (Premium)</option>
-                              <option value="Brake fluid" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Brake fluid</option>
-                              <option value="Engine oil" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Engine oil</option>
+                              <option value="Engine Oil" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Engine Oil</option>
+                              <option value="Brake Fluid" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Brake Fluid</option>
+                              <option value="Greasing" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Greasing</option>
                             </>
                           )}
                         </select>
@@ -1076,7 +1077,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
                           className="px-2 py-1 glass-panel border border-theme-border rounded-lg text-sm text-theme-text text-right focus:outline-none focus:ring-2 focus:ring-blue-500 w-28 font-mono font-bold"
                         />
                       ) : (
-                        <span className="!text-[#9333EA] font-mono font-bold text-base">{formatCurrency(d.totalAmount)}</span>
+                        <span className="!text-[#6D28D9] font-mono font-bold text-base">{formatCurrency(d.totalAmount)}</span>
                       )}
                     </td>
                     <td className="modern-td">
@@ -1462,8 +1463,9 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
                   <>
                     <option value="Diesel" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Diesel</option>
                     <option value="Super (Premium)" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Super (Premium)</option>
-                    <option value="Brake fluid" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Brake fluid</option>
-                    <option value="Engine oil" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Engine oil</option>
+                    <option value="Engine Oil" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Engine Oil</option>
+                    <option value="Brake Fluid" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Brake Fluid</option>
+                    <option value="Greasing" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Greasing</option>
                   </>
                 )}
                 <option value="Super/Diesel Split" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Super/Diesel Split</option>

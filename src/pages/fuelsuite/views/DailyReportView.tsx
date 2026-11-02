@@ -486,7 +486,7 @@ export default function DailyReportView() {
                         )}
                         <span className="text-slate-200">{exp.category}</span>
                       </div>
-                      <span className="font-mono font-bold text-rose-400">
+                      <span className="font-mono font-bold text-[#6D28D9]">
                         {Math.round(exp.amount).toLocaleString()}
                       </span>
                     </div>

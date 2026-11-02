@@ -3,6 +3,8 @@ export interface ProductDef {
   category?: string;
   id: string;
   name: string;
+  namespace?: 'fleet' | 'fuelsuite';
+  system?: 'main' | 'fuelsuite';
   createdAt?: number;
   createdBy?: string;
 }
@@ -106,7 +108,7 @@ export interface StationReport {
   createdBy: string;
 }
 
-export type FleetProduct = 'Diesel' | 'Engine Oil' | 'Brake Fluid' | 'Greasing';
+export type FleetProduct = 'Diesel' | 'Premium' | 'Engine Oil' | 'Brake Fluid' | 'Greasing';
 
 export interface FleetExpense {
   id: string;
