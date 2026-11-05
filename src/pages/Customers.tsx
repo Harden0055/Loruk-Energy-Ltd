@@ -295,7 +295,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                     <span className={`inline-flex items-center px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${
                       c.status === 'active' 
                         ? 'rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
-                        : 'rounded-md bg-purple-500/15 text-purple-300 border border-purple-500/30'
+                        : 'rounded-md bg-[#6D28D9]/15 text-[#6D28D9] border border-[#6D28D9]/30'
                     }`}>
                       {c.status.replace('_', ' ')}
                     </span>
@@ -305,7 +305,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                       {onViewCustomer && (
                         <button 
                           onClick={() => onViewCustomer(c.id)}
-                          className="p-2 text-gray-400 hover:text-[#6D28D9] hover:bg-purple-500/10 transition-colors rounded-md cursor-pointer"
+                          className="p-2 text-gray-400 hover:text-[#6D28D9] hover:bg-[#6D28D9]/15 transition-colors rounded-md cursor-pointer"
                           title="View Customer Dashboard"
                           id={`btn-view-${c.id}`}
                         >
@@ -314,7 +314,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                       )}
                       <button 
                         onClick={() => setAdjustingCustomer(c)}
-                        className="p-2 text-gray-400 hover:text-purple-300 hover:bg-purple-500/10 transition-colors rounded-md cursor-pointer"
+                        className="p-2 text-gray-400 hover:text-[#6D28D9] hover:bg-[#6D28D9]/15 transition-colors rounded-md cursor-pointer"
                         title="Credit / Debit Adjustment"
                         id={`btn-adjust-${c.id}`}
                       >
@@ -926,7 +926,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
                 onClick={() => setType('debit')}
                 className={`py-2 px-4 rounded-lg border text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer ${
                   type === 'debit'
-                    ? 'border-purple-500 bg-purple-500/20 text-[#6D28D9] shadow-[0_0_15px_rgba(109,40,217,0.25)]'
+                    ? 'border-[#6D28D9] bg-[#6D28D9]/20 text-[#6D28D9] shadow-[0_0_15px_rgba(109,40,217,0.25)]'
                     : 'border-white/10 text-gray-400 bg-white/[0.03] hover:text-white'
                 }`}
               >
@@ -952,7 +952,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
           </div>
 
           <div>
-            <label className={`block text-sm font-semibold mb-1.5 transition-colors ${type === 'credit' ? 'text-emerald-400' : 'text-[#9333EA]'}`}>
+            <label className={`block text-sm font-semibold mb-1.5 transition-colors ${type === 'credit' ? 'text-emerald-400' : 'text-[#6D28D9]'}`}>
               Adjustment Amount (KES) * {type === 'credit' ? '(Credit - Deduct)' : '(Debit - Add)'}
             </label>
             <input
@@ -963,7 +963,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
               className={`w-full px-4 py-2.5 bg-[#000000] rounded-lg text-base font-mono font-bold outline-none shadow-sm transition-all border ${
                 type === 'credit'
                   ? 'text-emerald-400 border-emerald-500/50 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/50 shadow-[0_0_15px_rgba(0,230,118,0.15)]'
-                  : 'text-[#9333EA] border-purple-500/50 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 shadow-[0_0_15px_rgba(147,51,234,0.15)]'
+                  : 'text-[#6D28D9] border-[#6D28D9]/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9]/50 shadow-[0_0_15px_rgba(109,40,217,0.15)]'
               }`}
               placeholder="0.00"
               value={amount}
@@ -998,7 +998,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
               className={`px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-md ${
                 type === 'credit'
                   ? 'bg-emerald-500 hover:bg-emerald-400 text-black'
-                  : 'bg-purple-600 hover:bg-purple-500 text-white'
+                  : 'bg-[#6D28D9] hover:bg-[#6D28D9]/90 text-white'
               }`}
             >
               {loading ? 'Processing...' : 'Save Adjustment'}

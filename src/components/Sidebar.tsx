@@ -309,7 +309,7 @@ export default function Sidebar({
             )} />
             <span className="truncate">{item.label}</span>
             {item.badge && (
-              <span className="ml-auto bg-purple-500/15 text-purple-300 border border-purple-500/30 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full shadow-sm shrink-0">
+              <span className="ml-auto bg-[#6D28D9]/15 text-[#6D28D9] border border-[#6D28D9]/30 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full shadow-sm shrink-0">
                 {item.badge}
               </span>
             )}

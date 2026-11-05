@@ -47,7 +47,7 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
     gradientTo: '#7C3AED',
     solidPreview: '#000000',
     gradientPreview: 'radial-gradient(ellipse 90% 65% at 50% 0%, #4C1D95 0%, #1E0838 45%, #000000 100%)',
-    borderClass: 'border-purple-500/40 shadow-[0_0_25px_rgba(147,51,234,0.3)]',
+    borderClass: 'border-[#6D28D9]/40 shadow-[0_0_25px_rgba(109,40,217,0.3)]',
     textAccentClass: 'text-emerald-400',
     harmonicPalette: [
       { name: 'Candle Green', hex: '#00E676', role: 'Positive (Revenue / Inflow)' },

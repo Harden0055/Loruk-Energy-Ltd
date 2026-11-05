@@ -707,20 +707,20 @@ export default function DashboardView() {
 
         {activeStation !== 'Combined Total' && (
           <div className="col-span-12 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-2">
-            <div className="glass-panel p-4 rounded-xl border border-white/[0.08] hover:border-purple-500/30 bg-[#000000] flex flex-col justify-center">
-              <p className="text-[10px] text-purple-400 font-bold uppercase tracking-wider mb-1">Total Sales</p>
+            <div className="glass-panel p-4 rounded-xl border border-white/[0.08] hover:border-[#6D28D9]/40 bg-[#000000] flex flex-col justify-center">
+              <p className="text-[10px] text-[#6D28D9] font-bold uppercase tracking-wider mb-1">Total Sales</p>
               <p className="text-sm font-bold text-slate-100 font-mono">KES {stationTotalSales.toLocaleString()}</p>
             </div>
             <div className="glass-panel p-4 rounded-xl border border-white/[0.08] hover:border-emerald-500/30 bg-[#000000] flex flex-col justify-center">
               <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider mb-1">Purchases</p>
               <p className="text-sm font-bold text-slate-100 font-mono">KES {stationTotalPurchases.toLocaleString()}</p>
             </div>
-            <div className="glass-panel p-4 rounded-xl border border-white/[0.08] hover:border-purple-500/30 bg-[#000000] flex flex-col justify-center">
+            <div className="glass-panel p-4 rounded-xl border border-white/[0.08] hover:border-[#6D28D9]/40 bg-[#000000] flex flex-col justify-center">
               <p className="text-[10px] text-[#6D28D9] font-bold uppercase tracking-wider mb-1">Expenses</p>
               <p className="text-sm font-bold text-[#6D28D9] font-mono">KES {stationTotalExpenses.toLocaleString()}</p>
             </div>
-            <div className="glass-panel p-4 rounded-xl border border-white/[0.08] hover:border-purple-500/30 bg-[#000000] flex flex-col justify-center">
-              <p className="text-[10px] text-purple-400 font-bold uppercase tracking-wider mb-1">Invoices Issued</p>
+            <div className="glass-panel p-4 rounded-xl border border-white/[0.08] hover:border-[#6D28D9]/40 bg-[#000000] flex flex-col justify-center">
+              <p className="text-[10px] text-[#6D28D9] font-bold uppercase tracking-wider mb-1">Invoices Issued</p>
               <p className="text-sm font-bold text-slate-100 font-mono">KES {stationInvoiceTotal.toLocaleString()}</p>
             </div>
             <div className="glass-panel p-4 rounded-xl border border-white/[0.08] hover:border-indigo-500/30 bg-[#000000] flex flex-col justify-center">
@@ -731,8 +731,8 @@ export default function DashboardView() {
               <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider mb-1">M-Pesa</p>
               <p className="text-sm font-bold text-slate-100 font-mono">KES {stationMpesa.toLocaleString()}</p>
             </div>
-            <div className="glass-panel p-4 rounded-xl border border-white/[0.08] hover:border-purple-500/30 bg-[#000000] flex flex-col justify-center">
-              <p className="text-[10px] text-purple-400 font-bold uppercase tracking-wider mb-1">Cash at Hand</p>
+            <div className="glass-panel p-4 rounded-xl border border-white/[0.08] hover:border-[#6D28D9]/40 bg-[#000000] flex flex-col justify-center">
+              <p className="text-[10px] text-[#6D28D9] font-bold uppercase tracking-wider mb-1">Cash at Hand</p>
               <p className="text-sm font-bold text-slate-100 font-mono">KES {stationCash.toLocaleString()}</p>
             </div>
             <div className="glass-panel p-4 rounded-xl border border-white/[0.08] hover:border-emerald-500/30 bg-[#000000] flex flex-col justify-center">

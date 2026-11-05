@@ -387,7 +387,7 @@ export default function ExpensesView() {
           <CardHeader className="border-b border-theme-border/40 pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                <div className="w-9 h-9 rounded-xl bg-[#6D28D9]/15 border border-[#6D28D9]/30 flex items-center justify-center text-[#6D28D9]">
                   {editingId ? <Pencil className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                 </div>
                 <div>
@@ -793,10 +793,10 @@ export default function ExpensesView() {
       {/* TAB 2: RECURRING EXPENSE PARAMETERS & CODES CATALOG */}
       {activeTab === 'recurring' && (
         <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-purple-950/20 border border-purple-500/30 rounded-2xl p-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-[#6D28D9]/[0.05] border border-[#6D28D9]/30 rounded-2xl p-4">
             <div>
-              <h3 className="text-base font-bold text-purple-300 flex items-center gap-2">
-                <Bookmark className="w-5 h-5 text-purple-400" />
+              <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
+                <Bookmark className="w-5 h-5 text-[#6D28D9]" />
                 Master Recurring Expense Parameters
               </h3>
               <p className="text-xs text-slate-300 mt-0.5">
@@ -824,7 +824,7 @@ export default function ExpensesView() {
               return (
                 <div 
                   key={tpl.id}
-                  className="rounded-2xl border border-theme-border/60 bg-slate-900/60 p-5 space-y-4 hover:border-purple-500/40 hover:bg-slate-900/90 transition-all duration-300 flex flex-col justify-between group"
+                  className="rounded-2xl border border-theme-border/60 bg-slate-900/60 p-5 space-y-4 hover:border-[#6D28D9]/50 hover:bg-slate-900/90 transition-all duration-300 flex flex-col justify-between group"
                 >
                   <div className="space-y-3">
                     <div className="flex items-start justify-between">
@@ -836,7 +836,7 @@ export default function ExpensesView() {
                           <div className="flex items-center gap-2">
                             <span className="font-mono font-bold text-sm text-blue-300">{tpl.code}</span>
                             {tpl.isRecurring && (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/25">
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#6D28D9]/15 text-[#6D28D9] border border-[#6D28D9]/30">
                                 {tpl.frequency}
                               </span>
                             )}
@@ -883,7 +883,7 @@ export default function ExpensesView() {
 
                   <button
                     onClick={() => handleQuickLogTemplate(tpl)}
-                    className="w-full py-2 px-3 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-[0_0_10px_rgba(168,85,247,0.1)] active:scale-98"
+                    className="w-full py-2 px-3 rounded-xl bg-[#6D28D9]/15 hover:bg-[#6D28D9]/25 border border-[#6D28D9]/30 text-slate-100 font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-98"
                   >
                     <Plus className="w-3.5 h-3.5" /> Log Expense for Today
                   </button>

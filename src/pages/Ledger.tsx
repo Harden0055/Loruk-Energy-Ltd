@@ -459,12 +459,12 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-[#000000] border border-white/[0.08] hover:border-purple-500/30 p-6 rounded-xl shadow-sm flex items-center justify-between transition-colors">
+        <div className="bg-[#000000] border border-white/[0.08] hover:border-[#6D28D9]/40 p-6 rounded-xl shadow-sm flex items-center justify-between transition-colors">
           <div>
             <p className="text-sm font-semibold text-gray-400 mb-1">Filtered Debits (Deliveries)</p>
             <h3 className="text-2xl font-bold text-[#6D28D9]">{formatCurrency(totalDebits)}</h3>
           </div>
-          <div className="w-12 h-12 bg-purple-500/15 border border-purple-500/30 rounded-full shadow-sm flex items-center justify-center">
+          <div className="w-12 h-12 bg-[#6D28D9]/15 border border-[#6D28D9]/30 rounded-full shadow-sm flex items-center justify-center">
             <ArrowUp className="w-6 h-6 text-[#6D28D9]" />
           </div>
         </div>
@@ -477,7 +477,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
             <ArrowDown className="w-6 h-6 text-[#059669]" />
           </div>
         </div>
-        <div className="bg-[#000000] border border-white/[0.08] hover:border-purple-500/30 p-6 rounded-xl shadow-sm flex items-center justify-between transition-colors">
+        <div className="bg-[#000000] border border-white/[0.08] hover:border-[#6D28D9]/40 p-6 rounded-xl shadow-sm flex items-center justify-between transition-colors">
           <div>
             <p className="text-sm font-medium text-gray-400 mb-1">Net Change</p>
             <h3 className={`text-2xl font-bold ${totalDebits - totalCredits > 0 ? 'text-[#6D28D9]' : 'text-[#059669]'}`}>
@@ -611,11 +611,11 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
                   <td className="modern-td">
                     <button 
                       onClick={() => setDeletingEntry(e)}
-                      className="p-2 text-gray-400 hover:text-purple-300 hover:bg-purple-500/10 transition-colors rounded-md inline-flex items-center justify-center cursor-pointer"
+                      className="p-2 text-gray-400 hover:text-[#6D28D9] hover:bg-[#6D28D9]/15 transition-colors rounded-md inline-flex items-center justify-center cursor-pointer"
                       title="Delete Transaction"
                       id={`btn-delete-entry-${e.id}`}
                     >
-                      <Trash2 className="w-5 h-5 text-gray-400 hover:text-purple-300" />
+                      <Trash2 className="w-5 h-5 text-gray-400 hover:text-[#6D28D9]" />
                     </button>
                   </td>
                 </tr>

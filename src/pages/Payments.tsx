@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { usePayments, createPayment, useCustomers, updateCustomer, deletePayment, updatePayment } from '../lib/db';
 import { formatCurrency } from '../lib/utils';
 import { useAuth } from '../lib/auth';
-import { Search, Plus, Bot, Trash2, AlertTriangle, Pencil, X } from 'lucide-react';
+import { Search, Plus, Bot, Trash2, AlertTriangle, Pencil, X, Paperclip } from 'lucide-react';
 import { format } from 'date-fns';
 import { Payment } from '../types';
 import AIInputModal from '../components/AIInputModal';
 import { QuickAddCustomerModal } from '../components/QuickAddModal';
+import ReceiptProofUploader from '../components/ReceiptProofUploader';
+import ReceiptProofModal, { ReceiptProofData } from '../components/ReceiptProofModal';
 
 const parseDateToTimestamp = (dateStr: string): number => {
   if (!dateStr) return Date.now();
@@ -29,6 +31,7 @@ export default function Payments({ onViewCustomer, initialAction }: { onViewCust
   const [isAdding, setIsAdding] = useState(initialAction === 'add');
   const [showAIModal, setShowAIModal] = useState(false);
   const [initialForm, setInitialForm] = useState<any>(null);
+  const [viewingReceipt, setViewingReceipt] = useState<ReceiptProofData | null>(null);
 
   React.useEffect(() => {
     if (initialAction === 'add') {
@@ -141,7 +144,33 @@ export default function Payments({ onViewCustomer, initialAction }: { onViewCust
                 <tr key={p.id} className="hover:bg-white/5 dark:hover:bg-blue-900/50 transition-colors">
                   <td className="modern-td">{format(p.date, 'MMM d, yyyy HH:mm')}</td>
                   <td className="modern-td"><button className="hover:underline text-[#7C3AED] hover:text-purple-300 cursor-pointer font-bold transition-colors" onClick={() => onViewCustomer?.(p.customerId)}>{customers.find(c => c.id === p.customerId)?.name || 'Unknown'}</button></td>
-                  <td className="modern-td !text-[#059669] font-bold font-mono text-base">{formatCurrency(p.amount)}</td>
+                  <td className="modern-td !text-[#059669] font-bold font-mono text-base">
+                    <div className="flex items-center gap-2">
+                      <span>{formatCurrency(p.amount)}</span>
+                      {(p.receiptImage || p.receiptText) && (
+                        <button
+                          type="button"
+                          onClick={(ev) => {
+                            ev.stopPropagation();
+                            setViewingReceipt({
+                              title: `${customers.find(c => c.id === p.customerId)?.name || 'Customer'} - Payment Proof`,
+                              amount: p.amount,
+                              date: p.date,
+                              receiptImage: p.receiptImage,
+                              receiptText: p.receiptText,
+                              entityName: customers.find(c => c.id === p.customerId)?.name,
+                              category: 'Customer Payment'
+                            });
+                          }}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-[#6D28D9]/20 text-[#A78BFA] hover:bg-[#6D28D9]/35 border border-[#6D28D9]/40 transition-colors cursor-pointer shrink-0"
+                          title="View receipt proof (image or text memo)"
+                        >
+                          <Paperclip className="w-3 h-3 text-[#A78BFA]" />
+                          <span>Receipt</span>
+                        </button>
+                      )}
+                    </div>
+                  </td>
                   <td className="modern-td">
                     <button 
                       onClick={() => {
@@ -149,7 +178,9 @@ export default function Payments({ onViewCustomer, initialAction }: { onViewCust
                           id: p.id,
                           customerId: p.customerId,
                           amount: p.amount,
-                          date: p.date
+                          date: p.date,
+                          receiptImage: p.receiptImage,
+                          receiptText: p.receiptText
                         });
                         setIsAdding(true);
                       }}
@@ -174,6 +205,12 @@ export default function Payments({ onViewCustomer, initialAction }: { onViewCust
           </table>
         </div>
       </div>
+
+      <ReceiptProofModal 
+        isOpen={Boolean(viewingReceipt)}
+        onClose={() => setViewingReceipt(null)}
+        proof={viewingReceipt}
+      />
     </div>
   );
 }
@@ -201,6 +238,8 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
     : (localStorage.getItem('last_static_date') || localStorage.getItem('payment_last_entered_date') || format(new Date(), 'yyyy-MM-dd'));
 
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
+  const [receiptImage, setReceiptImage] = useState<string | null>(initialData?.receiptImage || null);
+  const [receiptText, setReceiptText] = useState<string>(initialData?.receiptText || '');
 
   const [form, setForm] = useState({
     customerId: matchedCustomerId || '',
@@ -245,7 +284,9 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
         await updatePayment(initialData.id, {
           customerId: form.customerId,
           date: newTimestamp,
-          amount: amountVal
+          amount: amountVal,
+          receiptImage: receiptImage || undefined,
+          receiptText: receiptText.trim() || undefined
         });
       } else {
         // Normal Create Mode
@@ -253,7 +294,9 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
           customerId: form.customerId, 
           date: newTimestamp,
           amount: amountVal,
-          createdBy: user?.uid || 'unknown'
+          createdBy: user?.uid || 'unknown',
+          receiptImage: receiptImage || undefined,
+          receiptText: receiptText.trim() || undefined
         }, user?.email || 'system');
         const customer = customers.find(c => c.id === form.customerId);
         if (customer) {
@@ -269,14 +312,14 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/45  flex items-center justify-center p-4 z-50">
-      <div className="bg-[#0E0E12] rounded-xl shadow-2xl border border-theme-border w-full max-w-sm overflow-hidden transition-colors">
+    <div className="fixed inset-0 bg-black/45 flex items-center justify-center p-4 z-50">
+      <div className="bg-[#0E0E12] rounded-xl shadow-2xl border border-theme-border w-full max-w-md overflow-hidden transition-colors">
         <form onSubmit={handleSubmit}>
           <div className="px-6 py-5 border-b border-theme-border bg-emerald-500/5 dark:bg-emerald-500/5 flex justify-between items-center">
             <h3 className="text-xl font-bold text-emerald-400">{isEditing ? 'Edit Payment' : 'Record Payment'}</h3>
             <button type="button" onClick={onClose} className="text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
           </div>
-          <div className="p-6 space-y-4">
+          <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
             <div>
               <label className="block text-sm font-semibold text-emerald-400 mb-1.5">Customer</label>
               <div className="flex items-center gap-2">
@@ -328,6 +371,14 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
                 className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-slate-200 text-base shadow-sm font-mono font-bold"
               />
             </div>
+
+            <ReceiptProofUploader 
+              receiptImage={receiptImage}
+              onImageChange={setReceiptImage}
+              receiptText={receiptText}
+              onTextChange={setReceiptText}
+              compact
+            />
           </div>
           <div className="px-6 py-4 bg-[#000000] border-t border-white/10 flex justify-end gap-3">
              <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-gray-400 hover:text-white transition-colors cursor-pointer">Cancel</button>

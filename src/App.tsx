@@ -314,7 +314,7 @@ function AuthenticatedApp() {
               </button>
               <button 
                 onClick={() => setSelectedStation('Junction')}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Junction' ? 'bg-purple-500/15 text-purple-300 border border-purple-500/30 shadow-sm' : 'text-[#A1A1AA] hover:text-slate-200 hover:bg-slate-800/30'}`}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${selectedStation === 'Junction' ? 'bg-[#6D28D9]/15 text-[#6D28D9] border border-[#6D28D9]/30 shadow-sm' : 'text-[#A1A1AA] hover:text-slate-200 hover:bg-slate-800/30'}`}
               >
                 Junction Station
               </button>
@@ -325,10 +325,10 @@ function AuthenticatedApp() {
             <ThemeToggle variant="button" />
             <button 
               onClick={() => setIsProfileOpen(true)}
-              className="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl bg-white/[0.04] text-purple-300 hover:bg-slate-800/40 transition-all duration-300 border border-purple-500/20 cursor-pointer"
+              className="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl bg-white/[0.04] text-[#6D28D9] hover:bg-slate-800/40 transition-all duration-300 border border-[#6D28D9]/30 cursor-pointer"
               title="Profile & Summary Dashboard"
             >
-              <User className="w-4 h-4 text-purple-300" />
+              <User className="w-4 h-4 text-[#6D28D9]" />
             </button>
             {lastSync && (
               <div className="flex items-center gap-2 text-xs text-[#A1A1AA] bg-[#000000] border border-slate-800 px-3 py-1.5 rounded-full shrink-0">

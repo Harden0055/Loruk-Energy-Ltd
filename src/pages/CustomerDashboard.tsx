@@ -35,8 +35,11 @@ import {
   Search, 
   FileText,
   Wallet,
+  Paperclip,
   X
 } from 'lucide-react';
+import ReceiptProofUploader from '../components/ReceiptProofUploader';
+import ReceiptProofModal, { ReceiptProofData } from '../components/ReceiptProofModal';
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -134,6 +137,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [deliveryDate, setDeliveryDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentDate, setPaymentDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [paymentReceiptImage, setPaymentReceiptImage] = useState<string | null>(null);
+  const [paymentReceiptText, setPaymentReceiptText] = useState('');
+  const [viewingReceipt, setViewingReceipt] = useState<ReceiptProofData | null>(null);
   const [adjustType, setAdjustType] = useState<'credit' | 'debit'>('credit');
   const [adjustAmount, setAdjustAmount] = useState('');
   const [adjustDate, setAdjustDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -369,7 +375,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         amount: p.amount, 
         val: -p.amount,
         createdBy: p.createdBy || 'System',
-        sortOrder: 2
+        sortOrder: 2,
+        receiptImage: p.receiptImage,
+        receiptText: p.receiptText
       })),
       ...customerAdjustments.map(a => ({ 
         id: `adj-${a.id}`, 
@@ -728,7 +736,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           customerId: customer.id,
           date: parseDateToTimestamp(paymentDate),
           amount: amountVal,
-          createdBy: user?.email || 'Unknown'
+          createdBy: user?.email || 'Unknown',
+          receiptImage: paymentReceiptImage || undefined,
+          receiptText: paymentReceiptText.trim() || undefined
         }, user?.email || 'Unknown'),
         updateCustomer(customer.id, {}, { balance: -amountVal }, user?.email || 'Unknown')
       ];
@@ -749,6 +759,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
       setActiveModal(null);
       setPaymentAmount('');
+      setPaymentReceiptImage(null);
+      setPaymentReceiptText('');
 
       await Promise.all(paymentPromises);
     } catch (err) {
@@ -881,7 +893,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           </button>
 
           <div className="flex items-center gap-2 min-w-0">
-            <span className="font-mono text-xs uppercase tracking-wider bg-purple-500/15 text-purple-300 px-2 py-0.5 rounded-md font-bold border border-purple-500/30 shrink-0">
+            <span className="font-mono text-xs uppercase tracking-wider bg-[#6D28D9]/15 text-[#6D28D9] px-2 py-0.5 rounded-md font-bold border border-[#6D28D9]/30 shrink-0">
               {customer.customerId}
             </span>
             <h2 className="text-base sm:text-xl font-black text-slate-200 tracking-tight truncate">
@@ -890,9 +902,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border shrink-0 ${
               customer.status === 'active' 
                 ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' 
-                : 'bg-rose-500/15 text-rose-400 border-rose-500/30'
+                : 'bg-[#6D28D9]/15 text-[#6D28D9] border-[#6D28D9]/30'
             }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${customer.status === 'active' ? 'bg-emerald-400 shadow-[0_0_6px_#34D399]' : 'bg-rose-400'}`} />
+              <span className={`w-1.5 h-1.5 rounded-full ${customer.status === 'active' ? 'bg-emerald-400 shadow-[0_0_6px_#34D399]' : 'bg-[#6D28D9]'}`} />
               {customer.status === 'active' ? 'Active' : 'Credit Risk'}
             </span>
           </div>
@@ -902,9 +914,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         <div className="flex items-center gap-1.5 flex-wrap">
           <button
             onClick={() => setActiveModal('delivery')}
-            className="px-2.5 py-1.5 bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 hover:border-purple-400 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+            className="px-2.5 py-1.5 bg-[#6D28D9]/15 hover:bg-[#6D28D9]/25 text-slate-100 border border-[#6D28D9]/30 hover:border-[#6D28D9]/50 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
           >
-            <Plus className="w-3.5 h-3.5 text-purple-400" />
+            <Plus className="w-3.5 h-3.5 text-[#6D28D9]" />
             <span>Log Delivery</span>
           </button>
           <button
@@ -916,9 +928,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           </button>
           <button
             onClick={() => setActiveModal('adjustment')}
-            className="px-2.5 py-1.5 bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 hover:border-purple-400 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+            className="px-2.5 py-1.5 bg-[#6D28D9]/15 hover:bg-[#6D28D9]/25 text-slate-100 border border-[#6D28D9]/30 hover:border-[#6D28D9]/50 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
           >
-            <ArrowUpDown className="w-3.5 h-3.5 text-purple-400" />
+            <ArrowUpDown className="w-3.5 h-3.5 text-[#6D28D9]" />
             <span>Adjust</span>
           </button>
           <button
@@ -940,32 +952,32 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           calculatedBalance < 0 
             ? 'border-emerald-500/40 bg-emerald-500/[0.04]' 
             : calculatedBalance > 0
-              ? 'border-purple-500/40 bg-purple-500/[0.04]'
+              ? 'border-[#6D28D9]/40 bg-[#6D28D9]/[0.04]'
               : 'border-white/[0.08] bg-[#000000]'
         }`}>
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-extrabold text-theme-text-muted uppercase tracking-wider">Outstanding Balance</span>
             <button
               onClick={verifyBalance}
-              className="text-[9px] text-purple-300 hover:text-purple-200 font-bold px-1.5 py-0.5 rounded bg-purple-500/15 border border-purple-500/30 cursor-pointer"
+              className="text-[9px] text-[#6D28D9] hover:text-purple-300 font-bold px-1.5 py-0.5 rounded bg-[#6D28D9]/15 border border-[#6D28D9]/30 cursor-pointer"
               title="Verify Balance Calculation"
             >
               Verify
             </button>
           </div>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-xs font-bold text-theme-text-muted">Ksh</span>
+            <span className={`text-xs font-bold ${calculatedBalance < 0 ? 'text-[#059669]' : calculatedBalance > 0 ? 'text-[#6D28D9]' : 'text-theme-text-muted'}`}>Ksh</span>
             <span className={`text-base sm:text-lg font-black font-mono tracking-tight leading-none ${
-              calculatedBalance < 0 ? 'text-[#059669]' : isCreditRisk ? 'text-rose-400' : calculatedBalance > 0 ? 'text-[#6D28D9]' : 'text-slate-400'
+              calculatedBalance < 0 ? 'text-[#059669]' : calculatedBalance > 0 ? 'text-[#6D28D9]' : 'text-slate-400'
             }`}>
-              {Math.abs(calculatedBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {calculatedBalance < 0 ? '-' : ''}{Math.abs(calculatedBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div className="mt-1 text-[10px] truncate">
             {calculatedBalance < 0 ? (
               <span className="text-[#059669] font-bold">Advance Balance Credit</span>
             ) : isCreditRisk ? (
-              <span className="text-rose-400 font-bold animate-pulse">Credit Limit Exceeded</span>
+              <span className="text-[#6D28D9] font-bold">Credit Limit Exceeded</span>
             ) : calculatedBalance > 0 ? (
               <span className="text-[#6D28D9] font-bold">Receivable Balance Owed</span>
             ) : (
@@ -984,29 +996,23 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           </div>
           <div className="flex items-baseline gap-1 mt-1">
             <span className="text-xs font-bold text-gray-400">Ksh</span>
-            <span className="text-base sm:text-lg font-black font-mono text-gray-400 tracking-tight leading-none">
+            <span className="text-base sm:text-lg font-black font-mono text-gray-200 tracking-tight leading-none">
               {(customer.creditLimit || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div className="mt-1.5 h-1.5 bg-theme-panel rounded-full overflow-hidden border border-theme-border/60">
             <div 
-              className={`h-full rounded-full transition-all duration-500 ${
-                isCreditRisk 
-                  ? 'bg-rose-500' 
-                  : remainingCredit > (customer.creditLimit || 1) * 0.5 
-                    ? 'bg-gradient-to-r from-purple-500 to-emerald-400' 
-                    : 'bg-purple-500'
-              }`}
+              className="h-full rounded-full transition-all duration-500 bg-[#6D28D9]"
               style={{ width: `${Math.min(100, Math.max(0, (remainingCredit / (customer.creditLimit || 1)) * 100))}%` }}
             />
           </div>
         </div>
 
         {/* Card 3: Total Deliveries - Purple */}
-        <div className="glass-panel rounded-xl px-3.5 py-2.5 shadow-sm border border-purple-500/30 bg-purple-500/[0.03]">
+        <div className="glass-panel rounded-xl px-3.5 py-2.5 shadow-sm border border-[#6D28D9]/30 bg-[#6D28D9]/[0.03]">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-extrabold text-theme-text-muted uppercase tracking-wider">Total Deliveries</span>
-            <span className="text-[10px] font-mono text-purple-300 font-bold bg-purple-500/15 px-1.5 py-0.5 rounded border border-purple-500/25">
+            <span className="text-[10px] font-mono text-[#6D28D9] font-bold bg-[#6D28D9]/15 px-1.5 py-0.5 rounded border border-[#6D28D9]/30">
               {totalFuelLitres.toLocaleString()} L
             </span>
           </div>
@@ -1121,7 +1127,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-md border ${
                     customer.openingBalanceType === 'advance'
                       ? 'text-[#059669] bg-emerald-500/15 border-emerald-500/30'
-                      : 'text-purple-300 bg-purple-500/15 border-purple-500/30'
+                      : 'text-[#6D28D9] bg-[#6D28D9]/15 border-[#6D28D9]/30'
                   }`}>
                     {customer.openingBalanceType === 'advance' ? '-' : '+'}Ksh {(customer.openingBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
@@ -1131,7 +1137,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   <div>
                     <div className="flex justify-between text-[11px] font-semibold mb-1">
                       <span className="text-theme-text-muted">Avg Delivery</span>
-                      <span className="font-mono font-bold text-purple-300">
+                      <span className="font-mono font-bold text-[#6D28D9]">
                         {customerDeliveries.length ? `Ksh ${(totalSalesValue / customerDeliveries.length).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'}
                       </span>
                     </div>
@@ -1158,7 +1164,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             <div className="pt-2.5 mt-2.5 border-t border-theme-border text-center">
               <button 
                 type="button"
-                className="text-xs text-[#6D28D9] hover:text-purple-300 font-bold hover:underline cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/25 transition-all" 
+                className="text-xs text-[#6D28D9] hover:text-purple-300 font-bold hover:underline cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#6D28D9]/10 border border-[#6D28D9]/25 transition-all" 
                 onClick={handleExportStatement}
               >
                 <Calendar className="w-3.5 h-3.5 text-[#6D28D9]" />
@@ -1175,7 +1181,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           <div className="flex flex-wrap items-center justify-between gap-2.5">
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-black text-theme-text tracking-tight">Statement & Transaction Timeline</h3>
-              <span className="text-xs font-mono font-bold text-purple-300 bg-purple-500/15 border border-purple-500/30 px-2 py-0.5 rounded-md">
+              <span className="text-xs font-mono font-bold text-[#6D28D9] bg-[#6D28D9]/15 border border-[#6D28D9]/30 px-2 py-0.5 rounded-md">
                 {timelineEvents.length} items
               </span>
             </div>
@@ -1201,9 +1207,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 {(['all', 'delivery', 'payment', 'adjustment'] as const).map(f => {
                   const isActive = filterType === f;
                   let activeStyle = 'bg-white/10 text-white border-white/20 shadow-sm';
-                  if (f === 'delivery') activeStyle = 'bg-purple-500/15 text-purple-300 border-purple-500/30 shadow-[0_0_15px_rgba(139,92,246,0.2)]';
+                  if (f === 'delivery') activeStyle = 'bg-[#6D28D9]/20 text-slate-100 border-[#6D28D9]/40';
                   if (f === 'payment') activeStyle = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 shadow-[0_0_15px_rgba(0,230,118,0.2)]';
-                  if (f === 'adjustment') activeStyle = 'bg-purple-500/15 text-purple-300 border-purple-500/30 shadow-[0_0_15px_rgba(139,92,246,0.2)]';
+                  if (f === 'adjustment') activeStyle = 'bg-[#6D28D9]/20 text-slate-100 border-[#6D28D9]/40';
 
                   return (
                     <button
@@ -1293,14 +1299,14 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                               isOpening
                                 ? (customer?.openingBalanceType === 'advance' 
                                     ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(0,230,118,0.2)]' 
-                                    : 'bg-purple-500/15 border-purple-500/30 text-purple-300 shadow-[0_0_15px_rgba(139,92,246,0.2)]')
+                                    : 'bg-[#6D28D9]/15 border-[#6D28D9]/30 text-slate-100')
                                 : e.type === 'payment'
                                   ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(0,230,118,0.2)]'
                                   : e.type === 'delivery'
-                                    ? 'bg-purple-500/15 border-purple-500/30 text-purple-300 shadow-[0_0_15px_rgba(139,92,246,0.2)]'
+                                    ? 'bg-[#6D28D9]/15 border-[#6D28D9]/30 text-slate-100'
                                     : e.title.includes('Credit')
                                       ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(0,230,118,0.2)]'
-                                      : 'bg-purple-500/15 border-purple-500/30 text-purple-300 shadow-[0_0_15px_rgba(139,92,246,0.2)]'
+                                      : 'bg-[#6D28D9]/15 border-[#6D28D9]/30 text-slate-100'
                             } ${e.type === 'adjustment' ? 'cursor-pointer hover:scale-110' : ''}`} 
                             onClick={() => {
                               if (e.type === 'adjustment') {
@@ -1328,8 +1334,32 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 sm:px-6 py-3.5 text-xs sm:text-sm font-medium text-theme-text-muted truncate max-w-[150px] sm:max-w-[240px]" title={e.description}>
-                        {e.description}
+                      <td className="px-4 sm:px-6 py-3.5 text-xs sm:text-sm font-medium text-theme-text-muted max-w-[200px] sm:max-w-[280px]" title={e.description}>
+                        <div className="flex items-center gap-2">
+                          <span className="truncate">{e.description}</span>
+                          {((e as any).receiptImage || (e as any).receiptText) && (
+                            <button
+                              type="button"
+                              onClick={(ev) => {
+                                ev.stopPropagation();
+                                setViewingReceipt({
+                                  title: `${customer?.name || 'Customer'} - Payment Proof`,
+                                  amount: e.amount,
+                                  date: e.date,
+                                  receiptImage: (e as any).receiptImage,
+                                  receiptText: (e as any).receiptText,
+                                  entityName: customer?.name,
+                                  category: 'Customer Payment'
+                                });
+                              }}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-[#6D28D9]/20 text-[#A78BFA] hover:bg-[#6D28D9]/35 border border-[#6D28D9]/40 transition-colors cursor-pointer shrink-0"
+                              title="View receipt proof (image or text memo)"
+                            >
+                              <Paperclip className="w-3 h-3 text-[#A78BFA]" />
+                              <span>Receipt</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 sm:px-6 py-3.5 text-right font-mono font-bold text-sm whitespace-nowrap">
                         {isOpening ? (
@@ -1405,17 +1435,17 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     <button type="button" onClick={() => setAdjustType('credit')} className={`px-4 py-3 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${adjustType === 'credit' ? 'bg-emerald-500/15 border-emerald-500 text-emerald-400 shadow-[0_0_15px_rgba(0,230,118,0.25)]' : 'bg-white/[0.03] border-white/10 text-gray-400 hover:text-white'}`}>
                        Credit (-)
                     </button>
-                    <button type="button" onClick={() => setAdjustType('debit')} className={`px-4 py-3 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${adjustType === 'debit' ? 'bg-purple-500/15 border-purple-500 text-[#9333EA] shadow-[0_0_15px_rgba(147,51,234,0.25)]' : 'bg-white/[0.03] border-white/10 text-gray-400 hover:text-white'}`}>
+                    <button type="button" onClick={() => setAdjustType('debit')} className={`px-4 py-3 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${adjustType === 'debit' ? 'bg-[#6D28D9]/15 border-[#6D28D9] text-[#6D28D9] shadow-[0_0_15px_rgba(109,40,217,0.25)]' : 'bg-white/[0.03] border-white/10 text-gray-400 hover:text-white'}`}>
                        Debit (+)
                     </button>
                   </div>
                 </div>
                 <div>
-                  <label className={`block text-sm font-semibold mb-1.5 transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#9333EA]'}`}>
+                  <label className={`block text-sm font-semibold mb-1.5 transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#6D28D9]'}`}>
                     Override Amount (KES) * {adjustType === 'credit' ? '(Credit - Deduct)' : '(Debit - Add)'}
                   </label>
                   <div className="relative">
-                    <span className={`absolute left-3.5 top-2.5 font-bold font-mono transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#9333EA]'}`}>KSh</span>
+                    <span className={`absolute left-3.5 top-2.5 font-bold font-mono transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#6D28D9]'}`}>KSh</span>
                     <input 
                       type="number" 
                       required 
@@ -1426,7 +1456,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       className={`w-full pl-14 pr-3.5 py-2.5 bg-[#000000] rounded-lg text-lg font-mono font-bold outline-none shadow-sm transition-all border ${
                         adjustType === 'credit' 
                           ? 'text-emerald-400 border-emerald-500/50 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/50 shadow-[0_0_15px_rgba(0,230,118,0.15)]' 
-                          : 'text-[#9333EA] border-purple-500/50 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 shadow-[0_0_15px_rgba(147,51,234,0.15)]'
+                          : 'text-[#6D28D9] border-[#6D28D9]/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9]/50 shadow-[0_0_15px_rgba(109,40,217,0.15)]'
                       }`} 
                       placeholder="0.00" 
                     />
@@ -1446,7 +1476,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                  <button type="submit" disabled={modalLoading} className={`px-5 py-2 disabled:opacity-50 text-sm font-bold rounded-lg shadow-sm transition-all cursor-pointer ${
                    adjustType === 'credit'
                      ? 'bg-emerald-500 hover:bg-emerald-400 text-black'
-                     : 'bg-purple-600 hover:bg-purple-500 text-white'
+                     : 'bg-[#6D28D9] hover:bg-[#6D28D9]/90 text-white'
                  }`}>
                    {modalLoading ? 'Saving...' : 'Update'}
                  </button>
@@ -1612,7 +1642,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <button
                   type="submit"
                   disabled={modalLoading}
-                  className="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-bold shadow-md shadow-purple-500/25 disabled:opacity-50 transition-colors cursor-pointer"
+                  className="px-5 py-2 bg-[#6D28D9] hover:bg-[#6D28D9]/90 text-white rounded-lg text-sm font-bold shadow-md shadow-[#6D28D9]/25 disabled:opacity-50 transition-colors cursor-pointer"
                 >
                   Save Delivery
                 </button>
@@ -1624,16 +1654,26 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
       {activeModal === 'payment' && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-[#000000] rounded-2xl shadow-2xl border border-white/10 w-full max-w-sm overflow-hidden transform transition-all duration-300">
+          <div className="bg-[#000000] rounded-2xl shadow-2xl border border-white/10 w-full max-w-md overflow-hidden transform transition-all duration-300">
             <form onSubmit={handleAddPayment}>
               <div className="px-6 py-5 border-b border-white/10 bg-[#000000] flex justify-between items-center">
                 <div>
                   <h3 className="text-xl font-bold text-white">Record Payment</h3>
                   <p className="text-xs text-theme-text-muted font-medium pb-1">For {customer.name}</p>
                 </div>
-                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-[#A1A1AA] hover:text-white rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setActiveModal(null);
+                    setPaymentReceiptImage(null);
+                    setPaymentReceiptText('');
+                  }} 
+                  className="p-1 px-2 text-[#A1A1AA] hover:text-white rounded-lg transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5"/>
+                </button>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
                 <div>
                   <label className="block text-sm font-semibold text-white mb-1.5">Date *</label>
                   <input 
@@ -1641,7 +1681,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     required
                     value={paymentDate}
                     onChange={e => setPaymentDate(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-base text-white outline-none focus:border-purple-500 shadow-sm"
+                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-base text-white outline-none focus:border-emerald-500 shadow-sm"
                   />
                 </div>
                 <div>
@@ -1653,9 +1693,17 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     placeholder="0.00"
                     value={paymentAmount}
                     onChange={e => setPaymentAmount(e.target.value)}
-                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-base text-white outline-none focus:border-purple-500 shadow-sm"
+                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-base text-white outline-none focus:border-emerald-500 shadow-sm"
                   />
                 </div>
+
+                <ReceiptProofUploader 
+                  receiptImage={paymentReceiptImage}
+                  onImageChange={setPaymentReceiptImage}
+                  receiptText={paymentReceiptText}
+                  onTextChange={setPaymentReceiptText}
+                  compact
+                />
               </div>
               <div className="px-6 py-4 bg-[#000000] border-t border-white/10 flex justify-end gap-3 rounded-b-xl">
                 <button
@@ -1709,7 +1757,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       onClick={() => setAdjustType('debit')}
                       className={`py-2 px-3 rounded-lg border text-sm font-bold transition-all shadow-sm cursor-pointer ${
                         adjustType === 'debit'
-                          ? 'border-purple-500 bg-purple-500/20 text-[#9333EA] shadow-[0_0_15px_rgba(147,51,234,0.25)]'
+                          ? 'border-[#6D28D9] bg-[#6D28D9]/20 text-[#6D28D9] shadow-[0_0_15px_rgba(109,40,217,0.25)]'
                           : 'border-white/10 text-gray-400 bg-white/[0.03] hover:text-white'
                       }`}
                     >
@@ -1728,7 +1776,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   />
                 </div>
                 <div>
-                  <label className={`block text-sm font-semibold mb-1.5 transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#9333EA]'}`}>
+                  <label className={`block text-sm font-semibold mb-1.5 transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#6D28D9]'}`}>
                     Override Amount (KES) * {adjustType === 'credit' ? '(Credit - Deduct)' : '(Debit - Add)'}
                   </label>
                   <input 
@@ -1741,7 +1789,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     className={`w-full px-3.5 py-2.5 bg-[#000000] rounded-lg text-base font-mono font-bold outline-none shadow-sm transition-all border ${
                       adjustType === 'credit'
                         ? 'text-emerald-400 border-emerald-500/50 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/50 shadow-[0_0_15px_rgba(0,230,118,0.15)]'
-                        : 'text-[#9333EA] border-purple-500/50 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/50 shadow-[0_0_15px_rgba(147,51,234,0.15)]'
+                        : 'text-[#6D28D9] border-[#6D28D9]/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9]/50 shadow-[0_0_15px_rgba(109,40,217,0.15)]'
                     }`}
                   />
                 </div>
@@ -1753,7 +1801,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     value={adjustReason}
                     onChange={e => setAdjustReason(e.target.value)}
                     rows={3}
-                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-sm text-white outline-none focus:border-purple-500 shadow-sm resize-none"
+                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-sm text-white outline-none focus:border-[#6D28D9] shadow-sm resize-none"
                   />
                 </div>
               </div>
@@ -1771,7 +1819,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   className={`px-5 py-2 text-sm font-bold rounded-lg shadow-sm disabled:opacity-50 transition-colors cursor-pointer ${
                     adjustType === 'credit'
                       ? 'bg-emerald-500 hover:bg-emerald-400 text-black'
-                      : 'bg-purple-600 hover:bg-purple-500 text-white'
+                      : 'bg-[#6D28D9] hover:bg-[#6D28D9]/90 text-white'
                   }`}
                 >
                   Confirm Adjustment
@@ -1781,6 +1829,13 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           </div>
         </div>
       )}
+
+      {/* RECEIPT PROOF PREVIEW MODAL */}
+      <ReceiptProofModal 
+        isOpen={Boolean(viewingReceipt)}
+        onClose={() => setViewingReceipt(null)}
+        proof={viewingReceipt}
+      />
     </div>
   );
 }

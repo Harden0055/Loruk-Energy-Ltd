@@ -3,7 +3,7 @@ import { useAuth } from '../lib/auth';
 import { useFleetExpenses, createFleetExpense, deleteFleetExpense, updateFleetExpense, useTrucks } from '../lib/db';
 import { formatCurrency, getStationColor } from '../lib/utils';
 import { format } from 'date-fns';
-import { Plus, Trash2, Download, Bot, Pencil, Truck } from 'lucide-react';
+import { Plus, Trash2, Download, Bot, Pencil, Truck, Paperclip } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import AIInputModal from '../components/AIInputModal';
@@ -11,6 +11,8 @@ import { FleetExpense } from '../types';
 import { ResponsiveContainer, BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { setupPdfHeader, addPdfFooter } from '../lib/pdfTemplate';
 import { QuickAddTruckModal, QuickAddStationModal } from '../components/QuickAddModal';
+import ReceiptProofUploader from '../components/ReceiptProofUploader';
+import ReceiptProofModal, { ReceiptProofData } from '../components/ReceiptProofModal';
 
 import { useStations } from '../lib/operationsDb';
 
@@ -45,6 +47,9 @@ export default function Fleet({
   
   const [carReg, setCarReg] = useState('');
   const [product, setProduct] = useState<string>('Diesel');
+  const [receiptImage, setReceiptImage] = useState<string | null>(null);
+  const [receiptText, setReceiptText] = useState('');
+  const [viewingReceipt, setViewingReceipt] = useState<ReceiptProofData | null>(null);
   
   useEffect(() => {
     if (CAR_REGISTRATIONS.length > 0 && (!carReg || !CAR_REGISTRATIONS.includes(carReg))) {
@@ -228,7 +233,7 @@ export default function Fleet({
     }
     // Ndalu and Junction: slightly purple after Gel-Bungoma and Bendera
     if (s.includes('ndalu') || s.includes('junction')) {
-      return 'bg-purple-500/15 text-purple-300 border border-purple-500/30 shadow-[0_0_8px_rgba(168,85,247,0.15)]';
+      return 'bg-[#6D28D9]/15 text-[#6D28D9] border border-[#6D28D9]/30 shadow-[0_0_8px_rgba(109,40,217,0.15)]';
     }
     // The rest: slightly green
     return 'bg-emerald-500/15 text-[#059669] border border-emerald-500/30';
@@ -237,7 +242,7 @@ export default function Fleet({
   const getProductBadgeStyle = (productName?: string) => {
     const p = (productName || 'Diesel').toLowerCase();
     if (p.includes('engine oil')) {
-      return 'bg-purple-500/15 text-purple-300 border border-purple-500/30 shadow-[0_0_6px_rgba(168,85,247,0.15)]';
+      return 'bg-[#6D28D9]/15 text-[#6D28D9] border border-[#6D28D9]/30 shadow-[0_0_6px_rgba(109,40,217,0.15)]';
     }
     if (p.includes('brake fluid')) {
       return 'bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-[0_0_6px_rgba(245,158,11,0.15)]';
@@ -299,7 +304,9 @@ export default function Fleet({
         product: product || 'Diesel',
         amount: Number(amount), 
         date: new Date(date).getTime(), 
-        createdBy: user?.email || 'Unknown'
+        createdBy: user?.email || 'Unknown',
+        receiptImage: receiptImage || undefined,
+        receiptText: receiptText.trim() || undefined
       };
       if (litres && !isNaN(Number(litres))) data.litres = Number(litres);
       if (rate && !isNaN(Number(rate))) {
@@ -316,6 +323,8 @@ export default function Fleet({
       setLitres(''); 
       setRate('');
       setProduct('Diesel');
+      setReceiptImage(null);
+      setReceiptText('');
       // Keep static date so user can record multiple expenses on the same date without it resetting!
     } catch (e) {
       console.error(e);
@@ -478,9 +487,9 @@ export default function Fleet({
           {onNavigate && (
             <button 
               onClick={() => onNavigate('truckDashboard')}
-              className="px-3 py-1.5 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              className="px-3 py-1.5 bg-[#6D28D9]/15 hover:bg-[#6D28D9]/25 text-[#6D28D9] border border-[#6D28D9]/30 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
-               <Truck className="w-4 h-4 text-purple-400" />
+               <Truck className="w-4 h-4 text-[#6D28D9]" />
                Truck Dashboard
             </button>
           )}
@@ -516,7 +525,7 @@ export default function Fleet({
         <div id="add-expense-form-container" className="glass-panel p-3.5 border border-theme-border rounded-xl shadow-sm">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-bold text-slate-200">{editingExpenseId ? 'Edit' : 'Add'} Expense</h3>
-            <span className="text-[10px] text-purple-300 font-medium bg-purple-500/15 border border-purple-500/25 px-2 py-0.5 rounded">
+            <span className="text-[10px] text-slate-100 font-medium bg-[#6D28D9]/15 border border-[#6D28D9]/30 px-2 py-0.5 rounded">
               ⚡ Rate × Litres = Amount auto-calculation
             </span>
           </div>
@@ -532,7 +541,7 @@ export default function Fleet({
                   localStorage.setItem('last_static_date', e.target.value);
                   localStorage.setItem('fleet_last_entered_date', e.target.value);
                 }} 
-                className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs" 
+                className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-[#6D28D9] text-xs" 
               />
             </div>
             <div>
@@ -547,9 +556,9 @@ export default function Fleet({
                       setCarReg(e.target.value);
                     }
                   }} 
-                  className="flex-1 min-w-0 px-2 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs"
+                  className="flex-1 min-w-0 px-2 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-[#6D28D9] text-xs"
                 >
-                  <option value="__ADD_NEW_TRUCK__" className="bg-[#1e1035] text-purple-300 font-bold">
+                  <option value="__ADD_NEW_TRUCK__" className="bg-[#1e1035] text-slate-100 font-bold">
                     + Add New Truck...
                   </option>
                   {CAR_REGISTRATIONS.map((r, idx) => (
@@ -561,7 +570,7 @@ export default function Fleet({
                 <button
                   type="button"
                   onClick={() => setShowAddTruckModal(true)}
-                  className="p-1.5 bg-purple-500/15 hover:bg-purple-500/25 text-purple-400 border border-purple-500/30 rounded-md shrink-0 cursor-pointer flex items-center justify-center transition-colors shadow-sm"
+                  className="p-1.5 bg-[#6D28D9]/15 hover:bg-[#6D28D9]/25 text-[#6D28D9] border border-[#6D28D9]/30 rounded-md shrink-0 cursor-pointer flex items-center justify-center transition-colors shadow-sm"
                   title="Add new truck shortcut"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -602,11 +611,11 @@ export default function Fleet({
               </div>
             </div>
             <div>
-              <label className="block text-[10px] font-semibold text-purple-400 mb-0.5">Product</label>
+              <label className="block text-[10px] font-semibold text-[#6D28D9] mb-0.5">Product</label>
               <select 
                 value={product} 
                 onChange={(e) => setProduct(e.target.value)} 
-                className="w-full px-2.5 py-1.5 glass-panel border border-purple-500/40 rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs"
+                className="w-full px-2.5 py-1.5 glass-panel border border-[#6D28D9]/40 rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-[#6D28D9] text-xs"
               >
                 {FLEET_PRODUCTS.map((p) => (
                   <option key={`opt-prod-${p}`} value={p} className="bg-black text-slate-200">
@@ -625,12 +634,12 @@ export default function Fleet({
                 step="0.01" 
                 value={litres} 
                 onChange={(e) => handleLitresChange(e.target.value)} 
-                className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs font-mono" 
+                className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-[#6D28D9] text-xs font-mono" 
                 placeholder={product === 'Greasing' ? 'Qty (opt)' : 'Litres'} 
               />
             </div>
             <div>
-              <label className="block text-[10px] font-semibold text-purple-400 mb-0.5 flex items-center justify-between">
+              <label className="block text-[10px] font-semibold text-[#6D28D9] mb-0.5 flex items-center justify-between">
                 <span>{product === 'Greasing' ? 'Rate/Unit' : 'Rate (KES/L)'}</span>
                 <span className="text-[9px] text-slate-400 font-normal">Auto</span>
               </label>
@@ -640,7 +649,7 @@ export default function Fleet({
                 step="0.01" 
                 value={rate} 
                 onChange={(e) => handleRateChange(e.target.value)} 
-                className="w-full px-2.5 py-1.5 glass-panel border border-purple-500/40 rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs font-mono placeholder:text-gray-500" 
+                className="w-full px-2.5 py-1.5 glass-panel border border-[#6D28D9]/40 rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-[#6D28D9] text-xs font-mono placeholder:text-gray-500" 
                 placeholder={product === 'Greasing' ? 'Rate (opt)' : 'Rate'} 
               />
             </div>
@@ -648,12 +657,23 @@ export default function Fleet({
               <label className="block text-[10px] font-semibold text-slate-400 mb-0.5">Amount (KES)</label>
               <input type="number" required min="0" step="0.01" value={amount} onChange={(e) => handleAmountChange(e.target.value)} className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-purple-500 text-xs font-mono" placeholder="Amount" />
             </div>
-            <div className="flex gap-1.5 w-full col-span-2 sm:col-span-1">
+
+            <div className="col-span-2 sm:col-span-4 lg:col-span-8 pt-1">
+              <ReceiptProofUploader 
+                receiptImage={receiptImage}
+                onImageChange={setReceiptImage}
+                receiptText={receiptText}
+                onTextChange={setReceiptText}
+                compact
+              />
+            </div>
+
+            <div className="flex gap-1.5 w-full col-span-2 sm:col-span-2 lg:col-span-3">
               <button 
                 type="submit" 
                 className="flex-1 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)] px-3 py-1.5 rounded-md font-semibold transition-colors cursor-pointer text-xs"
               >
-                {editingExpenseId ? 'Update' : 'Save'}
+                {editingExpenseId ? 'Update Expense' : 'Save Expense'}
               </button>
               <button 
                 type="button" 
@@ -664,6 +684,8 @@ export default function Fleet({
                   setLitres(''); 
                   setRate('');
                   setProduct('Diesel');
+                  setReceiptImage(null);
+                  setReceiptText('');
                   // Keep static date intact
                 }}
                 className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-slate-300 border border-theme-border rounded-md font-semibold transition-colors cursor-pointer text-xs"
@@ -697,7 +719,7 @@ export default function Fleet({
             // Strict deepcharts theme: only purple or green alternating
             const isPurple = index % 2 === 0;
             const colorClass = isPurple ? 'text-[#6D28D9]' : 'text-[#059669]';
-            const bgClass = isPurple ? 'bg-purple-500/[0.04] border-purple-500/25' : 'bg-emerald-500/[0.04] border-emerald-500/25';
+            const bgClass = isPurple ? 'bg-[#6D28D9]/[0.04] border-[#6D28D9]/25' : 'bg-emerald-500/[0.04] border-emerald-500/25';
             return (
               <div 
                 key={reg} 
@@ -708,8 +730,8 @@ export default function Fleet({
                   <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#6D28D9] hover:underline truncate">{reg}</p>
                   {isInactive && (
                     <span className="relative flex h-1.5 w-1.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-purple-500"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6D28D9]/80 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#6D28D9]"></span>
                     </span>
                   )}
                 </div>
@@ -743,8 +765,8 @@ export default function Fleet({
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-medium text-purple-400 mb-0.5">Product</label>
-                <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)} className="w-full px-2 py-1 glass-panel border border-purple-500/40 rounded text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm">
+                <label className="block text-[10px] font-medium text-[#6D28D9] mb-0.5">Product</label>
+                <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)} className="w-full px-2 py-1 glass-panel border border-[#6D28D9]/40 rounded text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#6D28D9] shadow-sm">
                   <option value="all" className="bg-black text-slate-200">All Products</option>
                   {FLEET_PRODUCTS.map(p => <option key={`prod-filter-${p}`} value={p} className="bg-black text-slate-200">{p}</option>)}
                 </select>
@@ -759,9 +781,9 @@ export default function Fleet({
               </div>
           </div>
           {/* Consumption Summary */}
-          <div className="w-full bg-purple-500/[0.04] px-3 py-2 rounded-lg flex items-center justify-between border border-purple-500/25">
+          <div className="w-full bg-[#6D28D9]/[0.04] px-3 py-2 rounded-lg flex items-center justify-between border border-[#6D28D9]/30">
              <div>
-               <p className="text-xs font-semibold text-purple-300">Filtered Total</p>
+               <p className="text-xs font-semibold text-slate-300">Filtered Total</p>
                <p className="text-[10px] text-emerald-400 font-semibold">{filteredExpenses.length} logs</p>
              </div>
              <h3 className="text-base sm:text-lg font-black font-mono text-[#6D28D9]">
@@ -806,7 +828,7 @@ export default function Fleet({
               ({filteredExpenses.length} {filteredExpenses.length === 1 ? 'log' : 'logs'})
             </span>
             {selectedProduct !== 'all' && (
-              <span className="text-[10px] font-semibold text-purple-300 bg-purple-500/15 border border-purple-500/25 px-2 py-0.5 rounded">
+              <span className="text-[10px] font-semibold text-slate-100 bg-[#6D28D9]/15 border border-[#6D28D9]/30 px-2 py-0.5 rounded">
                 Viewing {selectedProduct} Only
               </span>
             )}
@@ -818,7 +840,7 @@ export default function Fleet({
               <select
                 value={selectedProduct}
                 onChange={(e) => setSelectedProduct(e.target.value)}
-                className="px-2.5 py-1 bg-black border border-purple-500/40 rounded-lg text-xs font-bold text-purple-300 focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm cursor-pointer"
+                className="px-2.5 py-1 bg-black border border-[#6D28D9]/40 rounded-lg text-xs font-bold text-[#6D28D9] focus:outline-none focus:ring-1 focus:ring-[#6D28D9] shadow-sm cursor-pointer"
               >
                 <option value="all" className="bg-black text-slate-200">All Products ({expenses.length})</option>
                 {FLEET_PRODUCTS.map((p) => {
@@ -839,7 +861,7 @@ export default function Fleet({
                 onClick={() => setSelectedProduct('all')}
                 className={`px-2 py-0.5 text-[10px] font-bold rounded transition-colors cursor-pointer ${
                   selectedProduct === 'all'
-                    ? 'bg-purple-500/25 text-purple-300 border border-purple-500/40 shadow-sm'
+                    ? 'bg-[#6D28D9]/20 text-slate-100 border border-[#6D28D9]/40 shadow-sm'
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -852,7 +874,7 @@ export default function Fleet({
                   onClick={() => setSelectedProduct(p)}
                   className={`px-2 py-0.5 text-[10px] font-bold rounded transition-colors cursor-pointer ${
                     selectedProduct === p
-                      ? 'bg-purple-500/25 text-purple-300 border border-purple-500/40 shadow-sm'
+                      ? 'bg-[#6D28D9]/20 text-slate-100 border border-[#6D28D9]/40 shadow-sm'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
@@ -909,7 +931,33 @@ export default function Fleet({
                   </span>
                 </td>
                 <td className="modern-td">{e.litres ? `${e.litres.toLocaleString()} L` : '-'}</td>
-                <td className="modern-td !text-[#6D28D9] font-mono font-bold text-base">{formatCurrency(e.amount)}</td>
+                <td className="modern-td !text-[#6D28D9] font-mono font-bold text-base">
+                  <div className="flex items-center gap-2">
+                    <span>{formatCurrency(e.amount)}</span>
+                    {(e.receiptImage || e.receiptText) && (
+                      <button
+                        type="button"
+                        onClick={(ev) => {
+                          ev.stopPropagation();
+                          setViewingReceipt({
+                            title: `${e.carRegistration} - ${e.product || 'Fuel'} Expense Proof`,
+                            amount: e.amount,
+                            date: e.date,
+                            receiptImage: e.receiptImage,
+                            receiptText: e.receiptText,
+                            entityName: `${e.carRegistration} (${e.station || 'Fleet Station'})`,
+                            category: 'Fleet Fueling Expense'
+                          });
+                        }}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-[#6D28D9]/20 text-[#A78BFA] hover:bg-[#6D28D9]/35 border border-[#6D28D9]/40 transition-colors cursor-pointer shrink-0"
+                        title="View receipt proof (image or text memo)"
+                      >
+                        <Paperclip className="w-3 h-3 text-[#A78BFA]" />
+                        <span>Receipt</span>
+                      </button>
+                    )}
+                  </div>
+                </td>
                 <td className="modern-td">
                   <div className="flex items-center justify-end gap-1.5">
                     <button 
@@ -925,6 +973,8 @@ export default function Fleet({
                         }
                         setLitres(e.litres != null ? e.litres.toString() : '');
                         setRate(e.rate != null ? e.rate.toString() : (e.litres && e.amount && e.litres > 0 ? (e.amount / e.litres).toFixed(2) : ''));
+                        setReceiptImage(e.receiptImage || null);
+                        setReceiptText(e.receiptText || '');
                         
                         let dateObj = new Date();
                         if (e.date) {
@@ -1015,6 +1065,12 @@ export default function Fleet({
         onSuccess={(newStation) => {
           setStation(newStation);
         }}
+      />
+
+      <ReceiptProofModal 
+        isOpen={Boolean(viewingReceipt)}
+        onClose={() => setViewingReceipt(null)}
+        proof={viewingReceipt}
       />
     </div>
   );

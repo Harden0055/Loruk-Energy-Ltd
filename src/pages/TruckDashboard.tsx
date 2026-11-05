@@ -2,7 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { useFleetExpenses, useTrucks } from '../lib/db';
 import { formatCurrency } from '../lib/utils';
 import { format } from 'date-fns';
-import { CarFront, TrendingUp, Route, Gauge, Fuel, MapPin, Award, CheckCircle2, Download } from 'lucide-react';
+import { CarFront, TrendingUp, Route, Gauge, Fuel, MapPin, Award, CheckCircle2, Download, Paperclip } from 'lucide-react';
+import ReceiptProofModal, { ReceiptProofData } from '../components/ReceiptProofModal';
 import { 
   ResponsiveContainer, 
   BarChart, 
@@ -39,6 +40,7 @@ export default function TruckDashboard({
   const { expenses: allExpenses } = useFleetExpenses();
   const { trucks } = useTrucks();
   const [selectedProduct, setSelectedProduct] = useState<string>('all');
+  const [viewingReceipt, setViewingReceipt] = useState<ReceiptProofData | null>(null);
 
   const CAR_REGISTRATIONS = useMemo(() => {
     return trucks.length > 0 ? trucks.map(t => t.registration) : FALLBACK_REGISTRATIONS;
@@ -88,7 +90,7 @@ export default function TruckDashboard({
   const getProductBadgeStyle = (productName?: string) => {
     const p = (productName || 'Diesel').toLowerCase();
     if (p.includes('engine oil')) {
-      return 'bg-purple-500/15 text-purple-300 border border-purple-500/30';
+      return 'bg-[#6D28D9]/15 text-[#6D28D9] border border-[#6D28D9]/30';
     }
     if (p.includes('brake fluid')) {
       return 'bg-amber-500/15 text-amber-300 border border-amber-500/30';
@@ -124,15 +126,15 @@ export default function TruckDashboard({
       
        {/* Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="glass-panel border border-purple-500/25 bg-purple-500/[0.03] p-5 rounded-xl">
+        <div className="glass-panel border border-[#6D28D9]/30 bg-[#6D28D9]/[0.03] p-5 rounded-xl">
            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Spent</p>
-           <h3 className="text-2xl font-black font-mono text-[#7C3AED] mt-2">{formatCurrency(totalExpense)}</h3>
+           <h3 className="text-2xl font-black font-mono text-[#6D28D9] mt-2">{formatCurrency(totalExpense)}</h3>
         </div>
         <div className="glass-panel border border-emerald-500/25 bg-emerald-500/[0.03] p-5 rounded-xl">
            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Litres</p>
            <h3 className="text-2xl font-black font-mono text-[#059669] mt-2">{totalLitres.toLocaleString()} <span className="text-xs font-sans font-bold">L</span></h3>
         </div>
-        <div className="glass-panel border border-purple-500/25 bg-purple-500/[0.03] p-5 rounded-xl">
+        <div className="glass-panel border border-[#6D28D9]/30 bg-[#6D28D9]/[0.03] p-5 rounded-xl">
            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Avg Fuel Cost</p>
            <h3 className="text-2xl font-black font-mono text-[#6D28D9] mt-2">{avgCostPerLitre > 0 ? `${formatCurrency(avgCostPerLitre)}/L` : 'N/A'}</h3>
         </div>
@@ -143,7 +145,7 @@ export default function TruckDashboard({
       </div>
 
        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-panel border border-purple-500/20 p-5 rounded-xl">
+        <div className="glass-panel border border-[#6D28D9]/30 p-5 rounded-xl">
             <h3 className="font-bold text-lg mb-4 text-[#6D28D9]">Fuel Spend by Vehicle</h3>
             <div className="h-56 relative overflow-hidden" >
                 <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
@@ -163,7 +165,7 @@ export default function TruckDashboard({
                 </ResponsiveContainer>
             </div>
         </div>
-        <div className="glass-panel border border-purple-500/20 p-5 rounded-xl">
+        <div className="glass-panel border border-[#6D28D9]/30 p-5 rounded-xl">
             <h3 className="font-bold text-lg mb-4 text-[#059669]">Expenditure Trend</h3>
             <div className="h-56 relative overflow-hidden" >
                 <ResponsiveContainer width="100%" height="100%"  minWidth={1} minHeight={1}>
@@ -189,7 +191,7 @@ export default function TruckDashboard({
               ({displayedExpenses.length} {displayedExpenses.length === 1 ? 'log' : 'logs'})
             </span>
             {selectedProduct !== 'all' && (
-              <span className="text-[10px] font-semibold text-purple-300 bg-purple-500/15 border border-purple-500/25 px-2 py-0.5 rounded">
+              <span className="text-[10px] font-semibold text-slate-100 bg-[#6D28D9]/15 border border-[#6D28D9]/30 px-2 py-0.5 rounded">
                 Viewing {selectedProduct} Only
               </span>
             )}
@@ -201,7 +203,7 @@ export default function TruckDashboard({
               <select
                 value={selectedProduct}
                 onChange={(e) => setSelectedProduct(e.target.value)}
-                className="px-2.5 py-1 bg-black border border-purple-500/40 rounded-lg text-xs font-bold text-purple-300 focus:outline-none focus:ring-1 focus:ring-purple-500 shadow-sm cursor-pointer"
+                className="px-2.5 py-1 bg-black border border-[#6D28D9]/40 rounded-lg text-xs font-bold text-[#6D28D9] focus:outline-none focus:ring-1 focus:ring-[#6D28D9] shadow-sm cursor-pointer"
               >
                 <option value="all" className="bg-black text-slate-200">All Products ({expenses.length})</option>
                 {FLEET_PRODUCTS.map((prod) => {
@@ -287,7 +289,7 @@ export default function TruckDashboard({
               ) : (
                 [...displayedExpenses].sort((a, b) => b.date - a.date).map(e => {
                   const s = (e.station || '').toLowerCase();
-                  let stationClass = 'bg-purple-500/15 text-purple-300 border-purple-500/30';
+                  let stationClass = 'bg-[#6D28D9]/15 text-[#6D28D9] border-[#6D28D9]/30';
                   if (s.includes('kapenguria')) {
                     stationClass = 'bg-[#059669]/20 text-[#059669] border-[#059669]/40';
                   } else if (s.includes('bungoma')) {
@@ -318,7 +320,33 @@ export default function TruckDashboard({
                         </span>
                       </td>
                       <td className="modern-td">{e.litres ? `${e.litres.toLocaleString()} ${e.product === 'Greasing' ? 'serv' : 'L'}` : '-'}</td>
-                      <td className="modern-td"><span className="!text-[#6D28D9] font-mono font-bold text-base">{formatCurrency(e.amount)}</span></td>
+                      <td className="modern-td">
+                        <div className="flex items-center gap-2">
+                          <span className="!text-[#6D28D9] font-mono font-bold text-base">{formatCurrency(e.amount)}</span>
+                          {(e.receiptImage || e.receiptText) && (
+                            <button
+                              type="button"
+                              onClick={(ev) => {
+                                ev.stopPropagation();
+                                setViewingReceipt({
+                                  title: `${e.carRegistration} - ${e.product || 'Fuel'} Expense Proof`,
+                                  amount: e.amount,
+                                  date: e.date,
+                                  receiptImage: e.receiptImage,
+                                  receiptText: e.receiptText,
+                                  entityName: `${e.carRegistration} (${e.station || 'Fleet Station'})`,
+                                  category: 'Fleet Fueling Expense'
+                                });
+                              }}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-[#6D28D9]/20 text-[#A78BFA] hover:bg-[#6D28D9]/35 border border-[#6D28D9]/40 transition-colors cursor-pointer shrink-0"
+                              title="View receipt proof (image or text memo)"
+                            >
+                              <Paperclip className="w-3 h-3 text-[#A78BFA]" />
+                              <span>Receipt</span>
+                            </button>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   );
                 })
@@ -327,6 +355,12 @@ export default function TruckDashboard({
           </table>
         </div>
       </div>
+
+      <ReceiptProofModal 
+        isOpen={Boolean(viewingReceipt)}
+        onClose={() => setViewingReceipt(null)}
+        proof={viewingReceipt}
+      />
     </div>
   );
 }

@@ -591,9 +591,9 @@ export default function StationDashboard({
               <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold border ${
                 currentStation.status === 'active' 
                   ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' 
-                  : 'bg-purple-500/15 text-purple-300 border-purple-500/30'
+                  : 'bg-[#6D28D9]/15 text-[#6D28D9] border-[#6D28D9]/30'
               }`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${currentStation.status === 'active' ? 'bg-emerald-400 shadow-[0_0_8px_#34D399]' : 'bg-purple-400'}`} />
+                <span className={`w-1.5 h-1.5 rounded-full ${currentStation.status === 'active' ? 'bg-emerald-400 shadow-[0_0_8px_#34D399]' : 'bg-[#6D28D9]'}`} />
                 {currentStation.status === 'active' ? 'OPERATING STATION' : 'INACTIVE'}
               </span>
               {currentStation.location && (
@@ -668,10 +668,10 @@ export default function StationDashboard({
       {/* KPI Stats Cards Dashboard (6 Metrics) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
         {/* Metric 1: Total Gross Deliveries (Negative/Invoice) */}
-        <div className="glass-panel rounded-xl p-4 border border-purple-500/30 bg-purple-500/[0.03] shadow-[0_0_20px_rgba(139,92,246,0.08)]">
+        <div className="glass-panel rounded-xl p-4 border border-[#6D28D9]/30 bg-[#6D28D9]/[0.03] shadow-[0_0_20px_rgba(109,40,217,0.08)]">
           <div className="flex justify-between items-start">
             <p className="text-[11px] font-extrabold text-theme-text-muted uppercase tracking-wider">Deliveries Value</p>
-            <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400">
+            <div className="w-8 h-8 rounded-lg bg-[#6D28D9]/15 border border-[#6D28D9]/30 flex items-center justify-center text-[#6D28D9]">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
@@ -689,19 +689,19 @@ export default function StationDashboard({
         </div>
 
         {/* Metric 2: Fuel Volume Dispensed */}
-        <div className="glass-panel rounded-xl p-4 border border-purple-500/30 bg-purple-500/[0.03] shadow-[0_0_20px_rgba(139,92,246,0.08)]">
+        <div className="glass-panel rounded-xl p-4 border border-[#6D28D9]/30 bg-[#6D28D9]/[0.03] shadow-[0_0_20px_rgba(109,40,217,0.08)]">
           <div className="flex justify-between items-start">
             <p className="text-[11px] font-extrabold text-theme-text-muted uppercase tracking-wider">Total Dispensed</p>
-            <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400">
+            <div className="w-8 h-8 rounded-lg bg-[#6D28D9]/15 border border-[#6D28D9]/30 flex items-center justify-center text-[#6D28D9]">
               <Fuel className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2.5">
             <div className="flex items-baseline">
-              <h3 className="text-xl sm:text-2xl font-black font-mono text-purple-300 tracking-tight leading-none">
+              <h3 className="text-xl sm:text-2xl font-black font-mono text-[#6D28D9] tracking-tight leading-none">
                 {fuelMetrics.totalLitres.toLocaleString('en-US', { maximumFractionDigits: 1 })}
               </h3>
-              <span className="text-xs font-bold text-purple-300/80 ml-1">L</span>
+              <span className="text-xs font-bold text-[#6D28D9]/80 ml-1">L</span>
             </div>
             <p className="text-[10px] text-theme-text-muted font-medium mt-1.5 truncate">
               PMS: {fuelMetrics.superLitres.toLocaleString()}L • AGO: {fuelMetrics.dieselLitres.toLocaleString()}L
@@ -710,10 +710,10 @@ export default function StationDashboard({
         </div>
 
         {/* Metric 3: Station Operating Expenses (Negative Outflow) */}
-        <div className="glass-panel rounded-xl p-4 border border-purple-500/30 bg-purple-500/[0.03] shadow-[0_0_20px_rgba(139,92,246,0.08)]">
+        <div className="glass-panel rounded-xl p-4 border border-[#6D28D9]/30 bg-[#6D28D9]/[0.03] shadow-[0_0_20px_rgba(109,40,217,0.08)]">
           <div className="flex justify-between items-start">
             <p className="text-[11px] font-extrabold text-theme-text-muted uppercase tracking-wider">Operating Expenses</p>
-            <div className="w-8 h-8 rounded-lg bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400">
+            <div className="w-8 h-8 rounded-lg bg-[#6D28D9]/15 border border-[#6D28D9]/30 flex items-center justify-center text-[#6D28D9]">
               <ReceiptText className="w-4 h-4" />
             </div>
           </div>
@@ -1062,7 +1062,7 @@ export default function StationDashboard({
                 <h3 className="text-base font-black text-theme-text tracking-tight">Station Expense Vouchers</h3>
                 <p className="text-xs text-theme-text-muted">Comprehensive cost breakdown: Utilities, staff, maintenance, and supplies</p>
               </div>
-              <span className="font-mono text-xs font-bold px-3 py-1 bg-purple-500/15 text-[#8B5CF6] rounded-lg border border-purple-500/30">
+              <span className="font-mono text-xs font-bold px-3 py-1 bg-[#6D28D9]/15 text-[#6D28D9] rounded-lg border border-[#6D28D9]/30">
                 Total: Ksh {totalExpensesAmount.toLocaleString()}
               </span>
             </div>
@@ -1091,7 +1091,7 @@ export default function StationDashboard({
                           {format(new Date(e.date), 'dd-MMM-yyyy')}
                         </td>
                         <td className="modern-td">
-                          <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-purple-500/10 text-[#8B5CF6] border border-purple-500/25">
+                          <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-[#6D28D9]/10 text-[#6D28D9] border border-[#6D28D9]/25">
                             {e.category || 'General'}
                           </span>
                         </td>
@@ -1185,7 +1185,7 @@ export default function StationDashboard({
                                 : e.type === 'lpg'
                                   ? 'bg-orange-500/15 border-orange-500/30 text-orange-400'
                                   : e.type === 'expense'
-                                    ? 'bg-purple-500/15 border-purple-500/30 text-[#8B5CF6]'
+                                    ? 'bg-[#6D28D9]/15 border-[#6D28D9]/30 text-[#6D28D9]'
                                     : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
                             }`}>
                               {e.type === 'fuel' && <Fuel className="w-3.5 h-3.5" />}

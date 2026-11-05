@@ -260,7 +260,7 @@ export default function StationReportsArchiveView({ onEditReport, onNavigateToNe
 
       {/* BULK ACTIONS BAR */}
       {selectedReportIds.length > 0 && (
-        <div className="p-3 bg-purple-950/40 border border-purple-500/40 rounded-xl flex items-center justify-between text-xs animate-fade-in">
+        <div className="p-3 bg-[#6D28D9]/20 border border-[#6D28D9]/40 rounded-xl flex items-center justify-between text-xs animate-fade-in">
           <span className="text-slate-200 font-semibold">
             {selectedReportIds.length} reports selected
           </span>

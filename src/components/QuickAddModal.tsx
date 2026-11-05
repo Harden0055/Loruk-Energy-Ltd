@@ -46,10 +46,10 @@ export function QuickAddTruckModal({ isOpen, onClose, onSuccess }: QuickAddTruck
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-[#09090b] border border-purple-500/30 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-        <div className="px-5 py-4 border-b border-purple-500/20 bg-purple-500/5 flex items-center justify-between">
+      <div className="bg-[#09090b] border border-[#6D28D9]/40 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
+        <div className="px-5 py-4 border-b border-[#6D28D9]/25 bg-[#6D28D9]/[0.05] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-purple-500/10 text-purple-400">
+            <div className="p-1.5 rounded-lg bg-[#6D28D9]/15 text-[#6D28D9]">
               <Truck className="w-4 h-4" />
             </div>
             <h3 className="text-sm font-bold text-slate-200">Quick Add Truck</h3>
@@ -65,7 +65,7 @@ export function QuickAddTruckModal({ isOpen, onClose, onSuccess }: QuickAddTruck
 
         <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
           {error && (
-            <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-2 rounded-lg">
+            <div className="text-xs text-slate-200 bg-[#6D28D9]/15 border border-[#6D28D9]/40 px-3 py-2 rounded-lg">
               {error}
             </div>
           )}
@@ -330,10 +330,10 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-[#09090b] border border-purple-500/30 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-        <div className="px-5 py-4 border-b border-purple-500/20 bg-purple-500/5 flex items-center justify-between">
+      <div className="bg-[#09090b] border border-[#6D28D9]/40 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
+        <div className="px-5 py-4 border-b border-[#6D28D9]/25 bg-[#6D28D9]/[0.05] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-purple-500/10 text-purple-400">
+            <div className="p-1.5 rounded-lg bg-[#6D28D9]/15 text-[#6D28D9]">
               <UserPlus className="w-4 h-4" />
             </div>
             <h3 className="text-sm font-bold text-slate-200">Quick Add Customer</h3>
@@ -349,7 +349,7 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
 
         <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
           {error && (
-            <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-2 rounded-lg">
+            <div className="text-xs text-slate-200 bg-[#6D28D9]/15 border border-[#6D28D9]/40 px-3 py-2 rounded-lg">
               {error}
             </div>
           )}

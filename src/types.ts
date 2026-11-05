@@ -52,6 +52,8 @@ export interface Payment {
   createdAt?: number;
   updatedBy: string;
   actionType: 'create' | 'update' | 'delete';
+  receiptImage?: string;
+  receiptText?: string;
 }
 
 export interface Adjustment {
@@ -120,6 +122,8 @@ export interface FleetExpense {
   rate?: number;
   station: string;
   product?: FleetProduct | string;
+  receiptImage?: string;
+  receiptText?: string;
 }
 
 export interface UserProfile {

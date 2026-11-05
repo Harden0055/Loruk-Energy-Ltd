@@ -17,13 +17,15 @@ import {
   DollarSign, 
   CarFront, 
   Building2, 
-  ExternalLink 
+  ExternalLink,
+  Paperclip 
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSync } from '../lib/sync';
 import { useTheme } from '../lib/theme';
 import { format } from 'date-fns';
 import { Customer } from '../types';
+import ReceiptProofModal, { ReceiptProofData } from '../components/ReceiptProofModal';
 
 export default function Dashboard({ 
   selectedStation, 
@@ -54,6 +56,7 @@ export default function Dashboard({
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [liveTab, setLiveTab] = useState<'transactions' | 'customers' | 'trucks'>('transactions');
   const [txFilter, setTxFilter] = useState<'all' | 'delivery' | 'payment' | 'fleet'>('all');
+  const [viewingReceipt, setViewingReceipt] = useState<ReceiptProofData | null>(null);
 
   const handleClearDemoData = async () => {
     setIsWiping(true);
@@ -264,6 +267,8 @@ export default function Dashboard({
     amount: number;
     station: string;
     createdBy: string;
+    receiptImage?: string;
+    receiptText?: string;
   }
 
   const allRecentTransactions: RecentTransaction[] = [
@@ -303,7 +308,9 @@ export default function Dashboard({
         litres: undefined,
         amount: p.amount || 0,
         station: (p as any).station || (selectedStation !== 'Combined' ? selectedStation : 'Accounts'),
-        createdBy: p.createdBy || 'Cashier'
+        createdBy: p.createdBy || 'Cashier',
+        receiptImage: p.receiptImage,
+        receiptText: p.receiptText
       };
     }),
     // Fleet Fueling
@@ -320,7 +327,9 @@ export default function Dashboard({
       litres: e.litres || 0,
       amount: e.amount || 0,
       station: e.station || 'Station',
-      createdBy: e.createdBy || 'Attendant'
+      createdBy: e.createdBy || 'Attendant',
+      receiptImage: e.receiptImage,
+      receiptText: e.receiptText
     }))
   ].sort((a, b) => b.date - a.date);
 
@@ -491,7 +500,7 @@ export default function Dashboard({
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0">
                         {tx.kind === 'delivery' && (
-                          <div className="w-7 h-7 rounded-lg bg-purple-500/15 border border-purple-500/30 text-purple-300 flex items-center justify-center">
+                          <div className="w-7 h-7 rounded-lg bg-[#6D28D9]/15 border border-[#6D28D9]/30 text-[#6D28D9] flex items-center justify-center">
                             <Fuel className="w-3.5 h-3.5" />
                           </div>
                         )}
@@ -613,8 +622,8 @@ export default function Dashboard({
                     className="p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 transition-all flex items-center justify-between gap-3 text-xs cursor-pointer group"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-7 h-7 rounded-lg bg-purple-500/15 border border-purple-500/30 text-[#7C3AED] flex items-center justify-center shrink-0">
-                        <Truck className="w-3.5 h-3.5 text-[#7C3AED]" />
+                      <div className="w-7 h-7 rounded-lg bg-[#6D28D9]/15 border border-[#6D28D9]/30 text-[#6D28D9] flex items-center justify-center shrink-0">
+                        <Truck className="w-3.5 h-3.5 text-[#6D28D9]" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
@@ -676,7 +685,7 @@ export default function Dashboard({
                      cursor={{fill: `${activeConfig.secondaryColor}15`, opacity: 0.2}} 
                      formatter={(value: number) => [formatCurrency(value), 'Total Amount']}
                    />
-                   <Bar dataKey="totalAmount" fill={activeConfig.secondaryColor} radius={[0, 4, 4, 0]} barSize={10} name="Total Amount" />
+                   <Bar dataKey="totalAmount" fill="#6D28D9" radius={[0, 4, 4, 0]} barSize={10} name="Total Amount" />
                  </BarChart>
                </ResponsiveContainer>
              )}
@@ -781,7 +790,7 @@ export default function Dashboard({
                       <td className="modern-td">
                         <div className="flex items-center gap-2">
                           {tx.kind === 'delivery' && (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase px-2 py-0.5 rounded-md bg-purple-500/15 text-purple-300 border border-purple-500/30">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase px-2 py-0.5 rounded-md bg-[#6D28D9]/15 text-[#6D28D9] border border-[#6D28D9]/30">
                               <Fuel className="w-3 h-3" />
                               Delivery
                             </span>
@@ -854,14 +863,38 @@ export default function Dashboard({
 
                       {/* Amount */}
                       <td className="modern-td">
-                        <span className={`font-mono font-bold text-sm ${
-                          tx.kind === 'payment'
-                            ? '!text-[#059669]'
-                            : '!text-[#9333EA]'
-                        }`}>
-                          {tx.kind === 'payment' ? '+ ' : ''}
-                          {formatCurrency(tx.amount)}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`font-mono font-bold text-sm ${
+                            tx.kind === 'payment'
+                              ? '!text-[#059669]'
+                              : '!text-[#6D28D9]'
+                          }`}>
+                            {tx.kind === 'payment' ? '+ ' : ''}
+                            {formatCurrency(tx.amount)}
+                          </span>
+                          {(tx.receiptImage || tx.receiptText) && (
+                            <button
+                              type="button"
+                              onClick={(ev) => {
+                                ev.stopPropagation();
+                                setViewingReceipt({
+                                  title: `${tx.partyName} - ${tx.title} Proof`,
+                                  amount: tx.amount,
+                                  date: tx.date,
+                                  receiptImage: tx.receiptImage,
+                                  receiptText: tx.receiptText,
+                                  entityName: tx.partyName,
+                                  category: tx.title
+                                });
+                              }}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-[#6D28D9]/20 text-[#A78BFA] hover:bg-[#6D28D9]/35 border border-[#6D28D9]/40 transition-colors cursor-pointer shrink-0"
+                              title="View receipt proof (image or text memo)"
+                            >
+                              <Paperclip className="w-3 h-3 text-[#A78BFA]" />
+                              <span>Receipt</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
 
                       {/* Processed By */}
@@ -882,13 +915,18 @@ export default function Dashboard({
         </div>
       </div>
 
+      <ReceiptProofModal 
+        isOpen={Boolean(viewingReceipt)}
+        onClose={() => setViewingReceipt(null)}
+        proof={viewingReceipt}
+      />
     </div>
   );
 }
 
 function MetricCard({ title, value, icon: Icon, color }: any) {
   return (
-    <div className="glass-panel p-5 rounded-[20px] transition-all duration-300 hover:translate-y-[-2px] hover:shadow-[0_0_30px_rgba(139,92,246,0.2)] hover:border-purple-500/40 flex flex-col justify-between min-h-[128px]">
+    <div className="glass-panel p-5 rounded-[20px] transition-all duration-300 hover:translate-y-[-2px] hover:shadow-[0_0_30px_rgba(109,40,217,0.2)] hover:border-[#6D28D9]/40 flex flex-col justify-between min-h-[128px]">
       <div className="flex items-start justify-between gap-3">
         <p className="text-[11px] font-semibold tracking-wider text-[#A1A1AA] uppercase">{title}</p>
         <div className="w-8 h-8 rounded-xl shrink-0 bg-white/5 border border-white/10 flex items-center justify-center">

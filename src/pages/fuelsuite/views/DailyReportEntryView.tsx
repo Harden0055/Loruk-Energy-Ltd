@@ -1478,9 +1478,9 @@ export default function DailyReportEntryView({
             <button
               type="button"
               onClick={addExpenseRow}
-              className="px-2.5 py-1.5 bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1.5 bg-[#6D28D9]/15 hover:bg-[#6D28D9]/25 text-slate-100 border border-[#6D28D9]/30 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-3.5 h-3.5 text-[#6D28D9]" />
               <span>Add Expense</span>
             </button>
           </div>

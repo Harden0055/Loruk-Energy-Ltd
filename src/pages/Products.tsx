@@ -132,14 +132,14 @@ export default function Products() {
         </div>
         <button 
           onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} 
-          className="flex items-center gap-2 px-4 py-2 bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 hover:shadow-[0_0_15px_rgba(124,58,237,0.2)] rounded-lg font-semibold transition-colors cursor-pointer text-sm"
+          className="flex items-center gap-2 px-4 py-2 bg-[#6D28D9]/15 hover:bg-[#6D28D9]/25 text-slate-100 border border-[#6D28D9]/30 hover:border-[#6D28D9]/50 rounded-lg font-semibold transition-colors cursor-pointer text-sm"
         >
           {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Product</>}
         </button>
       </div>
 
       {/* Product Separation Info Banner */}
-      <div className="glass-panel p-4 border border-purple-500/20 bg-purple-500/[0.03] rounded-xl flex items-start gap-3">
+      <div className="glass-panel p-4 border border-[#6D28D9]/30 bg-[#6D28D9]/[0.03] rounded-xl flex items-start gap-3">
         <div className="w-2 h-2 rounded-full bg-emerald-400 mt-1.5 shadow-[0_0_8px_#34D399] shrink-0" />
         <div className="text-xs space-y-1">
           <p className="font-bold text-slate-200">Main App & Fuel Suite Product Separation</p>

@@ -597,11 +597,11 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
             )}
           </button>
         </div>
-        <div className="flex items-center gap-3 w-full lg:w-auto p-2 bg-gradient-to-r from-purple-950/20 to-purple-900/10 border border-purple-800/30 rounded-xl shadow-inner">
+        <div className="flex items-center gap-3 w-full lg:w-auto p-2 bg-[#000000] border border-[#6D28D9]/30 rounded-xl shadow-inner">
           {selectedIds.length > 0 && (
             <button
               onClick={() => setShowBulkDeleteModal(true)}
-              className="w-full sm:w-auto bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              className="w-full sm:w-auto bg-[#6D28D9]/15 hover:bg-[#6D28D9]/25 text-slate-100 border border-[#6D28D9]/30 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               <Trash2 className="w-4 h-4" />
               Delete Selected ({selectedIds.length})
@@ -616,7 +616,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
           </button>
           <button 
             onClick={() => setShowAIModal(true)}
-            className="w-full sm:w-auto bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:border-purple-400 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full sm:w-auto bg-[#6D28D9]/10 hover:bg-[#6D28D9]/20 text-slate-100 border border-[#6D28D9]/30 hover:border-[#6D28D9]/50 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <Bot className="w-4 h-4" />
             AI Auto-Fill
@@ -626,7 +626,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
               setInitialForm(null);
               setIsAdding(true);
             }}
-            className="w-full sm:w-auto bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/40 hover:border-purple-400 hover:shadow-[0_0_15px_rgba(168,85,247,0.25)] px-4 py-2 rounded-lg text-lg font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full sm:w-auto bg-[#6D28D9]/20 hover:bg-[#6D28D9]/30 text-white border border-[#6D28D9]/40 hover:border-[#6D28D9]/60 px-4 py-2 rounded-lg text-lg font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             New Delivery
@@ -866,7 +866,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
                 style={{ width: `${stats.totalVolume > 0 ? (stats.brakeFluidVolume / stats.totalVolume) * 100 : 25}%` }}
               />
               <div 
-                className="bg-purple-500 h-full transition-all duration-500" 
+                className="bg-[#6D28D9] h-full transition-all duration-500" 
                 style={{ width: `${stats.totalVolume > 0 ? (stats.engineOilVolume / stats.totalVolume) * 100 : 25}%` }}
               />
             </div>
@@ -1442,7 +1442,7 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
                 <button
                   type="button"
                   onClick={() => setShowAddCustomerModal(true)}
-                  className="p-2.5 bg-purple-500/15 hover:bg-purple-500/25 text-purple-400 border border-purple-500/30 rounded-lg shrink-0 cursor-pointer flex items-center justify-center transition-colors shadow-sm"
+                  className="p-2.5 bg-[#6D28D9]/15 hover:bg-[#6D28D9]/25 text-[#6D28D9] border border-[#6D28D9]/30 rounded-lg shrink-0 cursor-pointer flex items-center justify-center transition-colors shadow-sm"
                   title="Add new customer shortcut"
                 >
                   <Plus className="w-4 h-4" />
@@ -1577,7 +1577,7 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
           </div>
           <div className="px-6 py-4 bg-[#000000] border-t border-white/10 flex justify-end gap-3">
              <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-gray-400 hover:text-white transition-colors cursor-pointer">Cancel</button>
-             <button type="submit" disabled={loading} className="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-base font-semibold transition-colors cursor-pointer shadow-md shadow-purple-600/30">Record Delivery</button>
+             <button type="submit" disabled={loading} className="px-5 py-2 bg-[#6D28D9] hover:bg-[#6D28D9]/90 text-white rounded-lg text-base font-semibold transition-colors cursor-pointer shadow-md shadow-[#6D28D9]/30">Record Delivery</button>
           </div>
         </form>
       </div>
