@@ -25,6 +25,7 @@ interface ReceiptProofModalProps {
 
 export default function ReceiptProofModal({ isOpen, onClose, proof }: ReceiptProofModalProps) {
   const [copied, setCopied] = useState(false);
+  const [imageCopied, setImageCopied] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
 
   if (!isOpen || !proof) return null;
@@ -40,6 +41,39 @@ export default function ReceiptProofModal({ isOpen, onClose, proof }: ReceiptPro
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy text', err);
+    }
+  };
+
+  const handleCopyImage = async () => {
+    if (!displayImage) return;
+    try {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.src = displayImage;
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth || img.width;
+      canvas.height = img.naturalHeight || img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(img, 0, 0);
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        try {
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob })
+          ]);
+          setImageCopied(true);
+          setTimeout(() => setImageCopied(false), 2000);
+        } catch (clipErr) {
+          console.error('Failed to write image to clipboard:', clipErr);
+        }
+      }, 'image/png');
+    } catch (err) {
+      console.error('Failed to copy image to clipboard', err);
     }
   };
 
@@ -112,11 +146,20 @@ export default function ReceiptProofModal({ isOpen, onClose, proof }: ReceiptPro
           {/* 1. Image Preview Section */}
           {displayImage && (
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
                   <ImageIcon className="w-3.5 h-3.5 text-[#6D28D9]" /> Receipt Scan / Slip Photo
                 </span>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={handleCopyImage}
+                    className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#6D28D9]/20 hover:bg-[#6D28D9]/30 text-[#A78BFA] border border-[#6D28D9]/40 transition-colors cursor-pointer"
+                    title="Copy receipt image to clipboard"
+                  >
+                    {imageCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-[#A78BFA]" />}
+                    <span>{imageCopied ? 'Image Copied!' : 'Copy Image'}</span>
+                  </button>
                   <button
                     type="button"
                     onClick={() => setIsZoomed(!isZoomed)}
@@ -128,7 +171,7 @@ export default function ReceiptProofModal({ isOpen, onClose, proof }: ReceiptPro
                   <button
                     type="button"
                     onClick={handleDownloadImage}
-                    className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#6D28D9]/20 hover:bg-[#6D28D9]/30 text-[#6D28D9] border border-[#6D28D9]/40 transition-colors cursor-pointer"
+                    className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-colors cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>Download</span>
@@ -151,17 +194,18 @@ export default function ReceiptProofModal({ isOpen, onClose, proof }: ReceiptPro
           {/* 2. Text Reference / Memo Section */}
           {displayText && (
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                  <FileText className="w-3.5 h-3.5 text-[#6D28D9]" /> Reference Memo / Receipt Text
+                  <FileText className="w-3.5 h-3.5 text-[#6D28D9]" /> Reference Memo / Receipt SMS
                 </span>
                 <button
                   type="button"
                   onClick={handleCopyText}
-                  className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg bg-[#6D28D9]/20 hover:bg-[#6D28D9]/30 text-[#A78BFA] border border-[#6D28D9]/40 transition-colors cursor-pointer shadow-xs"
+                  title="Copy reference memo or SMS to clipboard"
                 >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copied ? 'Copied!' : 'Copy'}</span>
+                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-[#A78BFA]" />}
+                  <span>{copied ? 'Copied Reference!' : 'Copy Reference / SMS'}</span>
                 </button>
               </div>
 

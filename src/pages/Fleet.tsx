@@ -3,7 +3,7 @@ import { useAuth } from '../lib/auth';
 import { useFleetExpenses, createFleetExpense, deleteFleetExpense, updateFleetExpense, useTrucks } from '../lib/db';
 import { formatCurrency, getStationColor } from '../lib/utils';
 import { format } from 'date-fns';
-import { Plus, Trash2, Download, Bot, Pencil, Truck, Paperclip } from 'lucide-react';
+import { Plus, Trash2, Download, Bot, Pencil, Truck, Paperclip, Copy, Check } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import AIInputModal from '../components/AIInputModal';
@@ -50,6 +50,7 @@ export default function Fleet({
   const [receiptImage, setReceiptImage] = useState<string | null>(null);
   const [receiptText, setReceiptText] = useState('');
   const [viewingReceipt, setViewingReceipt] = useState<ReceiptProofData | null>(null);
+  const [copiedExpenseId, setCopiedExpenseId] = useState<string | null>(null);
   
   useEffect(() => {
     if (CAR_REGISTRATIONS.length > 0 && (!carReg || !CAR_REGISTRATIONS.includes(carReg))) {
@@ -304,10 +305,10 @@ export default function Fleet({
         product: product || 'Diesel',
         amount: Number(amount), 
         date: new Date(date).getTime(), 
-        createdBy: user?.email || 'Unknown',
-        receiptImage: receiptImage || undefined,
-        receiptText: receiptText.trim() || undefined
+        createdBy: user?.email || 'Unknown'
       };
+      if (receiptImage) data.receiptImage = receiptImage;
+      if (receiptText.trim()) data.receiptText = receiptText.trim();
       if (litres && !isNaN(Number(litres))) data.litres = Number(litres);
       if (rate && !isNaN(Number(rate))) {
         data.rate = Number(rate);
@@ -932,7 +933,7 @@ export default function Fleet({
                 </td>
                 <td className="modern-td">{e.litres ? `${e.litres.toLocaleString()} L` : '-'}</td>
                 <td className="modern-td !text-[#6D28D9] font-mono font-bold text-base">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <span>{formatCurrency(e.amount)}</span>
                     {(e.receiptImage || e.receiptText) && (
                       <button
@@ -954,6 +955,26 @@ export default function Fleet({
                       >
                         <Paperclip className="w-3 h-3 text-[#A78BFA]" />
                         <span>Receipt</span>
+                      </button>
+                    )}
+                    {e.receiptText && (
+                      <button
+                        type="button"
+                        onClick={async (ev) => {
+                          ev.stopPropagation();
+                          try {
+                            await navigator.clipboard.writeText(e.receiptText!);
+                            setCopiedExpenseId(e.id);
+                            setTimeout(() => setCopiedExpenseId(null), 2000);
+                          } catch (err) {
+                            console.error('Failed to copy', err);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-colors cursor-pointer shrink-0"
+                        title={`Copy reference: ${e.receiptText}`}
+                      >
+                        {copiedExpenseId === e.id ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5 text-slate-400" />}
+                        <span>{copiedExpenseId === e.id ? 'Copied' : 'Copy Ref'}</span>
                       </button>
                     )}
                   </div>

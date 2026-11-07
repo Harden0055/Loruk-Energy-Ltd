@@ -16,6 +16,7 @@ import {
   useInvoicePayments,
   useProducts
 } from '../lib/operationsDb';
+import { Customer, Delivery, Payment, Adjustment } from '../types';
 import { formatCurrency, formatLitres } from '../lib/utils';
 import { useAuth } from '../lib/auth';
 import { format } from 'date-fns';
@@ -36,6 +37,8 @@ import {
   FileText,
   Wallet,
   Paperclip,
+  Copy,
+  Check,
   X
 } from 'lucide-react';
 import ReceiptProofUploader from '../components/ReceiptProofUploader';
@@ -140,6 +143,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [paymentReceiptImage, setPaymentReceiptImage] = useState<string | null>(null);
   const [paymentReceiptText, setPaymentReceiptText] = useState('');
   const [viewingReceipt, setViewingReceipt] = useState<ReceiptProofData | null>(null);
+  const [copiedTxId, setCopiedTxId] = useState<string | null>(null);
   const [adjustType, setAdjustType] = useState<'credit' | 'debit'>('credit');
   const [adjustAmount, setAdjustAmount] = useState('');
   const [adjustDate, setAdjustDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -728,44 +732,46 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
     setModalLoading(true);
     try {
-      // 1. Find the first unpaid invoice for this customer
-      const invoice = invoices.find(i => i.customerName === customer.name && i.balance > 0);
-      
-      const paymentPromises = [
-        createPayment({
-          customerId: customer.id,
-          date: parseDateToTimestamp(paymentDate),
-          amount: amountVal,
-          createdBy: user?.email || 'Unknown',
-          receiptImage: paymentReceiptImage || undefined,
-          receiptText: paymentReceiptText.trim() || undefined
-        }, user?.email || 'Unknown'),
-        updateCustomer(customer.id, {}, { balance: -amountVal }, user?.email || 'Unknown')
-      ];
+      // Build clean payment payload without undefined properties
+      const paymentData: Omit<Payment, 'id' | 'updatedBy' | 'actionType'> = {
+        customerId: customer.id,
+        date: parseDateToTimestamp(paymentDate),
+        amount: amountVal,
+        createdBy: user?.email || 'Unknown'
+      };
+      if (paymentReceiptImage) {
+        paymentData.receiptImage = paymentReceiptImage;
+      }
+      if (paymentReceiptText.trim()) {
+        paymentData.receiptText = paymentReceiptText.trim();
+      }
 
-      // 2. If invoice found, update it
+      await createPayment(paymentData, user?.email || 'Unknown');
+      await updateCustomer(customer.id, {}, { balance: -amountVal }, user?.email || 'Unknown');
+
+      // Reconcile invoice if matching open invoice found
+      const invoice = invoices.find(i => i.customerName === customer.name && i.balance > 0);
       if (invoice) {
-        const newPaidAmount = Math.min(invoice.invoiceAmount, (invoice.paidAmount || 0) + amountVal);
-        const newBalance = invoice.invoiceAmount - newPaidAmount;
-        
-        paymentPromises.push(
-            updateDailyInvoice(invoice.id!, {
-                paidAmount: newPaidAmount,
-                balance: newBalance,
-                status: newBalance <= 0 ? 'PAID' : 'PARTIAL'
-            })
-        );
+        try {
+          const newPaidAmount = Math.min(invoice.invoiceAmount, (invoice.paidAmount || 0) + amountVal);
+          const newBalance = invoice.invoiceAmount - newPaidAmount;
+          await updateDailyInvoice(invoice.id!, {
+            paidAmount: newPaidAmount,
+            balance: newBalance,
+            status: newBalance <= 0 ? 'PAID' : 'PARTIAL'
+          });
+        } catch (invErr) {
+          console.warn('Invoice balance update notice:', invErr);
+        }
       }
 
       setActiveModal(null);
       setPaymentAmount('');
       setPaymentReceiptImage(null);
       setPaymentReceiptText('');
-
-      await Promise.all(paymentPromises);
-    } catch (err) {
-      console.error(err);
-      alert('Error recording payment');
+    } catch (err: any) {
+      console.error('Payment creation error:', err);
+      alert(`Error recording payment: ${err?.message || 'Please check the values and try again'}`);
     } finally {
       setModalLoading(false);
     }
@@ -947,41 +953,47 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
       {/* Compressed Stats Row (4 compact columns) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-        {/* Card 1: Outstanding Balance */}
+        {/* Card 1: Outstanding Balance & Advance & Exceeded Limit */}
         <div className={`glass-panel rounded-xl px-3.5 py-2.5 shadow-sm border ${
           calculatedBalance < 0 
             ? 'border-emerald-500/40 bg-emerald-500/[0.04]' 
-            : calculatedBalance > 0
-              ? 'border-[#6D28D9]/40 bg-[#6D28D9]/[0.04]'
-              : 'border-white/[0.08] bg-[#000000]'
+            : 'border-[#6D28D9]/40 bg-[#6D28D9]/[0.04]'
         }`}>
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-extrabold text-theme-text-muted uppercase tracking-wider">Outstanding Balance</span>
+            <span className={`text-[10px] font-extrabold uppercase tracking-wider ${
+              calculatedBalance < 0 ? 'text-[#059669]' : 'text-[#6D28D9]'
+            }`}>
+              {calculatedBalance < 0 ? 'Advance' : 'Outstanding Balance'}
+            </span>
             <button
               onClick={verifyBalance}
-              className="text-[9px] text-[#6D28D9] hover:text-purple-300 font-bold px-1.5 py-0.5 rounded bg-[#6D28D9]/15 border border-[#6D28D9]/30 cursor-pointer"
+              className={`text-[9px] font-bold px-1.5 py-0.5 rounded border cursor-pointer transition-colors ${
+                calculatedBalance < 0 
+                  ? 'text-[#059669] bg-emerald-500/15 border-emerald-500/30 hover:bg-emerald-500/25' 
+                  : 'text-[#6D28D9] bg-[#6D28D9]/15 border-[#6D28D9]/30 hover:bg-[#6D28D9]/25'
+              }`}
               title="Verify Balance Calculation"
             >
               Verify
             </button>
           </div>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className={`text-xs font-bold ${calculatedBalance < 0 ? 'text-[#059669]' : calculatedBalance > 0 ? 'text-[#6D28D9]' : 'text-theme-text-muted'}`}>Ksh</span>
+            <span className={`text-xs font-bold ${calculatedBalance < 0 ? 'text-[#059669]' : 'text-[#6D28D9]'}`}>Ksh</span>
             <span className={`text-base sm:text-lg font-black font-mono tracking-tight leading-none ${
-              calculatedBalance < 0 ? 'text-[#059669]' : calculatedBalance > 0 ? 'text-[#6D28D9]' : 'text-slate-400'
+              calculatedBalance < 0 ? 'text-[#059669]' : 'text-[#6D28D9]'
             }`}>
               {calculatedBalance < 0 ? '-' : ''}{Math.abs(calculatedBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div className="mt-1 text-[10px] truncate">
             {calculatedBalance < 0 ? (
-              <span className="text-[#059669] font-bold">Advance Balance Credit</span>
+              <span className="text-[#059669] font-bold">Advance</span>
             ) : isCreditRisk ? (
-              <span className="text-[#6D28D9] font-bold">Credit Limit Exceeded</span>
+              <span className="text-[#6D28D9] font-extrabold">Credit Limit Exceeded</span>
             ) : calculatedBalance > 0 ? (
               <span className="text-[#6D28D9] font-bold">Receivable Balance Owed</span>
             ) : (
-              <span className="text-slate-400 font-bold">Settled (Nil Balance)</span>
+              <span className="text-[#6D28D9] font-bold">Settled (Nil Balance)</span>
             )}
           </div>
         </div>
@@ -1008,10 +1020,10 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           </div>
         </div>
 
-        {/* Card 3: Total Deliveries - Purple */}
-        <div className="glass-panel rounded-xl px-3.5 py-2.5 shadow-sm border border-[#6D28D9]/30 bg-[#6D28D9]/[0.03]">
+        {/* Card 3: Total Deliveries - Deep Purple Violet */}
+        <div className="glass-panel rounded-xl px-3.5 py-2.5 shadow-sm border border-[#6D28D9]/40 bg-[#6D28D9]/[0.04]">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-extrabold text-theme-text-muted uppercase tracking-wider">Total Deliveries</span>
+            <span className="text-[10px] font-extrabold text-[#6D28D9] uppercase tracking-wider">Total Deliveries</span>
             <span className="text-[10px] font-mono text-[#6D28D9] font-bold bg-[#6D28D9]/15 px-1.5 py-0.5 rounded border border-[#6D28D9]/30">
               {totalFuelLitres.toLocaleString()} L
             </span>
@@ -1022,15 +1034,15 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
-          <div className="mt-1 text-[10px] text-theme-text-muted font-medium">
+          <div className="mt-1 text-[10px] text-[#6D28D9]/80 font-medium">
             {customerDeliveries.length} orders dispensed
           </div>
         </div>
 
-        {/* Card 4: Total Payments Received - Deep Green */}
-        <div className="glass-panel rounded-xl px-3.5 py-2.5 shadow-sm border border-emerald-500/30 bg-emerald-500/[0.03]">
+        {/* Card 4: Total Payments Received - Green */}
+        <div className="glass-panel rounded-xl px-3.5 py-2.5 shadow-sm border border-emerald-500/40 bg-emerald-500/[0.04]">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-extrabold text-theme-text-muted uppercase tracking-wider">Total Received</span>
+            <span className="text-[10px] font-extrabold text-[#059669] uppercase tracking-wider">Total Received</span>
             <span className="text-[10px] font-mono text-[#059669] font-bold bg-emerald-500/15 px-1.5 py-0.5 rounded border border-emerald-500/25">
               {customerPayments.length} receipts
             </span>
@@ -1335,7 +1347,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                         </div>
                       </td>
                       <td className="px-4 sm:px-6 py-3.5 text-xs sm:text-sm font-medium text-theme-text-muted max-w-[200px] sm:max-w-[280px]" title={e.description}>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="truncate">{e.description}</span>
                           {((e as any).receiptImage || (e as any).receiptText) && (
                             <button
@@ -1357,6 +1369,26 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                             >
                               <Paperclip className="w-3 h-3 text-[#A78BFA]" />
                               <span>Receipt</span>
+                            </button>
+                          )}
+                          {(e as any).receiptText && (
+                            <button
+                              type="button"
+                              onClick={async (ev) => {
+                                ev.stopPropagation();
+                                try {
+                                  await navigator.clipboard.writeText((e as any).receiptText);
+                                  setCopiedTxId(e.id);
+                                  setTimeout(() => setCopiedTxId(null), 2000);
+                                } catch (err) {
+                                  console.error('Failed to copy', err);
+                                }
+                              }}
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-colors cursor-pointer shrink-0"
+                              title={`Copy reference: ${(e as any).receiptText}`}
+                            >
+                              {copiedTxId === e.id ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5 text-slate-400" />}
+                              <span>{copiedTxId === e.id ? 'Copied' : 'Copy Ref'}</span>
                             </button>
                           )}
                         </div>
@@ -1402,12 +1434,12 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   Reconciliation Summary & Total Position
                 </td>
                 <td className="px-4 sm:px-6 py-4 text-right font-mono text-xs text-theme-text-muted whitespace-nowrap">
-                  <span className="block text-[10px] uppercase font-sans tracking-widest text-slate-400">Total Purchases</span>
-                  <span className="!text-[#8B5CF6] font-mono font-bold">Ksh {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  <span className="block text-[10px] uppercase font-sans tracking-widest text-[#6D28D9]">Total Purchases</span>
+                  <span className="!text-[#6D28D9] font-mono font-bold">Ksh {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </td>
                 <td className="px-4 sm:px-6 py-4 text-right font-mono font-black text-sm sm:text-base whitespace-nowrap">
                   <span className="block text-[10px] uppercase font-sans tracking-widest text-slate-400">Final Closing Balance</span>
-                  <span className={calculatedBalance > 0 ? '!text-[#8B5CF6]' : calculatedBalance < 0 ? '!text-[#059669]' : '!text-white'}>
+                  <span className={calculatedBalance > 0 ? '!text-[#6D28D9]' : calculatedBalance < 0 ? '!text-[#059669]' : '!text-white'}>
                     {calculatedBalance < 0 ? '-' : ''}Ksh {Math.abs(calculatedBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </td>

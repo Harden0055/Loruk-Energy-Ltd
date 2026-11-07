@@ -157,6 +157,16 @@ export function useStationReports() {
   return { reports: data, loading };
 }
 
+export function sanitizePayload<T extends Record<string, any>>(obj: T): T {
+  const result: any = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
 // ---------------- MUTATIONS WRAPPER ----------------
 
 enum OperationType {
@@ -224,7 +234,7 @@ async function executeDbMutation(
     if (localOp) {
       const localResult = localOp();
       const finalDocId = docId || localResult?.id || `local_${Date.now()}`;
-      const finalData = dataPayload || localResult || {};
+      const finalData = dataPayload ? sanitizePayload(dataPayload) : (localResult || {});
       
       addToSyncQueue(collectionName, action || 'create', finalDocId, finalData);
       return localResult;
@@ -236,6 +246,7 @@ async function executeDbMutation(
     const result = await firebaseOp();
     return result;
   } catch (error: any) {
+    console.error(`executeDbMutation error on ${collectionName}:`, error);
     const isNetworkError = error?.code === 'unavailable' || 
                            error?.code === 'deadline-exceeded' ||
                            error?.message?.toLowerCase().includes('network') ||
@@ -245,7 +256,7 @@ async function executeDbMutation(
       console.warn('Network issue detected. Saving update locally and queueing for background sync...');
       const localResult = localOp();
       const finalDocId = docId || localResult?.id || `local_${Date.now()}`;
-      const finalData = dataPayload || localResult || {};
+      const finalData = dataPayload ? sanitizePayload(dataPayload) : (localResult || {});
       
       addToSyncQueue(collectionName, action || 'create', finalDocId, finalData);
       return localResult;
@@ -258,11 +269,11 @@ async function executeDbMutation(
 // ---------------- MUTATIONS ----------------
 
 export const createCustomer = async (data: Omit<Customer, 'id' | 'createdAt' | 'updatedAt'>) => {
-  const payload = {
+  const payload = sanitizePayload({
     ...data,
     createdAt: Date.now(),
     updatedAt: Date.now()
-  };
+  });
   return executeDbMutation(
     'customers',
     () => addDoc(collection(db, 'customers'), payload),
@@ -274,12 +285,12 @@ export const createCustomer = async (data: Omit<Customer, 'id' | 'createdAt' | '
 };
 
 export const createDelivery = async (data: Omit<Delivery, 'id' | 'updatedBy' | 'actionType'>, userEmail: string) => {
-  const payload = {
+  const payload = sanitizePayload({
     ...data,
     createdAt: Date.now(),
     updatedBy: userEmail,
     actionType: 'create' as const
-  };
+  });
   return executeDbMutation(
     'deliveries',
     () => addDoc(collection(db, 'deliveries'), payload),
@@ -291,12 +302,12 @@ export const createDelivery = async (data: Omit<Delivery, 'id' | 'updatedBy' | '
 };
 
 export const createPayment = async (data: Omit<Payment, 'id' | 'updatedBy' | 'actionType'>, userEmail: string) => {
-  const payload = {
+  const payload = sanitizePayload({
     ...data,
     createdAt: Date.now(),
     updatedBy: userEmail,
     actionType: 'create' as const
-  };
+  });
   return executeDbMutation(
     'payments',
     () => addDoc(collection(db, 'payments'), payload),
@@ -308,12 +319,12 @@ export const createPayment = async (data: Omit<Payment, 'id' | 'updatedBy' | 'ac
 };
 
 export const createAdjustment = async (data: Omit<Adjustment, 'id' | 'updatedBy' | 'actionType'>, userEmail: string) => {
-  const payload = {
+  const payload = sanitizePayload({
     ...data,
     createdAt: Date.now(),
     updatedBy: userEmail,
     actionType: 'create' as const
-  };
+  });
   return executeDbMutation(
     'adjustments',
     () => addDoc(collection(db, 'adjustments'), payload),
@@ -325,13 +336,14 @@ export const createAdjustment = async (data: Omit<Adjustment, 'id' | 'updatedBy'
 };
 
 export const createFleetExpense = async (data: Omit<FleetExpense, 'id'>) => {
+  const payload = sanitizePayload({ ...data });
   return executeDbMutation(
     'fleetExpenses',
-    () => addDoc(collection(db, 'fleetExpenses'), data),
-    () => addLocalDoc('fleetExpenses', data),
+    () => addDoc(collection(db, 'fleetExpenses'), payload),
+    () => addLocalDoc('fleetExpenses', payload),
     'create',
     undefined,
-    data
+    payload
   );
 };
 
@@ -428,7 +440,7 @@ export const deleteDelivery = async (id: string) => {
 };
 
 export const updateDelivery = async (id: string, data: Partial<Delivery>) => {
-  const payload = { ...data, updatedAt: Date.now() };
+  const payload = sanitizePayload({ ...data, updatedAt: Date.now() });
   return executeDbMutation(
     'deliveries',
     () => updateDoc(doc(db, 'deliveries', id), payload),
@@ -450,7 +462,7 @@ export const deletePayment = async (id: string) => {
 };
 
 export const updatePayment = async (id: string, data: Partial<Payment>) => {
-  const payload = { ...data, updatedAt: Date.now() };
+  const payload = sanitizePayload({ ...data, updatedAt: Date.now() });
   return executeDbMutation(
     'payments',
     () => updateDoc(doc(db, 'payments', id), payload),
@@ -462,7 +474,7 @@ export const updatePayment = async (id: string, data: Partial<Payment>) => {
 };
 
 export const updateFleetExpense = async (id: string, data: Partial<FleetExpense>) => {
-  const payload = { ...data };
+  const payload = sanitizePayload({ ...data });
   return executeDbMutation(
     'fleetExpenses',
     () => updateDoc(doc(db, 'fleetExpenses', id), payload),
@@ -503,17 +515,19 @@ export async function recalculateCustomerBalance(
 }
 
 export const updateCustomer = async (id: string, data: Partial<Customer>, increments?: Record<string, number>, userEmail?: string) => {
-  const payload: any = {
+  const payload: any = sanitizePayload({
     ...data,
     updatedAt: Date.now(),
     updatedBy: userEmail || 'Unknown',
     actionType: 'update' as const
-  };
+  });
 
   const updateData: any = { ...payload };
   if (increments) {
     for (const [key, val] of Object.entries(increments)) {
-      updateData[key] = increment(val);
+      if (typeof val === 'number' && !isNaN(val)) {
+        updateData[key] = increment(val);
+      }
     }
   }
 

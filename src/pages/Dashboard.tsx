@@ -18,7 +18,9 @@ import {
   CarFront, 
   Building2, 
   ExternalLink,
-  Paperclip 
+  Paperclip,
+  Copy,
+  Check 
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSync } from '../lib/sync';
@@ -57,6 +59,7 @@ export default function Dashboard({
   const [liveTab, setLiveTab] = useState<'transactions' | 'customers' | 'trucks'>('transactions');
   const [txFilter, setTxFilter] = useState<'all' | 'delivery' | 'payment' | 'fleet'>('all');
   const [viewingReceipt, setViewingReceipt] = useState<ReceiptProofData | null>(null);
+  const [copiedTxId, setCopiedTxId] = useState<string | null>(null);
 
   const handleClearDemoData = async () => {
     setIsWiping(true);
@@ -892,6 +895,26 @@ export default function Dashboard({
                             >
                               <Paperclip className="w-3 h-3 text-[#A78BFA]" />
                               <span>Receipt</span>
+                            </button>
+                          )}
+                          {tx.receiptText && (
+                            <button
+                              type="button"
+                              onClick={async (ev) => {
+                                ev.stopPropagation();
+                                try {
+                                  await navigator.clipboard.writeText(tx.receiptText!);
+                                  setCopiedTxId(tx.id);
+                                  setTimeout(() => setCopiedTxId(null), 2000);
+                                } catch (err) {
+                                  console.error('Failed to copy', err);
+                                }
+                              }}
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-colors cursor-pointer shrink-0"
+                              title={`Copy reference: ${tx.receiptText}`}
+                            >
+                              {copiedTxId === tx.id ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5 text-slate-400" />}
+                              <span>{copiedTxId === tx.id ? 'Copied' : 'Copy Ref'}</span>
                             </button>
                           )}
                         </div>

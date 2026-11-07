@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { usePayments, createPayment, useCustomers, updateCustomer, deletePayment, updatePayment } from '../lib/db';
 import { formatCurrency } from '../lib/utils';
 import { useAuth } from '../lib/auth';
-import { Search, Plus, Bot, Trash2, AlertTriangle, Pencil, X, Paperclip } from 'lucide-react';
+import { Search, Plus, Bot, Trash2, AlertTriangle, Pencil, X, Paperclip, Copy, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { Payment } from '../types';
 import AIInputModal from '../components/AIInputModal';
@@ -32,6 +32,7 @@ export default function Payments({ onViewCustomer, initialAction }: { onViewCust
   const [showAIModal, setShowAIModal] = useState(false);
   const [initialForm, setInitialForm] = useState<any>(null);
   const [viewingReceipt, setViewingReceipt] = useState<ReceiptProofData | null>(null);
+  const [copiedTxId, setCopiedTxId] = useState<string | null>(null);
 
   React.useEffect(() => {
     if (initialAction === 'add') {
@@ -145,7 +146,7 @@ export default function Payments({ onViewCustomer, initialAction }: { onViewCust
                   <td className="modern-td">{format(p.date, 'MMM d, yyyy HH:mm')}</td>
                   <td className="modern-td"><button className="hover:underline text-[#7C3AED] hover:text-purple-300 cursor-pointer font-bold transition-colors" onClick={() => onViewCustomer?.(p.customerId)}>{customers.find(c => c.id === p.customerId)?.name || 'Unknown'}</button></td>
                   <td className="modern-td !text-[#059669] font-bold font-mono text-base">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <span>{formatCurrency(p.amount)}</span>
                       {(p.receiptImage || p.receiptText) && (
                         <button
@@ -167,6 +168,26 @@ export default function Payments({ onViewCustomer, initialAction }: { onViewCust
                         >
                           <Paperclip className="w-3 h-3 text-[#A78BFA]" />
                           <span>Receipt</span>
+                        </button>
+                      )}
+                      {p.receiptText && (
+                        <button
+                          type="button"
+                          onClick={async (ev) => {
+                            ev.stopPropagation();
+                            try {
+                              await navigator.clipboard.writeText(p.receiptText!);
+                              setCopiedTxId(p.id);
+                              setTimeout(() => setCopiedTxId(null), 2000);
+                            } catch (err) {
+                              console.error('Failed to copy', err);
+                            }
+                          }}
+                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-colors cursor-pointer shrink-0"
+                          title={`Copy reference: ${p.receiptText}`}
+                        >
+                          {copiedTxId === p.id ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5 text-slate-400" />}
+                          <span>{copiedTxId === p.id ? 'Copied' : 'Copy Ref'}</span>
                         </button>
                       )}
                     </div>
@@ -281,32 +302,36 @@ export function AddPaymentModal({ onClose, customers, initialData }: { onClose: 
         }
 
         // 2. Update payment document
-        await updatePayment(initialData.id, {
+        const updatePayload: Partial<Payment> = {
           customerId: form.customerId,
           date: newTimestamp,
-          amount: amountVal,
-          receiptImage: receiptImage || undefined,
-          receiptText: receiptText.trim() || undefined
-        });
+          amount: amountVal
+        };
+        if (receiptImage) updatePayload.receiptImage = receiptImage;
+        if (receiptText.trim()) updatePayload.receiptText = receiptText.trim();
+
+        await updatePayment(initialData.id, updatePayload);
       } else {
         // Normal Create Mode
-        await createPayment({ 
+        const createPayload: Omit<Payment, 'id' | 'updatedBy' | 'actionType'> = { 
           customerId: form.customerId, 
           date: newTimestamp,
           amount: amountVal,
-          createdBy: user?.uid || 'unknown',
-          receiptImage: receiptImage || undefined,
-          receiptText: receiptText.trim() || undefined
-        }, user?.email || 'system');
+          createdBy: user?.uid || user?.email || 'unknown'
+        };
+        if (receiptImage) createPayload.receiptImage = receiptImage;
+        if (receiptText.trim()) createPayload.receiptText = receiptText.trim();
+
+        await createPayment(createPayload, user?.email || 'system');
         const customer = customers.find(c => c.id === form.customerId);
         if (customer) {
           await updateCustomer(customer.id, {}, { balance: -amountVal });
         }
       }
       onClose();
-    } catch (err) {
-      console.error(err);
-      alert(isEditing ? 'Failed to update payment' : 'Failed to record payment');
+    } catch (err: any) {
+      console.error('Payment submit error:', err);
+      alert(isEditing ? `Failed to update payment: ${err?.message || ''}` : `Failed to record payment: ${err?.message || ''}`);
       setLoading(false);
     }
   };
