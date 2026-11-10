@@ -114,7 +114,7 @@ export default function ThemeToggle({ variant = 'button', className = '' }: Them
         <div>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Palette className="w-4 h-4 text-purple-400" />
+              <Palette className="w-4 h-4 text-violet-400" />
               <span className="text-xs font-bold uppercase tracking-wider text-slate-300">Aesthetic Color Atmosphere</span>
             </div>
             <span className="text-xs text-emerald-400 font-bold font-mono">DeepCharts Black</span>

@@ -838,7 +838,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
               <span className="text-amber-500 dark:text-amber-400 truncate">DSL: {formatLitres(stats.dieselVolume)} L</span>
               <span className="text-emerald-500 dark:text-emerald-400 truncate">SUP: {formatLitres(stats.superVolume)} L</span>
               <span className="text-blue-500 dark:text-blue-400 truncate">BRK: {formatLitres(stats.brakeFluidVolume)} L</span>
-              <span className="text-purple-500 dark:text-purple-400 truncate">OIL: {formatLitres(stats.engineOilVolume)} L</span>
+              <span className="text-violet-500 dark:text-violet-400 truncate">OIL: {formatLitres(stats.engineOilVolume)} L</span>
             </div>
             <div className="h-1.5 w-full glass-panel rounded-full overflow-hidden flex shrink-0">
               <div 
@@ -990,7 +990,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
                         <>
                           <button 
                             onClick={() => onViewCustomer?.(d.customerId)}
-                            className="hover:underline text-[#6D28D9] hover:text-purple-300 font-bold cursor-pointer text-left focus:outline-none"
+                            className="hover:underline text-[#6D28D9] hover:text-violet-300 font-bold cursor-pointer text-left focus:outline-none"
                           >
                             {customers.find(c => c.id === d.customerId)?.name || 'Unknown'}
                           </button>
@@ -1024,7 +1024,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
                             : (d.productType || '').toLowerCase().includes('brake')
                             ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400'
                             : (d.productType || '').toLowerCase().includes('oil')
-                            ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400'
+                            ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-400'
                             : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400'
                         }`}>
                           {d.productType}
@@ -1424,7 +1424,7 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
                   className="flex-1 min-w-0 px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-slate-200 font-semibold cursor-pointer outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm transition-colors text-base customer-select"
                 >
                   <option value="" disabled className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Select a customer</option>
-                  <option value="__ADD_NEW_CUSTOMER__" className="bg-[#1e1035] text-purple-300 font-bold">+ Add New Customer...</option>
+                  <option value="__ADD_NEW_CUSTOMER__" className="bg-[#1e1035] text-violet-300 font-bold">+ Add New Customer...</option>
                   {customers.map(c => <option key={c.id} value={c.id} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{c.name}</option>)}
                 </select>
                 <button
@@ -1470,7 +1470,7 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
                   localStorage.setItem('last_static_date', e.target.value);
                   localStorage.setItem('delivery_last_entered_date', e.target.value);
                 }}
-                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border rounded-lg text-slate-200 text-base shadow-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
+                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border rounded-lg text-slate-200 text-base shadow-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
               />
             </div>
             

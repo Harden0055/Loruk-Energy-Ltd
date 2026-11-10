@@ -72,7 +72,7 @@ export function QuickAddTruckModal({ isOpen, onClose, onSuccess }: QuickAddTruck
 
           <div>
             <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-              Vehicle Registration <span className="text-purple-400">*</span>
+              Vehicle Registration <span className="text-violet-400">*</span>
             </label>
             <input
               type="text"
@@ -81,7 +81,7 @@ export function QuickAddTruckModal({ isOpen, onClose, onSuccess }: QuickAddTruck
               placeholder="e.g. KDF 123Z"
               value={registration}
               onChange={e => setRegistration(e.target.value.toUpperCase())}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-mono font-bold focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+              className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-mono font-bold focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
             />
           </div>
 
@@ -92,7 +92,7 @@ export function QuickAddTruckModal({ isOpen, onClose, onSuccess }: QuickAddTruck
               placeholder="Driver's full name"
               value={driverName}
               onChange={e => setDriverName(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+              className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
             />
           </div>
 
@@ -104,7 +104,7 @@ export function QuickAddTruckModal({ isOpen, onClose, onSuccess }: QuickAddTruck
                 placeholder="e.g. Scania G460"
                 value={model}
                 onChange={e => setModel(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
               />
             </div>
             <div>
@@ -114,7 +114,7 @@ export function QuickAddTruckModal({ isOpen, onClose, onSuccess }: QuickAddTruck
                 placeholder="e.g. 15000"
                 value={capacity}
                 onChange={e => setCapacity(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-mono focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-mono focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
               />
             </div>
           </div>
@@ -131,7 +131,7 @@ export function QuickAddTruckModal({ isOpen, onClose, onSuccess }: QuickAddTruck
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-1.5 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-purple-900/30"
+              className="px-4 py-1.5 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-violet-900/30"
             >
               <Check className="w-3.5 h-3.5" />
               {loading ? 'Adding...' : 'Save Truck'}
@@ -356,7 +356,7 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
 
           <div>
             <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-              Customer Name <span className="text-purple-400">*</span>
+              Customer Name <span className="text-violet-400">*</span>
             </label>
             <input
               type="text"
@@ -365,7 +365,7 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
               placeholder="e.g. Al-Noor Logistics Ltd"
               value={name}
               onChange={e => setName(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-semibold focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+              className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-semibold focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
             />
           </div>
 
@@ -377,7 +377,7 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
                 placeholder="e.g. 500000"
                 value={creditLimit}
                 onChange={e => setCreditLimit(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-mono focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-mono focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
               />
             </div>
             <div>
@@ -387,7 +387,7 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
                 placeholder="0"
                 value={openingBalance}
                 onChange={e => setOpeningBalance(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-mono focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-mono focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
               />
             </div>
           </div>
@@ -404,7 +404,7 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-1.5 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-purple-900/30"
+              className="px-4 py-1.5 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-violet-900/30"
             >
               <Check className="w-3.5 h-3.5" />
               {loading ? 'Adding...' : 'Save Customer'}

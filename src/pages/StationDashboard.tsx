@@ -73,7 +73,7 @@ interface StationDashboardProps {
   onNavigateToPage?: (page: string) => void;
 }
 
-const PIE_COLORS = ['#38BDF8', '#3B82F6', '#F97316', '#10B981', '#A855F7', '#EC4899', '#EAB308'];
+const PIE_COLORS = ['#38BDF8', '#3B82F6', '#F97316', '#10B981', '#8B5CF6', '#EC4899', '#EAB308'];
 
 export default function StationDashboard({
   stationId,

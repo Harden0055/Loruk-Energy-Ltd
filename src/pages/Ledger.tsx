@@ -383,7 +383,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
 
       {selectedCustomer && (() => {
         const custBalance = filteredEntries.length > 0 ? filteredEntries[filteredEntries.length - 1].runningBalance : (selectedCustomer?.openingBalanceType === 'advance' ? -(selectedCustomer.openingBalance || 0) : (selectedCustomer?.openingBalance || 0));
-        const custBalanceColor = custBalance < 0 ? 'text-green-600 dark:text-green-400' : custBalance > 0 ? 'text-purple-600 dark:text-purple-400' : 'text-gray-900 dark:text-theme-text';
+        const custBalanceColor = custBalance < 0 ? 'text-green-600 dark:text-green-400' : custBalance > 0 ? 'text-violet-600 dark:text-violet-400' : 'text-gray-900 dark:text-theme-text';
         return (
         <div className="grid grid-cols-2 gap-4">
           <div className="glass-panel border border-theme-border p-6 rounded-xl shadow-sm">
@@ -401,13 +401,13 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
 
       <div className="bg-[#000000] border border-white/[0.08] p-6 rounded-xl shadow-sm flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-purple-400 mb-1">Total Outstanding Balance (All Entries)</p>
-          <h3 className={`text-3xl font-bold ${overallBalance < 0 ? 'text-green-400' : overallBalance > 0 ? 'text-purple-400' : 'text-white'}`}>
+          <p className="text-sm font-medium text-violet-400 mb-1">Total Outstanding Balance (All Entries)</p>
+          <h3 className={`text-3xl font-bold ${overallBalance < 0 ? 'text-green-400' : overallBalance > 0 ? 'text-violet-400' : 'text-white'}`}>
             {formatCurrency(overallBalance)}
           </h3>
         </div>
         <div className="w-14 h-14 bg-white/[0.04] border border-white/10 rounded-full shadow-sm flex items-center justify-center">
-          <Wallet className="w-7 h-7 text-purple-400" />
+          <Wallet className="w-7 h-7 text-violet-400" />
         </div>
       </div>
 
@@ -588,7 +588,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
               ) : [...filteredEntries].reverse().map(e => (
                 <tr key={e.id} className="hover:bg-white/5 transition-colors duration-300">
                   <td className="modern-td">{format(e.date, 'MMM d, yyyy HH:mm')}</td>
-                  {selectedCustomerId === 'all' && <td className="modern-td"><button className="hover:underline text-[#6D28D9] hover:text-purple-300 cursor-pointer font-bold transition-colors" onClick={() => onViewCustomer?.(e.customerId)}>{e.customerName}</button></td>}
+                  {selectedCustomerId === 'all' && <td className="modern-td"><button className="hover:underline text-[#6D28D9] hover:text-violet-300 cursor-pointer font-bold transition-colors" onClick={() => onViewCustomer?.(e.customerId)}>{e.customerName}</button></td>}
                    <td className="modern-td">
                     <span className="flex items-center gap-2">
                        {e.type === 'delivery' || e.type === 'adjustment_debit' ? (

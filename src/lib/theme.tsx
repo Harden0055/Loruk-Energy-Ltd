@@ -36,14 +36,14 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
     name: 'DeepCharts Black',
     category: 'Pitch Black & Accounting Duality',
     badge: 'DeepCharts ⚡',
-    tagline: 'Pure pitch-black canvas with candlestick green for positive revenue/payments and deep purple for negative expenses/deliveries.',
+    tagline: 'Pure pitch-black canvas with candlestick green for positive revenue/payments and deep violet for negative expenses/deliveries.',
     accentColor: '#00E676',
     primaryColor: '#00E676',
-    secondaryColor: '#9333EA',
-    tertiaryColor: '#A855F7',
+    secondaryColor: '#7C3AED',
+    tertiaryColor: '#8B5CF6',
     sparkColor: '#10B981',
     gradientFrom: '#00E676',
-    gradientVia: '#9333EA',
+    gradientVia: '#7C3AED',
     gradientTo: '#7C3AED',
     solidPreview: '#000000',
     gradientPreview: 'radial-gradient(ellipse 90% 65% at 50% 0%, #4C1D95 0%, #1E0838 45%, #000000 100%)',
@@ -51,12 +51,12 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
     textAccentClass: 'text-emerald-400',
     harmonicPalette: [
       { name: 'Candle Green', hex: '#00E676', role: 'Positive (Revenue / Inflow)' },
-      { name: 'Deep Purple', hex: '#9333EA', role: 'Negative (Expense / Outflow)' },
-      { name: 'Royal Orchid', hex: '#A855F7', role: 'Negative Accent' },
+      { name: 'Deep Violet', hex: '#7C3AED', role: 'Negative (Expense / Outflow)' },
+      { name: 'Royal Orchid', hex: '#8B5CF6', role: 'Negative Accent' },
       { name: 'Mint Specular', hex: '#10B981', role: 'Positive Glow' },
       { name: 'Pitch Black', hex: '#000000', role: 'Deep Canvas' }
     ],
-    chartColors: ['#00E676', '#9333EA', '#10B981', '#A855F7', '#34D399'],
+    chartColors: ['#00E676', '#7C3AED', '#10B981', '#8B5CF6', '#34D399'],
   }
 };
 

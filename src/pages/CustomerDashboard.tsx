@@ -571,11 +571,11 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         didParseCell: function(data) {
           if (data.section === 'body') {
             const e = eventsSorted[data.row.index];
-            const isPurple = e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit'));
+            const isViolet = e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit'));
             
             // Amount Column (Index 3)
             if (data.column.index === 3) {
-              if (isPurple) {
+              if (isViolet) {
                 data.cell.styles.textColor = [192, 38, 211]; // Fuchsia 600
                 data.cell.styles.fillColor = [253, 244, 255]; // Fuchsia 50
               } else {
@@ -934,11 +934,11 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
       {/* Compressed Stats Row (4 compact columns) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-        {/* Card 1: Outstanding Balance (Purple Violet figure) OR Advance Balance (Green figure) */}
+        {/* Card 1: Outstanding Balance (Violet Violet figure) OR Advance Balance (Green figure) */}
         <div className={`rounded-xl px-3.5 py-2.5 border border-white/10 bg-white/[0.02] cursor-pointer transition-all duration-200 ${
           calculatedBalance < 0 
             ? 'card-hover-green' 
-            : 'card-hover-purple'
+            : 'card-hover-violet'
         }`}>
           <div className="flex items-center justify-between">
             <span className={`text-[10px] font-extrabold uppercase tracking-wider ${
@@ -955,9 +955,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             </button>
           </div>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className={`text-xs font-bold ${calculatedBalance < 0 ? 'text-green-accent' : 'text-purple-accent'}`}>Ksh</span>
+            <span className={`text-xs font-bold ${calculatedBalance < 0 ? 'text-green-accent' : 'text-violet-accent'}`}>Ksh</span>
             <span className={`text-base sm:text-lg font-black font-mono tracking-tight leading-none ${
-              calculatedBalance < 0 ? 'text-green-accent' : 'text-purple-accent'
+              calculatedBalance < 0 ? 'text-green-accent' : 'text-violet-accent'
             }`}>
               {calculatedBalance < 0 ? '-' : ''}{Math.abs(calculatedBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
@@ -997,8 +997,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           </div>
         </div>
 
-        {/* Card 3: Total Deliveries - Purple Violet figure, hover border */}
-        <div className="rounded-xl px-3.5 py-2.5 border border-white/10 bg-white/[0.02] cursor-pointer card-hover-purple transition-all duration-200">
+        {/* Card 3: Total Deliveries - Violet Violet figure, hover border */}
+        <div className="rounded-xl px-3.5 py-2.5 border border-white/10 bg-white/[0.02] cursor-pointer card-hover-violet transition-all duration-200">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Total Deliveries</span>
             <span className="text-[10px] font-mono text-slate-300 font-bold bg-white/5 px-1.5 py-0.5 rounded border border-white/10">
@@ -1006,8 +1006,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             </span>
           </div>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-xs font-bold text-purple-accent">Ksh</span>
-            <span className="text-base sm:text-lg font-black font-mono text-purple-accent tracking-tight leading-none">
+            <span className="text-xs font-bold text-violet-accent">Ksh</span>
+            <span className="text-base sm:text-lg font-black font-mono text-violet-accent tracking-tight leading-none">
               {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
@@ -1131,7 +1131,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       </span>
                     </div>
                     <div className="h-1.5 bg-theme-panel rounded-full overflow-hidden border border-theme-border/60">
-                      <div className="h-full bg-gradient-to-r from-purple-800 via-purple-600 to-purple-400 rounded-full" style={{ width: '65%' }} />
+                      <div className="h-full bg-gradient-to-r from-violet-800 via-violet-600 to-violet-400 rounded-full" style={{ width: '65%' }} />
                     </div>
                   </div>
 
@@ -1153,7 +1153,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             <div className="pt-2.5 mt-2.5 border-t border-theme-border text-center">
               <button 
                 type="button"
-                className="text-xs text-[#6D28D9] hover:text-purple-300 font-bold hover:underline cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#6D28D9]/10 border border-[#6D28D9]/25 transition-all" 
+                className="text-xs text-[#6D28D9] hover:text-violet-300 font-bold hover:underline cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#6D28D9]/10 border border-[#6D28D9]/25 transition-all" 
                 onClick={handleExportStatement}
               >
                 <Calendar className="w-3.5 h-3.5 text-[#6D28D9]" />
@@ -1275,7 +1275,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               ) : (
                 timelineEvents.map(e => {
                   const isOpening = e.type === 'opening';
-                  const isPurpleAmount = e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit'));
+                  const isVioletAmount = e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit'));
                   return (
                     <tr key={e.id} className={`hover:bg-white/[0.04] transition-colors ${isOpening ? 'bg-white/[0.02] border-b-2 border-white/10' : ''}`}>
                       <td className="modern-td font-mono text-xs text-theme-text-muted">
@@ -1316,7 +1316,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                           </div>
                           <span className={`text-sm font-bold ${
                             isOpening 
-                              ? (customer?.openingBalanceType === 'advance' ? 'text-[#059669]' : 'text-purple-300') 
+                              ? (customer?.openingBalanceType === 'advance' ? 'text-[#059669]' : 'text-violet-300') 
                               : 'text-theme-text'
                           }`}>
                             {e.title}
@@ -1336,8 +1336,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                             -Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         ) : (
-                          <span className={isPurpleAmount ? '!text-[#6D28D9]' : '!text-[#059669]'}>
-                            {isPurpleAmount ? '+' : '-'}Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          <span className={isVioletAmount ? '!text-[#6D28D9]' : '!text-[#059669]'}>
+                            {isVioletAmount ? '+' : '-'}Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         )}
                       </td>
@@ -1367,12 +1367,12 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   Reconciliation Summary & Total Position
                 </td>
                 <td className="px-4 sm:px-6 py-4 text-right font-mono text-xs text-theme-text-muted whitespace-nowrap">
-                  <span className="block text-[10px] uppercase font-sans tracking-widest text-purple-accent">Total Purchases</span>
-                  <span className="text-purple-accent font-mono font-bold">Ksh {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  <span className="block text-[10px] uppercase font-sans tracking-widest text-violet-accent">Total Purchases</span>
+                  <span className="text-violet-accent font-mono font-bold">Ksh {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </td>
                 <td className="px-4 sm:px-6 py-4 text-right font-mono font-black text-sm sm:text-base whitespace-nowrap">
                   <span className="block text-[10px] uppercase font-sans tracking-widest text-slate-400">Final Closing Balance</span>
-                  <span className={calculatedBalance > 0 ? 'text-purple-accent' : calculatedBalance < 0 ? 'text-green-accent' : 'text-slate-300'}>
+                  <span className={calculatedBalance > 0 ? 'text-violet-accent' : calculatedBalance < 0 ? 'text-green-accent' : 'text-slate-300'}>
                     {calculatedBalance < 0 ? '-' : ''}Ksh {Math.abs(calculatedBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </td>

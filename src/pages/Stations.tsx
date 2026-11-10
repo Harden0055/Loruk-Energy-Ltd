@@ -253,7 +253,7 @@ export default function Stations({ onNavigateToStation }: StationsProps) {
                         className="text-left group cursor-pointer focus:outline-none"
                         title={`Open ${station.name} Dashboard`}
                       >
-                        <div className="flex items-center gap-1.5 font-bold text-[#7C3AED] group-hover:text-purple-300 group-hover:underline text-base transition-colors">
+                        <div className="flex items-center gap-1.5 font-bold text-[#7C3AED] group-hover:text-violet-300 group-hover:underline text-base transition-colors">
                           <span>{station.name}</span>
                           <ExternalLink className="w-3.5 h-3.5 opacity-60 group-hover:opacity-100 transition-opacity" />
                         </div>

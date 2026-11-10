@@ -221,7 +221,7 @@ export default function TruckDashboard({
                 onClick={() => setSelectedProduct('all')}
                 className={`px-2 py-1 rounded text-[11px] font-bold transition-all cursor-pointer ${
                   selectedProduct === 'all'
-                    ? 'bg-purple-600 text-white shadow-sm'
+                    ? 'bg-violet-600 text-white shadow-sm'
                     : 'bg-white/5 hover:bg-white/10 text-slate-400 border border-theme-border'
                 }`}
               >
@@ -236,7 +236,7 @@ export default function TruckDashboard({
                     onClick={() => setSelectedProduct(isSelected ? 'all' : p)}
                     className={`px-2 py-1 rounded text-[11px] font-bold transition-all cursor-pointer ${
                       isSelected
-                        ? 'bg-purple-600 text-white shadow-sm'
+                        ? 'bg-violet-600 text-white shadow-sm'
                         : 'bg-white/5 hover:bg-white/10 text-slate-400 border border-theme-border'
                     }`}
                   >
@@ -274,11 +274,11 @@ export default function TruckDashboard({
               {displayedExpenses.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-sm text-slate-400">
-                    No transactions found for product <span className="font-bold text-purple-300">"{selectedProduct}"</span>.
+                    No transactions found for product <span className="font-bold text-violet-300">"{selectedProduct}"</span>.
                     <button
                       type="button"
                       onClick={() => setSelectedProduct('all')}
-                      className="ml-2 text-purple-400 hover:underline cursor-pointer font-semibold"
+                      className="ml-2 text-violet-400 hover:underline cursor-pointer font-semibold"
                     >
                       Clear filter
                     </button>
@@ -299,7 +299,7 @@ export default function TruckDashboard({
                   return (
                     <tr key={e.id} className="hover:bg-white/5 transition-colors">
                       <td className="modern-td">{format(e.date, 'MMM d, yyyy')}</td>
-                      <td className="px-4 py-3 font-semibold text-[#6D28D9] hover:text-purple-300 cursor-pointer hover:underline font-bold transition-colors" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
+                      <td className="px-4 py-3 font-semibold text-[#6D28D9] hover:text-violet-300 cursor-pointer hover:underline font-bold transition-colors" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
                       <td className="modern-td">
                         {e.station && (
                           <button

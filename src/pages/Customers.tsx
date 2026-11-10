@@ -155,7 +155,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
           >
             <option value="all" className="bg-[#08080C] text-gray-100">All Statuses</option>
             <option value="active" className="bg-[#08080C] text-emerald-400">Active</option>
-            <option value="credit_risk" className="bg-[#08080C] text-purple-300">Credit Risk</option>
+            <option value="credit_risk" className="bg-[#08080C] text-violet-300">Credit Risk</option>
           </select>
         </div>
         <button 
@@ -244,7 +244,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                     {onViewCustomer ? (
                       <button 
                         onClick={() => onViewCustomer(c.id)}
-                        className="hover:underline text-[#6D28D9] hover:text-purple-300 font-bold cursor-pointer text-left focus:outline-none"
+                        className="hover:underline text-[#6D28D9] hover:text-violet-300 font-bold cursor-pointer text-left focus:outline-none"
                       >
                         {c.name}
                       </button>

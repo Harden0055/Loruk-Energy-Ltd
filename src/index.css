@@ -15,10 +15,10 @@
   --color-theme-text-muted-dark: #8B9BB4;
   --color-theme-primary: #00E676;
   --color-theme-secondary: #8B5CF6;
-  --color-theme-tertiary: #A855F7;
+  --color-theme-tertiary: #8B5CF6;
   --color-theme-spark: #10B981;
   --color-theme-accent: #8B5CF6;
-  --color-theme-highlight: #E9D5FF;
+  --color-theme-highlight: #DDD6FE;
   --color-theme-highlight-glow: #00E676;
 
   --theme-canvas-bg: #000000;
@@ -42,7 +42,7 @@
 .theme-high-contrast, [data-theme="high-contrast"],
 .theme-dark-blue, [data-theme="dark-blue"],
 .theme-emerald-aurora, [data-theme="emerald-aurora"],
-.theme-cyber-purple, [data-theme="cyber-purple"],
+.theme-cyber-violet, [data-theme="cyber-violet"],
 .theme-sunset-amber, [data-theme="sunset-amber"],
 .theme-crimson-ruby, [data-theme="crimson-ruby"],
 .theme-slate-titanium, [data-theme="slate-titanium"] {
@@ -59,10 +59,10 @@
   --color-theme-text-muted-dark: #8B9BB4;
   --color-theme-primary: #00E676;
   --color-theme-secondary: #8B5CF6;
-  --color-theme-tertiary: #A855F7;
+  --color-theme-tertiary: #8B5CF6;
   --color-theme-spark: #10B981;
   --color-theme-accent: #8B5CF6;
-  --color-theme-highlight: #E9D5FF;
+  --color-theme-highlight: #DDD6FE;
   --color-theme-highlight-glow: #00E676;
 
   --theme-canvas-bg: #000000;
@@ -105,10 +105,10 @@
   
   --color-theme-primary: var(--color-theme-primary, #00E676);
   --color-theme-secondary: var(--color-theme-secondary, #8B5CF6);
-  --color-theme-tertiary: var(--color-theme-tertiary, #A855F7);
+  --color-theme-tertiary: var(--color-theme-tertiary, #8B5CF6);
   --color-theme-spark: var(--color-theme-spark, #10B981);
   --color-theme-accent: var(--color-theme-accent, #8B5CF6);
-  --color-theme-highlight: var(--color-theme-highlight, #E9D5FF);
+  --color-theme-highlight: var(--color-theme-highlight, #DDD6FE);
 
   @keyframes fade-in {
     from {
@@ -197,8 +197,8 @@ svg.lucide {
 .text-emerald-500 svg.lucide,
 .text-blue-400 svg.lucide,
 .text-blue-500 svg.lucide,
-.text-purple-400 svg.lucide,
-.text-purple-500 svg.lucide {
+.text-violet-400 svg.lucide,
+.text-violet-500 svg.lucide {
   filter: none !important;
 }
 
@@ -410,7 +410,7 @@ svg.lucide {
   }
 
   .text-gradient {
-    background: linear-gradient(180deg, #FFFFFF 25%, #E9D5FF 65%, rgba(168, 85, 247, 0.8) 100%);
+    background: linear-gradient(180deg, #FFFFFF 25%, #DDD6FE 65%, rgba(139, 92, 246, 0.8) 100%);
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     background-clip: text !important;
@@ -421,15 +421,15 @@ svg.lucide {
   .text-fading-smart,
   .theme-deepcharts .text-gradient,
   [data-theme="deepcharts"] .text-gradient {
-    background: linear-gradient(180deg, #FFFFFF 25%, #E9D5FF 60%, rgba(168, 85, 247, 0.8) 100%) !important;
+    background: linear-gradient(180deg, #FFFFFF 25%, #DDD6FE 60%, rgba(139, 92, 246, 0.8) 100%) !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     background-clip: text !important;
     filter: none !important;
   }
 
-  .text-purple-green-fade {
-    background: linear-gradient(135deg, #A855F7 0%, #8B5CF6 35%, #00E676 100%) !important;
+  .text-violet-green-fade {
+    background: linear-gradient(135deg, #8B5CF6 0%, #8B5CF6 35%, #00E676 100%) !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     background-clip: text !important;
@@ -445,8 +445,8 @@ svg.lucide {
     filter: none !important;
   }
 
-  .text-gradient-purple {
-    background: linear-gradient(135deg, #C084FC 0%, #8B5CF6 50%, #7C3AED 100%) !important;
+  .text-gradient-violet {
+    background: linear-gradient(135deg, #A78BFA 0%, #8B5CF6 50%, #7C3AED 100%) !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     background-clip: text !important;
@@ -461,14 +461,14 @@ svg.lucide {
   }
 
   /* DeepCharts Action Buttons & Badges */
-  .deepcharts-btn-purple {
+  .deepcharts-btn-violet {
     background: linear-gradient(135deg, #7C3AED 0%, #8B5CF6 50%, #6366F1 100%) !important;
     color: #FFFFFF !important;
-    border: 1px solid rgba(168, 85, 247, 0.5) !important;
+    border: 1px solid rgba(139, 92, 246, 0.5) !important;
     box-shadow: 0 0 25px rgba(124, 58, 237, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }
-  .deepcharts-btn-purple:hover {
+  .deepcharts-btn-violet:hover {
     box-shadow: 0 0 35px rgba(124, 58, 237, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
     transform: translateY(-1px);
   }
@@ -493,9 +493,9 @@ svg.lucide {
     box-shadow: 0 0 12px rgba(0, 230, 118, 0.2) !important;
   }
 
-  .deepcharts-badge-purple {
+  .deepcharts-badge-violet {
     background: rgba(139, 92, 246, 0.15) !important;
-    color: #C084FC !important;
+    color: #A78BFA !important;
     border: 1px solid rgba(139, 92, 246, 0.4) !important;
     box-shadow: 0 0 12px rgba(139, 92, 246, 0.25) !important;
   }
@@ -549,13 +549,13 @@ svg.lucide {
     filter: none !important;
   }
 
-  .sidebar-item-active-purple {
+  .sidebar-item-active-violet {
     background: rgba(147, 51, 234, 0.14) !important;
-    border: 1px solid rgba(168, 85, 247, 0.4) !important;
-    color: #C084FC !important;
+    border: 1px solid rgba(139, 92, 246, 0.4) !important;
+    color: #A78BFA !important;
     font-weight: 600 !important;
   }
-  .sidebar-item-active-purple svg.lucide {
+  .sidebar-item-active-violet svg.lucide {
     background: transparent;
     border-radius: 0;
     padding: 0;
@@ -563,7 +563,7 @@ svg.lucide {
     width: 20px !important;
     height: 20px !important;
     margin-right: 0px;
-    color: #C084FC !important;
+    color: #A78BFA !important;
     filter: none !important;
   }
 
@@ -666,17 +666,17 @@ svg.lucide {
 
 /* ==========================================================================
    DEEPCHARTS ACCOUNTING DUALITY SYSTEM:
-   1. All hyperlinks deep purple in color (customers, trucks, stations, and any link)
-   2. All dropdowns green or purple depending on meaning
-   3. All buttons green or purple depending on meaning
-   4. All hover border lines and hover background colors green or purple
+   1. All hyperlinks deep violet in color (customers, trucks, stations, and any link)
+   2. All dropdowns green or violet depending on meaning
+   3. All buttons green or violet depending on meaning
+   4. All hover border lines and hover background colors green or violet
    5. Green = positive transactions (revenue, payments, cash inflow, receipts)
-      Purple = negative transactions (expenses, deliveries, invoices, debits)
+      Violet = negative transactions (expenses, deliveries, invoices, debits)
    ========================================================================== */
 
-/* 1. Universal Deep Purple Hyperlinks across the entire system */
+/* 1. Universal Deep Violet Hyperlinks across the entire system */
 a, 
-.link-purple,
+.link-violet,
 a.font-bold,
 button.hover\:underline,
 td button.hover\:underline,
@@ -694,7 +694,7 @@ button[data-link="true"],
 }
 
 a:hover, 
-.link-purple:hover,
+.link-violet:hover,
 a.font-bold:hover,
 button.hover\:underline:hover,
 td button.hover\:underline:hover,
@@ -705,12 +705,12 @@ button[data-link="true"]:hover,
 .text-sky-400.hover\:underline:hover,
 .text-blue-500.hover\:underline:hover,
 .text-blue-400.hover\:underline:hover {
-  color: #C084FC !important;
-  text-decoration-color: #C084FC !important;
+  color: #A78BFA !important;
+  text-decoration-color: #A78BFA !important;
   text-shadow: none !important;
 }
 
-/* 2. Dropdown styling (green or purple depending on meaning) */
+/* 2. Dropdown styling (green or violet depending on meaning) */
 select, 
 .glass-select {
   background-color: #000000 !important;
@@ -756,12 +756,12 @@ select[data-type="positive"]:focus,
   box-shadow: 0 0 0 1px rgba(0, 230, 118, 0.5) !important;
 }
 
-/* Table debits strictly deep purple #9333EA, and credits green #00E676 */
+/* Table debits strictly deep violet #7C3AED, and credits green #00E676 */
 .debit-amount,
 .table-debit,
 [data-type="debit"],
 .text-debit {
-  color: #9333EA !important;
+  color: #7C3AED !important;
 }
 
 .credit-amount,
@@ -776,7 +776,7 @@ select option {
   color: #E2E8F0 !important;
 }
 
-/* 3. Button green or purple depending on meaning */
+/* 3. Button green or violet depending on meaning */
 .btn-positive,
 .btn-green,
 .deepcharts-btn-green {
@@ -808,36 +808,36 @@ select option {
 }
 
 .btn-negative,
-.btn-purple,
-.deepcharts-btn-purple {
-  background: linear-gradient(135deg, #7C3AED 0%, #8B5CF6 50%, #9333EA 100%) !important;
+.btn-violet,
+.deepcharts-btn-violet {
+  background: linear-gradient(135deg, #7C3AED 0%, #8B5CF6 50%, #7C3AED 100%) !important;
   color: #FFFFFF !important;
   font-weight: 700 !important;
-  border: 1px solid rgba(168, 85, 247, 0.5) !important;
+  border: 1px solid rgba(139, 92, 246, 0.5) !important;
   box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 .btn-negative:hover,
-.btn-purple:hover,
-.deepcharts-btn-purple:hover {
-  background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%) !important;
-  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
+.btn-violet:hover,
+.deepcharts-btn-violet:hover {
+  background: linear-gradient(135deg, #8B5CF6 0%, #8B5CF6 100%) !important;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
   transform: translateY(-1px);
 }
 
 .btn-negative-ghost {
   background: rgba(139, 92, 246, 0.12) !important;
-  color: #C084FC !important;
+  color: #A78BFA !important;
   border: 1px solid rgba(139, 92, 246, 0.35) !important;
   transition: all 0.2s ease !important;
 }
 .btn-negative-ghost:hover {
   background: rgba(139, 92, 246, 0.24) !important;
-  border-color: #A855F7 !important;
-  color: #E9D5FF !important;
+  border-color: #8B5CF6 !important;
+  color: #DDD6FE !important;
 }
 
-/* 4. Hover border lines or background colors: strictly green or purple depending on meaning */
+/* 4. Hover border lines or background colors: strictly green or violet depending on meaning */
 .hover-positive:hover,
 tr.hover-positive:hover,
 .hover\:border-emerald-500\/50:hover {
@@ -847,8 +847,8 @@ tr.hover-positive:hover,
 
 .hover-negative:hover,
 tr.hover-negative:hover,
-.hover\:border-purple-500\/50:hover {
-  border-color: rgba(168, 85, 247, 0.5) !important;
+.hover\:border-violet-500\/50:hover {
+  border-color: rgba(139, 92, 246, 0.5) !important;
   background-color: rgba(139, 92, 246, 0.08) !important;
 }
 
@@ -935,7 +935,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
    EYE-COMFORT MUTED GREY SYSTEM OVERRIDES:
    Transitions harsh bright white text, headlines, titles, subtitles, and words
    to comfortable eye-friendly grey (#94A3B8) matching table subtitles & descriptions.
-   Preserves intentional accounting highlights (deep purple #7C3AED and deep green #059669).
+   Preserves intentional accounting highlights (deep violet #7C3AED and deep green #059669).
    ========================================================================== */
 .text-white,
 [class*="text-white"] {
@@ -965,16 +965,16 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 }
 
 /* Interactive Card Border Hover States */
-.card-hover-purple,
+.card-hover-violet,
 .card-hover-green,
 .card-hover-grey {
   transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 
-.card-hover-purple:hover {
-  border-color: #A855F7 !important;
-  box-shadow: inset 0 0 0 1px #A855F7 !important;
-  background-color: rgba(168, 85, 247, 0.06) !important;
+.card-hover-violet:hover {
+  border-color: #8B5CF6 !important;
+  box-shadow: inset 0 0 0 1px #8B5CF6 !important;
+  background-color: rgba(139, 92, 246, 0.06) !important;
 }
 
 .card-hover-green:hover {
@@ -1001,7 +1001,7 @@ textarea::placeholder {
   color: #64748B !important;
 }
 
-/* Retain deep purple and deep green accounting colors with full fidelity */
+/* Retain deep violet and deep green accounting colors with full fidelity */
 .text-green-accent,
 .text-\[\#059669\],
 .text-emerald-400,
@@ -1011,20 +1011,20 @@ span.\!text-emerald-400 {
   color: #00E676 !important;
 }
 
-.text-purple-accent,
+.text-violet-accent,
 .text-\[\#7C3AED\],
 .text-\[\#8B5CF6\],
-.text-\[\#9333EA\],
-.text-\[\#A855F7\],
+.text-\[\#7C3AED\],
+.text-\[\#8B5CF6\],
 .text-\[\#6D28D9\],
-.text-purple-400,
-.text-purple-500,
 .text-violet-400,
 .text-violet-500,
-span.\!text-\[\#9333EA\],
+.text-violet-400,
+.text-violet-500,
+span.\!text-\[\#7C3AED\],
 span.\!text-\[\#7C3AED\],
 span.\!text-\[\#8B5CF6\],
-span.\!text-purple-400 {
-  color: #A855F7 !important;
+span.\!text-violet-400 {
+  color: #8B5CF6 !important;
 }
 

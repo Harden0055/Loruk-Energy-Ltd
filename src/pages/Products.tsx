@@ -147,7 +147,7 @@ export default function Products() {
             The main application is restricted strictly to the 5 active operational products: 
             <span className="text-emerald-400 font-semibold ml-1">Diesel</span>, 
             <span className="text-teal-300 font-semibold ml-1">Super (Premium)</span>, 
-            <span className="text-purple-300 font-semibold ml-1">Engine Oil</span>, 
+            <span className="text-violet-300 font-semibold ml-1">Engine Oil</span>, 
             <span className="text-amber-300 font-semibold ml-1">Brake Fluid</span>, and 
             <span className="text-cyan-300 font-semibold ml-1">Greasing</span>.
           </p>
