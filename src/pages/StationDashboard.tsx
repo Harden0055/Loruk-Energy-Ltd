@@ -12,14 +12,6 @@ import {
   useFuelRates,
   useOpeningStocks
 } from '../lib/operationsDb';
-import { 
-  useFirebaseCollection,
-  PumpReading as FSPumpReading,
-  LPGTransaction as FSLPGTransaction,
-  Expense as FSExpense,
-  Invoice as FSInvoice,
-  CashPosition as FSCashPosition
-} from './fuelsuite/context';
 import { useDeliveries, useFleetExpenses } from '../lib/db';
 import { formatCurrency, formatLitres } from '../lib/utils';
 import { format } from 'date-fns';
@@ -79,7 +71,6 @@ interface StationDashboardProps {
   onNavigateToStation?: (id: string, name: string) => void;
   onBack?: () => void;
   onNavigateToPage?: (page: string) => void;
-  isInFuelSuite?: boolean;
 }
 
 const PIE_COLORS = ['#38BDF8', '#3B82F6', '#F97316', '#10B981', '#A855F7', '#EC4899', '#EAB308'];
@@ -89,8 +80,7 @@ export default function StationDashboard({
   stationName,
   onNavigateToStation,
   onBack,
-  onNavigateToPage,
-  isInFuelSuite = false
+  onNavigateToPage
 }: StationDashboardProps) {
   const { stations, loading: stationsLoading } = useStations();
   const { readings: pumpReadings = [] } = useDailyPumpReadings();
@@ -106,105 +96,13 @@ export default function StationDashboard({
   const { deliveries = [] } = useDeliveries();
   const { expenses: fleetExpenses = [] } = useFleetExpenses();
 
-  // FuelSuite Pro Data Integration
-  const [fsPumpReadings] = useFirebaseCollection<FSPumpReading>('fuelsuite_pumpReadings', []);
-  const [fsExpenses] = useFirebaseCollection<FSExpense>('fuelsuite_expenses', []);
-  const [fsLpg] = useFirebaseCollection<FSLPGTransaction>('fuelsuite_lpgTransactions', []);
-  const [fsInvoices] = useFirebaseCollection<FSInvoice>('fuelsuite_invoices', []);
-  const [fsCashPositions] = useFirebaseCollection<FSCashPosition>('fuelsuite_cashPositions', []);
-
-  // Merge Data
-  const mergedPumpReadings = useMemo(() => {
-    const fsMapped = fsPumpReadings.map(r => ({
-      id: r.id,
-      date: new Date(r.date).getTime(),
-      station: r.station,
-      product: r.product,
-      litresStart: r.litresStart || 0,
-      litresStop: r.litresStop || 0,
-      ratePerLitre: r.ratePerLitre || 0,
-      manualRevenue: r.manualCash || 0,
-      litresSold: (r.litresStop || 0) - (r.litresStart || 0),
-      calculatedRevenue: ((r.litresStop || 0) - (r.litresStart || 0)) * (r.ratePerLitre || 0)
-    }));
-    return [...pumpReadings, ...fsMapped];
-  }, [pumpReadings, fsPumpReadings]);
-
-  const mergedExpenses = useMemo(() => {
-    const fsMapped = fsExpenses.map(e => ({
-      id: e.id,
-      date: new Date(e.date).getTime(),
-      station: e.station,
-      description: e.description,
-      amount: e.amount,
-      category: e.category
-    }));
-    return [...expenses, ...fsMapped];
-  }, [expenses, fsExpenses]);
-
-  const mergedLpgSales = useMemo(() => {
-    const fsMapped = fsLpg.filter(l => l.type === 'sale').map(l => ({
-      id: l.id,
-      date: new Date(l.date || Date.now()).getTime(),
-      station: l.station || '',
-      cylindersSold: l.quantity || 0,
-      totalSalesAmount: l.amount || 0,
-      sold6kg: (l.item || '').includes('6') ? l.quantity : 0,
-      sold13kg: (l.item || '').includes('13') ? l.quantity : 0,
-    }));
-    return [...lpgSales, ...fsMapped];
-  }, [lpgSales, fsLpg]);
-
-  const mergedLpgPurchases = useMemo(() => {
-    const fsMapped = fsLpg.filter(l => l.type === 'purchase').map(l => ({
-      id: l.id,
-      date: new Date(l.date || Date.now()).getTime(),
-      station: l.station || '',
-      cylindersBought: l.quantity || 0,
-      purchaseCost: l.amount || 0,
-      bought6kg: (l.item || '').includes('6') ? l.quantity : 0,
-      bought13kg: (l.item || '').includes('13') ? l.quantity : 0,
-    }));
-    return [...lpgPurchases, ...fsMapped];
-  }, [lpgPurchases, fsLpg]);
-
-  const mergedInvoices = useMemo(() => {
-    const fsMapped = fsInvoices.map(i => {
-      const amt = (i as any).totalAmount || (i as any).amount || 0;
-      const pd = (i as any).paidAmount || 0;
-      const bal = amt - pd;
-      let stat = 'UNPAID';
-      if (bal <= 0) stat = 'PAID';
-      else if (pd > 0) stat = 'PARTIAL';
-
-      return {
-        id: i.id,
-        station: i.station,
-        customerName: i.customerName || '',
-        invoiceAmount: amt,
-        paidAmount: pd,
-        balance: bal,
-        status: stat as 'PAID' | 'PARTIAL' | 'UNPAID',
-        createdAt: new Date(i.date || Date.now()).getTime(),
-        invoiceDate: new Date(i.date || Date.now()).getTime(),
-        invoiceNumber: (i as any).invoiceNumber || i.id || ''
-      };
-    });
-    return [...invoices, ...fsMapped] as any[]; // casting since types slightly overlap
-  }, [invoices, fsInvoices]);
-
-  const mergedCashPositions = useMemo(() => {
-    const fsMapped = fsCashPositions.map(c => ({
-      id: c.id,
-      station: c.station || '',
-      date: new Date(c.date).getTime(),
-      cashAtHand: c.cashOnHand || 0,
-      mpesaBalance: c.mPesa || 0,
-      bankedAmount: 0,
-      variance: 0
-    }));
-    return [...cashPositions, ...fsMapped];
-  }, [cashPositions, fsCashPositions]);
+  // Main-app data sources (legacy FuelSuite collection merges removed)
+  const mergedPumpReadings = pumpReadings;
+  const mergedExpenses = expenses;
+  const mergedLpgSales = lpgSales;
+  const mergedLpgPurchases = lpgPurchases;
+  const mergedInvoices = invoices as any[];
+  const mergedCashPositions = cashPositions;
 
   // Active Station determination
   const currentStation = useMemo(() => {

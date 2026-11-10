@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useProducts, addProduct, updateProduct, deleteProduct } from '../lib/operationsDb';
 import { ProductDef } from '../types';
 import { Plus, Pencil, Trash2, X, Box } from 'lucide-react';
-import { useConfirm } from './fuelsuite/useConfirm';
+import { useConfirm } from '../components/useConfirm';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function Products() {
@@ -138,11 +138,11 @@ export default function Products() {
         </button>
       </div>
 
-      {/* Product Separation Info Banner */}
+      {/* Active Products Info Banner */}
       <div className="glass-panel p-4 border border-[#6D28D9]/30 bg-[#6D28D9]/[0.03] rounded-xl flex items-start gap-3">
         <div className="w-2 h-2 rounded-full bg-emerald-400 mt-1.5 shadow-[0_0_8px_#34D399] shrink-0" />
         <div className="text-xs space-y-1">
-          <p className="font-bold text-slate-200">Main App & Fuel Suite Product Separation</p>
+          <p className="font-bold text-slate-200">Active Operational Products</p>
           <p className="text-slate-400 leading-relaxed">
             The main application is restricted strictly to the 5 active operational products: 
             <span className="text-emerald-400 font-semibold ml-1">Diesel</span>, 
@@ -150,9 +150,6 @@ export default function Products() {
             <span className="text-purple-300 font-semibold ml-1">Engine Oil</span>, 
             <span className="text-amber-300 font-semibold ml-1">Brake Fluid</span>, and 
             <span className="text-cyan-300 font-semibold ml-1">Greasing</span>.
-          </p>
-          <p className="text-slate-500">
-            Station Daily Report items (<span className="text-slate-400">LPG gas cylinders, refilling, Burners, and Grills</span>) are managed independently in <strong className="text-purple-400">Fuel Suite</strong> and do not mix with deliveries or fleet records.
           </p>
         </div>
       </div>

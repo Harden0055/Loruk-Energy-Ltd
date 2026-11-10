@@ -11,7 +11,6 @@ import {
   BookOpen, 
   CarFront, 
   MapPin, 
-  ClipboardList, 
   BotMessageSquare, 
   Box, 
   PanelLeftClose, 
@@ -20,7 +19,6 @@ import {
   Sparkles,
   Flame,
   PlusCircle,
-  Receipt,
   CheckCircle2,
   CreditCard,
   History,
@@ -96,22 +94,6 @@ export default function Sidebar({
         { id: 'dash-ndalu', label: 'Ndalu Station KPI', icon: MapPin, page: 'dashboard', params: { station: 'Ndalu' } },
         { id: 'dash-junction', label: 'Junction Station KPI', icon: MapPin, page: 'dashboard', params: { station: 'Junction' } },
         { id: 'dash-activity', label: 'Recent Activity Feed', icon: History, page: 'dashboard' },
-      ]
-    },
-    { 
-      id: 'fuelsuite', 
-      label: 'Fuel Suite', 
-      icon: Settings,
-      badge: 'REPORT',
-      subPages: [
-        { id: 'fs-daily', label: 'Daily Report Entry', icon: ClipboardList, page: 'fuelsuite', params: { fuelsuiteView: 'Daily Report Entry' }, badge: 'DAILY' },
-        { id: 'fs-archive', label: 'Station Reports Archive', icon: Layers, page: 'fuelsuite', params: { fuelsuiteView: 'Station Reports Archive' }, badge: 'AUDIT' },
-        { id: 'fs-dash', label: 'Operations Dashboard', icon: LayoutDashboard, page: 'fuelsuite', params: { fuelsuiteView: 'Dashboard' } },
-        { id: 'fs-whiteoils', label: 'White Oils Reconciliation', icon: Fuel, page: 'fuelsuite', params: { fuelsuiteView: 'White Oils' } },
-        { id: 'fs-lpg', label: 'LPG & Purchases', icon: Flame, page: 'fuelsuite', params: { fuelsuiteView: 'LPG & Purchases' } },
-        { id: 'fs-exp', label: 'Station Expenses', icon: Receipt, page: 'fuelsuite', params: { fuelsuiteView: 'Expenses' } },
-        { id: 'fs-invs', label: 'Invoices & Debts', icon: FileText, page: 'fuelsuite', params: { fuelsuiteView: 'Invoices & Debts' } },
-        { id: 'fs-cash', label: 'Where the Money Is', icon: DollarSign, page: 'fuelsuite', params: { fuelsuiteView: 'Where the Money Is' } },
       ]
     },
     { 
@@ -295,9 +277,7 @@ export default function Sidebar({
               "flex-1 flex items-center gap-3 px-3.5 py-2.5 text-sm font-semibold rounded-xl sidebar-item cursor-pointer text-left transition-all duration-200",
               isActive 
                 ? "sidebar-item-active bg-emerald-500/12 text-emerald-400 border border-emerald-500/35 font-bold shadow-[0_0_16px_rgba(16,185,129,0.12)]"
-                : item.id === 'fuelsuite'
-                  ? "text-[#00E676] bg-[#00E676]/10 hover:bg-[#00E676]/15 border border-[#00E676]/30 shadow-[0_0_12px_rgba(0,230,118,0.15)]"
-                  : "text-theme-text-muted hover:text-[#00E676] hover:bg-emerald-500/[0.04]"
+                : "text-theme-text-muted hover:text-[#00E676] hover:bg-emerald-500/[0.04]"
             )}
             title={`Go to ${item.label}`}
           >
@@ -305,7 +285,7 @@ export default function Sidebar({
               "w-5 h-5 shrink-0 transition-colors duration-200", 
               isActive 
                 ? "text-emerald-400" 
-                : item.id === 'fuelsuite' ? "text-[#00E676]" : "group-hover/parent:text-[#00E676]"
+                : "group-hover/parent:text-[#00E676]"
             )} />
             <span className="truncate">{item.label}</span>
             {item.badge && (

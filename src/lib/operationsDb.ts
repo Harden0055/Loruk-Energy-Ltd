@@ -16,43 +16,7 @@ export const FLEET_OPERATIONAL_PRODUCTS = [
 ];
 
 export function useProducts() {
-  const result = useGenericCollection<ProductDef>('products', 'sortOrder', 'asc');
-  
-  // STRICT NAMESPACE BOUNDARY:
-  // Fleet Accounting system products are exclusively white oils, lubricants, and greasing.
-  // Fuel Suite products (LPG cylinders, refilling, burners, grills, accessories) are completely isolated.
-  const fuelSuiteTokens = ['burner', 'grill', 'lpg', 'cylinder', 'gas', 'miko', 'regulator', 'hose', 'pipe', 'accessory'];
-  
-  const filteredData = (result.data || []).filter(p => {
-    // 1. Check explicit namespace or system property
-    if (p.namespace === 'fuelsuite' || p.system === 'fuelsuite') return false;
-    
-    // 2. Filter out any rogue non-fleet items
-    const name = (p.name || '').toLowerCase().trim();
-    if (fuelSuiteTokens.some(t => name.includes(t))) return false;
-    
-    return true;
-  });
-
-  // Clean rogue items from Firestore 'products' collection asynchronously if found
-  useEffect(() => {
-    if (result.data && result.data.length > 0) {
-      result.data.forEach(async (item) => {
-        const name = (item.name || '').toLowerCase().trim();
-        const isRogueFuelSuite = fuelSuiteTokens.some(t => name.includes(t)) || item.namespace === 'fuelsuite' || item.system === 'fuelsuite';
-        if (isRogueFuelSuite && item.id) {
-          try {
-            await deleteDoc(doc(db, 'products', item.id));
-            deleteLocalDoc('products', item.id);
-          } catch (e) {
-            // Silently ignore permission/offline errors during cleanup
-          }
-        }
-      });
-    }
-  }, [result.data]);
-
-  return { ...result, data: filteredData };
+  return useGenericCollection<ProductDef>('products', 'sortOrder', 'asc');
 }
 import { 
   isQuotaExceeded, markQuotaExceeded, getLocalCollection, saveLocalCollection, 

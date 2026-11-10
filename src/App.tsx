@@ -19,9 +19,7 @@ import Settings from './pages/Settings';
 import Stations from './pages/Stations';
 import Products from './pages/Products';
 import AIAssistant from './pages/AIAssistant';
-import FuelSuiteApp from './pages/fuelsuite/FuelSuiteApp';
-import { FuelProvider } from './pages/fuelsuite/context';
-import MiniDashboardProfile from './pages/fuelsuite/views/MiniDashboardProfile';
+import ProfileDrawer from './components/ProfileDrawer';
 import FireLEIcon from './components/FireLEIcon';
 import ThemeToggle from './components/ThemeToggle';
 import { Fuel, LogIn, RefreshCcw, Printer, Menu, AlertTriangle, User, PanelLeft } from 'lucide-react';
@@ -30,7 +28,7 @@ import { useProducts, addProduct, deleteProduct } from './lib/operationsDb';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { OfflineIndicator } from './components/OfflineIndicator';
 
-type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'trucks' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'stationDashboard' | 'settings' | 'stations' | 'products' | 'assistant' | 'fuelsuite';
+type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'trucks' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'stationDashboard' | 'settings' | 'stations' | 'products' | 'assistant';
 
 function AuthenticatedApp() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -39,7 +37,6 @@ function AuthenticatedApp() {
   const [selectedStationId, setSelectedStationId] = useState<string | null>(null);
   const [selectedStationName, setSelectedStationName] = useState<string | null>(null);
   const [selectedStation, setSelectedStation] = useState<'Ndalu' | 'Junction' | 'Combined'>('Combined');
-  const [fuelSuiteInitialView, setFuelSuiteInitialView] = useState<any>('Dashboard');
   const [pageParams, setPageParams] = useState<any>({});
   const { lastSync } = useSync();
   const [quotaExceeded, setQuotaExceeded] = useState(false); // Changed to avoid quota issues for now
@@ -122,7 +119,6 @@ function AuthenticatedApp() {
       stationId?: string | null; 
       stationName?: string | null;
       station?: 'Ndalu' | 'Junction' | 'Combined';
-      fuelsuiteView?: any;
       action?: string;
       filter?: string;
       tab?: string;
@@ -135,9 +131,6 @@ function AuthenticatedApp() {
     
     if (params?.station) {
       setSelectedStation(params.station);
-    }
-    if (params?.fuelsuiteView) {
-      setFuelSuiteInitialView(params.fuelsuiteView);
     }
     setPageParams(params || {});
     
@@ -174,15 +167,6 @@ function AuthenticatedApp() {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
-
-  if (currentPage === 'fuelsuite') {
-    return (
-      <FuelSuiteApp 
-        initialView={fuelSuiteInitialView}
-        onBackToMain={() => navigateTo('dashboard')} 
-      />
-    );
-  }
 
   return (
     <div className="flex h-screen bg-[#000000] text-theme-text font-sans overflow-hidden transition-colors relative">
@@ -448,7 +432,7 @@ function AuthenticatedApp() {
         </main>
       </div>
       {isProfileOpen && (
-        <MiniDashboardProfile 
+        <ProfileDrawer 
           onClose={() => setIsProfileOpen(false)} 
         />
       )}
@@ -462,9 +446,7 @@ function DefaultExport() {
     <SyncProvider>
       <ThemeProvider>
         <AuthProvider>
-          <FuelProvider>
-            <Main />
-          </FuelProvider>
+          <Main />
         </AuthProvider>
       </ThemeProvider>
     </SyncProvider>

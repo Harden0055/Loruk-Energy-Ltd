@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { AlertTriangle } from 'lucide-react';
 
 export const ConfirmDialog = ({ isOpen, message, onConfirm, onCancel }: { isOpen: boolean, message: string, onConfirm: () => void, onCancel: () => void }) => {
@@ -33,4 +33,30 @@ export const ConfirmDialog = ({ isOpen, message, onConfirm, onCancel }: { isOpen
       </div>
     </div>
   );
+};
+
+export const useConfirm = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [message, setMessage] = useState('');
+  const [onConfirm, setOnConfirm] = useState<{ fn: () => void }>({ fn: () => {} });
+
+  const confirm = useCallback((msg: string, onConfirmCallback: () => void) => {
+    setMessage(msg);
+    setOnConfirm({ fn: () => {
+      onConfirmCallback();
+      setIsOpen(false);
+    }});
+    setIsOpen(true);
+  }, []);
+
+  const dialog = (
+    <ConfirmDialog
+      isOpen={isOpen}
+      message={message}
+      onConfirm={onConfirm.fn}
+      onCancel={() => setIsOpen(false)}
+    />
+  );
+
+  return { confirm, dialog };
 };

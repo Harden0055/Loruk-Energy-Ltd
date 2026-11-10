@@ -3,8 +3,8 @@ export interface ProductDef {
   category?: string;
   id: string;
   name: string;
-  namespace?: 'fleet' | 'fuelsuite';
-  system?: 'main' | 'fuelsuite';
+  namespace?: 'fleet';
+  system?: 'main';
   createdAt?: number;
   createdBy?: string;
 }

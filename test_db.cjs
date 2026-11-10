@@ -1,4 +1,0 @@
-const fs = require('fs');
-let code = fs.readFileSync('src/pages/fuelsuite/views/DashboardView.tsx', 'utf8');
-
-// I'll add the new metrics near the top of DashboardView if activeStation !== 'Combined Total'
