@@ -160,7 +160,7 @@ export function useStationReports() {
 export function sanitizePayload<T extends Record<string, any>>(obj: T): T {
   const result: any = {};
   for (const [key, value] of Object.entries(obj)) {
-    if (value !== undefined) {
+    if (value !== undefined && !Number.isNaN(value)) {
       result[key] = value;
     }
   }

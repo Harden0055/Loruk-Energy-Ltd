@@ -17,7 +17,7 @@ import {
   useProducts
 } from '../lib/operationsDb';
 import { Customer, Delivery, Payment, Adjustment } from '../types';
-import { formatCurrency, formatLitres } from '../lib/utils';
+import { formatCurrency, formatLitres, parseDateToTimestamp, formatDateToInput, parseCleanNumber } from '../lib/utils';
 import { useAuth } from '../lib/auth';
 import { format } from 'date-fns';
 import { 
@@ -36,13 +36,8 @@ import {
   Search, 
   FileText,
   Wallet,
-  Paperclip,
-  Copy,
-  Check,
   X
 } from 'lucide-react';
-import ReceiptProofUploader from '../components/ReceiptProofUploader';
-import ReceiptProofModal, { ReceiptProofData } from '../components/ReceiptProofModal';
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -59,19 +54,6 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { setupPdfHeader, addPdfFooter } from '../lib/pdfTemplate';
 
-// Precise date parser that avoids UTC midnight timezone rollback
-const parseDateToTimestamp = (dateStr: string): number => {
-  if (!dateStr) return Date.now();
-  const parts = dateStr.split('-');
-  if (parts.length === 3) {
-    const y = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10) - 1;
-    const d = parseInt(parts[2], 10);
-    // Midday (12:00:00) prevents any timezone boundary shifting across days
-    return new Date(y, m, d, 12, 0, 0).getTime();
-  }
-  return new Date(dateStr).getTime() || Date.now();
-};
 
 interface CustomerDashboardProps {
   customerId: string;
@@ -140,10 +122,6 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [deliveryDate, setDeliveryDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentDate, setPaymentDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [paymentReceiptImage, setPaymentReceiptImage] = useState<string | null>(null);
-  const [paymentReceiptText, setPaymentReceiptText] = useState('');
-  const [viewingReceipt, setViewingReceipt] = useState<ReceiptProofData | null>(null);
-  const [copiedTxId, setCopiedTxId] = useState<string | null>(null);
   const [adjustType, setAdjustType] = useState<'credit' | 'debit'>('credit');
   const [adjustAmount, setAdjustAmount] = useState('');
   const [adjustDate, setAdjustDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -724,27 +702,20 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const handleAddPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customer) return;
-    const amountVal = parseFloat(paymentAmount);
+    const amountVal = parseCleanNumber(paymentAmount);
     if (!amountVal || amountVal <= 0) {
-      alert('Please enter a valid payment amount');
+      alert('Please enter a valid payment amount (greater than 0)');
       return;
     }
 
     setModalLoading(true);
     try {
-      // Build clean payment payload without undefined properties
       const paymentData: Omit<Payment, 'id' | 'updatedBy' | 'actionType'> = {
         customerId: customer.id,
         date: parseDateToTimestamp(paymentDate),
         amount: amountVal,
         createdBy: user?.email || 'Unknown'
       };
-      if (paymentReceiptImage) {
-        paymentData.receiptImage = paymentReceiptImage;
-      }
-      if (paymentReceiptText.trim()) {
-        paymentData.receiptText = paymentReceiptText.trim();
-      }
 
       await createPayment(paymentData, user?.email || 'Unknown');
       await updateCustomer(customer.id, {}, { balance: -amountVal }, user?.email || 'Unknown');
@@ -767,8 +738,6 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
       setActiveModal(null);
       setPaymentAmount('');
-      setPaymentReceiptImage(null);
-      setPaymentReceiptText('');
     } catch (err: any) {
       console.error('Payment creation error:', err);
       alert(`Error recording payment: ${err?.message || 'Please check the values and try again'}`);
@@ -1347,53 +1316,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                         </div>
                       </td>
                       <td className="px-4 sm:px-6 py-3.5 text-xs sm:text-sm font-medium text-theme-text-muted max-w-[200px] sm:max-w-[280px]" title={e.description}>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="truncate">{e.description}</span>
-                          {((e as any).receiptImage || (e as any).receiptText) && (
-                            <button
-                              type="button"
-                              onClick={(ev) => {
-                                ev.stopPropagation();
-                                setViewingReceipt({
-                                  title: `${customer?.name || 'Customer'} - Payment Proof`,
-                                  amount: e.amount,
-                                  date: e.date,
-                                  receiptImage: (e as any).receiptImage,
-                                  receiptText: (e as any).receiptText,
-                                  entityName: customer?.name,
-                                  category: 'Customer Payment'
-                                });
-                              }}
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-[#6D28D9]/20 text-[#A78BFA] hover:bg-[#6D28D9]/35 border border-[#6D28D9]/40 transition-colors cursor-pointer shrink-0"
-                              title="View receipt proof (image or text memo)"
-                            >
-                              <Paperclip className="w-3 h-3 text-[#A78BFA]" />
-                              <span>Receipt</span>
-                            </button>
-                          )}
-                          {(e as any).receiptText && (
-                            <button
-                              type="button"
-                              onClick={async (ev) => {
-                                ev.stopPropagation();
-                                try {
-                                  await navigator.clipboard.writeText((e as any).receiptText);
-                                  setCopiedTxId(e.id);
-                                  setTimeout(() => setCopiedTxId(null), 2000);
-                                } catch (err) {
-                                  console.error('Failed to copy', err);
-                                }
-                              }}
-                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-colors cursor-pointer shrink-0"
-                              title={`Copy reference: ${(e as any).receiptText}`}
-                            >
-                              {copiedTxId === e.id ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5 text-slate-400" />}
-                              <span>{copiedTxId === e.id ? 'Copied' : 'Copy Ref'}</span>
-                            </button>
-                          )}
-                        </div>
+                        <span className="truncate block">{e.description}</span>
                       </td>
-                      <td className="px-4 sm:px-6 py-3.5 text-right font-mono font-bold text-sm whitespace-nowrap">
+                      <td className="px-4 sm:px-6 py-3.5 text-right font-mono font-bold text-sm whitespace-nowrap tabular-nums">
                         {isOpening ? (
                           <span className={customer?.openingBalanceType === 'advance' ? '!text-[#059669]' : '!text-[#6D28D9]'}>
                             {customer?.openingBalanceType === 'advance' ? '-' : '+'}Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1408,7 +1333,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                           </span>
                         )}
                       </td>
-                      <td className="px-4 sm:px-6 py-3.5 text-right font-mono font-bold text-sm whitespace-nowrap">
+                      <td className="px-4 sm:px-6 py-3.5 text-right font-mono font-bold text-sm whitespace-nowrap tabular-nums">
                         {e.balanceAfter > 0 ? (
                           <span className="!text-[#6D28D9]">
                             Ksh {e.balanceAfter.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1451,7 +1376,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
       {/* QUICK MODALS MAP */}
       {activeModal === 'edit_adjustment' && editingAdjustment && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-[#000000] rounded-2xl shadow-2xl border border-white/10 w-full max-w-md overflow-hidden transform transition-all duration-300">
             <form onSubmit={handleUpdateAdjustment}>
               <div className="px-6 py-5 border-b border-white/10 bg-[#000000] flex justify-between items-center">
@@ -1519,7 +1444,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       )}
 
       {activeModal === 'delivery' && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-[#000000] rounded-2xl shadow-2xl border border-white/10 w-full max-w-sm overflow-hidden transform transition-all duration-300">
             <form onSubmit={handleAddDelivery}>
               <div className="px-6 py-5 border-b border-white/10 bg-[#000000] flex justify-between items-center">
@@ -1685,7 +1610,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       )}
 
       {activeModal === 'payment' && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-[#000000] rounded-2xl shadow-2xl border border-white/10 w-full max-w-md overflow-hidden transform transition-all duration-300">
             <form onSubmit={handleAddPayment}>
               <div className="px-6 py-5 border-b border-white/10 bg-[#000000] flex justify-between items-center">
@@ -1695,17 +1620,13 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 </div>
                 <button 
                   type="button" 
-                  onClick={() => {
-                    setActiveModal(null);
-                    setPaymentReceiptImage(null);
-                    setPaymentReceiptText('');
-                  }} 
+                  onClick={() => setActiveModal(null)} 
                   className="p-1 px-2 text-[#A1A1AA] hover:text-white rounded-lg transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5"/>
                 </button>
               </div>
-              <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+              <div className="p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-semibold text-white mb-1.5">Date *</label>
                   <input 
@@ -1728,14 +1649,6 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-base text-white outline-none focus:border-emerald-500 shadow-sm"
                   />
                 </div>
-
-                <ReceiptProofUploader 
-                  receiptImage={paymentReceiptImage}
-                  onImageChange={setPaymentReceiptImage}
-                  receiptText={paymentReceiptText}
-                  onTextChange={setPaymentReceiptText}
-                  compact
-                />
               </div>
               <div className="px-6 py-4 bg-[#000000] border-t border-white/10 flex justify-end gap-3 rounded-b-xl">
                 <button
@@ -1759,7 +1672,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       )}
 
       {activeModal === 'adjustment' && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-[#000000] rounded-2xl shadow-2xl border border-white/10 w-full max-w-sm overflow-hidden transform transition-all duration-300">
             <form onSubmit={handleAddAdjustment}>
               <div className="px-6 py-5 border-b border-white/10 bg-[#000000] flex justify-between items-center">
@@ -1861,13 +1774,6 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           </div>
         </div>
       )}
-
-      {/* RECEIPT PROOF PREVIEW MODAL */}
-      <ReceiptProofModal 
-        isOpen={Boolean(viewingReceipt)}
-        onClose={() => setViewingReceipt(null)}
-        proof={viewingReceipt}
-      />
     </div>
   );
 }

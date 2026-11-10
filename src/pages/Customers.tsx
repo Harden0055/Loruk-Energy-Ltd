@@ -1,23 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useCustomers, createCustomer, deleteCustomer, updateCustomer, createAdjustment, useDeliveries, usePayments, useAdjustments, recalculateCustomerBalance } from '../lib/db';
-import { formatCurrency } from '../lib/utils';
+import { formatCurrency, parseDateToTimestamp } from '../lib/utils';
 import { Search, Plus, Trash2, Pencil, AlertTriangle, X, ArrowUpDown, Eye, Truck, Download, RefreshCw } from 'lucide-react';
 import { Customer } from '../types';
 import { useAuth } from '../lib/auth';
 import { format } from 'date-fns';
 import Papa from 'papaparse';
-
-const parseDateToTimestamp = (dateStr: string): number => {
-  if (!dateStr) return Date.now();
-  const parts = dateStr.split('-');
-  if (parts.length === 3) {
-    const y = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10) - 1;
-    const d = parseInt(parts[2], 10);
-    return new Date(y, m, d, 12, 0, 0).getTime();
-  }
-  return new Date(dateStr).getTime() || Date.now();
-};
 
 interface CustomersProps {
   onViewCustomer?: (id: string) => void;

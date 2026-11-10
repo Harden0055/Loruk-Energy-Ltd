@@ -499,7 +499,7 @@ export default function InventoryView() {
       <div className="flex gap-4 border-b border-theme-border">
         <button
           className={`pb-3 px-4 font-semibold text-sm transition-all duration-200 cursor-pointer ${
-            activeTab === 'overview' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF] drop-shadow-[0_0_10px_rgba(0,212,255,0.25)]' : 'text-theme-text-muted hover:text-white'
+            activeTab === 'overview' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF]' : 'text-theme-text-muted hover:text-white'
           }`}
           onClick={() => { setActiveTab('overview'); setIsFormOpen(false); }}
         >
@@ -507,7 +507,7 @@ export default function InventoryView() {
         </button>
         <button
           className={`pb-3 px-4 font-semibold text-sm transition-all duration-200 cursor-pointer ${
-            activeTab === 'opening' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF] drop-shadow-[0_0_10px_rgba(0,212,255,0.25)]' : 'text-theme-text-muted hover:text-white'
+            activeTab === 'opening' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF]' : 'text-theme-text-muted hover:text-white'
           }`}
           onClick={() => { setActiveTab('opening'); resetForm(); }}
         >
@@ -515,7 +515,7 @@ export default function InventoryView() {
         </button>
         <button
           className={`pb-3 px-4 font-semibold text-sm transition-all duration-200 cursor-pointer ${
-            activeTab === 'in' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF] drop-shadow-[0_0_10px_rgba(0,212,255,0.25)]' : 'text-theme-text-muted hover:text-white'
+            activeTab === 'in' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF]' : 'text-theme-text-muted hover:text-white'
           }`}
           onClick={() => { setActiveTab('in'); resetForm(); }}
         >
@@ -523,7 +523,7 @@ export default function InventoryView() {
         </button>
         <button
           className={`pb-3 px-4 font-semibold text-sm transition-all duration-200 cursor-pointer ${
-            activeTab === 'out' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF] drop-shadow-[0_0_10px_rgba(0,212,255,0.25)]' : 'text-theme-text-muted hover:text-white'
+            activeTab === 'out' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF]' : 'text-theme-text-muted hover:text-white'
           }`}
           onClick={() => { setActiveTab('out'); resetForm(); }}
         >
@@ -531,7 +531,7 @@ export default function InventoryView() {
         </button>
         <button
           className={`pb-3 px-4 font-semibold text-sm transition-all duration-200 cursor-pointer ${
-            activeTab === 'reconciliation' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF] drop-shadow-[0_0_10px_rgba(0,212,255,0.25)]' : 'text-theme-text-muted hover:text-white'
+            activeTab === 'reconciliation' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF]' : 'text-theme-text-muted hover:text-white'
           }`}
           onClick={() => { setActiveTab('reconciliation'); }}
         >

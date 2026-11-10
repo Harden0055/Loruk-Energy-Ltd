@@ -141,9 +141,11 @@
 html, body {
   background-color: var(--theme-canvas-bg, #000000) !important;
   color: var(--color-theme-text, #94A3B8) !important;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -152,10 +154,10 @@ html, body {
   color: var(--color-theme-text, #94A3B8) !important;
 }
 
-/* Eye-comfort soft grey: spare eyes by reducing bright blinding colors to match table subtitles and descriptions */
+/* Eye-comfort soft grey: clean, sharp and readable without eye-strain */
 h1, h2, h3, h4, h5, h6 {
-  color: #94A3B8 !important;
-  letter-spacing: -0.02em;
+  color: #CBD5E1 !important;
+  letter-spacing: -0.01em;
 }
 
 .text-white,
@@ -166,7 +168,7 @@ h1, h2, h3, h4, h5, h6 {
 .text-gray-200,
 .text-zinc-100,
 .text-zinc-200 {
-  color: #94A3B8 !important;
+  color: #CBD5E1 !important;
 }
 
 .subtitle,
@@ -179,13 +181,14 @@ p, span, div, label {
   color: inherit;
 }
 
-/* Unified Lucide Icon Styling - Inherits matching color hues */
+/* Unified Lucide Icon Styling - Clean crisp geometry without blur */
 svg.lucide {
   stroke-width: 2 !important;
   stroke: currentColor !important;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, filter 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
   display: inline-block;
   vertical-align: middle;
+  filter: none !important;
 }
 
 .text-cyan-400 svg.lucide,
@@ -196,7 +199,7 @@ svg.lucide {
 .text-blue-500 svg.lucide,
 .text-purple-400 svg.lucide,
 .text-purple-500 svg.lucide {
-  filter: drop-shadow(0 0 6px currentColor);
+  filter: none !important;
 }
 
 .glow-icon-container {
@@ -260,6 +263,12 @@ svg.lucide {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.95) !important;
   }
 
+  /* Universal Crisp Rendering: eliminate mobile GPU raster blur */
+  [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
   /* Mesh Surface Mode */
   .surface-mesh .theme-bg-gradient,
   [data-surface-style="mesh"] .theme-bg-gradient {
@@ -271,35 +280,37 @@ svg.lucide {
     background: #000000 !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     border-radius: 12px !important;
-    backdrop-filter: blur(24px) !important;
-    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.95), inset 0 1px 1px rgba(255, 255, 255, 0.03) !important;
+    backdrop-filter: none !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.95), inset 0 1px 1px rgba(255, 255, 255, 0.03) !important;
     transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease, background 0.25s ease !important;
   }
 
-  /* DeepCharts Pitch Black Glass Card with Subtle Fading Hairline */
+  /* DeepCharts Pitch Black Card with Subtle Fading Hairline */
   .theme-deepcharts .glass-panel,
   [data-theme="deepcharts"] .glass-panel {
     background: #000000 !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-top: 1px solid rgba(139, 92, 246, 0.25) !important;
-    box-shadow: 0 8px 30px -8px rgba(0, 0, 0, 0.98), inset 0 1px 1px rgba(255, 255, 255, 0.04) !important;
+    border-top: 1px solid rgba(139, 92, 246, 0.3) !important;
+    backdrop-filter: none !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.95), inset 0 1px 1px rgba(255, 255, 255, 0.04) !important;
   }
 
   .surface-gradient .glass-panel,
   [data-surface-style="gradient"] .glass-panel {
     background: #000000 !important;
+    backdrop-filter: none !important;
   }
 
   .glass-panel:hover {
-    border-color: rgba(0, 230, 118, 0.35) !important;
-    box-shadow: 0 4px 32px 0 rgba(0, 0, 0, 0.95), inset 0 1px 1px rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(0, 230, 118, 0.45) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.95), inset 0 1px 1px rgba(255, 255, 255, 0.06) !important;
   }
 
   .theme-deepcharts .glass-panel:hover,
   [data-theme="deepcharts"] .glass-panel:hover {
-    border-color: rgba(0, 230, 118, 0.35) !important;
-    border-top-color: rgba(0, 230, 118, 0.6) !important;
-    box-shadow: 0 10px 40px -8px rgba(0, 0, 0, 0.98), 0 0 20px rgba(0, 230, 118, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(0, 230, 118, 0.45) !important;
+    border-top-color: rgba(0, 230, 118, 0.7) !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.98), inset 0 1px 1px rgba(255, 255, 255, 0.08) !important;
   }
 
   /* Solid to Gradient Swatch Card */
@@ -407,7 +418,7 @@ svg.lucide {
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     background-clip: text !important;
-    filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.35));
+    filter: none !important;
   }
 
   /* DeepCharts Smart Money Signature Fading Text */
@@ -418,7 +429,7 @@ svg.lucide {
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     background-clip: text !important;
-    filter: drop-shadow(0 0 24px rgba(139, 92, 246, 0.45));
+    filter: none !important;
   }
 
   .text-purple-green-fade {
@@ -426,7 +437,7 @@ svg.lucide {
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     background-clip: text !important;
-    filter: drop-shadow(0 0 18px rgba(0, 230, 118, 0.35));
+    filter: none !important;
   }
 
   .text-gradient-green,
@@ -435,7 +446,7 @@ svg.lucide {
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     background-clip: text !important;
-    filter: drop-shadow(0 0 15px rgba(0, 230, 118, 0.4));
+    filter: none !important;
   }
 
   .text-gradient-purple {
@@ -443,7 +454,7 @@ svg.lucide {
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     background-clip: text !important;
-    filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.4));
+    filter: none !important;
   }
 
   .text-gradient-amber {
@@ -507,10 +518,9 @@ svg.lucide {
 
   .sidebar-item-active {
     background: rgba(16, 185, 129, 0.12) !important;
-    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    border: 1px solid rgba(16, 185, 129, 0.4) !important;
     color: #34D399 !important;
     font-weight: 600 !important;
-    box-shadow: 0 0 16px rgba(16, 185, 129, 0.12) !important;
   }
   
   .sidebar-item-active svg.lucide {
@@ -522,15 +532,14 @@ svg.lucide {
     height: 20px !important;
     margin-right: 0px;
     color: #34D399 !important;
-    filter: drop-shadow(0 0 6px rgba(52, 211, 153, 0.4));
+    filter: none !important;
   }
 
   .sidebar-item-active-blue {
     background: rgba(16, 185, 129, 0.12) !important;
-    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    border: 1px solid rgba(16, 185, 129, 0.4) !important;
     color: #34D399 !important;
     font-weight: 600 !important;
-    box-shadow: 0 0 16px rgba(16, 185, 129, 0.12) !important;
   }
   .sidebar-item-active-blue svg.lucide {
     background: transparent;
@@ -541,15 +550,14 @@ svg.lucide {
     height: 20px !important;
     margin-right: 0px;
     color: #34D399 !important;
-    filter: drop-shadow(0 0 6px rgba(52, 211, 153, 0.4));
+    filter: none !important;
   }
 
   .sidebar-item-active-purple {
     background: rgba(147, 51, 234, 0.14) !important;
-    border: 1px solid rgba(168, 85, 247, 0.35) !important;
+    border: 1px solid rgba(168, 85, 247, 0.4) !important;
     color: #C084FC !important;
     font-weight: 600 !important;
-    box-shadow: 0 0 16px rgba(147, 51, 234, 0.14) !important;
   }
   .sidebar-item-active-purple svg.lucide {
     background: transparent;
@@ -560,15 +568,14 @@ svg.lucide {
     height: 20px !important;
     margin-right: 0px;
     color: #C084FC !important;
-    filter: drop-shadow(0 0 6px rgba(192, 132, 252, 0.4));
+    filter: none !important;
   }
 
   .sidebar-item-active-green {
     background: rgba(16, 185, 129, 0.12) !important;
-    border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    border: 1px solid rgba(16, 185, 129, 0.4) !important;
     color: #34D399 !important;
     font-weight: 600 !important;
-    box-shadow: 0 0 16px rgba(16, 185, 129, 0.12) !important;
   }
   .sidebar-item-active-green svg.lucide {
     background: transparent;
@@ -579,7 +586,7 @@ svg.lucide {
     height: 20px !important;
     margin-right: 0px;
     color: #34D399 !important;
-    filter: drop-shadow(0 0 6px rgba(52, 211, 153, 0.4));
+    filter: none !important;
   }
 
   .sidebar-subnav-grid {
@@ -648,12 +655,12 @@ svg.lucide {
 
 /* Tooltip Customization */
 .recharts-default-tooltip {
-  background: rgba(14, 17, 26, 0.96) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(14, 17, 26, 0.98) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
   border-radius: 12px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8) !important;
   color: #F8FAFC !important;
-  backdrop-filter: blur(8px) !important;
+  backdrop-filter: none !important;
 }
 
 .recharts-tooltip-label {
@@ -687,6 +694,7 @@ button[data-link="true"],
   color: #7C3AED !important;
   text-decoration-color: #7C3AED !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  text-shadow: none !important;
 }
 
 a:hover, 
@@ -703,7 +711,7 @@ button[data-link="true"]:hover,
 .text-blue-400.hover\:underline:hover {
   color: #C084FC !important;
   text-decoration-color: #C084FC !important;
-  text-shadow: 0 0 12px rgba(124, 58, 237, 0.55) !important;
+  text-shadow: none !important;
 }
 
 /* 2. Dropdown styling (green or purple depending on meaning) */
@@ -724,7 +732,7 @@ select[name*="customer"]:hover,
 select[name*="product"]:hover {
   border-color: #00E676 !important;
   color: #00E676 !important;
-  box-shadow: 0 0 14px rgba(0, 230, 118, 0.25) !important;
+  box-shadow: none !important;
 }
 
 select:focus,
@@ -732,7 +740,7 @@ select:focus,
 select.customer-select:focus,
 select.product-select:focus {
   border-color: #00E676 !important;
-  box-shadow: 0 0 16px rgba(0, 230, 118, 0.35) !important;
+  box-shadow: 0 0 0 1px rgba(0, 230, 118, 0.5) !important;
   outline: none !important;
 }
 
@@ -741,7 +749,7 @@ select.dropdown-green,
 select.select-positive,
 select[data-type="positive"],
 .select-positive {
-  border-color: rgba(0, 230, 118, 0.4) !important;
+  border-color: rgba(0, 230, 118, 0.45) !important;
   color: #00E676 !important;
 }
 select.dropdown-green:focus,
@@ -749,7 +757,7 @@ select.select-positive:focus,
 select[data-type="positive"]:focus,
 .select-positive:focus {
   border-color: #00E676 !important;
-  box-shadow: 0 0 18px rgba(0, 230, 118, 0.4) !important;
+  box-shadow: 0 0 0 1px rgba(0, 230, 118, 0.5) !important;
 }
 
 /* Table debits strictly deep purple #9333EA, and credits green #00E676 */
@@ -780,14 +788,14 @@ select option {
   color: #000000 !important;
   font-weight: 700 !important;
   border: 1px solid rgba(0, 230, 118, 0.6) !important;
-  box-shadow: 0 0 20px rgba(0, 230, 118, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(0, 230, 118, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 .btn-positive:hover,
 .btn-green:hover,
 .deepcharts-btn-green:hover {
   background: linear-gradient(135deg, #34D399 0%, #00E676 100%) !important;
-  box-shadow: 0 0 32px rgba(0, 230, 118, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 4px 12px rgba(0, 230, 118, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
   transform: translateY(-1px);
 }
 
@@ -801,7 +809,6 @@ select option {
   background: rgba(0, 230, 118, 0.2) !important;
   border-color: #00E676 !important;
   color: #34D399 !important;
-  box-shadow: 0 0 18px rgba(0, 230, 118, 0.35) !important;
 }
 
 .btn-negative,
@@ -811,14 +818,14 @@ select option {
   color: #FFFFFF !important;
   font-weight: 700 !important;
   border: 1px solid rgba(168, 85, 247, 0.5) !important;
-  box-shadow: 0 0 20px rgba(139, 92, 246, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.25) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 .btn-negative:hover,
 .btn-purple:hover,
 .deepcharts-btn-purple:hover {
   background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%) !important;
-  box-shadow: 0 0 32px rgba(168, 85, 247, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
   transform: translateY(-1px);
 }
 
@@ -832,7 +839,6 @@ select option {
   background: rgba(139, 92, 246, 0.24) !important;
   border-color: #A855F7 !important;
   color: #E9D5FF !important;
-  box-shadow: 0 0 18px rgba(168, 85, 247, 0.35) !important;
 }
 
 /* 4. Hover border lines or background colors: strictly green or purple depending on meaning */
@@ -937,11 +943,11 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
    ========================================================================== */
 .text-white,
 [class*="text-white"] {
-  color: #94A3B8 !important;
+  color: #CBD5E1 !important;
 }
 
 .hover\:text-white:hover {
-  color: #CBD5E1 !important;
+  color: #F1F5F9 !important;
 }
 
 .border-white\/10,

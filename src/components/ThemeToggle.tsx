@@ -249,7 +249,7 @@ export default function ThemeToggle({ variant = 'button', className = '' }: Them
               style={{ backgroundColor: t.accentColor }}
               title={`${t.name} (${t.badge})`}
             >
-              {isSelected && <Check className="w-3 h-3 text-white drop-shadow" />}
+              {isSelected && <Check className="w-3 h-3 text-white" />}
             </button>
           );
         })}
@@ -283,7 +283,7 @@ export default function ThemeToggle({ variant = 'button', className = '' }: Them
 
       {/* Floating Quick Dropdown */}
       {isDropdownOpen && (
-        <div className="absolute right-0 mt-2 w-64 p-3 rounded-2xl glass-panel border border-white/15 shadow-2xl z-50 animate-fade-in backdrop-blur-2xl">
+        <div className="absolute right-0 mt-2 w-64 p-3 rounded-2xl bg-[#09090e] border border-white/15 shadow-2xl z-50 animate-fade-in">
           <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
             <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Aesthetic Theme</span>
             <button

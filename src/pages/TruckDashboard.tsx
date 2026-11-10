@@ -2,8 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useFleetExpenses, useTrucks } from '../lib/db';
 import { formatCurrency } from '../lib/utils';
 import { format } from 'date-fns';
-import { CarFront, TrendingUp, Route, Gauge, Fuel, MapPin, Award, CheckCircle2, Download, Paperclip } from 'lucide-react';
-import ReceiptProofModal, { ReceiptProofData } from '../components/ReceiptProofModal';
+import { CarFront, TrendingUp, Route, Gauge, Fuel, MapPin, Award, CheckCircle2, Download } from 'lucide-react';
 import { 
   ResponsiveContainer, 
   BarChart, 
@@ -40,7 +39,6 @@ export default function TruckDashboard({
   const { expenses: allExpenses } = useFleetExpenses();
   const { trucks } = useTrucks();
   const [selectedProduct, setSelectedProduct] = useState<string>('all');
-  const [viewingReceipt, setViewingReceipt] = useState<ReceiptProofData | null>(null);
 
   const CAR_REGISTRATIONS = useMemo(() => {
     return trucks.length > 0 ? trucks.map(t => t.registration) : FALLBACK_REGISTRATIONS;
@@ -321,31 +319,7 @@ export default function TruckDashboard({
                       </td>
                       <td className="modern-td">{e.litres ? `${e.litres.toLocaleString()} ${e.product === 'Greasing' ? 'serv' : 'L'}` : '-'}</td>
                       <td className="modern-td">
-                        <div className="flex items-center gap-2">
-                          <span className="!text-[#6D28D9] font-mono font-bold text-base">{formatCurrency(e.amount)}</span>
-                          {(e.receiptImage || e.receiptText) && (
-                            <button
-                              type="button"
-                              onClick={(ev) => {
-                                ev.stopPropagation();
-                                setViewingReceipt({
-                                  title: `${e.carRegistration} - ${e.product || 'Fuel'} Expense Proof`,
-                                  amount: e.amount,
-                                  date: e.date,
-                                  receiptImage: e.receiptImage,
-                                  receiptText: e.receiptText,
-                                  entityName: `${e.carRegistration} (${e.station || 'Fleet Station'})`,
-                                  category: 'Fleet Fueling Expense'
-                                });
-                              }}
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-[#6D28D9]/20 text-[#A78BFA] hover:bg-[#6D28D9]/35 border border-[#6D28D9]/40 transition-colors cursor-pointer shrink-0"
-                              title="View receipt proof (image or text memo)"
-                            >
-                              <Paperclip className="w-3 h-3 text-[#A78BFA]" />
-                              <span>Receipt</span>
-                            </button>
-                          )}
-                        </div>
+                        <span className="!text-[#6D28D9] font-mono font-bold text-base tabular-nums">{formatCurrency(e.amount)}</span>
                       </td>
                     </tr>
                   );
@@ -355,12 +329,6 @@ export default function TruckDashboard({
           </table>
         </div>
       </div>
-
-      <ReceiptProofModal 
-        isOpen={Boolean(viewingReceipt)}
-        onClose={() => setViewingReceipt(null)}
-        proof={viewingReceipt}
-      />
     </div>
   );
 }

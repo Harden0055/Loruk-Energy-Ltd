@@ -17,17 +17,13 @@ import {
   DollarSign, 
   CarFront, 
   Building2, 
-  ExternalLink,
-  Paperclip,
-  Copy,
-  Check 
+  ExternalLink
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useSync } from '../lib/sync';
 import { useTheme } from '../lib/theme';
 import { format } from 'date-fns';
 import { Customer } from '../types';
-import ReceiptProofModal, { ReceiptProofData } from '../components/ReceiptProofModal';
 
 export default function Dashboard({ 
   selectedStation, 
@@ -58,8 +54,6 @@ export default function Dashboard({
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [liveTab, setLiveTab] = useState<'transactions' | 'customers' | 'trucks'>('transactions');
   const [txFilter, setTxFilter] = useState<'all' | 'delivery' | 'payment' | 'fleet'>('all');
-  const [viewingReceipt, setViewingReceipt] = useState<ReceiptProofData | null>(null);
-  const [copiedTxId, setCopiedTxId] = useState<string | null>(null);
 
   const handleClearDemoData = async () => {
     setIsWiping(true);
@@ -866,58 +860,14 @@ export default function Dashboard({
 
                       {/* Amount */}
                       <td className="modern-td">
-                        <div className="flex items-center gap-2">
-                          <span className={`font-mono font-bold text-sm ${
-                            tx.kind === 'payment'
-                              ? '!text-[#059669]'
-                              : '!text-[#6D28D9]'
-                          }`}>
-                            {tx.kind === 'payment' ? '+ ' : ''}
-                            {formatCurrency(tx.amount)}
-                          </span>
-                          {(tx.receiptImage || tx.receiptText) && (
-                            <button
-                              type="button"
-                              onClick={(ev) => {
-                                ev.stopPropagation();
-                                setViewingReceipt({
-                                  title: `${tx.partyName} - ${tx.title} Proof`,
-                                  amount: tx.amount,
-                                  date: tx.date,
-                                  receiptImage: tx.receiptImage,
-                                  receiptText: tx.receiptText,
-                                  entityName: tx.partyName,
-                                  category: tx.title
-                                });
-                              }}
-                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-[#6D28D9]/20 text-[#A78BFA] hover:bg-[#6D28D9]/35 border border-[#6D28D9]/40 transition-colors cursor-pointer shrink-0"
-                              title="View receipt proof (image or text memo)"
-                            >
-                              <Paperclip className="w-3 h-3 text-[#A78BFA]" />
-                              <span>Receipt</span>
-                            </button>
-                          )}
-                          {tx.receiptText && (
-                            <button
-                              type="button"
-                              onClick={async (ev) => {
-                                ev.stopPropagation();
-                                try {
-                                  await navigator.clipboard.writeText(tx.receiptText!);
-                                  setCopiedTxId(tx.id);
-                                  setTimeout(() => setCopiedTxId(null), 2000);
-                                } catch (err) {
-                                  console.error('Failed to copy', err);
-                                }
-                              }}
-                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-colors cursor-pointer shrink-0"
-                              title={`Copy reference: ${tx.receiptText}`}
-                            >
-                              {copiedTxId === tx.id ? <Check className="w-2.5 h-2.5 text-emerald-400" /> : <Copy className="w-2.5 h-2.5 text-slate-400" />}
-                              <span>{copiedTxId === tx.id ? 'Copied' : 'Copy Ref'}</span>
-                            </button>
-                          )}
-                        </div>
+                        <span className={`font-mono font-bold text-sm tabular-nums block ${
+                          tx.kind === 'payment'
+                            ? '!text-[#059669]'
+                            : '!text-[#6D28D9]'
+                        }`}>
+                          {tx.kind === 'payment' ? '+ ' : ''}
+                          {formatCurrency(tx.amount)}
+                        </span>
                       </td>
 
                       {/* Processed By */}
@@ -937,29 +887,23 @@ export default function Dashboard({
           </table>
         </div>
       </div>
-
-      <ReceiptProofModal 
-        isOpen={Boolean(viewingReceipt)}
-        onClose={() => setViewingReceipt(null)}
-        proof={viewingReceipt}
-      />
     </div>
   );
 }
 
 function MetricCard({ title, value, icon: Icon, color }: any) {
   return (
-    <div className="glass-panel p-5 rounded-[20px] transition-all duration-300 hover:translate-y-[-2px] hover:shadow-[0_0_30px_rgba(109,40,217,0.2)] hover:border-[#6D28D9]/40 flex flex-col justify-between min-h-[128px]">
+    <div className="glass-panel p-5 rounded-[20px] transition-all duration-300 hover:translate-y-[-2px] hover:border-[#6D28D9]/50 flex flex-col justify-between min-h-[128px]">
       <div className="flex items-start justify-between gap-3">
-        <p className="text-[11px] font-semibold tracking-wider text-[#A1A1AA] uppercase">{title}</p>
+        <p className="text-[11px] font-semibold tracking-wider text-[#94A3B8] uppercase">{title}</p>
         <div className="w-8 h-8 rounded-xl shrink-0 bg-white/5 border border-white/10 flex items-center justify-center">
           <Icon className={`w-4 h-4 ${color || 'text-purple-400'}`} />
         </div>
       </div>
       <div className="mt-2">
-        <p className="text-sm sm:text-base lg:text-[18px] font-bold text-white tracking-tight leading-snug mb-1 font-mono truncate" title={value}>{value}</p>
+        <p className="text-sm sm:text-base lg:text-[18px] font-bold text-slate-100 tracking-tight leading-snug mb-1 font-mono tabular-nums truncate" title={value}>{value}</p>
         <div className="flex items-center gap-1.5 text-[9px] text-emerald-400 font-bold uppercase tracking-widest">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#00E676]" />
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
           Operational
         </div>
       </div>

@@ -48,6 +48,7 @@ function AuthenticatedApp() {
   const [showPrintWarning, setShowPrintWarning] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
     try {
       return localStorage.getItem('loruk_main_sidebar_hidden') === 'true';
@@ -187,33 +188,23 @@ function AuthenticatedApp() {
     <div className="flex h-screen bg-[#000000] text-theme-text font-sans overflow-hidden transition-colors relative">
       <OfflineIndicator />
 
-      {/* Ultra-Subtle Ethereal Atmospheric Fade (Dimmed & Low-Brightness on Pitch Black) */}
-      <div className="absolute top-0 inset-x-0 h-48 pointer-events-none z-0 overflow-hidden select-none opacity-20">
-        {/* Faint Center-Top Ambient Violet Whispers */}
-        <div className="absolute top-[-90px] left-1/2 -translate-x-1/2 w-[600px] h-[180px] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(139,92,246,0.06)_0%,rgba(124,58,237,0.02)_50%,transparent_70%)] blur-3xl animate-[deepcharts-aurora_14s_ease-in-out_infinite_alternate]" />
-        {/* Faint Far-Right Candlestick Green Tint */}
-        <div className="absolute top-[-70px] right-[5%] w-[360px] h-[150px] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(0,230,118,0.03)_0%,transparent_65%)] blur-3xl animate-[deepcharts-aurora_16s_ease-in-out_infinite_alternate-reverse]" />
-        {/* Immediate Seamless Fade to Pure Pitch Black #000000 */}
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[#000000]" />
-      </div>
-      
       {/* Mobile Sidebar Overlay */}
       {isMobileMenuOpen && (
         <div 
-          className="fixed inset-0 glass-panel  z-40 lg:hidden print-hide"
+          className="fixed inset-0 bg-black/80 z-40 lg:hidden print-hide"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
       
       {/* Print Warning Modal */}
       {showPrintWarning && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50  p-4 print-hide">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 print-hide">
           <div className="glass-panel p-6 rounded-xl shadow-2xl max-w-md w-full border border-theme-border">
             <h3 className="text-xl font-bold mb-3 flex items-center gap-2 text-blue-900 dark:text-theme-text">
               <Printer className="w-5 h-5" />
               Printing Restricted
             </h3>
-            <p className="text-theme-text-muted-muted mb-6">
+            <p className="text-theme-text-muted mb-6">
               Printing is restricted in this preview environment. To print or save as PDF, please open the application in a <strong>new tab</strong> using the arrow icon at the top right of your preview window.
             </p>
             <div className="flex justify-end gap-3">
@@ -228,7 +219,7 @@ function AuthenticatedApp() {
                   window.open(window.location.href, '_blank');
                   setShowPrintWarning(false);
                 }}
-                className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg transition-colors"
+                className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg transition-colors"
               >
                 Open in New Tab
               </button>
@@ -240,7 +231,7 @@ function AuthenticatedApp() {
       {/* Mobile Backdrop */}
       {isMobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-black/80 z-40 lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}

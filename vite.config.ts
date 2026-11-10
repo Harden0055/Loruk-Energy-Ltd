@@ -22,6 +22,16 @@ export default defineConfig(() => {
           display: 'standalone',
           start_url: '/',
           scope: '/',
+          share_target: {
+            action: '/',
+            method: 'GET',
+            enctype: 'application/x-www-form-urlencoded',
+            params: {
+              title: 'title',
+              text: 'text',
+              url: 'url'
+            }
+          },
           icons: [
             {
               src: '/pwa-192x192.png',

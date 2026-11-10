@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useDeliveries, createDelivery, useCustomers, deleteDelivery, updateCustomer, updateDelivery } from '../lib/db';
 import { useProducts } from '../lib/operationsDb';
-import { formatCurrency, formatLitres } from '../lib/utils';
+import { formatCurrency, formatLitres, parseDateToTimestamp } from '../lib/utils';
 import { useAuth } from '../lib/auth';
 import { Search, Plus, Bot, Trash2, AlertTriangle, X, Edit2, Check, SlidersHorizontal, RotateCcw, Fuel, Users, Coins, Flame, Download } from 'lucide-react';
 import { format } from 'date-fns';
@@ -9,18 +9,6 @@ import AIInputModal from '../components/AIInputModal';
 import { QuickAddCustomerModal } from '../components/QuickAddModal';
 import { Delivery } from '../types';
 import Papa from 'papaparse';
-
-const parseDateToTimestamp = (dateStr: string): number => {
-  if (!dateStr) return Date.now();
-  const parts = dateStr.split('-');
-  if (parts.length === 3) {
-    const y = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10) - 1;
-    const d = parseInt(parts[2], 10);
-    return new Date(y, m, d, 12, 0, 0).getTime();
-  }
-  return new Date(dateStr).getTime() || Date.now();
-};
 
 interface DeleteDeliveryProps {
   delivery: Delivery;
@@ -1077,7 +1065,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
                           className="px-2 py-1 glass-panel border border-theme-border rounded-lg text-sm text-theme-text text-right focus:outline-none focus:ring-2 focus:ring-blue-500 w-28 font-mono font-bold"
                         />
                       ) : (
-                        <span className="!text-[#6D28D9] font-mono font-bold text-base">{formatCurrency(d.totalAmount)}</span>
+                        <span className="!text-[#6D28D9] font-mono font-bold text-base tabular-nums">{formatCurrency(d.totalAmount)}</span>
                       )}
                     </td>
                     <td className="modern-td">
@@ -1412,7 +1400,7 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-50">
       <div className="bg-[#000000] rounded-2xl shadow-2xl border border-white/10 w-full max-w-md overflow-hidden transition-colors">
         <form onSubmit={handleSubmit}>
           <div className="px-6 py-5 border-b border-white/10 bg-[#000000] flex justify-between items-center">

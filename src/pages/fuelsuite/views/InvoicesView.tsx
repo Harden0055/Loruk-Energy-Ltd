@@ -558,7 +558,7 @@ export default function InvoicesView() {
             onClick={() => setActiveTab('customers')}
             className={`flex items-center gap-2.5 pb-2.5 px-3 border-b-2 font-semibold text-sm transition-all duration-200 cursor-pointer ${
               activeTab === 'customers'
-                ? 'border-emerald-400 text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                ? 'border-emerald-400 text-emerald-400'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -569,7 +569,7 @@ export default function InvoicesView() {
             onClick={() => setActiveTab('invoices')}
             className={`flex items-center gap-2.5 pb-2.5 px-3 border-b-2 font-semibold text-sm transition-all duration-200 cursor-pointer ${
               activeTab === 'invoices'
-                ? 'border-[#00D4FF] text-[#00D4FF] drop-shadow-[0_0_10px_rgba(0,212,255,0.3)]'
+                ? 'border-[#00D4FF] text-[#00D4FF]'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -1033,7 +1033,7 @@ export default function InvoicesView() {
 
                             {/* Receivables / Net Balance */}
                             <td className="py-3.5 px-3 text-right font-mono text-xs font-bold">
-                              <span className={fin?.isOverLimit ? 'text-[#9333EA] drop-shadow-[0_0_8px_rgba(147,51,234,0.3)]' : netBalance > 0 ? 'text-[#9333EA]' : 'text-emerald-400'}>
+                              <span className={fin?.isOverLimit ? 'text-[#9333EA]' : netBalance > 0 ? 'text-[#9333EA]' : 'text-emerald-400'}>
                                 KES {netBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                               </span>
                             </td>

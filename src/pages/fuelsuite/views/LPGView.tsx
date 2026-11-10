@@ -326,19 +326,19 @@ export default function LPGView() {
 
       <div className="flex gap-4 border-b border-theme-border">
         <button 
-          className={`pb-3 px-4 font-semibold text-sm transition-all duration-200 cursor-pointer ${activeTab === 'sales' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF] drop-shadow-[0_0_10px_rgba(0,212,255,0.25)]' : 'text-theme-text-muted hover:text-white'}`}
+          className={`pb-3 px-4 font-semibold text-sm transition-all duration-200 cursor-pointer ${activeTab === 'sales' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF]' : 'text-theme-text-muted hover:text-white'}`}
           onClick={() => { setActiveTab('sales'); resetForm(); }}
         >
           LPG Sales
         </button>
         <button 
-          className={`pb-3 px-4 font-semibold text-sm transition-all duration-200 cursor-pointer ${activeTab === 'purchases' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF] drop-shadow-[0_0_10px_rgba(0,212,255,0.25)]' : 'text-theme-text-muted hover:text-white'}`}
+          className={`pb-3 px-4 font-semibold text-sm transition-all duration-200 cursor-pointer ${activeTab === 'purchases' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF]' : 'text-theme-text-muted hover:text-white'}`}
           onClick={() => { setActiveTab('purchases'); resetForm(); }}
         >
           LPG Purchases
         </button>
         <button 
-          className={`pb-3 px-4 font-semibold text-sm transition-all duration-200 cursor-pointer ${activeTab === 'opening' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF] drop-shadow-[0_0_10px_rgba(0,212,255,0.25)]' : 'text-theme-text-muted hover:text-white'}`}
+          className={`pb-3 px-4 font-semibold text-sm transition-all duration-200 cursor-pointer ${activeTab === 'opening' ? 'text-[#00D4FF] border-b-2 border-[#00D4FF]' : 'text-theme-text-muted hover:text-white'}`}
           onClick={() => { setActiveTab('opening'); resetForm(); }}
         >
           Opening Stock

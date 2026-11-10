@@ -599,13 +599,13 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
                        <span>{e.note}</span>
                     </span>
                   </td>
-                  <td className="modern-td text-right font-mono font-bold text-sm">
+                  <td className="modern-td text-right font-mono font-bold text-sm tabular-nums">
                     {e.debit > 0 ? <span className="!text-[#6D28D9]">{formatCurrency(e.debit)}</span> : '-'}
                   </td>
-                  <td className="modern-td text-right font-mono font-bold text-sm">
+                  <td className="modern-td text-right font-mono font-bold text-sm tabular-nums">
                     {e.credit > 0 ? <span className="!text-[#059669]">{formatCurrency(e.credit)}</span> : '-'}
                   </td>
-                  <td className={`modern-td text-right font-mono font-bold text-sm ${e.runningBalance > 0 ? '!text-[#6D28D9]' : e.runningBalance < 0 ? '!text-[#059669]' : '!text-theme-text-muted'}`}>
+                  <td className={`modern-td text-right font-mono font-bold text-sm tabular-nums ${e.runningBalance > 0 ? '!text-[#6D28D9]' : e.runningBalance < 0 ? '!text-[#059669]' : '!text-theme-text-muted'}`}>
                     {formatCurrency(e.runningBalance)}
                   </td>
                   <td className="modern-td">
