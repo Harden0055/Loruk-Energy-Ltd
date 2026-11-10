@@ -321,14 +321,14 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
           const e = entriesList[data.row.index];
           
           if (data.column.index === debitCol && e.debit > 0) {
-            data.cell.styles.textColor = [192, 38, 211]; // Fuchsia 600
-            data.cell.styles.fillColor = [253, 244, 255]; // Fuchsia 50
+            data.cell.styles.textColor = [139, 92, 246]; // Violet 500
+            data.cell.styles.fillColor = [245, 243, 255]; // Violet 50
           } else if (data.column.index === creditCol && e.credit > 0) {
             data.cell.styles.textColor = [5, 150, 105]; // Emerald 600
             data.cell.styles.fillColor = [236, 253, 244]; // Emerald 50
           } else if (data.column.index === balanceCol) {
             if (e.runningBalance > 0) {
-              data.cell.styles.textColor = [192, 38, 211];
+              data.cell.styles.textColor = [139, 92, 246];
             } else if (e.runningBalance < 0) {
               data.cell.styles.textColor = [5, 150, 105];
             }

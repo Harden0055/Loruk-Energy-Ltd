@@ -82,8 +82,8 @@ export default function Reports() {
         },
         didParseCell: function(data) {
           if (data.section === 'body' && data.column.index === 3) {
-            data.cell.styles.textColor = [192, 38, 211]; // Fuchsia 600
-            data.cell.styles.fillColor = [253, 244, 255]; // Fuchsia 50
+            data.cell.styles.textColor = [139, 92, 246]; // Violet 500
+            data.cell.styles.fillColor = [245, 243, 255]; // Violet 50
           }
         }
       });
@@ -205,8 +205,8 @@ export default function Reports() {
           },
           didParseCell: function(data) {
             if (data.section === 'body' && data.column.index === 3) {
-              data.cell.styles.textColor = [192, 38, 211]; // Fuchsia 600
-              data.cell.styles.fillColor = [253, 244, 255]; // Fuchsia 50
+              data.cell.styles.textColor = [139, 92, 246]; // Violet 500
+              data.cell.styles.fillColor = [245, 243, 255]; // Violet 50
             }
           }
         });

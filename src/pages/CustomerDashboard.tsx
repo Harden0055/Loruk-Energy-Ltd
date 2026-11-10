@@ -576,8 +576,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             // Amount Column (Index 3)
             if (data.column.index === 3) {
               if (isViolet) {
-                data.cell.styles.textColor = [192, 38, 211]; // Fuchsia 600
-                data.cell.styles.fillColor = [253, 244, 255]; // Fuchsia 50
+                data.cell.styles.textColor = [139, 92, 246]; // Violet 500
+                data.cell.styles.fillColor = [245, 243, 255]; // Violet 50
               } else {
                 data.cell.styles.textColor = [5, 150, 105]; // Emerald 600
                 data.cell.styles.fillColor = [236, 253, 244]; // Emerald 50
@@ -586,7 +586,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             // Balance Column (Index 4)
             if (data.column.index === 4) {
               if (e.balanceAfter > 0) {
-                data.cell.styles.textColor = [192, 38, 211];
+                data.cell.styles.textColor = [139, 92, 246];
               } else if (e.balanceAfter < 0) {
                 data.cell.styles.textColor = [5, 150, 105];
               }
