@@ -323,7 +323,7 @@ function AuthenticatedApp() {
             </button>
             {lastSync && (
               <div className="flex items-center gap-2 text-xs text-[#A1A1AA] bg-[#000000] border border-slate-800 px-3 py-1.5 rounded-full shrink-0">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#00E676]" />
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
                 Last Sync: {format(lastSync, 'HH:mm:ss')}
               </div>
             )}
@@ -658,7 +658,7 @@ function Main() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 px-4 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] rounded-lg font-semibold transition-all shadow-md shadow-blue-900/20"
+                className="w-full py-2.5 px-4 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg font-semibold transition-all"
               >
                 {loading ? 'Processing...' : (isForgotPassword ? 'Send Reset Link' : (isLogin ? 'Sign In' : 'Sign Up'))}
               </button>

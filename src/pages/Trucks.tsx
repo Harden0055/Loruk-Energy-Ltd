@@ -195,7 +195,7 @@ export default function Trucks({ onNavigateToTruck }: TrucksProps) {
 
         <button
           onClick={handleAddClick}
-          className="flex items-center justify-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 hover:shadow-[0_0_15px_rgba(0,230,118,0.2)] px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer"
+          className="flex items-center justify-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 px-4 py-2 rounded-lg text-sm font-semibold transition-all cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Add Truck
@@ -254,7 +254,7 @@ export default function Trucks({ onNavigateToTruck }: TrucksProps) {
                     <td className="modern-td">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-2xs font-extrabold ${
                         truck.status === 'active'
-                          ? 'bg-emerald-500/20 text-[#059669] border border-emerald-500/50 shadow-[0_0_12px_rgba(5,150,105,0.6)] animate-pulse'
+                          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
                           : 'bg-white/5 text-gray-400 border border-white/10'
                       }`}>
                         {truck.status === 'active' ? '● ACTIVE' : 'INACTIVE'}
@@ -353,7 +353,7 @@ export default function Trucks({ onNavigateToTruck }: TrucksProps) {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] text-sm font-semibold rounded-lg transition-colors flex items-center justify-center min-w-[80px] disabled:opacity-50 cursor-pointer"
+                  className="px-4 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 text-sm font-semibold rounded-lg transition-colors flex items-center justify-center min-w-[80px] disabled:opacity-50 cursor-pointer"
                 >
                   {isSubmitting ? 'Saving...' : 'Save'}
                 </button>

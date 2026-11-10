@@ -88,21 +88,17 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [sortStrategy, setSortStrategy] = useState<'newest' | 'oldest'>('newest');
   const [showCharts, setShowCharts] = useState(false);
 
+  const [verificationNotice, setVerificationNotice] = useState<string | null>(null);
+
   // Verify balance utility
   const verifyBalance = () => {
     if (!customer) return;
-    // Re-aggregate: Invoices total - Invoices paid
-    const customerInvoices = invoices.filter(i => i.customerName === customer.name);
-    const customerInvoicePayments = invoicePaymentsList.filter(p => p.customerName === customer.name);
-    
-    const invoiceTotal = customerInvoices.reduce((sum, i) => sum + (i.invoiceAmount || 0), 0);
-    const paymentsTotal = customerInvoicePayments.reduce((sum, p) => sum + (p.amountPaid || 0), 0);
-    const adjustmentsTotal = customerAdjustments.reduce((sum, a) => sum + (a.type === 'debit' ? (a.amount || 0) : -(a.amount || 0)), 0);
-    
-    // This is a simplified logic based on the user request.
-    const trueBalance = invoiceTotal - paymentsTotal + adjustmentsTotal;
-    
-    alert(`Verified Balance based on invoices: ${formatCurrency(trueBalance)}`);
+    const opening = customer.openingBalance 
+      ? (customer.openingBalanceType === 'advance' ? -customer.openingBalance : customer.openingBalance) 
+      : 0;
+    const isAdv = calculatedBalance < 0;
+    const msg = `Audit Verified: ${isAdv ? '-' : ''}KES ${Math.abs(calculatedBalance).toLocaleString('en-US', { minimumFractionDigits: 2 })} (${isAdv ? 'Advance Credit' : 'Receivable Owed'} | Opening: KES ${opening.toLocaleString()} | Dispensed: +KES ${totalSalesValue.toLocaleString()} | Settled: -KES ${totalPaymentsValue.toLocaleString()})`;
+    setVerificationNotice(msg);
   };
 
   // Quick action modals
@@ -877,9 +873,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border shrink-0 ${
               customer.status === 'active' 
                 ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' 
-                : 'bg-[#6D28D9]/15 text-[#6D28D9] border-[#6D28D9]/30'
+                : 'bg-[#8B5CF6]/15 text-[#8B5CF6] border-[#8B5CF6]/30'
             }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${customer.status === 'active' ? 'bg-emerald-400 shadow-[0_0_6px_#34D399]' : 'bg-[#6D28D9]'}`} />
+              <span className={`w-1.5 h-1.5 rounded-full ${customer.status === 'active' ? 'bg-emerald-400' : 'bg-[#8B5CF6]'}`} />
               {customer.status === 'active' ? 'Active' : 'Credit Risk'}
             </span>
           </div>
@@ -889,28 +885,28 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         <div className="flex items-center gap-1.5 flex-wrap">
           <button
             onClick={() => setActiveModal('delivery')}
-            className="px-2.5 py-1.5 bg-[#6D28D9]/15 hover:bg-[#6D28D9]/25 text-slate-100 border border-[#6D28D9]/30 hover:border-[#6D28D9]/50 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+            className="px-2.5 py-1.5 bg-[#8B5CF6]/15 hover:bg-[#8B5CF6]/25 text-slate-100 border border-[#8B5CF6]/30 hover:border-[#8B5CF6]/50 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 text-[#6D28D9]" />
+            <Plus className="w-3.5 h-3.5 text-[#8B5CF6]" />
             <span>Log Delivery</span>
           </button>
           <button
             onClick={() => setActiveModal('payment')}
-            className="px-2.5 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+            className="px-2.5 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5 text-emerald-400" />
             <span>Record Payment</span>
           </button>
           <button
             onClick={() => setActiveModal('adjustment')}
-            className="px-2.5 py-1.5 bg-[#6D28D9]/15 hover:bg-[#6D28D9]/25 text-slate-100 border border-[#6D28D9]/30 hover:border-[#6D28D9]/50 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+            className="px-2.5 py-1.5 bg-[#8B5CF6]/15 hover:bg-[#8B5CF6]/25 text-slate-100 border border-[#8B5CF6]/30 hover:border-[#8B5CF6]/50 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
           >
-            <ArrowUpDown className="w-3.5 h-3.5 text-[#6D28D9]" />
+            <ArrowUpDown className="w-3.5 h-3.5 text-[#8B5CF6]" />
             <span>Adjust</span>
           </button>
           <button
             onClick={handleExportStatement}
-            className="px-2.5 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+            className="px-2.5 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 hover:border-emerald-400 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
             id="btn-customer-dash-export-pdf"
             title="Download statement PDF"
           >
@@ -920,109 +916,121 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         </div>
       </div>
 
+      {verificationNotice && (
+        <div className="flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/10 text-xs font-mono text-slate-200 animate-fade-in shadow-sm">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <span>{verificationNotice}</span>
+          </div>
+          <button 
+            type="button" 
+            onClick={() => setVerificationNotice(null)} 
+            className="text-slate-400 hover:text-white text-xs px-2 py-0.5 rounded hover:bg-white/10 cursor-pointer transition-colors"
+          >
+            ✕ Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Compressed Stats Row (4 compact columns) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-        {/* Card 1: Outstanding Balance & Advance & Exceeded Limit */}
-        <div className={`glass-panel rounded-xl px-3.5 py-2.5 shadow-sm border ${
+        {/* Card 1: Outstanding Balance (Purple Violet figure) OR Advance Balance (Green figure) */}
+        <div className={`rounded-xl px-3.5 py-2.5 border border-white/10 bg-white/[0.02] cursor-pointer transition-all duration-200 ${
           calculatedBalance < 0 
-            ? 'border-emerald-500/40 bg-emerald-500/[0.04]' 
-            : 'border-[#6D28D9]/40 bg-[#6D28D9]/[0.04]'
+            ? 'card-hover-green' 
+            : 'card-hover-purple'
         }`}>
           <div className="flex items-center justify-between">
             <span className={`text-[10px] font-extrabold uppercase tracking-wider ${
-              calculatedBalance < 0 ? 'text-[#059669]' : 'text-[#6D28D9]'
+              calculatedBalance < 0 ? 'text-green-accent' : 'text-slate-400'
             }`}>
-              {calculatedBalance < 0 ? 'Advance' : 'Outstanding Balance'}
+              {calculatedBalance < 0 ? 'Advance Balance' : 'Outstanding Balance'}
             </span>
             <button
               onClick={verifyBalance}
-              className={`text-[9px] font-bold px-1.5 py-0.5 rounded border cursor-pointer transition-colors ${
-                calculatedBalance < 0 
-                  ? 'text-[#059669] bg-emerald-500/15 border-emerald-500/30 hover:bg-emerald-500/25' 
-                  : 'text-[#6D28D9] bg-[#6D28D9]/15 border-[#6D28D9]/30 hover:bg-[#6D28D9]/25'
-              }`}
+              className="text-[9px] font-bold px-1.5 py-0.5 rounded border border-white/10 bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 cursor-pointer transition-colors"
               title="Verify Balance Calculation"
             >
               Verify
             </button>
           </div>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className={`text-xs font-bold ${calculatedBalance < 0 ? 'text-[#059669]' : 'text-[#6D28D9]'}`}>Ksh</span>
+            <span className={`text-xs font-bold ${calculatedBalance < 0 ? 'text-green-accent' : 'text-purple-accent'}`}>Ksh</span>
             <span className={`text-base sm:text-lg font-black font-mono tracking-tight leading-none ${
-              calculatedBalance < 0 ? 'text-[#059669]' : 'text-[#6D28D9]'
+              calculatedBalance < 0 ? 'text-green-accent' : 'text-purple-accent'
             }`}>
               {calculatedBalance < 0 ? '-' : ''}{Math.abs(calculatedBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div className="mt-1 text-[10px] truncate">
             {calculatedBalance < 0 ? (
-              <span className="text-[#059669] font-bold">Advance</span>
+              <span className="text-green-accent font-bold">Advance Credit Balance</span>
             ) : isCreditRisk ? (
-              <span className="text-[#6D28D9] font-extrabold">Credit Limit Exceeded</span>
+              <span className="text-red-400 font-extrabold">Credit Limit Exceeded</span>
             ) : calculatedBalance > 0 ? (
-              <span className="text-[#6D28D9] font-bold">Receivable Balance Owed</span>
+              <span className="text-slate-400 font-medium">Receivable Balance Owed</span>
             ) : (
-              <span className="text-[#6D28D9] font-bold">Settled (Nil Balance)</span>
+              <span className="text-slate-400 font-medium">Settled (Nil Balance)</span>
             )}
           </div>
         </div>
 
-        {/* Card 2: Credit Allocation - Neutral Grey */}
-        <div className="glass-panel rounded-xl px-3.5 py-2.5 shadow-sm border border-white/10 bg-white/[0.02]">
+        {/* Card 2: Credit Limit - Grey figure & Grey progress bar, hover border */}
+        <div className="rounded-xl px-3.5 py-2.5 border border-white/10 bg-white/[0.02] cursor-pointer card-hover-grey transition-all duration-200">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-extrabold text-theme-text-muted uppercase tracking-wider">Credit Limit</span>
-            <span className="text-[10px] font-mono text-gray-400 font-bold">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Credit Limit</span>
+            <span className="text-[10px] font-mono text-slate-400 font-bold">
               Rem: Ksh {remainingCredit.toLocaleString()}
             </span>
           </div>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-xs font-bold text-gray-400">Ksh</span>
-            <span className="text-base sm:text-lg font-black font-mono text-gray-200 tracking-tight leading-none">
+            <span className="text-xs font-bold text-slate-400">Ksh</span>
+            <span className="text-base sm:text-lg font-black font-mono text-slate-300 tracking-tight leading-none">
               {(customer.creditLimit || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
-          <div className="mt-1.5 h-1.5 bg-theme-panel rounded-full overflow-hidden border border-theme-border/60">
+          <div className="mt-1.5 h-1.5 bg-slate-800 rounded-full overflow-hidden border border-slate-700/60">
             <div 
-              className="h-full rounded-full transition-all duration-500 bg-[#6D28D9]"
+              className="h-full rounded-full transition-all duration-500 bg-slate-500"
               style={{ width: `${Math.min(100, Math.max(0, (remainingCredit / (customer.creditLimit || 1)) * 100))}%` }}
             />
           </div>
         </div>
 
-        {/* Card 3: Total Deliveries - Deep Purple Violet */}
-        <div className="glass-panel rounded-xl px-3.5 py-2.5 shadow-sm border border-[#6D28D9]/40 bg-[#6D28D9]/[0.04]">
+        {/* Card 3: Total Deliveries - Purple Violet figure, hover border */}
+        <div className="rounded-xl px-3.5 py-2.5 border border-white/10 bg-white/[0.02] cursor-pointer card-hover-purple transition-all duration-200">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-extrabold text-[#6D28D9] uppercase tracking-wider">Total Deliveries</span>
-            <span className="text-[10px] font-mono text-[#6D28D9] font-bold bg-[#6D28D9]/15 px-1.5 py-0.5 rounded border border-[#6D28D9]/30">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Total Deliveries</span>
+            <span className="text-[10px] font-mono text-slate-300 font-bold bg-white/5 px-1.5 py-0.5 rounded border border-white/10">
               {totalFuelLitres.toLocaleString()} L
             </span>
           </div>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-xs font-bold text-[#6D28D9]">Ksh</span>
-            <span className="text-base sm:text-lg font-black font-mono text-[#6D28D9] tracking-tight leading-none">
+            <span className="text-xs font-bold text-purple-accent">Ksh</span>
+            <span className="text-base sm:text-lg font-black font-mono text-purple-accent tracking-tight leading-none">
               {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
-          <div className="mt-1 text-[10px] text-[#6D28D9]/80 font-medium">
+          <div className="mt-1 text-[10px] text-slate-400 font-medium">
             {customerDeliveries.length} orders dispensed
           </div>
         </div>
 
-        {/* Card 4: Total Payments Received - Green */}
-        <div className="glass-panel rounded-xl px-3.5 py-2.5 shadow-sm border border-emerald-500/40 bg-emerald-500/[0.04]">
+        {/* Card 4: Total Payments Received - Green figure, hover border */}
+        <div className="rounded-xl px-3.5 py-2.5 border border-white/10 bg-white/[0.02] cursor-pointer card-hover-green transition-all duration-200">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-extrabold text-[#059669] uppercase tracking-wider">Total Received</span>
-            <span className="text-[10px] font-mono text-[#059669] font-bold bg-emerald-500/15 px-1.5 py-0.5 rounded border border-emerald-500/25">
+            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Total Received</span>
+            <span className="text-[10px] font-mono text-slate-300 font-bold bg-white/5 px-1.5 py-0.5 rounded border border-white/10">
               {customerPayments.length} receipts
             </span>
           </div>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-xs font-bold text-[#059669]">Ksh</span>
-            <span className="text-base sm:text-lg font-black font-mono text-[#059669] tracking-tight leading-none">
+            <span className="text-xs font-bold text-green-accent">Ksh</span>
+            <span className="text-base sm:text-lg font-black font-mono text-green-accent tracking-tight leading-none">
               {totalPaymentsValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
-          <div className="mt-1 text-[10px] text-[#059669]/90 font-medium">
+          <div className="mt-1 text-[10px] text-slate-400 font-medium">
             Settled via till & bank
           </div>
         </div>
@@ -1359,12 +1367,12 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   Reconciliation Summary & Total Position
                 </td>
                 <td className="px-4 sm:px-6 py-4 text-right font-mono text-xs text-theme-text-muted whitespace-nowrap">
-                  <span className="block text-[10px] uppercase font-sans tracking-widest text-[#6D28D9]">Total Purchases</span>
-                  <span className="!text-[#6D28D9] font-mono font-bold">Ksh {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  <span className="block text-[10px] uppercase font-sans tracking-widest text-purple-accent">Total Purchases</span>
+                  <span className="text-purple-accent font-mono font-bold">Ksh {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </td>
                 <td className="px-4 sm:px-6 py-4 text-right font-mono font-black text-sm sm:text-base whitespace-nowrap">
                   <span className="block text-[10px] uppercase font-sans tracking-widest text-slate-400">Final Closing Balance</span>
-                  <span className={calculatedBalance > 0 ? '!text-[#6D28D9]' : calculatedBalance < 0 ? '!text-[#059669]' : '!text-white'}>
+                  <span className={calculatedBalance > 0 ? 'text-purple-accent' : calculatedBalance < 0 ? 'text-green-accent' : 'text-slate-300'}>
                     {calculatedBalance < 0 ? '-' : ''}Ksh {Math.abs(calculatedBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </td>
@@ -1389,20 +1397,20 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                  <div>
                   <label className="block text-sm font-semibold text-white mb-1.5">Adjustment Action *</label>
                   <div className="grid grid-cols-2 gap-3">
-                    <button type="button" onClick={() => setAdjustType('credit')} className={`px-4 py-3 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${adjustType === 'credit' ? 'bg-emerald-500/15 border-emerald-500 text-emerald-400 shadow-[0_0_15px_rgba(0,230,118,0.25)]' : 'bg-white/[0.03] border-white/10 text-gray-400 hover:text-white'}`}>
+                    <button type="button" onClick={() => setAdjustType('credit')} className={`px-4 py-3 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${adjustType === 'credit' ? 'bg-emerald-500/15 border-emerald-500 text-emerald-400' : 'bg-white/[0.03] border-white/10 text-gray-400 hover:text-white'}`}>
                        Credit (-)
                     </button>
-                    <button type="button" onClick={() => setAdjustType('debit')} className={`px-4 py-3 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${adjustType === 'debit' ? 'bg-[#6D28D9]/15 border-[#6D28D9] text-[#6D28D9] shadow-[0_0_15px_rgba(109,40,217,0.25)]' : 'bg-white/[0.03] border-white/10 text-gray-400 hover:text-white'}`}>
+                    <button type="button" onClick={() => setAdjustType('debit')} className={`px-4 py-3 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${adjustType === 'debit' ? 'bg-[#8B5CF6]/15 border-[#8B5CF6] text-[#8B5CF6]' : 'bg-white/[0.03] border-white/10 text-gray-400 hover:text-white'}`}>
                        Debit (+)
                     </button>
                   </div>
                 </div>
                 <div>
-                  <label className={`block text-sm font-semibold mb-1.5 transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#6D28D9]'}`}>
+                  <label className={`block text-sm font-semibold mb-1.5 transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#8B5CF6]'}`}>
                     Override Amount (KES) * {adjustType === 'credit' ? '(Credit - Deduct)' : '(Debit - Add)'}
                   </label>
                   <div className="relative">
-                    <span className={`absolute left-3.5 top-2.5 font-bold font-mono transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#6D28D9]'}`}>KSh</span>
+                    <span className={`absolute left-3.5 top-2.5 font-bold font-mono transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#8B5CF6]'}`}>KSh</span>
                     <input 
                       type="number" 
                       required 
@@ -1410,10 +1418,10 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       step="0.01" 
                       value={adjustAmount} 
                       onChange={e => setAdjustAmount(e.target.value)} 
-                      className={`w-full pl-14 pr-3.5 py-2.5 bg-[#000000] rounded-lg text-lg font-mono font-bold outline-none shadow-sm transition-all border ${
+                      className={`w-full pl-14 pr-3.5 py-2.5 bg-[#000000] rounded-lg text-lg font-mono font-bold outline-none transition-all border ${
                         adjustType === 'credit' 
-                          ? 'text-emerald-400 border-emerald-500/50 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/50 shadow-[0_0_15px_rgba(0,230,118,0.15)]' 
-                          : 'text-[#6D28D9] border-[#6D28D9]/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9]/50 shadow-[0_0_15px_rgba(109,40,217,0.15)]'
+                          ? 'text-emerald-400 border-emerald-500/50 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/50' 
+                          : 'text-[#8B5CF6] border-[#8B5CF6]/50 focus:border-[#8B5CF6] focus:ring-1 focus:ring-[#8B5CF6]/50'
                       }`} 
                       placeholder="0.00" 
                     />
@@ -1689,9 +1697,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     <button
                       type="button"
                       onClick={() => setAdjustType('credit')}
-                      className={`py-2 px-3 rounded-lg border text-sm font-bold transition-all shadow-sm cursor-pointer ${
+                      className={`py-2 px-3 rounded-lg border text-sm font-bold transition-all cursor-pointer ${
                         adjustType === 'credit'
-                          ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400 shadow-[0_0_15px_rgba(0,230,118,0.25)]'
+                          ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400'
                           : 'border-white/10 text-gray-400 bg-white/[0.03] hover:text-white'
                       }`}
                     >
@@ -1700,9 +1708,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     <button
                       type="button"
                       onClick={() => setAdjustType('debit')}
-                      className={`py-2 px-3 rounded-lg border text-sm font-bold transition-all shadow-sm cursor-pointer ${
+                      className={`py-2 px-3 rounded-lg border text-sm font-bold transition-all cursor-pointer ${
                         adjustType === 'debit'
-                          ? 'border-[#6D28D9] bg-[#6D28D9]/20 text-[#6D28D9] shadow-[0_0_15px_rgba(109,40,217,0.25)]'
+                          ? 'border-[#8B5CF6] bg-[#8B5CF6]/20 text-[#8B5CF6]'
                           : 'border-white/10 text-gray-400 bg-white/[0.03] hover:text-white'
                       }`}
                     >
@@ -1721,7 +1729,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   />
                 </div>
                 <div>
-                  <label className={`block text-sm font-semibold mb-1.5 transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#6D28D9]'}`}>
+                  <label className={`block text-sm font-semibold mb-1.5 transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#8B5CF6]'}`}>
                     Override Amount (KES) * {adjustType === 'credit' ? '(Credit - Deduct)' : '(Debit - Add)'}
                   </label>
                   <input 
@@ -1731,10 +1739,10 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     placeholder="0.00"
                     value={adjustAmount}
                     onChange={e => setAdjustAmount(e.target.value)}
-                    className={`w-full px-3.5 py-2.5 bg-[#000000] rounded-lg text-base font-mono font-bold outline-none shadow-sm transition-all border ${
+                    className={`w-full px-3.5 py-2.5 bg-[#000000] rounded-lg text-base font-mono font-bold outline-none transition-all border ${
                       adjustType === 'credit'
-                        ? 'text-emerald-400 border-emerald-500/50 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/50 shadow-[0_0_15px_rgba(0,230,118,0.15)]'
-                        : 'text-[#6D28D9] border-[#6D28D9]/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9]/50 shadow-[0_0_15px_rgba(109,40,217,0.15)]'
+                        ? 'text-emerald-400 border-emerald-500/50 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/50'
+                        : 'text-[#8B5CF6] border-[#8B5CF6]/50 focus:border-[#8B5CF6] focus:ring-1 focus:ring-[#8B5CF6]/50'
                     }`}
                   />
                 </div>

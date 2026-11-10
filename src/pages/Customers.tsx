@@ -901,9 +901,9 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
               <button
                 type="button"
                 onClick={() => setType('credit')}
-                className={`py-2 px-4 rounded-lg border text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`py-2 px-4 rounded-lg border text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   type === 'credit'
-                    ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400 shadow-[0_0_15px_rgba(0,230,118,0.25)]'
+                    ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400'
                     : 'border-white/10 text-gray-400 bg-white/[0.03] hover:text-white'
                 }`}
               >
@@ -912,9 +912,9 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
               <button
                 type="button"
                 onClick={() => setType('debit')}
-                className={`py-2 px-4 rounded-lg border text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`py-2 px-4 rounded-lg border text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   type === 'debit'
-                    ? 'border-[#6D28D9] bg-[#6D28D9]/20 text-[#6D28D9] shadow-[0_0_15px_rgba(109,40,217,0.25)]'
+                    ? 'border-[#8B5CF6] bg-[#8B5CF6]/20 text-[#8B5CF6]'
                     : 'border-white/10 text-gray-400 bg-white/[0.03] hover:text-white'
                 }`}
               >
@@ -940,7 +940,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
           </div>
 
           <div>
-            <label className={`block text-sm font-semibold mb-1.5 transition-colors ${type === 'credit' ? 'text-emerald-400' : 'text-[#6D28D9]'}`}>
+            <label className={`block text-sm font-semibold mb-1.5 transition-colors ${type === 'credit' ? 'text-emerald-400' : 'text-[#8B5CF6]'}`}>
               Adjustment Amount (KES) * {type === 'credit' ? '(Credit - Deduct)' : '(Debit - Add)'}
             </label>
             <input
@@ -948,10 +948,10 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
               step="0.01"
               min="0.01"
               required
-              className={`w-full px-4 py-2.5 bg-[#000000] rounded-lg text-base font-mono font-bold outline-none shadow-sm transition-all border ${
+              className={`w-full px-4 py-2.5 bg-[#000000] rounded-lg text-base font-mono font-bold outline-none transition-all border ${
                 type === 'credit'
-                  ? 'text-emerald-400 border-emerald-500/50 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/50 shadow-[0_0_15px_rgba(0,230,118,0.15)]'
-                  : 'text-[#6D28D9] border-[#6D28D9]/50 focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9]/50 shadow-[0_0_15px_rgba(109,40,217,0.15)]'
+                  ? 'text-emerald-400 border-emerald-500/50 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/50'
+                  : 'text-[#8B5CF6] border-[#8B5CF6]/50 focus:border-[#8B5CF6] focus:ring-1 focus:ring-[#8B5CF6]/50'
               }`}
               placeholder="0.00"
               value={amount}

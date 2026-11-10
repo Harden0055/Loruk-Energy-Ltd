@@ -436,7 +436,7 @@ export default function Dashboard({
               <h2 className="text-sm font-semibold text-[#A1A1AA] uppercase tracking-wider flex items-center gap-2">
                 Live Operations
                 <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#00E676]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                   LIVE
                 </span>
               </h2>
@@ -702,7 +702,7 @@ export default function Dashboard({
               <h2 className="text-base font-bold text-white flex items-center gap-2">
                 Very Recent Transactions
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_#00E676]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                   LIVE STREAM
                 </span>
               </h2>

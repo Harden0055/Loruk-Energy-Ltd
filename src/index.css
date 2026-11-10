@@ -285,14 +285,13 @@ svg.lucide {
     transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease, background 0.25s ease !important;
   }
 
-  /* DeepCharts Pitch Black Card with Subtle Fading Hairline */
+  /* DeepCharts Pitch Black Card with Subtle Clean Border */
   .theme-deepcharts .glass-panel,
   [data-theme="deepcharts"] .glass-panel {
     background: #000000 !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    border-top: 1px solid rgba(139, 92, 246, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08);
     backdrop-filter: none !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.95), inset 0 1px 1px rgba(255, 255, 255, 0.04) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.95);
   }
 
   .surface-gradient .glass-panel,
@@ -302,15 +301,12 @@ svg.lucide {
   }
 
   .glass-panel:hover {
-    border-color: rgba(0, 230, 118, 0.45) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.95), inset 0 1px 1px rgba(255, 255, 255, 0.06) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.95);
   }
 
   .theme-deepcharts .glass-panel:hover,
   [data-theme="deepcharts"] .glass-panel:hover {
-    border-color: rgba(0, 230, 118, 0.45) !important;
-    border-top-color: rgba(0, 230, 118, 0.7) !important;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.98), inset 0 1px 1px rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.98);
   }
 
   /* Solid to Gradient Swatch Card */
@@ -953,19 +949,44 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 .border-white\/10,
 .border-white\/\[0\.08\],
 .border-white\/\[0\.06\] {
-  border-color: rgba(148, 163, 184, 0.15) !important;
+  border-color: rgba(148, 163, 184, 0.15);
 }
 
 .border-white\/20 {
-  border-color: rgba(148, 163, 184, 0.22) !important;
+  border-color: rgba(148, 163, 184, 0.22);
 }
 
 .border-white\/5 {
-  border-color: rgba(148, 163, 184, 0.08) !important;
+  border-color: rgba(148, 163, 184, 0.08);
 }
 
 .divide-white\/5 > :not([hidden]) ~ :not([hidden]) {
-  border-color: rgba(148, 163, 184, 0.08) !important;
+  border-color: rgba(148, 163, 184, 0.08);
+}
+
+/* Interactive Card Border Hover States */
+.card-hover-purple,
+.card-hover-green,
+.card-hover-grey {
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.card-hover-purple:hover {
+  border-color: #A855F7 !important;
+  box-shadow: inset 0 0 0 1px #A855F7 !important;
+  background-color: rgba(168, 85, 247, 0.06) !important;
+}
+
+.card-hover-green:hover {
+  border-color: #00E676 !important;
+  box-shadow: inset 0 0 0 1px #00E676 !important;
+  background-color: rgba(0, 230, 118, 0.06) !important;
+}
+
+.card-hover-grey:hover {
+  border-color: #94A3B8 !important;
+  box-shadow: inset 0 0 0 1px #94A3B8 !important;
+  background-color: rgba(148, 163, 184, 0.06) !important;
 }
 
 /* Form controls soften font to comfortable grey */
@@ -981,10 +1002,29 @@ textarea::placeholder {
 }
 
 /* Retain deep purple and deep green accounting colors with full fidelity */
-.text-\[\#059669\], .text-emerald-400, .text-emerald-500, span.\!text-\[\#059669\] {
-  color: #059669 !important;
+.text-green-accent,
+.text-\[\#059669\],
+.text-emerald-400,
+.text-emerald-500,
+span.\!text-\[\#059669\],
+span.\!text-emerald-400 {
+  color: #00E676 !important;
 }
-.text-\[\#7C3AED\], .text-purple-400, .text-purple-500, .text-\[\#9333EA\], span.\!text-\[\#9333EA\], span.\!text-\[\#7C3AED\] {
-  color: #7C3AED !important;
+
+.text-purple-accent,
+.text-\[\#7C3AED\],
+.text-\[\#8B5CF6\],
+.text-\[\#9333EA\],
+.text-\[\#A855F7\],
+.text-\[\#6D28D9\],
+.text-purple-400,
+.text-purple-500,
+.text-violet-400,
+.text-violet-500,
+span.\!text-\[\#9333EA\],
+span.\!text-\[\#7C3AED\],
+span.\!text-\[\#8B5CF6\],
+span.\!text-purple-400 {
+  color: #A855F7 !important;
 }
 

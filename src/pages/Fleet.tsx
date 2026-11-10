@@ -230,11 +230,11 @@ export default function Fleet({
     const s = (stationName || '').toLowerCase();
     // Gel-Bungoma and Bendera: deep purple
     if (s.includes('bungoma') || s.includes('bendera')) {
-      return 'bg-[#7C3AED]/20 text-[#7C3AED] border border-[#7C3AED]/40 shadow-[0_0_10px_rgba(124,58,237,0.25)]';
+      return 'bg-[#7C3AED]/20 text-[#7C3AED] border border-[#7C3AED]/40';
     }
     // Ndalu and Junction: slightly purple after Gel-Bungoma and Bendera
     if (s.includes('ndalu') || s.includes('junction')) {
-      return 'bg-[#6D28D9]/15 text-[#6D28D9] border border-[#6D28D9]/30 shadow-[0_0_8px_rgba(109,40,217,0.15)]';
+      return 'bg-[#8B5CF6]/15 text-[#8B5CF6] border border-[#8B5CF6]/30';
     }
     // The rest: slightly green
     return 'bg-emerald-500/15 text-[#059669] border border-emerald-500/30';
@@ -243,18 +243,18 @@ export default function Fleet({
   const getProductBadgeStyle = (productName?: string) => {
     const p = (productName || 'Diesel').toLowerCase();
     if (p.includes('engine oil')) {
-      return 'bg-[#6D28D9]/15 text-[#6D28D9] border border-[#6D28D9]/30 shadow-[0_0_6px_rgba(109,40,217,0.15)]';
+      return 'bg-[#8B5CF6]/15 text-[#8B5CF6] border border-[#8B5CF6]/30';
     }
     if (p.includes('brake fluid')) {
-      return 'bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-[0_0_6px_rgba(245,158,11,0.15)]';
+      return 'bg-amber-500/15 text-amber-300 border border-amber-500/30';
     }
     if (p.includes('greasing')) {
-      return 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shadow-[0_0_6px_rgba(6,182,212,0.15)]';
+      return 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30';
     }
     if (p.includes('premium') || p.includes('super')) {
-      return 'bg-teal-500/15 text-teal-300 border border-teal-500/30 shadow-[0_0_6px_rgba(20,184,166,0.15)]';
+      return 'bg-teal-500/15 text-teal-300 border border-teal-500/30';
     }
-    return 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-[0_0_6px_rgba(16,185,129,0.15)]';
+    return 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
   };
 
   const filteredExpenses = useMemo(() => {
@@ -672,7 +672,7 @@ export default function Fleet({
             <div className="flex gap-1.5 w-full col-span-2 sm:col-span-2 lg:col-span-3">
               <button 
                 type="submit" 
-                className="flex-1 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 hover:shadow-[0_0_15px_rgba(16,185,129,0.2)] px-3 py-1.5 rounded-md font-semibold transition-colors cursor-pointer text-xs"
+                className="flex-1 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-md font-semibold transition-colors cursor-pointer text-xs"
               >
                 {editingExpenseId ? 'Update Expense' : 'Save Expense'}
               </button>
@@ -820,7 +820,7 @@ export default function Fleet({
         </div>
       </div>
 
-      <div className="glass-panel rounded-xl border border-theme-border shadow-[0_0_15px_rgba(124,58,237,0.12)] overflow-hidden">
+      <div className="glass-panel rounded-xl border border-theme-border overflow-hidden">
         {/* Table Header with Product Filter Dropdown & Quick Badges */}
         <div className="px-3.5 py-2.5 border-b border-theme-border flex flex-wrap items-center justify-between gap-2.5 bg-white/[0.02]">
           <div className="flex items-center gap-2">
