@@ -208,7 +208,7 @@ export function QuickAddStationModal({ isOpen, onClose, onSuccess }: QuickAddSta
 
         <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
           {error && (
-            <div className="text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-2 rounded-lg">
+            <div className="text-xs text-violet-400 bg-violet-500/10 border border-violet-500/20 px-3 py-2 rounded-lg">
               {error}
             </div>
           )}

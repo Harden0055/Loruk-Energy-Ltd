@@ -750,8 +750,8 @@ export default function StationDashboard({
                           <stop offset="95%" stopColor="#38BDF8" stopOpacity={0}/>
                         </linearGradient>
                         <linearGradient id="expGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#F43F5E" stopOpacity={0.35}/>
-                          <stop offset="95%" stopColor="#F43F5E" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.35}/>
+                          <stop offset="95%" stopColor="#7C3AED" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.07)" />
@@ -771,7 +771,7 @@ export default function StationDashboard({
                       />
                       <Legend />
                       <Area type="monotone" dataKey="DeliveriesValue" name="Deliveries" stroke="#38BDF8" strokeWidth={2.5} fillOpacity={1} fill="url(#revGrad)" />
-                      <Area type="monotone" dataKey="Expenses" stroke="#F43F5E" strokeWidth={2.5} fillOpacity={1} fill="url(#expGrad)" />
+                      <Area type="monotone" dataKey="Expenses" stroke="#7C3AED" strokeWidth={2.5} fillOpacity={1} fill="url(#expGrad)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 )}

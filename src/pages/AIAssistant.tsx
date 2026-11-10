@@ -585,7 +585,7 @@ export default function AIAssistant() {
                       </div>
 
                       {msg.action.error && (
-                        <div className="p-2.5 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+                        <div className="p-2.5 rounded-lg bg-violet-500/15 border border-violet-500/30 text-violet-300 text-xs flex items-center gap-2">
                           <AlertCircle className="w-4 h-4 shrink-0" />
                           <span>{msg.action.error}</span>
                         </div>

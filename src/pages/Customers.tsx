@@ -322,7 +322,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                             alert('Balance recalculated for ' + c.name);
                           }
                         }}
-                        className="p-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors rounded-md"
+                        className="p-2 text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors rounded-md"
                         title="Recalculate & Fix Balance"
                         id={`btn-recalc-${c.id}`}
                       >

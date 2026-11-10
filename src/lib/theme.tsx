@@ -52,7 +52,7 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
     harmonicPalette: [
       { name: 'Candle Green', hex: '#00E676', role: 'Positive (Revenue / Inflow)' },
       { name: 'Deep Violet', hex: '#7C3AED', role: 'Negative (Expense / Outflow)' },
-      { name: 'Royal Orchid', hex: '#8B5CF6', role: 'Negative Accent' },
+      { name: 'Royal Violet', hex: '#8B5CF6', role: 'Negative Accent' },
       { name: 'Mint Specular', hex: '#10B981', role: 'Positive Glow' },
       { name: 'Pitch Black', hex: '#000000', role: 'Deep Canvas' }
     ],
