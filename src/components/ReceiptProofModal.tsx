@@ -89,11 +89,11 @@ export default function ReceiptProofModal({ isOpen, onClose, proof }: ReceiptPro
 
   return (
     <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
-      <div className="bg-[#09090b] border border-[#6D28D9]/40 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="bg-[#09090b] border border-[#4338CA]/40 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-[#6D28D9]/20 bg-[#6D28D9]/[0.05] flex items-center justify-between">
+        <div className="px-5 py-4 border-b border-[#4338CA]/20 bg-[#4338CA]/[0.05] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-[#6D28D9]/20 text-[#6D28D9] border border-[#6D28D9]/30">
+            <div className="p-2 rounded-xl bg-[#4338CA]/20 text-[#4338CA] border border-[#4338CA]/30">
               {displayImage ? <ImageIcon className="w-5 h-5" /> : <FileText className="w-5 h-5" />}
             </div>
             <div>
@@ -102,7 +102,7 @@ export default function ReceiptProofModal({ isOpen, onClose, proof }: ReceiptPro
                   {proof.title || 'Transaction Receipt Proof'}
                 </h3>
                 {proof.referenceType && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#6D28D9]/20 text-[#6D28D9] border border-[#6D28D9]/30 uppercase tracking-wider">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#4338CA]/20 text-[#4338CA] border border-[#4338CA]/30 uppercase tracking-wider">
                     {proof.referenceType}
                   </span>
                 )}
@@ -148,16 +148,16 @@ export default function ReceiptProofModal({ isOpen, onClose, proof }: ReceiptPro
             <div className="space-y-2">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                  <ImageIcon className="w-3.5 h-3.5 text-[#6D28D9]" /> Receipt Scan / Slip Photo
+                  <ImageIcon className="w-3.5 h-3.5 text-[#4338CA]" /> Receipt Scan / Slip Photo
                 </span>
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <button
                     type="button"
                     onClick={handleCopyImage}
-                    className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#6D28D9]/20 hover:bg-[#6D28D9]/30 text-[#A78BFA] border border-[#6D28D9]/40 transition-colors cursor-pointer"
+                    className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#4338CA]/20 hover:bg-[#4338CA]/30 text-[#818CF8] border border-[#4338CA]/40 transition-colors cursor-pointer"
                     title="Copy receipt image to clipboard"
                   >
-                    {imageCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-[#A78BFA]" />}
+                    {imageCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-[#818CF8]" />}
                     <span>{imageCopied ? 'Image Copied!' : 'Copy Image'}</span>
                   </button>
                   <button
@@ -196,15 +196,15 @@ export default function ReceiptProofModal({ isOpen, onClose, proof }: ReceiptPro
             <div className="space-y-2">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                  <FileText className="w-3.5 h-3.5 text-[#6D28D9]" /> Reference Memo / Receipt SMS
+                  <FileText className="w-3.5 h-3.5 text-[#4338CA]" /> Reference Memo / Receipt SMS
                 </span>
                 <button
                   type="button"
                   onClick={handleCopyText}
-                  className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg bg-[#6D28D9]/20 hover:bg-[#6D28D9]/30 text-[#A78BFA] border border-[#6D28D9]/40 transition-colors cursor-pointer shadow-xs"
+                  className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-lg bg-[#4338CA]/20 hover:bg-[#4338CA]/30 text-[#818CF8] border border-[#4338CA]/40 transition-colors cursor-pointer shadow-xs"
                   title="Copy reference memo or SMS to clipboard"
                 >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-[#A78BFA]" />}
+                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-[#818CF8]" />}
                   <span>{copied ? 'Copied Reference!' : 'Copy Reference / SMS'}</span>
                 </button>
               </div>

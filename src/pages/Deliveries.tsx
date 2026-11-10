@@ -585,11 +585,11 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
             )}
           </button>
         </div>
-        <div className="flex items-center gap-3 w-full lg:w-auto p-2 bg-[#000000] border border-[#6D28D9]/30 rounded-xl shadow-inner">
+        <div className="flex items-center gap-3 w-full lg:w-auto p-2 bg-[#000000] border border-[#4338CA]/30 rounded-xl shadow-inner">
           {selectedIds.length > 0 && (
             <button
               onClick={() => setShowBulkDeleteModal(true)}
-              className="w-full sm:w-auto bg-[#6D28D9]/15 hover:bg-[#6D28D9]/25 text-slate-100 border border-[#6D28D9]/30 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              className="w-full sm:w-auto bg-[#4338CA]/15 hover:bg-[#4338CA]/25 text-slate-100 border border-[#4338CA]/30 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               <Trash2 className="w-4 h-4" />
               Delete Selected ({selectedIds.length})
@@ -604,7 +604,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
           </button>
           <button 
             onClick={() => setShowAIModal(true)}
-            className="w-full sm:w-auto bg-[#6D28D9]/10 hover:bg-[#6D28D9]/20 text-slate-100 border border-[#6D28D9]/30 hover:border-[#6D28D9]/50 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full sm:w-auto bg-[#4338CA]/10 hover:bg-[#4338CA]/20 text-slate-100 border border-[#4338CA]/30 hover:border-[#4338CA]/50 px-4 py-2 rounded-lg text-lg font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <Bot className="w-4 h-4" />
             AI Auto-Fill
@@ -614,7 +614,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
               setInitialForm(null);
               setIsAdding(true);
             }}
-            className="w-full sm:w-auto bg-[#6D28D9]/20 hover:bg-[#6D28D9]/30 text-white border border-[#6D28D9]/40 hover:border-[#6D28D9]/60 px-4 py-2 rounded-lg text-lg font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            className="w-full sm:w-auto bg-[#4338CA]/20 hover:bg-[#4338CA]/30 text-white border border-[#4338CA]/40 hover:border-[#4338CA]/60 px-4 py-2 rounded-lg text-lg font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             New Delivery
@@ -801,7 +801,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
         <div className="glass-panel border border-theme-border rounded-xl p-5 shadow-sm transition-colors flex items-start justify-between">
           <div className="space-y-1.5 overflow-hidden">
             <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider block truncate overflow-ellipsis">Total Delivered Value</span>
-            <div className="text-2xl font-extrabold font-mono text-[#6D28D9] truncate">
+            <div className="text-2xl font-extrabold font-mono text-[#4338CA] truncate">
               {formatCurrency(stats.totalValue)}
             </div>
             <p className="text-2xs text-gray-400 dark:text-gray-500 truncate">Based on {filtered.length} filtered records</p>
@@ -838,7 +838,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
               <span className="text-amber-500 dark:text-amber-400 truncate">DSL: {formatLitres(stats.dieselVolume)} L</span>
               <span className="text-emerald-500 dark:text-emerald-400 truncate">SUP: {formatLitres(stats.superVolume)} L</span>
               <span className="text-blue-500 dark:text-blue-400 truncate">BRK: {formatLitres(stats.brakeFluidVolume)} L</span>
-              <span className="text-violet-500 dark:text-violet-400 truncate">OIL: {formatLitres(stats.engineOilVolume)} L</span>
+              <span className="text-indigo-500 dark:text-indigo-400 truncate">OIL: {formatLitres(stats.engineOilVolume)} L</span>
             </div>
             <div className="h-1.5 w-full glass-panel rounded-full overflow-hidden flex shrink-0">
               <div 
@@ -854,7 +854,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
                 style={{ width: `${stats.totalVolume > 0 ? (stats.brakeFluidVolume / stats.totalVolume) * 100 : 25}%` }}
               />
               <div 
-                className="bg-[#6D28D9] h-full transition-all duration-500" 
+                className="bg-[#4338CA] h-full transition-all duration-500" 
                 style={{ width: `${stats.totalVolume > 0 ? (stats.engineOilVolume / stats.totalVolume) * 100 : 25}%` }}
               />
             </div>
@@ -990,7 +990,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
                         <>
                           <button 
                             onClick={() => onViewCustomer?.(d.customerId)}
-                            className="hover:underline text-[#6D28D9] hover:text-violet-300 font-bold cursor-pointer text-left focus:outline-none"
+                            className="hover:underline text-[#4338CA] hover:text-indigo-300 font-bold cursor-pointer text-left focus:outline-none"
                           >
                             {customers.find(c => c.id === d.customerId)?.name || 'Unknown'}
                           </button>
@@ -1024,7 +1024,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
                             : (d.productType || '').toLowerCase().includes('brake')
                             ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400'
                             : (d.productType || '').toLowerCase().includes('oil')
-                            ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-400'
+                            ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-400'
                             : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400'
                         }`}>
                           {d.productType}
@@ -1065,7 +1065,7 @@ export default function Deliveries({ onViewCustomer, initialAction, initialFilte
                           className="px-2 py-1 glass-panel border border-theme-border rounded-lg text-sm text-theme-text text-right focus:outline-none focus:ring-2 focus:ring-blue-500 w-28 font-mono font-bold"
                         />
                       ) : (
-                        <span className="!text-[#6D28D9] font-mono font-bold text-base tabular-nums">{formatCurrency(d.totalAmount)}</span>
+                        <span className="!text-[#4338CA] font-mono font-bold text-base tabular-nums">{formatCurrency(d.totalAmount)}</span>
                       )}
                     </td>
                     <td className="modern-td">
@@ -1424,13 +1424,13 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
                   className="flex-1 min-w-0 px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-slate-200 font-semibold cursor-pointer outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm transition-colors text-base customer-select"
                 >
                   <option value="" disabled className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Select a customer</option>
-                  <option value="__ADD_NEW_CUSTOMER__" className="bg-[#1e1035] text-violet-300 font-bold">+ Add New Customer...</option>
+                  <option value="__ADD_NEW_CUSTOMER__" className="bg-[#1e1b4b] text-indigo-300 font-bold">+ Add New Customer...</option>
                   {customers.map(c => <option key={c.id} value={c.id} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{c.name}</option>)}
                 </select>
                 <button
                   type="button"
                   onClick={() => setShowAddCustomerModal(true)}
-                  className="p-2.5 bg-[#6D28D9]/15 hover:bg-[#6D28D9]/25 text-[#6D28D9] border border-[#6D28D9]/30 rounded-lg shrink-0 cursor-pointer flex items-center justify-center transition-colors shadow-sm"
+                  className="p-2.5 bg-[#4338CA]/15 hover:bg-[#4338CA]/25 text-[#4338CA] border border-[#4338CA]/30 rounded-lg shrink-0 cursor-pointer flex items-center justify-center transition-colors shadow-sm"
                   title="Add new customer shortcut"
                 >
                   <Plus className="w-4 h-4" />
@@ -1470,7 +1470,7 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
                   localStorage.setItem('last_static_date', e.target.value);
                   localStorage.setItem('delivery_last_entered_date', e.target.value);
                 }}
-                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border rounded-lg text-slate-200 text-base shadow-sm focus:outline-none focus:ring-1 focus:ring-violet-500"
+                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border rounded-lg text-slate-200 text-base shadow-sm focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
             
@@ -1565,7 +1565,7 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
           </div>
           <div className="px-6 py-4 bg-[#000000] border-t border-white/10 flex justify-end gap-3">
              <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 text-base font-semibold text-gray-400 hover:text-white transition-colors cursor-pointer">Cancel</button>
-             <button type="submit" disabled={loading} className="px-5 py-2 bg-[#6D28D9] hover:bg-[#6D28D9]/90 text-white rounded-lg text-base font-semibold transition-colors cursor-pointer shadow-md shadow-[#6D28D9]/30">Record Delivery</button>
+             <button type="submit" disabled={loading} className="px-5 py-2 bg-[#4338CA] hover:bg-[#4338CA]/90 text-white rounded-lg text-base font-semibold transition-colors cursor-pointer shadow-md shadow-[#4338CA]/30">Record Delivery</button>
           </div>
         </form>
       </div>

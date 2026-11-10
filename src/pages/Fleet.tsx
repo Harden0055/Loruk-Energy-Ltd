@@ -228,13 +228,13 @@ export default function Fleet({
 
   const getStationBadgeStyle = (stationName: string) => {
     const s = (stationName || '').toLowerCase();
-    // Gel-Bungoma and Bendera: deep violet
+    // Gel-Bungoma and Bendera: deep indigo
     if (s.includes('bungoma') || s.includes('bendera')) {
-      return 'bg-[#7C3AED]/20 text-[#7C3AED] border border-[#7C3AED]/40';
+      return 'bg-[#4F46E5]/20 text-[#4F46E5] border border-[#4F46E5]/40';
     }
-    // Ndalu and Junction: slightly violet after Gel-Bungoma and Bendera
+    // Ndalu and Junction: slightly indigo after Gel-Bungoma and Bendera
     if (s.includes('ndalu') || s.includes('junction')) {
-      return 'bg-[#8B5CF6]/15 text-[#8B5CF6] border border-[#8B5CF6]/30';
+      return 'bg-[#6366F1]/15 text-[#6366F1] border border-[#6366F1]/30';
     }
     // The rest: slightly green
     return 'bg-emerald-500/15 text-[#059669] border border-emerald-500/30';
@@ -243,7 +243,7 @@ export default function Fleet({
   const getProductBadgeStyle = (productName?: string) => {
     const p = (productName || 'Diesel').toLowerCase();
     if (p.includes('engine oil')) {
-      return 'bg-[#8B5CF6]/15 text-[#8B5CF6] border border-[#8B5CF6]/30';
+      return 'bg-[#6366F1]/15 text-[#6366F1] border border-[#6366F1]/30';
     }
     if (p.includes('brake fluid')) {
       return 'bg-amber-500/15 text-amber-300 border border-amber-500/30';
@@ -289,7 +289,7 @@ export default function Fleet({
   const TruckTick = (props: any) => {
     const { x, y, payload } = props;
     return (
-      <text x={x} y={y} dy={4} textAnchor="end" fill="#9ca3af" fontSize={10} onClick={() => onNavigateToTruck?.(payload.value)} className="cursor-pointer hover:fill-violet-400">
+      <text x={x} y={y} dy={4} textAnchor="end" fill="#9ca3af" fontSize={10} onClick={() => onNavigateToTruck?.(payload.value)} className="cursor-pointer hover:fill-indigo-400">
         {payload.value}
       </text>
     );
@@ -488,9 +488,9 @@ export default function Fleet({
           {onNavigate && (
             <button 
               onClick={() => onNavigate('truckDashboard')}
-              className="px-3 py-1.5 bg-[#6D28D9]/15 hover:bg-[#6D28D9]/25 text-[#6D28D9] border border-[#6D28D9]/30 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              className="px-3 py-1.5 bg-[#4338CA]/15 hover:bg-[#4338CA]/25 text-[#4338CA] border border-[#4338CA]/30 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
-               <Truck className="w-4 h-4 text-[#6D28D9]" />
+               <Truck className="w-4 h-4 text-[#4338CA]" />
                Truck Dashboard
             </button>
           )}
@@ -526,7 +526,7 @@ export default function Fleet({
         <div id="add-expense-form-container" className="glass-panel p-3.5 border border-theme-border rounded-xl shadow-sm">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-bold text-slate-200">{editingExpenseId ? 'Edit' : 'Add'} Expense</h3>
-            <span className="text-[10px] text-slate-100 font-medium bg-[#6D28D9]/15 border border-[#6D28D9]/30 px-2 py-0.5 rounded">
+            <span className="text-[10px] text-slate-100 font-medium bg-[#4338CA]/15 border border-[#4338CA]/30 px-2 py-0.5 rounded">
               ⚡ Rate × Litres = Amount auto-calculation
             </span>
           </div>
@@ -542,7 +542,7 @@ export default function Fleet({
                   localStorage.setItem('last_static_date', e.target.value);
                   localStorage.setItem('fleet_last_entered_date', e.target.value);
                 }} 
-                className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-[#6D28D9] text-xs" 
+                className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-[#4338CA] text-xs" 
               />
             </div>
             <div>
@@ -557,9 +557,9 @@ export default function Fleet({
                       setCarReg(e.target.value);
                     }
                   }} 
-                  className="flex-1 min-w-0 px-2 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-[#6D28D9] text-xs"
+                  className="flex-1 min-w-0 px-2 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-[#4338CA] text-xs"
                 >
-                  <option value="__ADD_NEW_TRUCK__" className="bg-[#1e1035] text-slate-100 font-bold">
+                  <option value="__ADD_NEW_TRUCK__" className="bg-[#1e1b4b] text-slate-100 font-bold">
                     + Add New Truck...
                   </option>
                   {CAR_REGISTRATIONS.map((r, idx) => (
@@ -571,7 +571,7 @@ export default function Fleet({
                 <button
                   type="button"
                   onClick={() => setShowAddTruckModal(true)}
-                  className="p-1.5 bg-[#6D28D9]/15 hover:bg-[#6D28D9]/25 text-[#6D28D9] border border-[#6D28D9]/30 rounded-md shrink-0 cursor-pointer flex items-center justify-center transition-colors shadow-sm"
+                  className="p-1.5 bg-[#4338CA]/15 hover:bg-[#4338CA]/25 text-[#4338CA] border border-[#4338CA]/30 rounded-md shrink-0 cursor-pointer flex items-center justify-center transition-colors shadow-sm"
                   title="Add new truck shortcut"
                 >
                   <Plus className="w-3.5 h-3.5" />
@@ -590,7 +590,7 @@ export default function Fleet({
                       setStation(e.target.value as Station);
                     }
                   }} 
-                  className="flex-1 min-w-0 px-2 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-violet-500 text-xs"
+                  className="flex-1 min-w-0 px-2 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs"
                 >
                   <option value="__ADD_NEW_STATION__" className="bg-[#062c1b] text-emerald-300 font-bold">
                     + Add New Station...
@@ -612,11 +612,11 @@ export default function Fleet({
               </div>
             </div>
             <div>
-              <label className="block text-[10px] font-semibold text-[#6D28D9] mb-0.5">Product</label>
+              <label className="block text-[10px] font-semibold text-[#4338CA] mb-0.5">Product</label>
               <select 
                 value={product} 
                 onChange={(e) => setProduct(e.target.value)} 
-                className="w-full px-2.5 py-1.5 glass-panel border border-[#6D28D9]/40 rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-[#6D28D9] text-xs"
+                className="w-full px-2.5 py-1.5 glass-panel border border-[#4338CA]/40 rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-[#4338CA] text-xs"
               >
                 {FLEET_PRODUCTS.map((p) => (
                   <option key={`opt-prod-${p}`} value={p} className="bg-black text-slate-200">
@@ -635,12 +635,12 @@ export default function Fleet({
                 step="0.01" 
                 value={litres} 
                 onChange={(e) => handleLitresChange(e.target.value)} 
-                className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-[#6D28D9] text-xs font-mono" 
+                className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-[#4338CA] text-xs font-mono" 
                 placeholder={product === 'Greasing' ? 'Qty (opt)' : 'Litres'} 
               />
             </div>
             <div>
-              <label className="block text-[10px] font-semibold text-[#6D28D9] mb-0.5 flex items-center justify-between">
+              <label className="block text-[10px] font-semibold text-[#4338CA] mb-0.5 flex items-center justify-between">
                 <span>{product === 'Greasing' ? 'Rate/Unit' : 'Rate (KES/L)'}</span>
                 <span className="text-[9px] text-slate-400 font-normal">Auto</span>
               </label>
@@ -650,13 +650,13 @@ export default function Fleet({
                 step="0.01" 
                 value={rate} 
                 onChange={(e) => handleRateChange(e.target.value)} 
-                className="w-full px-2.5 py-1.5 glass-panel border border-[#6D28D9]/40 rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-[#6D28D9] text-xs font-mono placeholder:text-gray-500" 
+                className="w-full px-2.5 py-1.5 glass-panel border border-[#4338CA]/40 rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-[#4338CA] text-xs font-mono placeholder:text-gray-500" 
                 placeholder={product === 'Greasing' ? 'Rate (opt)' : 'Rate'} 
               />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-slate-400 mb-0.5">Amount (KES)</label>
-              <input type="number" required min="0" step="0.01" value={amount} onChange={(e) => handleAmountChange(e.target.value)} className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-violet-500 text-xs font-mono" placeholder="Amount" />
+              <input type="number" required min="0" step="0.01" value={amount} onChange={(e) => handleAmountChange(e.target.value)} className="w-full px-2.5 py-1.5 glass-panel border border-theme-border rounded-md text-slate-200 font-semibold focus:outline-none focus:ring-1 focus:ring-indigo-500 text-xs font-mono" placeholder="Amount" />
             </div>
 
             <div className="col-span-2 sm:col-span-4 lg:col-span-8 pt-1">
@@ -717,10 +717,10 @@ export default function Fleet({
           }).sort((a, b) => b.totalConsumption - a.totalConsumption);
           
           return stats.map(({ reg, totalConsumption, isInactive }, index) => {
-            // Strict deepcharts theme: only violet or green alternating
-            const isViolet = index % 2 === 0;
-            const colorClass = isViolet ? 'text-[#6D28D9]' : 'text-[#059669]';
-            const bgClass = isViolet ? 'bg-[#6D28D9]/[0.04] border-[#6D28D9]/25' : 'bg-emerald-500/[0.04] border-emerald-500/25';
+            // Strict deepcharts theme: only indigo or green alternating
+            const isIndigo = index % 2 === 0;
+            const colorClass = isIndigo ? 'text-[#4338CA]' : 'text-[#059669]';
+            const bgClass = isIndigo ? 'bg-[#4338CA]/[0.04] border-[#4338CA]/25' : 'bg-emerald-500/[0.04] border-emerald-500/25';
             return (
               <div 
                 key={reg} 
@@ -728,11 +728,11 @@ export default function Fleet({
                 onClick={() => onNavigateToTruck?.(reg)}
               >
                 <div className="flex items-center justify-between mb-1 text-gray-400">
-                  <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#6D28D9] hover:underline truncate">{reg}</p>
+                  <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#4338CA] hover:underline truncate">{reg}</p>
                   {isInactive && (
                     <span className="relative flex h-1.5 w-1.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#6D28D9]/80 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#6D28D9]"></span>
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4338CA]/80 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#4338CA]"></span>
                     </span>
                   )}
                 </div>
@@ -753,41 +753,41 @@ export default function Fleet({
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               <div>
                 <label className="block text-[10px] font-medium text-slate-400 mb-0.5">Car</label>
-                <select value={selectedCar} onChange={e => setSelectedCar(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500 shadow-sm">
+                <select value={selectedCar} onChange={e => setSelectedCar(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-sm">
                   <option value="all" className="bg-black text-slate-200">All Cars</option>
                   {CAR_REGISTRATIONS.map((r, idx) => <option key={`car-filter-${r}-${idx}`} value={r} className="bg-black text-slate-200">{r}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-[10px] font-medium text-slate-400 mb-0.5">Station</label>
-                <select value={selectedStation} onChange={e => setSelectedStation(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500 shadow-sm">
+                <select value={selectedStation} onChange={e => setSelectedStation(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-sm">
                   <option value="all" className="bg-black text-slate-200">All Stations</option>
                   {STATION_OPTIONS.map((s, idx) => <option key={`st-filter-${s.value}-${idx}`} value={s.value} className="bg-black text-slate-200">{s.label}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-medium text-[#6D28D9] mb-0.5">Product</label>
-                <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)} className="w-full px-2 py-1 glass-panel border border-[#6D28D9]/40 rounded text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#6D28D9] shadow-sm">
+                <label className="block text-[10px] font-medium text-[#4338CA] mb-0.5">Product</label>
+                <select value={selectedProduct} onChange={e => setSelectedProduct(e.target.value)} className="w-full px-2 py-1 glass-panel border border-[#4338CA]/40 rounded text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#4338CA] shadow-sm">
                   <option value="all" className="bg-black text-slate-200">All Products</option>
                   {FLEET_PRODUCTS.map(p => <option key={`prod-filter-${p}`} value={p} className="bg-black text-slate-200">{p}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-[10px] font-medium text-gray-400 mb-0.5">From Date</label>
-                <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500 shadow-sm" />
+                <input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-sm" />
               </div>
               <div>
                 <label className="block text-[10px] font-medium text-gray-400 mb-0.5">To Date</label>
-                <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500 shadow-sm" />
+                <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-full px-2 py-1 glass-panel border border-theme-border rounded text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-sm" />
               </div>
           </div>
           {/* Consumption Summary */}
-          <div className="w-full bg-[#6D28D9]/[0.04] px-3 py-2 rounded-lg flex items-center justify-between border border-[#6D28D9]/30">
+          <div className="w-full bg-[#4338CA]/[0.04] px-3 py-2 rounded-lg flex items-center justify-between border border-[#4338CA]/30">
              <div>
                <p className="text-xs font-semibold text-slate-300">Filtered Total</p>
                <p className="text-[10px] text-emerald-400 font-semibold">{filteredExpenses.length} logs</p>
              </div>
-             <h3 className="text-base sm:text-lg font-black font-mono text-[#6D28D9]">
+             <h3 className="text-base sm:text-lg font-black font-mono text-[#4338CA]">
                {formatCurrency(filteredExpenses.reduce((acc, e) => acc + e.amount, 0))}
              </h3>
           </div>
@@ -796,7 +796,7 @@ export default function Fleet({
         {/* Right Column: KPI Comparison Graph (Retained & Compact) */}
         <div className="lg:w-[380px] xl:w-[420px] glass-panel p-2.5 rounded-lg border border-theme-border flex flex-col justify-between">
           <h3 className="text-xs font-semibold text-gray-400 mb-1 flex items-center gap-1.5">
-             <Truck className="w-3.5 h-3.5 text-violet-400" /> Fleet Fueling Comparison
+             <Truck className="w-3.5 h-3.5 text-indigo-400" /> Fleet Fueling Comparison
           </h3>
           <div className="h-32 sm:h-36 w-full text-xs relative overflow-hidden">
              {fleetExpensesSummary.length === 0 ? (
@@ -808,11 +808,11 @@ export default function Fleet({
                    <XAxis type="number" stroke="#9ca3af" tickLine={false} axisLine={false} hide />
                    <YAxis dataKey="carRegistration" type="category" tick={<TruckTick />} stroke="#9ca3af" tickLine={false} axisLine={false} width={75} />
                    <Tooltip 
-                     contentStyle={{ backgroundColor: '#09090b', color: '#f3f4f6', border: '1px solid rgba(109,40,217,0.4)', borderRadius: '8px', fontSize: '11px', padding: '4px 8px' }} 
-                     cursor={{fill: 'rgba(109,40,217,0.15)'}} 
+                     contentStyle={{ backgroundColor: '#09090b', color: '#f3f4f6', border: '1px solid rgba(67, 56, 202,0.4)', borderRadius: '8px', fontSize: '11px', padding: '4px 8px' }} 
+                     cursor={{fill: 'rgba(67, 56, 202,0.15)'}} 
                      formatter={(value: number) => [formatCurrency(value), 'Total Amount']}
                    />
-                   <Bar dataKey="Amount" fill="#6D28D9" radius={[0, 4, 4, 0]} barSize={10} />
+                   <Bar dataKey="Amount" fill="#4338CA" radius={[0, 4, 4, 0]} barSize={10} />
                  </BarChart>
                </ResponsiveContainer>
              )}
@@ -829,7 +829,7 @@ export default function Fleet({
               ({filteredExpenses.length} {filteredExpenses.length === 1 ? 'log' : 'logs'})
             </span>
             {selectedProduct !== 'all' && (
-              <span className="text-[10px] font-semibold text-slate-100 bg-[#6D28D9]/15 border border-[#6D28D9]/30 px-2 py-0.5 rounded">
+              <span className="text-[10px] font-semibold text-slate-100 bg-[#4338CA]/15 border border-[#4338CA]/30 px-2 py-0.5 rounded">
                 Viewing {selectedProduct} Only
               </span>
             )}
@@ -841,7 +841,7 @@ export default function Fleet({
               <select
                 value={selectedProduct}
                 onChange={(e) => setSelectedProduct(e.target.value)}
-                className="px-2.5 py-1 bg-black border border-[#6D28D9]/40 rounded-lg text-xs font-bold text-[#6D28D9] focus:outline-none focus:ring-1 focus:ring-[#6D28D9] shadow-sm cursor-pointer"
+                className="px-2.5 py-1 bg-black border border-[#4338CA]/40 rounded-lg text-xs font-bold text-[#4338CA] focus:outline-none focus:ring-1 focus:ring-[#4338CA] shadow-sm cursor-pointer"
               >
                 <option value="all" className="bg-black text-slate-200">All Products ({expenses.length})</option>
                 {FLEET_PRODUCTS.map((p) => {
@@ -862,7 +862,7 @@ export default function Fleet({
                 onClick={() => setSelectedProduct('all')}
                 className={`px-2 py-0.5 text-[10px] font-bold rounded transition-colors cursor-pointer ${
                   selectedProduct === 'all'
-                    ? 'bg-[#6D28D9]/20 text-slate-100 border border-[#6D28D9]/40 shadow-sm'
+                    ? 'bg-[#4338CA]/20 text-slate-100 border border-[#4338CA]/40 shadow-sm'
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -875,7 +875,7 @@ export default function Fleet({
                   onClick={() => setSelectedProduct(p)}
                   className={`px-2 py-0.5 text-[10px] font-bold rounded transition-colors cursor-pointer ${
                     selectedProduct === p
-                      ? 'bg-[#6D28D9]/20 text-slate-100 border border-[#6D28D9]/40 shadow-sm'
+                      ? 'bg-[#4338CA]/20 text-slate-100 border border-[#4338CA]/40 shadow-sm'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
@@ -888,7 +888,7 @@ export default function Fleet({
               <button
                 type="button"
                 onClick={() => setSelectedProduct('all')}
-                className="text-[11px] text-[#8B5CF6] hover:text-violet-300 font-semibold underline cursor-pointer ml-1"
+                className="text-[11px] text-[#6366F1] hover:text-indigo-300 font-semibold underline cursor-pointer ml-1"
               >
                 Clear
               </button>
@@ -913,7 +913,7 @@ export default function Fleet({
             {filteredExpenses.map(e => (
               <tr key={e.id} className="hover:bg-white/5 transition-colors duration-300">
                 <td className="modern-td">{format(e.date, 'MMM d, yyyy')}</td>
-                <td className="px-4 py-3 font-semibold text-[#6D28D9] hover:text-violet-300 cursor-pointer hover:underline font-bold transition-colors" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
+                <td className="px-4 py-3 font-semibold text-[#4338CA] hover:text-indigo-300 cursor-pointer hover:underline font-bold transition-colors" onClick={() => onNavigateToTruck?.(e.carRegistration)}>{e.carRegistration}</td>
                 <td className="modern-td">
                   {e.station && (
                     <button
@@ -932,7 +932,7 @@ export default function Fleet({
                   </span>
                 </td>
                 <td className="modern-td">{e.litres ? `${e.litres.toLocaleString()} L` : '-'}</td>
-                <td className="modern-td !text-[#6D28D9] font-mono font-bold text-base">
+                <td className="modern-td !text-[#4338CA] font-mono font-bold text-base">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span>{formatCurrency(e.amount)}</span>
                     {(e.receiptImage || e.receiptText) && (
@@ -950,10 +950,10 @@ export default function Fleet({
                             category: 'Fleet Fueling Expense'
                           });
                         }}
-                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-[#6D28D9]/20 text-[#A78BFA] hover:bg-[#6D28D9]/35 border border-[#6D28D9]/40 transition-colors cursor-pointer shrink-0"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-[#4338CA]/20 text-[#818CF8] hover:bg-[#4338CA]/35 border border-[#4338CA]/40 transition-colors cursor-pointer shrink-0"
                         title="View receipt proof (image or text memo)"
                       >
-                        <Paperclip className="w-3 h-3 text-[#A78BFA]" />
+                        <Paperclip className="w-3 h-3 text-[#818CF8]" />
                         <span>Receipt</span>
                       </button>
                     )}

@@ -571,13 +571,13 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         didParseCell: function(data) {
           if (data.section === 'body') {
             const e = eventsSorted[data.row.index];
-            const isViolet = e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit'));
+            const isIndigo = e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit'));
             
             // Amount Column (Index 3)
             if (data.column.index === 3) {
-              if (isViolet) {
-                data.cell.styles.textColor = [139, 92, 246]; // Violet 500
-                data.cell.styles.fillColor = [245, 243, 255]; // Violet 50
+              if (isIndigo) {
+                data.cell.styles.textColor = [99, 102, 241]; // Indigo 500
+                data.cell.styles.fillColor = [238, 242, 255]; // Indigo 50
               } else {
                 data.cell.styles.textColor = [5, 150, 105]; // Emerald 600
                 data.cell.styles.fillColor = [236, 253, 244]; // Emerald 50
@@ -586,7 +586,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             // Balance Column (Index 4)
             if (data.column.index === 4) {
               if (e.balanceAfter > 0) {
-                data.cell.styles.textColor = [139, 92, 246];
+                data.cell.styles.textColor = [99, 102, 241];
               } else if (e.balanceAfter < 0) {
                 data.cell.styles.textColor = [5, 150, 105];
               }
@@ -864,7 +864,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           </button>
 
           <div className="flex items-center gap-2 min-w-0">
-            <span className="font-mono text-xs uppercase tracking-wider bg-[#6D28D9]/15 text-[#6D28D9] px-2 py-0.5 rounded-md font-bold border border-[#6D28D9]/30 shrink-0">
+            <span className="font-mono text-xs uppercase tracking-wider bg-[#4338CA]/15 text-[#4338CA] px-2 py-0.5 rounded-md font-bold border border-[#4338CA]/30 shrink-0">
               {customer.customerId}
             </span>
             <h2 className="text-base sm:text-xl font-black text-slate-200 tracking-tight truncate">
@@ -873,9 +873,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border shrink-0 ${
               customer.status === 'active' 
                 ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' 
-                : 'bg-[#8B5CF6]/15 text-[#8B5CF6] border-[#8B5CF6]/30'
+                : 'bg-[#6366F1]/15 text-[#6366F1] border-[#6366F1]/30'
             }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${customer.status === 'active' ? 'bg-emerald-400' : 'bg-[#8B5CF6]'}`} />
+              <span className={`w-1.5 h-1.5 rounded-full ${customer.status === 'active' ? 'bg-emerald-400' : 'bg-[#6366F1]'}`} />
               {customer.status === 'active' ? 'Active' : 'Credit Risk'}
             </span>
           </div>
@@ -885,9 +885,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         <div className="flex items-center gap-1.5 flex-wrap">
           <button
             onClick={() => setActiveModal('delivery')}
-            className="px-2.5 py-1.5 bg-[#8B5CF6]/15 hover:bg-[#8B5CF6]/25 text-slate-100 border border-[#8B5CF6]/30 hover:border-[#8B5CF6]/50 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+            className="px-2.5 py-1.5 bg-[#6366F1]/15 hover:bg-[#6366F1]/25 text-slate-100 border border-[#6366F1]/30 hover:border-[#6366F1]/50 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 text-[#8B5CF6]" />
+            <Plus className="w-3.5 h-3.5 text-[#6366F1]" />
             <span>Log Delivery</span>
           </button>
           <button
@@ -899,9 +899,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           </button>
           <button
             onClick={() => setActiveModal('adjustment')}
-            className="px-2.5 py-1.5 bg-[#8B5CF6]/15 hover:bg-[#8B5CF6]/25 text-slate-100 border border-[#8B5CF6]/30 hover:border-[#8B5CF6]/50 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+            className="px-2.5 py-1.5 bg-[#6366F1]/15 hover:bg-[#6366F1]/25 text-slate-100 border border-[#6366F1]/30 hover:border-[#6366F1]/50 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
           >
-            <ArrowUpDown className="w-3.5 h-3.5 text-[#8B5CF6]" />
+            <ArrowUpDown className="w-3.5 h-3.5 text-[#6366F1]" />
             <span>Adjust</span>
           </button>
           <button
@@ -934,11 +934,11 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
       {/* Compressed Stats Row (4 compact columns) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-        {/* Card 1: Outstanding Balance (Violet Violet figure) OR Advance Balance (Green figure) */}
+        {/* Card 1: Outstanding Balance (Indigo Indigo figure) OR Advance Balance (Green figure) */}
         <div className={`rounded-xl px-3.5 py-2.5 border border-white/10 bg-white/[0.02] cursor-pointer transition-all duration-200 ${
           calculatedBalance < 0 
             ? 'card-hover-green' 
-            : 'card-hover-violet'
+            : 'card-hover-indigo'
         }`}>
           <div className="flex items-center justify-between">
             <span className={`text-[10px] font-extrabold uppercase tracking-wider ${
@@ -955,9 +955,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             </button>
           </div>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className={`text-xs font-bold ${calculatedBalance < 0 ? 'text-green-accent' : 'text-violet-accent'}`}>Ksh</span>
+            <span className={`text-xs font-bold ${calculatedBalance < 0 ? 'text-green-accent' : 'text-indigo-accent'}`}>Ksh</span>
             <span className={`text-base sm:text-lg font-black font-mono tracking-tight leading-none ${
-              calculatedBalance < 0 ? 'text-green-accent' : 'text-violet-accent'
+              calculatedBalance < 0 ? 'text-green-accent' : 'text-indigo-accent'
             }`}>
               {calculatedBalance < 0 ? '-' : ''}{Math.abs(calculatedBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
@@ -997,8 +997,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           </div>
         </div>
 
-        {/* Card 3: Total Deliveries - Violet Violet figure, hover border */}
-        <div className="rounded-xl px-3.5 py-2.5 border border-white/10 bg-white/[0.02] cursor-pointer card-hover-violet transition-all duration-200">
+        {/* Card 3: Total Deliveries - Indigo Indigo figure, hover border */}
+        <div className="rounded-xl px-3.5 py-2.5 border border-white/10 bg-white/[0.02] cursor-pointer card-hover-indigo transition-all duration-200">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Total Deliveries</span>
             <span className="text-[10px] font-mono text-slate-300 font-bold bg-white/5 px-1.5 py-0.5 rounded border border-white/10">
@@ -1006,8 +1006,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             </span>
           </div>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-xs font-bold text-violet-accent">Ksh</span>
-            <span className="text-base sm:text-lg font-black font-mono text-violet-accent tracking-tight leading-none">
+            <span className="text-xs font-bold text-indigo-accent">Ksh</span>
+            <span className="text-base sm:text-lg font-black font-mono text-indigo-accent tracking-tight leading-none">
               {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
@@ -1075,7 +1075,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="balanceGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.4}/>
+                        <stop offset="5%" stopColor="#6366F1" stopOpacity={0.4}/>
                         <stop offset="95%" stopColor="#00E676" stopOpacity={0.05}/>
                       </linearGradient>
                     </defs>
@@ -1116,7 +1116,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-md border ${
                     customer.openingBalanceType === 'advance'
                       ? 'text-[#059669] bg-emerald-500/15 border-emerald-500/30'
-                      : 'text-[#6D28D9] bg-[#6D28D9]/15 border-[#6D28D9]/30'
+                      : 'text-[#4338CA] bg-[#4338CA]/15 border-[#4338CA]/30'
                   }`}>
                     {customer.openingBalanceType === 'advance' ? '-' : '+'}Ksh {(customer.openingBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
@@ -1126,12 +1126,12 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   <div>
                     <div className="flex justify-between text-[11px] font-semibold mb-1">
                       <span className="text-theme-text-muted">Avg Delivery</span>
-                      <span className="font-mono font-bold text-[#6D28D9]">
+                      <span className="font-mono font-bold text-[#4338CA]">
                         {customerDeliveries.length ? `Ksh ${(totalSalesValue / customerDeliveries.length).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'}
                       </span>
                     </div>
                     <div className="h-1.5 bg-theme-panel rounded-full overflow-hidden border border-theme-border/60">
-                      <div className="h-full bg-gradient-to-r from-violet-800 via-violet-600 to-violet-400 rounded-full" style={{ width: '65%' }} />
+                      <div className="h-full bg-gradient-to-r from-indigo-800 via-indigo-600 to-indigo-400 rounded-full" style={{ width: '65%' }} />
                     </div>
                   </div>
 
@@ -1153,10 +1153,10 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             <div className="pt-2.5 mt-2.5 border-t border-theme-border text-center">
               <button 
                 type="button"
-                className="text-xs text-[#6D28D9] hover:text-violet-300 font-bold hover:underline cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#6D28D9]/10 border border-[#6D28D9]/25 transition-all" 
+                className="text-xs text-[#4338CA] hover:text-indigo-300 font-bold hover:underline cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#4338CA]/10 border border-[#4338CA]/25 transition-all" 
                 onClick={handleExportStatement}
               >
-                <Calendar className="w-3.5 h-3.5 text-[#6D28D9]" />
+                <Calendar className="w-3.5 h-3.5 text-[#4338CA]" />
                 <span>Open statement PDF report</span>
               </button>
             </div>
@@ -1170,7 +1170,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           <div className="flex flex-wrap items-center justify-between gap-2.5">
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-black text-theme-text tracking-tight">Statement & Transaction Timeline</h3>
-              <span className="text-xs font-mono font-bold text-[#6D28D9] bg-[#6D28D9]/15 border border-[#6D28D9]/30 px-2 py-0.5 rounded-md">
+              <span className="text-xs font-mono font-bold text-[#4338CA] bg-[#4338CA]/15 border border-[#4338CA]/30 px-2 py-0.5 rounded-md">
                 {timelineEvents.length} items
               </span>
             </div>
@@ -1196,9 +1196,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 {(['all', 'delivery', 'payment', 'adjustment'] as const).map(f => {
                   const isActive = filterType === f;
                   let activeStyle = 'bg-white/10 text-white border-white/20 shadow-sm';
-                  if (f === 'delivery') activeStyle = 'bg-[#6D28D9]/20 text-slate-100 border-[#6D28D9]/40';
+                  if (f === 'delivery') activeStyle = 'bg-[#4338CA]/20 text-slate-100 border-[#4338CA]/40';
                   if (f === 'payment') activeStyle = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30 shadow-[0_0_15px_rgba(0,230,118,0.2)]';
-                  if (f === 'adjustment') activeStyle = 'bg-[#6D28D9]/20 text-slate-100 border-[#6D28D9]/40';
+                  if (f === 'adjustment') activeStyle = 'bg-[#4338CA]/20 text-slate-100 border-[#4338CA]/40';
 
                   return (
                     <button
@@ -1275,7 +1275,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               ) : (
                 timelineEvents.map(e => {
                   const isOpening = e.type === 'opening';
-                  const isVioletAmount = e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit'));
+                  const isIndigoAmount = e.type === 'delivery' || (e.type === 'adjustment' && e.title.includes('Debit'));
                   return (
                     <tr key={e.id} className={`hover:bg-white/[0.04] transition-colors ${isOpening ? 'bg-white/[0.02] border-b-2 border-white/10' : ''}`}>
                       <td className="modern-td font-mono text-xs text-theme-text-muted">
@@ -1288,14 +1288,14 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                               isOpening
                                 ? (customer?.openingBalanceType === 'advance' 
                                     ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(0,230,118,0.2)]' 
-                                    : 'bg-[#6D28D9]/15 border-[#6D28D9]/30 text-slate-100')
+                                    : 'bg-[#4338CA]/15 border-[#4338CA]/30 text-slate-100')
                                 : e.type === 'payment'
                                   ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(0,230,118,0.2)]'
                                   : e.type === 'delivery'
-                                    ? 'bg-[#6D28D9]/15 border-[#6D28D9]/30 text-slate-100'
+                                    ? 'bg-[#4338CA]/15 border-[#4338CA]/30 text-slate-100'
                                     : e.title.includes('Credit')
                                       ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 shadow-[0_0_15px_rgba(0,230,118,0.2)]'
-                                      : 'bg-[#6D28D9]/15 border-[#6D28D9]/30 text-slate-100'
+                                      : 'bg-[#4338CA]/15 border-[#4338CA]/30 text-slate-100'
                             } ${e.type === 'adjustment' ? 'cursor-pointer hover:scale-110' : ''}`} 
                             onClick={() => {
                               if (e.type === 'adjustment') {
@@ -1316,7 +1316,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                           </div>
                           <span className={`text-sm font-bold ${
                             isOpening 
-                              ? (customer?.openingBalanceType === 'advance' ? 'text-[#059669]' : 'text-violet-300') 
+                              ? (customer?.openingBalanceType === 'advance' ? 'text-[#059669]' : 'text-indigo-300') 
                               : 'text-theme-text'
                           }`}>
                             {e.title}
@@ -1328,7 +1328,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       </td>
                       <td className="px-4 sm:px-6 py-3.5 text-right font-mono font-bold text-sm whitespace-nowrap tabular-nums">
                         {isOpening ? (
-                          <span className={customer?.openingBalanceType === 'advance' ? '!text-[#059669]' : '!text-[#6D28D9]'}>
+                          <span className={customer?.openingBalanceType === 'advance' ? '!text-[#059669]' : '!text-[#4338CA]'}>
                             {customer?.openingBalanceType === 'advance' ? '-' : '+'}Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         ) : e.type === 'payment' ? (
@@ -1336,14 +1336,14 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                             -Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         ) : (
-                          <span className={isVioletAmount ? '!text-[#6D28D9]' : '!text-[#059669]'}>
-                            {isVioletAmount ? '+' : '-'}Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          <span className={isIndigoAmount ? '!text-[#4338CA]' : '!text-[#059669]'}>
+                            {isIndigoAmount ? '+' : '-'}Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         )}
                       </td>
                       <td className="px-4 sm:px-6 py-3.5 text-right font-mono font-bold text-sm whitespace-nowrap tabular-nums">
                         {e.balanceAfter > 0 ? (
-                          <span className="!text-[#6D28D9]">
+                          <span className="!text-[#4338CA]">
                             Ksh {e.balanceAfter.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         ) : e.balanceAfter < 0 ? (
@@ -1367,12 +1367,12 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   Reconciliation Summary & Total Position
                 </td>
                 <td className="px-4 sm:px-6 py-4 text-right font-mono text-xs text-theme-text-muted whitespace-nowrap">
-                  <span className="block text-[10px] uppercase font-sans tracking-widest text-violet-accent">Total Purchases</span>
-                  <span className="text-violet-accent font-mono font-bold">Ksh {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  <span className="block text-[10px] uppercase font-sans tracking-widest text-indigo-accent">Total Purchases</span>
+                  <span className="text-indigo-accent font-mono font-bold">Ksh {totalSalesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                 </td>
                 <td className="px-4 sm:px-6 py-4 text-right font-mono font-black text-sm sm:text-base whitespace-nowrap">
                   <span className="block text-[10px] uppercase font-sans tracking-widest text-slate-400">Final Closing Balance</span>
-                  <span className={calculatedBalance > 0 ? 'text-violet-accent' : calculatedBalance < 0 ? 'text-green-accent' : 'text-slate-300'}>
+                  <span className={calculatedBalance > 0 ? 'text-indigo-accent' : calculatedBalance < 0 ? 'text-green-accent' : 'text-slate-300'}>
                     {calculatedBalance < 0 ? '-' : ''}Ksh {Math.abs(calculatedBalance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </td>
@@ -1400,17 +1400,17 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     <button type="button" onClick={() => setAdjustType('credit')} className={`px-4 py-3 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${adjustType === 'credit' ? 'bg-emerald-500/15 border-emerald-500 text-emerald-400' : 'bg-white/[0.03] border-white/10 text-gray-400 hover:text-white'}`}>
                        Credit (-)
                     </button>
-                    <button type="button" onClick={() => setAdjustType('debit')} className={`px-4 py-3 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${adjustType === 'debit' ? 'bg-[#8B5CF6]/15 border-[#8B5CF6] text-[#8B5CF6]' : 'bg-white/[0.03] border-white/10 text-gray-400 hover:text-white'}`}>
+                    <button type="button" onClick={() => setAdjustType('debit')} className={`px-4 py-3 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${adjustType === 'debit' ? 'bg-[#6366F1]/15 border-[#6366F1] text-[#6366F1]' : 'bg-white/[0.03] border-white/10 text-gray-400 hover:text-white'}`}>
                        Debit (+)
                     </button>
                   </div>
                 </div>
                 <div>
-                  <label className={`block text-sm font-semibold mb-1.5 transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#8B5CF6]'}`}>
+                  <label className={`block text-sm font-semibold mb-1.5 transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#6366F1]'}`}>
                     Override Amount (KES) * {adjustType === 'credit' ? '(Credit - Deduct)' : '(Debit - Add)'}
                   </label>
                   <div className="relative">
-                    <span className={`absolute left-3.5 top-2.5 font-bold font-mono transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#8B5CF6]'}`}>KSh</span>
+                    <span className={`absolute left-3.5 top-2.5 font-bold font-mono transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#6366F1]'}`}>KSh</span>
                     <input 
                       type="number" 
                       required 
@@ -1421,7 +1421,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       className={`w-full pl-14 pr-3.5 py-2.5 bg-[#000000] rounded-lg text-lg font-mono font-bold outline-none transition-all border ${
                         adjustType === 'credit' 
                           ? 'text-emerald-400 border-emerald-500/50 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/50' 
-                          : 'text-[#8B5CF6] border-[#8B5CF6]/50 focus:border-[#8B5CF6] focus:ring-1 focus:ring-[#8B5CF6]/50'
+                          : 'text-[#6366F1] border-[#6366F1]/50 focus:border-[#6366F1] focus:ring-1 focus:ring-[#6366F1]/50'
                       }`} 
                       placeholder="0.00" 
                     />
@@ -1441,7 +1441,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                  <button type="submit" disabled={modalLoading} className={`px-5 py-2 disabled:opacity-50 text-sm font-bold rounded-lg shadow-sm transition-all cursor-pointer ${
                    adjustType === 'credit'
                      ? 'bg-emerald-500 hover:bg-emerald-400 text-black'
-                     : 'bg-[#6D28D9] hover:bg-[#6D28D9]/90 text-white'
+                     : 'bg-[#4338CA] hover:bg-[#4338CA]/90 text-white'
                  }`}>
                    {modalLoading ? 'Saving...' : 'Update'}
                  </button>
@@ -1607,7 +1607,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <button
                   type="submit"
                   disabled={modalLoading}
-                  className="px-5 py-2 bg-[#6D28D9] hover:bg-[#6D28D9]/90 text-white rounded-lg text-sm font-bold shadow-md shadow-[#6D28D9]/25 disabled:opacity-50 transition-colors cursor-pointer"
+                  className="px-5 py-2 bg-[#4338CA] hover:bg-[#4338CA]/90 text-white rounded-lg text-sm font-bold shadow-md shadow-[#4338CA]/25 disabled:opacity-50 transition-colors cursor-pointer"
                 >
                   Save Delivery
                 </button>
@@ -1710,7 +1710,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       onClick={() => setAdjustType('debit')}
                       className={`py-2 px-3 rounded-lg border text-sm font-bold transition-all cursor-pointer ${
                         adjustType === 'debit'
-                          ? 'border-[#8B5CF6] bg-[#8B5CF6]/20 text-[#8B5CF6]'
+                          ? 'border-[#6366F1] bg-[#6366F1]/20 text-[#6366F1]'
                           : 'border-white/10 text-gray-400 bg-white/[0.03] hover:text-white'
                       }`}
                     >
@@ -1729,7 +1729,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   />
                 </div>
                 <div>
-                  <label className={`block text-sm font-semibold mb-1.5 transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#8B5CF6]'}`}>
+                  <label className={`block text-sm font-semibold mb-1.5 transition-colors ${adjustType === 'credit' ? 'text-emerald-400' : 'text-[#6366F1]'}`}>
                     Override Amount (KES) * {adjustType === 'credit' ? '(Credit - Deduct)' : '(Debit - Add)'}
                   </label>
                   <input 
@@ -1742,7 +1742,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     className={`w-full px-3.5 py-2.5 bg-[#000000] rounded-lg text-base font-mono font-bold outline-none transition-all border ${
                       adjustType === 'credit'
                         ? 'text-emerald-400 border-emerald-500/50 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/50'
-                        : 'text-[#8B5CF6] border-[#8B5CF6]/50 focus:border-[#8B5CF6] focus:ring-1 focus:ring-[#8B5CF6]/50'
+                        : 'text-[#6366F1] border-[#6366F1]/50 focus:border-[#6366F1] focus:ring-1 focus:ring-[#6366F1]/50'
                     }`}
                   />
                 </div>
@@ -1754,7 +1754,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     value={adjustReason}
                     onChange={e => setAdjustReason(e.target.value)}
                     rows={3}
-                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-sm text-white outline-none focus:border-[#6D28D9] shadow-sm resize-none"
+                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-sm text-white outline-none focus:border-[#4338CA] shadow-sm resize-none"
                   />
                 </div>
               </div>
@@ -1772,7 +1772,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   className={`px-5 py-2 text-sm font-bold rounded-lg shadow-sm disabled:opacity-50 transition-colors cursor-pointer ${
                     adjustType === 'credit'
                       ? 'bg-emerald-500 hover:bg-emerald-400 text-black'
-                      : 'bg-[#6D28D9] hover:bg-[#6D28D9]/90 text-white'
+                      : 'bg-[#4338CA] hover:bg-[#4338CA]/90 text-white'
                   }`}
                 >
                   Confirm Adjustment

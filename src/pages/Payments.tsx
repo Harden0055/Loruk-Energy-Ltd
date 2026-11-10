@@ -128,7 +128,7 @@ export default function Payments({ onViewCustomer, initialAction }: { onViewCust
               ) : filtered.map(p => (
                 <tr key={p.id} className="hover:bg-white/5 dark:hover:bg-blue-900/50 transition-colors">
                   <td className="modern-td">{format(p.date, 'MMM d, yyyy HH:mm')}</td>
-                  <td className="modern-td"><button className="hover:underline text-[#7C3AED] hover:text-violet-300 cursor-pointer font-bold transition-colors" onClick={() => onViewCustomer?.(p.customerId)}>{customers.find(c => c.id === p.customerId)?.name || 'Unknown'}</button></td>
+                  <td className="modern-td"><button className="hover:underline text-[#4F46E5] hover:text-indigo-300 cursor-pointer font-bold transition-colors" onClick={() => onViewCustomer?.(p.customerId)}>{customers.find(c => c.id === p.customerId)?.name || 'Unknown'}</button></td>
                   <td className="modern-td !text-[#059669] font-bold font-mono text-base">
                     {formatCurrency(p.amount)}
                   </td>

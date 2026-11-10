@@ -237,7 +237,7 @@ export default function Trucks({ onNavigateToTruck }: TrucksProps) {
                         <button
                           type="button"
                           onClick={() => onNavigateToTruck(truck.registration)}
-                          className="px-3 py-1.5 bg-violet-500/15 hover:bg-violet-500/25 text-[#7C3AED] hover:text-violet-300 rounded-lg font-mono text-base font-extrabold border border-violet-500/40 shadow-sm inline-block select-all cursor-pointer hover:underline hover:scale-105 transition-all"
+                          className="px-3 py-1.5 bg-indigo-500/15 hover:bg-indigo-500/25 text-[#4F46E5] hover:text-indigo-300 rounded-lg font-mono text-base font-extrabold border border-indigo-500/40 shadow-sm inline-block select-all cursor-pointer hover:underline hover:scale-105 transition-all"
                           title={`View Dashboard for ${truck.registration}`}
                         >
                           {truck.registration}
@@ -245,7 +245,7 @@ export default function Trucks({ onNavigateToTruck }: TrucksProps) {
                         <button
                           type="button"
                           onClick={() => onNavigateToTruck(truck.registration)}
-                          className="text-[#7C3AED] hover:text-violet-300 font-bold hover:underline cursor-pointer text-sm hidden sm:inline"
+                          className="text-[#4F46E5] hover:text-indigo-300 font-bold hover:underline cursor-pointer text-sm hidden sm:inline"
                         >
                           View Dashboard &rarr;
                         </button>
@@ -264,7 +264,7 @@ export default function Trucks({ onNavigateToTruck }: TrucksProps) {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => onNavigateToTruck(truck.registration)}
-                          className="p-1.5 text-[#7C3AED] hover:text-violet-300 hover:bg-violet-500/10 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                          className="p-1.5 text-[#4F46E5] hover:text-indigo-300 hover:bg-indigo-500/10 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
                           title="View Dashboard"
                         >
                           <LineChart className="w-4 h-4" />
@@ -279,7 +279,7 @@ export default function Trucks({ onNavigateToTruck }: TrucksProps) {
                         </button>
                         <button
                           onClick={() => setDeletingTruck(truck)}
-                          className="p-1.5 text-gray-400 hover:text-violet-300 hover:bg-violet-500/10 rounded-lg transition-colors cursor-pointer"
+                          className="p-1.5 text-gray-400 hover:text-indigo-300 hover:bg-indigo-500/10 rounded-lg transition-colors cursor-pointer"
                           title="Delete Truck"
                         >
                           <Trash2 className="w-4 h-4" />

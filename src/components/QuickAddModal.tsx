@@ -46,10 +46,10 @@ export function QuickAddTruckModal({ isOpen, onClose, onSuccess }: QuickAddTruck
 
   return (
     <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-50">
-      <div className="bg-[#09090b] border border-[#6D28D9]/40 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-        <div className="px-5 py-4 border-b border-[#6D28D9]/25 bg-[#6D28D9]/[0.05] flex items-center justify-between">
+      <div className="bg-[#09090b] border border-[#4338CA]/40 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
+        <div className="px-5 py-4 border-b border-[#4338CA]/25 bg-[#4338CA]/[0.05] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-[#6D28D9]/15 text-[#6D28D9]">
+            <div className="p-1.5 rounded-lg bg-[#4338CA]/15 text-[#4338CA]">
               <Truck className="w-4 h-4" />
             </div>
             <h3 className="text-sm font-bold text-slate-200">Quick Add Truck</h3>
@@ -65,14 +65,14 @@ export function QuickAddTruckModal({ isOpen, onClose, onSuccess }: QuickAddTruck
 
         <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
           {error && (
-            <div className="text-xs text-slate-200 bg-[#6D28D9]/15 border border-[#6D28D9]/40 px-3 py-2 rounded-lg">
+            <div className="text-xs text-slate-200 bg-[#4338CA]/15 border border-[#4338CA]/40 px-3 py-2 rounded-lg">
               {error}
             </div>
           )}
 
           <div>
             <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-              Vehicle Registration <span className="text-violet-400">*</span>
+              Vehicle Registration <span className="text-indigo-400">*</span>
             </label>
             <input
               type="text"
@@ -81,7 +81,7 @@ export function QuickAddTruckModal({ isOpen, onClose, onSuccess }: QuickAddTruck
               placeholder="e.g. KDF 123Z"
               value={registration}
               onChange={e => setRegistration(e.target.value.toUpperCase())}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-mono font-bold focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+              className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-mono font-bold focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
             />
           </div>
 
@@ -92,7 +92,7 @@ export function QuickAddTruckModal({ isOpen, onClose, onSuccess }: QuickAddTruck
               placeholder="Driver's full name"
               value={driverName}
               onChange={e => setDriverName(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+              className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
             />
           </div>
 
@@ -104,7 +104,7 @@ export function QuickAddTruckModal({ isOpen, onClose, onSuccess }: QuickAddTruck
                 placeholder="e.g. Scania G460"
                 value={model}
                 onChange={e => setModel(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
             </div>
             <div>
@@ -114,7 +114,7 @@ export function QuickAddTruckModal({ isOpen, onClose, onSuccess }: QuickAddTruck
                 placeholder="e.g. 15000"
                 value={capacity}
                 onChange={e => setCapacity(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-mono focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-mono focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
             </div>
           </div>
@@ -131,7 +131,7 @@ export function QuickAddTruckModal({ isOpen, onClose, onSuccess }: QuickAddTruck
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-1.5 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-violet-900/30"
+              className="px-4 py-1.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-indigo-900/30"
             >
               <Check className="w-3.5 h-3.5" />
               {loading ? 'Adding...' : 'Save Truck'}
@@ -208,7 +208,7 @@ export function QuickAddStationModal({ isOpen, onClose, onSuccess }: QuickAddSta
 
         <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
           {error && (
-            <div className="text-xs text-violet-400 bg-violet-500/10 border border-violet-500/20 px-3 py-2 rounded-lg">
+            <div className="text-xs text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-2 rounded-lg">
               {error}
             </div>
           )}
@@ -330,10 +330,10 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
 
   return (
     <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-50">
-      <div className="bg-[#09090b] border border-[#6D28D9]/40 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
-        <div className="px-5 py-4 border-b border-[#6D28D9]/25 bg-[#6D28D9]/[0.05] flex items-center justify-between">
+      <div className="bg-[#09090b] border border-[#4338CA]/40 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
+        <div className="px-5 py-4 border-b border-[#4338CA]/25 bg-[#4338CA]/[0.05] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-[#6D28D9]/15 text-[#6D28D9]">
+            <div className="p-1.5 rounded-lg bg-[#4338CA]/15 text-[#4338CA]">
               <UserPlus className="w-4 h-4" />
             </div>
             <h3 className="text-sm font-bold text-slate-200">Quick Add Customer</h3>
@@ -349,14 +349,14 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
 
         <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
           {error && (
-            <div className="text-xs text-slate-200 bg-[#6D28D9]/15 border border-[#6D28D9]/40 px-3 py-2 rounded-lg">
+            <div className="text-xs text-slate-200 bg-[#4338CA]/15 border border-[#4338CA]/40 px-3 py-2 rounded-lg">
               {error}
             </div>
           )}
 
           <div>
             <label className="block text-[11px] font-semibold text-slate-400 mb-1">
-              Customer Name <span className="text-violet-400">*</span>
+              Customer Name <span className="text-indigo-400">*</span>
             </label>
             <input
               type="text"
@@ -365,7 +365,7 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
               placeholder="e.g. Al-Noor Logistics Ltd"
               value={name}
               onChange={e => setName(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-semibold focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+              className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-semibold focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
             />
           </div>
 
@@ -377,7 +377,7 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
                 placeholder="e.g. 500000"
                 value={creditLimit}
                 onChange={e => setCreditLimit(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-mono focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-mono focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
             </div>
             <div>
@@ -387,7 +387,7 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
                 placeholder="0"
                 value={openingBalance}
                 onChange={e => setOpeningBalance(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-mono focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-mono focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
             </div>
           </div>
@@ -404,7 +404,7 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-1.5 bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-violet-900/30"
+              className="px-4 py-1.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-indigo-900/30"
             >
               <Check className="w-3.5 h-3.5" />
               {loading ? 'Adding...' : 'Save Customer'}

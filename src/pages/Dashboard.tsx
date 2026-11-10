@@ -97,7 +97,7 @@ export default function Dashboard({
 
   // --- Base Metrics ---
   const outstandingBalance = customers.reduce((acc, c) => acc + (c.balance || 0), 0);
-  const outstandingBalanceColor = outstandingBalance < 0 ? 'text-[#059669]' : 'text-violet-400';
+  const outstandingBalanceColor = outstandingBalance < 0 ? 'text-[#059669]' : 'text-indigo-400';
   
   const totalFleetExpenses = expenses.reduce((acc, curr) => acc + curr.amount, 0);
   const activeTrucksCount = new Set(expenses.map(e => e.carRegistration)).size;
@@ -142,7 +142,7 @@ export default function Dashboard({
         fill="#9ca3af" 
         fontSize={10} 
         onClick={() => onNavigateToTruck?.(payload.value)} 
-        className="cursor-pointer hover:fill-violet-400"
+        className="cursor-pointer hover:fill-indigo-400"
       >
         {payload.value}
       </text>
@@ -161,7 +161,7 @@ export default function Dashboard({
         fill="#9ca3af" 
         fontSize={10} 
         onClick={() => customer && onNavigateToCustomer?.(customer.id)} 
-        className="cursor-pointer hover:fill-violet-400 font-medium"
+        className="cursor-pointer hover:fill-indigo-400 font-medium"
       >
         {payload.value}
       </text>
@@ -383,7 +383,7 @@ export default function Dashboard({
           title="Total Fleet Fueling" 
           value={formatCurrency(totalFleetExpenses)} 
           icon={TrendingUp} 
-          color="text-violet-400" 
+          color="text-indigo-400" 
         />
         <MetricCard 
           title="Average Expense per Truck" 
@@ -449,7 +449,7 @@ export default function Dashboard({
                 onClick={() => setLiveTab('transactions')}
                 className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                   liveTab === 'transactions' 
-                    ? 'bg-violet-600 text-white shadow-sm' 
+                    ? 'bg-indigo-600 text-white shadow-sm' 
                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -461,7 +461,7 @@ export default function Dashboard({
                 onClick={() => setLiveTab('customers')}
                 className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                   liveTab === 'customers' 
-                    ? 'bg-violet-600 text-white shadow-sm' 
+                    ? 'bg-indigo-600 text-white shadow-sm' 
                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -473,7 +473,7 @@ export default function Dashboard({
                 onClick={() => setLiveTab('trucks')}
                 className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                   liveTab === 'trucks' 
-                    ? 'bg-violet-600 text-white shadow-sm' 
+                    ? 'bg-indigo-600 text-white shadow-sm' 
                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -497,7 +497,7 @@ export default function Dashboard({
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0">
                         {tx.kind === 'delivery' && (
-                          <div className="w-7 h-7 rounded-lg bg-[#6D28D9]/15 border border-[#6D28D9]/30 text-[#6D28D9] flex items-center justify-center">
+                          <div className="w-7 h-7 rounded-lg bg-[#4338CA]/15 border border-[#4338CA]/30 text-[#4338CA] flex items-center justify-center">
                             <Fuel className="w-3.5 h-3.5" />
                           </div>
                         )}
@@ -518,7 +518,7 @@ export default function Dashboard({
                             <button
                               type="button"
                               onClick={() => tx.partyId && onNavigateToCustomer?.(tx.partyId)}
-                              className="font-bold text-[#7C3AED] hover:text-violet-300 hover:underline cursor-pointer truncate text-left"
+                              className="font-bold text-[#4F46E5] hover:text-indigo-300 hover:underline cursor-pointer truncate text-left"
                             >
                               {tx.partyName}
                             </button>
@@ -526,7 +526,7 @@ export default function Dashboard({
                             <button
                               type="button"
                               onClick={() => tx.partyId && onNavigateToTruck?.(tx.partyId)}
-                              className="font-bold text-[#7C3AED] hover:text-violet-300 hover:underline cursor-pointer truncate text-left"
+                              className="font-bold text-[#4F46E5] hover:text-indigo-300 hover:underline cursor-pointer truncate text-left"
                             >
                               {tx.partyName}
                             </button>
@@ -544,7 +544,7 @@ export default function Dashboard({
                     </div>
                     <div className="text-right shrink-0">
                       <div className={`font-mono font-bold text-xs ${
-                        tx.kind === 'payment' ? '!text-[#059669]' : '!text-[#7C3AED]'
+                        tx.kind === 'payment' ? '!text-[#059669]' : '!text-[#4F46E5]'
                       }`}>
                         {tx.kind === 'payment' ? '+ ' : ''}{formatCurrency(tx.amount)}
                       </div>
@@ -580,7 +580,7 @@ export default function Dashboard({
                           #{idx + 1}
                         </div>
                         <div className="min-w-0">
-                          <div className="font-bold text-[#7C3AED] group-hover:text-violet-300 hover:underline transition-colors truncate">
+                          <div className="font-bold text-[#4F46E5] group-hover:text-indigo-300 hover:underline transition-colors truncate">
                             {cust.name}
                           </div>
                           <div className="text-[10px] text-gray-400 font-mono mt-0.5">
@@ -592,12 +592,12 @@ export default function Dashboard({
                         <div>
                           <div className="text-[9px] uppercase font-semibold text-gray-400">Balance</div>
                           <div className={`font-mono font-bold text-xs ${
-                            isOwing ? '!text-[#7C3AED]' : isAdvance ? '!text-[#059669]' : 'text-gray-400'
+                            isOwing ? '!text-[#4F46E5]' : isAdvance ? '!text-[#059669]' : 'text-gray-400'
                           }`}>
                             {isAdvance && 'Adv '}{formatCurrency(Math.abs(cust.balance || 0))}
                           </div>
                         </div>
-                        <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-violet-400 transition-colors shrink-0" />
+                        <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-indigo-400 transition-colors shrink-0" />
                       </div>
                     </div>
                   );
@@ -619,12 +619,12 @@ export default function Dashboard({
                     className="p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/[0.06] border border-white/5 transition-all flex items-center justify-between gap-3 text-xs cursor-pointer group"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-7 h-7 rounded-lg bg-[#6D28D9]/15 border border-[#6D28D9]/30 text-[#6D28D9] flex items-center justify-center shrink-0">
-                        <Truck className="w-3.5 h-3.5 text-[#6D28D9]" />
+                      <div className="w-7 h-7 rounded-lg bg-[#4338CA]/15 border border-[#4338CA]/30 text-[#4338CA] flex items-center justify-center shrink-0">
+                        <Truck className="w-3.5 h-3.5 text-[#4338CA]" />
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-[#7C3AED] group-hover:text-violet-300 hover:underline transition-colors truncate">
+                          <span className="font-bold text-[#4F46E5] group-hover:text-indigo-300 hover:underline transition-colors truncate">
                             {truck.registration}
                           </span>
                           <span className={`inline-flex items-center gap-1 text-[9px] font-bold uppercase px-1 py-0.2 rounded border ${
@@ -644,11 +644,11 @@ export default function Dashboard({
                     <div className="text-right shrink-0 flex items-center gap-2">
                       <div>
                         <div className="text-[9px] uppercase font-semibold text-gray-400">Total Fuel</div>
-                        <div className="font-mono font-bold text-xs !text-[#7C3AED]">
+                        <div className="font-mono font-bold text-xs !text-[#4F46E5]">
                           {formatCurrency(truck.totalAmount)}
                         </div>
                       </div>
-                      <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-violet-400 transition-colors shrink-0" />
+                      <ExternalLink className="w-3.5 h-3.5 text-gray-500 group-hover:text-indigo-400 transition-colors shrink-0" />
                     </div>
                   </div>
                 ))
@@ -682,7 +682,7 @@ export default function Dashboard({
                      cursor={{fill: `${activeConfig.secondaryColor}15`, opacity: 0.2}} 
                      formatter={(value: number) => [formatCurrency(value), 'Total Amount']}
                    />
-                   <Bar dataKey="totalAmount" fill="#6D28D9" radius={[0, 4, 4, 0]} barSize={10} name="Total Amount" />
+                   <Bar dataKey="totalAmount" fill="#4338CA" radius={[0, 4, 4, 0]} barSize={10} name="Total Amount" />
                  </BarChart>
                </ResponsiveContainer>
              )}
@@ -716,7 +716,7 @@ export default function Dashboard({
               onClick={() => setTxFilter('all')}
               className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 txFilter === 'all' 
-                  ? 'bg-violet-600 text-white shadow-sm' 
+                  ? 'bg-indigo-600 text-white shadow-sm' 
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -726,7 +726,7 @@ export default function Dashboard({
               onClick={() => setTxFilter('delivery')}
               className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 txFilter === 'delivery' 
-                  ? 'bg-violet-600 text-white shadow-sm' 
+                  ? 'bg-indigo-600 text-white shadow-sm' 
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -787,7 +787,7 @@ export default function Dashboard({
                       <td className="modern-td">
                         <div className="flex items-center gap-2">
                           {tx.kind === 'delivery' && (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase px-2 py-0.5 rounded-md bg-[#6D28D9]/15 text-[#6D28D9] border border-[#6D28D9]/30">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase px-2 py-0.5 rounded-md bg-[#4338CA]/15 text-[#4338CA] border border-[#4338CA]/30">
                               <Fuel className="w-3 h-3" />
                               Delivery
                             </span>
@@ -813,19 +813,19 @@ export default function Dashboard({
                           <button
                             type="button"
                             onClick={() => tx.partyId && onNavigateToCustomer?.(tx.partyId)}
-                            className="font-bold text-[#7C3AED] hover:text-violet-300 hover:underline cursor-pointer text-left transition-colors flex items-center gap-1"
+                            className="font-bold text-[#4F46E5] hover:text-indigo-300 hover:underline cursor-pointer text-left transition-colors flex items-center gap-1"
                           >
                             <span>{tx.partyName}</span>
-                            <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-violet-400" />
+                            <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-indigo-400" />
                           </button>
                         ) : tx.isTruck ? (
                           <button
                             type="button"
                             onClick={() => tx.partyId && onNavigateToTruck?.(tx.partyId)}
-                            className="font-bold text-[#7C3AED] hover:text-violet-300 hover:underline cursor-pointer text-left transition-colors flex items-center gap-1"
+                            className="font-bold text-[#4F46E5] hover:text-indigo-300 hover:underline cursor-pointer text-left transition-colors flex items-center gap-1"
                           >
                             <span>{tx.partyName}</span>
-                            <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-violet-400" />
+                            <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-indigo-400" />
                           </button>
                         ) : (
                           <span className="font-semibold text-white">{tx.partyName}</span>
@@ -843,9 +843,9 @@ export default function Dashboard({
                           <button
                             type="button"
                             onClick={() => onNavigateToStation?.(tx.station, tx.station)}
-                            className="inline-flex items-center gap-1 font-bold text-[#7C3AED] hover:text-violet-300 hover:underline cursor-pointer text-xs"
+                            className="inline-flex items-center gap-1 font-bold text-[#4F46E5] hover:text-indigo-300 hover:underline cursor-pointer text-xs"
                           >
-                            <Building2 className="w-3 h-3 text-[#7C3AED]" />
+                            <Building2 className="w-3 h-3 text-[#4F46E5]" />
                             <span>{tx.station}</span>
                           </button>
                         ) : (
@@ -863,7 +863,7 @@ export default function Dashboard({
                         <span className={`font-mono font-bold text-sm tabular-nums block ${
                           tx.kind === 'payment'
                             ? '!text-[#059669]'
-                            : '!text-[#6D28D9]'
+                            : '!text-[#4338CA]'
                         }`}>
                           {tx.kind === 'payment' ? '+ ' : ''}
                           {formatCurrency(tx.amount)}
@@ -893,11 +893,11 @@ export default function Dashboard({
 
 function MetricCard({ title, value, icon: Icon, color }: any) {
   return (
-    <div className="glass-panel p-5 rounded-[20px] transition-all duration-300 hover:translate-y-[-2px] hover:border-[#6D28D9]/50 flex flex-col justify-between min-h-[128px]">
+    <div className="glass-panel p-5 rounded-[20px] transition-all duration-300 hover:translate-y-[-2px] hover:border-[#4338CA]/50 flex flex-col justify-between min-h-[128px]">
       <div className="flex items-start justify-between gap-3">
         <p className="text-[11px] font-semibold tracking-wider text-[#94A3B8] uppercase">{title}</p>
         <div className="w-8 h-8 rounded-xl shrink-0 bg-white/5 border border-white/10 flex items-center justify-center">
-          <Icon className={`w-4 h-4 ${color || 'text-violet-400'}`} />
+          <Icon className={`w-4 h-4 ${color || 'text-indigo-400'}`} />
         </div>
       </div>
       <div className="mt-2">

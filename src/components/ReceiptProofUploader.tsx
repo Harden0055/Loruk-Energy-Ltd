@@ -304,10 +304,10 @@ export default function ReceiptProofUploader({
       {/* Header with Mode Switching Tabs */}
       <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <Paperclip className="w-3.5 h-3.5 text-[#6D28D9]" />
+          <Paperclip className="w-3.5 h-3.5 text-[#4338CA]" />
           <span className="text-xs font-bold text-slate-200">Proof of Transaction</span>
           {(hasImage || hasText) && (
-            <span className="inline-flex items-center gap-1 rounded bg-[#6D28D9]/20 px-1.5 py-0.5 text-[10px] font-bold text-[#A78BFA] border border-[#6D28D9]/30">
+            <span className="inline-flex items-center gap-1 rounded bg-[#4338CA]/20 px-1.5 py-0.5 text-[10px] font-bold text-[#818CF8] border border-[#4338CA]/30">
               <Check className="w-2.5 h-2.5 text-emerald-400" />
               {hasImage && hasText ? 'Image + Memo' : hasImage ? 'Image' : 'Text Memo'}
             </span>
@@ -321,7 +321,7 @@ export default function ReceiptProofUploader({
             onClick={() => setActiveTab('file')}
             className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded transition-all cursor-pointer ${
               activeTab === 'file'
-                ? 'bg-[#6D28D9]/25 text-[#A78BFA] border border-[#6D28D9]/40 shadow-xs'
+                ? 'bg-[#4338CA]/25 text-[#818CF8] border border-[#4338CA]/40 shadow-xs'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -334,7 +334,7 @@ export default function ReceiptProofUploader({
             onClick={() => setActiveTab('text')}
             className={`flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold rounded transition-all cursor-pointer ${
               activeTab === 'text'
-                ? 'bg-[#6D28D9]/25 text-[#A78BFA] border border-[#6D28D9]/40 shadow-xs'
+                ? 'bg-[#4338CA]/25 text-[#818CF8] border border-[#4338CA]/40 shadow-xs'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -357,7 +357,7 @@ export default function ReceiptProofUploader({
         <div className="space-y-2">
           {receiptImage ? (
             /* Thumbnail Preview Area with Copy & Replace actions */
-            <div className="relative flex items-center justify-between gap-3 rounded-lg border border-[#6D28D9]/40 bg-[#6D28D9]/[0.05] p-2.5">
+            <div className="relative flex items-center justify-between gap-3 rounded-lg border border-[#4338CA]/40 bg-[#4338CA]/[0.05] p-2.5">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="h-12 w-12 shrink-0 rounded-lg overflow-hidden border border-white/10 bg-black">
                   <img
@@ -376,10 +376,10 @@ export default function ReceiptProofUploader({
                 <button
                   type="button"
                   onClick={handleCopyImageToClipboard}
-                  className="rounded-lg bg-[#6D28D9]/20 hover:bg-[#6D28D9]/30 px-2 py-1 text-[11px] font-bold text-[#A78BFA] border border-[#6D28D9]/40 transition-colors cursor-pointer flex items-center gap-1"
+                  className="rounded-lg bg-[#4338CA]/20 hover:bg-[#4338CA]/30 px-2 py-1 text-[11px] font-bold text-[#818CF8] border border-[#4338CA]/40 transition-colors cursor-pointer flex items-center gap-1"
                   title="Copy image to clipboard"
                 >
-                  {imageCopyFeedback ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-[#A78BFA]" />}
+                  {imageCopyFeedback ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-[#818CF8]" />}
                   <span>{imageCopyFeedback ? 'Copied!' : 'Copy Image'}</span>
                 </button>
                 <button
@@ -407,8 +407,8 @@ export default function ReceiptProofUploader({
               onDrop={handleDrop}
               className={`relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-4 text-center transition-all ${
                 isDragging
-                  ? 'border-[#6D28D9] bg-[#6D28D9]/15 shadow-[0_0_20px_rgba(109,40,217,0.25)]'
-                  : 'border-white/15 bg-black/20 hover:border-[#6D28D9]/40 hover:bg-[#6D28D9]/[0.02]'
+                  ? 'border-[#4338CA] bg-[#4338CA]/15 shadow-[0_0_20px_rgba(67, 56, 202,0.25)]'
+                  : 'border-white/15 bg-black/20 hover:border-[#4338CA]/40 hover:bg-[#4338CA]/[0.02]'
               } ${compact ? 'py-3' : 'py-4'}`}
             >
               <input
@@ -426,7 +426,7 @@ export default function ReceiptProofUploader({
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={processing}
-                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#6D28D9]/20 hover:bg-[#6D28D9]/30 text-[#A78BFA] border border-[#6D28D9]/40 hover:border-[#6D28D9]/60 text-xs font-bold transition-all cursor-pointer shadow-xs whitespace-nowrap"
+                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#4338CA]/20 hover:bg-[#4338CA]/30 text-[#818CF8] border border-[#4338CA]/40 hover:border-[#4338CA]/60 text-xs font-bold transition-all cursor-pointer shadow-xs whitespace-nowrap"
                 >
                   <Upload className="w-3.5 h-3.5" />
                   <span>Open Files</span>
@@ -449,7 +449,7 @@ export default function ReceiptProofUploader({
               </div>
 
               {processing && (
-                <div className="mt-2 text-xs font-semibold text-[#A78BFA] animate-pulse">
+                <div className="mt-2 text-xs font-semibold text-[#818CF8] animate-pulse">
                   Compressing and preparing image...
                 </div>
               )}
@@ -469,10 +469,10 @@ export default function ReceiptProofUploader({
               <button
                 type="button"
                 onClick={handlePasteReference}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-bold bg-[#6D28D9]/20 hover:bg-[#6D28D9]/30 text-[#A78BFA] border border-[#6D28D9]/40 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-bold bg-[#4338CA]/20 hover:bg-[#4338CA]/30 text-[#818CF8] border border-[#4338CA]/40 transition-colors cursor-pointer"
                 title="Paste text message or reference from clipboard"
               >
-                {pasteFeedback ? <Check className="w-3 h-3 text-emerald-400" /> : <ClipboardPaste className="w-3 h-3 text-[#A78BFA]" />}
+                {pasteFeedback ? <Check className="w-3 h-3 text-emerald-400" /> : <ClipboardPaste className="w-3 h-3 text-[#818CF8]" />}
                 <span>{pasteFeedback ? 'Pasted!' : 'Paste Text Message'}</span>
               </button>
               {receiptText.trim().length > 0 && (
@@ -503,7 +503,7 @@ export default function ReceiptProofUploader({
             onChange={(e) => onTextChange(e.target.value)}
             rows={compact ? 2 : 3}
             placeholder="Paste M-PESA SMS (e.g. QDH728JS9K Confirmed. Ksh 50,000 sent to Loruk Energy...) or bank slip number..."
-            className="w-full rounded-lg border border-white/15 bg-black/60 px-3 py-2 text-xs font-mono text-slate-100 placeholder:text-slate-600 focus:border-[#6D28D9] focus:outline-none focus:ring-1 focus:ring-[#6D28D9] transition-all resize-none"
+            className="w-full rounded-lg border border-white/15 bg-black/60 px-3 py-2 text-xs font-mono text-slate-100 placeholder:text-slate-600 focus:border-[#4338CA] focus:outline-none focus:ring-1 focus:ring-[#4338CA] transition-all resize-none"
           />
           <div className="flex justify-between items-center text-[10px] text-slate-500">
             <span>Tip: You can press Ctrl+V to paste SMS text or screenshot image directly</span>

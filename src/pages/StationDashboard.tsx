@@ -73,7 +73,7 @@ interface StationDashboardProps {
   onNavigateToPage?: (page: string) => void;
 }
 
-const PIE_COLORS = ['#38BDF8', '#3B82F6', '#F97316', '#10B981', '#8B5CF6', '#7C3AED', '#EAB308'];
+const PIE_COLORS = ['#38BDF8', '#3B82F6', '#F97316', '#10B981', '#6366F1', '#4F46E5', '#EAB308'];
 
 export default function StationDashboard({
   stationId,
@@ -489,9 +489,9 @@ export default function StationDashboard({
               <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-bold border ${
                 currentStation.status === 'active' 
                   ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' 
-                  : 'bg-[#6D28D9]/15 text-[#6D28D9] border-[#6D28D9]/30'
+                  : 'bg-[#4338CA]/15 text-[#4338CA] border-[#4338CA]/30'
               }`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${currentStation.status === 'active' ? 'bg-emerald-400 shadow-[0_0_8px_#34D399]' : 'bg-[#6D28D9]'}`} />
+                <span className={`w-1.5 h-1.5 rounded-full ${currentStation.status === 'active' ? 'bg-emerald-400 shadow-[0_0_8px_#34D399]' : 'bg-[#4338CA]'}`} />
                 {currentStation.status === 'active' ? 'OPERATING STATION' : 'INACTIVE'}
               </span>
               {currentStation.location && (
@@ -566,40 +566,40 @@ export default function StationDashboard({
       {/* KPI Stats Cards Dashboard (6 Metrics) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
         {/* Metric 1: Total Gross Deliveries (Negative/Invoice) */}
-        <div className="glass-panel rounded-xl p-4 border border-[#6D28D9]/30 bg-[#6D28D9]/[0.03] shadow-[0_0_20px_rgba(109,40,217,0.08)]">
+        <div className="glass-panel rounded-xl p-4 border border-[#4338CA]/30 bg-[#4338CA]/[0.03] shadow-[0_0_20px_rgba(67, 56, 202,0.08)]">
           <div className="flex justify-between items-start">
             <p className="text-[11px] font-extrabold text-theme-text-muted uppercase tracking-wider">Deliveries Value</p>
-            <div className="w-8 h-8 rounded-lg bg-[#6D28D9]/15 border border-[#6D28D9]/30 flex items-center justify-center text-[#6D28D9]">
+            <div className="w-8 h-8 rounded-lg bg-[#4338CA]/15 border border-[#4338CA]/30 flex items-center justify-center text-[#4338CA]">
               <DollarSign className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2.5">
             <div className="flex items-baseline">
-              <span className="text-xs font-bold text-[#6D28D9]/80 mr-1">Ksh</span>
-              <h3 className="text-xl sm:text-2xl font-black font-mono text-[#6D28D9] tracking-tight leading-none">
+              <span className="text-xs font-bold text-[#4338CA]/80 mr-1">Ksh</span>
+              <h3 className="text-xl sm:text-2xl font-black font-mono text-[#4338CA] tracking-tight leading-none">
                 {totalDeliveriesValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </h3>
             </div>
             <p className="text-[10px] text-theme-text-muted font-medium mt-1.5 truncate">
-              Fuel Deliveries: <span className="font-bold text-[#6D28D9]">Ksh {totalDeliveriesValue.toLocaleString()}</span>
+              Fuel Deliveries: <span className="font-bold text-[#4338CA]">Ksh {totalDeliveriesValue.toLocaleString()}</span>
             </p>
           </div>
         </div>
 
         {/* Metric 2: Fuel Volume Dispensed */}
-        <div className="glass-panel rounded-xl p-4 border border-[#6D28D9]/30 bg-[#6D28D9]/[0.03] shadow-[0_0_20px_rgba(109,40,217,0.08)]">
+        <div className="glass-panel rounded-xl p-4 border border-[#4338CA]/30 bg-[#4338CA]/[0.03] shadow-[0_0_20px_rgba(67, 56, 202,0.08)]">
           <div className="flex justify-between items-start">
             <p className="text-[11px] font-extrabold text-theme-text-muted uppercase tracking-wider">Total Dispensed</p>
-            <div className="w-8 h-8 rounded-lg bg-[#6D28D9]/15 border border-[#6D28D9]/30 flex items-center justify-center text-[#6D28D9]">
+            <div className="w-8 h-8 rounded-lg bg-[#4338CA]/15 border border-[#4338CA]/30 flex items-center justify-center text-[#4338CA]">
               <Fuel className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2.5">
             <div className="flex items-baseline">
-              <h3 className="text-xl sm:text-2xl font-black font-mono text-[#6D28D9] tracking-tight leading-none">
+              <h3 className="text-xl sm:text-2xl font-black font-mono text-[#4338CA] tracking-tight leading-none">
                 {fuelMetrics.totalLitres.toLocaleString('en-US', { maximumFractionDigits: 1 })}
               </h3>
-              <span className="text-xs font-bold text-[#6D28D9]/80 ml-1">L</span>
+              <span className="text-xs font-bold text-[#4338CA]/80 ml-1">L</span>
             </div>
             <p className="text-[10px] text-theme-text-muted font-medium mt-1.5 truncate">
               PMS: {fuelMetrics.superLitres.toLocaleString()}L • AGO: {fuelMetrics.dieselLitres.toLocaleString()}L
@@ -608,17 +608,17 @@ export default function StationDashboard({
         </div>
 
         {/* Metric 3: Station Operating Expenses (Negative Outflow) */}
-        <div className="glass-panel rounded-xl p-4 border border-[#6D28D9]/30 bg-[#6D28D9]/[0.03] shadow-[0_0_20px_rgba(109,40,217,0.08)]">
+        <div className="glass-panel rounded-xl p-4 border border-[#4338CA]/30 bg-[#4338CA]/[0.03] shadow-[0_0_20px_rgba(67, 56, 202,0.08)]">
           <div className="flex justify-between items-start">
             <p className="text-[11px] font-extrabold text-theme-text-muted uppercase tracking-wider">Operating Expenses</p>
-            <div className="w-8 h-8 rounded-lg bg-[#6D28D9]/15 border border-[#6D28D9]/30 flex items-center justify-center text-[#6D28D9]">
+            <div className="w-8 h-8 rounded-lg bg-[#4338CA]/15 border border-[#4338CA]/30 flex items-center justify-center text-[#4338CA]">
               <ReceiptText className="w-4 h-4" />
             </div>
           </div>
           <div className="mt-2.5">
             <div className="flex items-baseline">
-              <span className="text-xs font-bold text-[#6D28D9]/80 mr-1">Ksh</span>
-              <h3 className="text-xl sm:text-2xl font-black font-mono text-[#6D28D9] tracking-tight leading-none">
+              <span className="text-xs font-bold text-[#4338CA]/80 mr-1">Ksh</span>
+              <h3 className="text-xl sm:text-2xl font-black font-mono text-[#4338CA] tracking-tight leading-none">
                 {totalExpensesAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </h3>
             </div>
@@ -750,8 +750,8 @@ export default function StationDashboard({
                           <stop offset="95%" stopColor="#38BDF8" stopOpacity={0}/>
                         </linearGradient>
                         <linearGradient id="expGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.35}/>
-                          <stop offset="95%" stopColor="#7C3AED" stopOpacity={0}/>
+                          <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.35}/>
+                          <stop offset="95%" stopColor="#4F46E5" stopOpacity={0}/>
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.07)" />
@@ -771,7 +771,7 @@ export default function StationDashboard({
                       />
                       <Legend />
                       <Area type="monotone" dataKey="DeliveriesValue" name="Deliveries" stroke="#38BDF8" strokeWidth={2.5} fillOpacity={1} fill="url(#revGrad)" />
-                      <Area type="monotone" dataKey="Expenses" stroke="#7C3AED" strokeWidth={2.5} fillOpacity={1} fill="url(#expGrad)" />
+                      <Area type="monotone" dataKey="Expenses" stroke="#4F46E5" strokeWidth={2.5} fillOpacity={1} fill="url(#expGrad)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 )}
@@ -894,7 +894,7 @@ export default function StationDashboard({
                 {expenseByCategory.slice(0, 3).map((exp, idx) => (
                   <div key={exp.name} className="flex justify-between items-center text-xs font-semibold">
                     <span className="text-theme-text-muted">{exp.name}</span>
-                    <span className="font-mono font-bold text-[#8B5CF6]">Ksh {exp.value.toLocaleString()}</span>
+                    <span className="font-mono font-bold text-[#6366F1]">Ksh {exp.value.toLocaleString()}</span>
                   </div>
                 ))}
                 {expenseByCategory.length === 0 && (
@@ -960,7 +960,7 @@ export default function StationDashboard({
                 <h3 className="text-base font-black text-theme-text tracking-tight">Station Expense Vouchers</h3>
                 <p className="text-xs text-theme-text-muted">Comprehensive cost breakdown: Utilities, staff, maintenance, and supplies</p>
               </div>
-              <span className="font-mono text-xs font-bold px-3 py-1 bg-[#6D28D9]/15 text-[#6D28D9] rounded-lg border border-[#6D28D9]/30">
+              <span className="font-mono text-xs font-bold px-3 py-1 bg-[#4338CA]/15 text-[#4338CA] rounded-lg border border-[#4338CA]/30">
                 Total: Ksh {totalExpensesAmount.toLocaleString()}
               </span>
             </div>
@@ -989,14 +989,14 @@ export default function StationDashboard({
                           {format(new Date(e.date), 'dd-MMM-yyyy')}
                         </td>
                         <td className="modern-td">
-                          <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-[#6D28D9]/10 text-[#6D28D9] border border-[#6D28D9]/25">
+                          <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-[#4338CA]/10 text-[#4338CA] border border-[#4338CA]/25">
                             {e.category || 'General'}
                           </span>
                         </td>
                         <td className="modern-td text-theme-text-muted max-w-[280px] truncate" title={e.description}>
                           {e.description || 'No notes provided'}
                         </td>
-                        <td className="modern-td text-right font-mono font-bold text-xs text-[#8B5CF6]">
+                        <td className="modern-td text-right font-mono font-bold text-xs text-[#6366F1]">
                           Ksh {(e.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                         </td>
                       </tr>
@@ -1083,7 +1083,7 @@ export default function StationDashboard({
                                 : e.type === 'lpg'
                                   ? 'bg-orange-500/15 border-orange-500/30 text-orange-400'
                                   : e.type === 'expense'
-                                    ? 'bg-[#6D28D9]/15 border-[#6D28D9]/30 text-[#6D28D9]'
+                                    ? 'bg-[#4338CA]/15 border-[#4338CA]/30 text-[#4338CA]'
                                     : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
                             }`}>
                               {e.type === 'fuel' && <Fuel className="w-3.5 h-3.5" />}
@@ -1102,7 +1102,7 @@ export default function StationDashboard({
                           {e.litres ? `${e.litres.toLocaleString()} L` : '—'}
                         </td>
                         <td className="modern-td text-right font-mono font-bold text-xs whitespace-nowrap">
-                          <span className={e.type === 'expense' ? 'text-[#8B5CF6]' : 'text-emerald-400'}>
+                          <span className={e.type === 'expense' ? 'text-[#6366F1]' : 'text-emerald-400'}>
                             {e.type === 'expense' ? '-' : '+'}Ksh {e.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                           </span>
                         </td>

@@ -125,21 +125,21 @@ export default function Products() {
 
         <div>
           <h1 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
-            <Box className="w-6 h-6 text-[#7C3AED]" />
+            <Box className="w-6 h-6 text-[#4F46E5]" />
             Products Configuration
           </h1>
           <p className="text-slate-400 mt-1 text-sm">Active product catalog for Fleet, Deliveries, and Operations.</p>
         </div>
         <button 
           onClick={() => { if (isFormOpen) resetForm(); else setIsFormOpen(true); }} 
-          className="flex items-center gap-2 px-4 py-2 bg-[#6D28D9]/15 hover:bg-[#6D28D9]/25 text-slate-100 border border-[#6D28D9]/30 hover:border-[#6D28D9]/50 rounded-lg font-semibold transition-colors cursor-pointer text-sm"
+          className="flex items-center gap-2 px-4 py-2 bg-[#4338CA]/15 hover:bg-[#4338CA]/25 text-slate-100 border border-[#4338CA]/30 hover:border-[#4338CA]/50 rounded-lg font-semibold transition-colors cursor-pointer text-sm"
         >
           {isFormOpen ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> Add Product</>}
         </button>
       </div>
 
       {/* Active Products Info Banner */}
-      <div className="glass-panel p-4 border border-[#6D28D9]/30 bg-[#6D28D9]/[0.03] rounded-xl flex items-start gap-3">
+      <div className="glass-panel p-4 border border-[#4338CA]/30 bg-[#4338CA]/[0.03] rounded-xl flex items-start gap-3">
         <div className="w-2 h-2 rounded-full bg-emerald-400 mt-1.5 shadow-[0_0_8px_#34D399] shrink-0" />
         <div className="text-xs space-y-1">
           <p className="font-bold text-slate-200">Active Operational Products</p>
@@ -147,7 +147,7 @@ export default function Products() {
             The main application is restricted strictly to the 5 active operational products: 
             <span className="text-emerald-400 font-semibold ml-1">Diesel</span>, 
             <span className="text-teal-300 font-semibold ml-1">Super (Premium)</span>, 
-            <span className="text-violet-300 font-semibold ml-1">Engine Oil</span>, 
+            <span className="text-indigo-300 font-semibold ml-1">Engine Oil</span>, 
             <span className="text-amber-300 font-semibold ml-1">Brake Fluid</span>, and 
             <span className="text-cyan-300 font-semibold ml-1">Greasing</span>.
           </p>

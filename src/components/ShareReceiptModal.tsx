@@ -194,12 +194,12 @@ export default function ShareReceiptModal({
 
   return (
     <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 z-50 animate-fade-in">
-      <div className="bg-[#09090b] border border-[#6D28D9]/40 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
+      <div className="bg-[#09090b] border border-[#4338CA]/40 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="px-5 py-4 border-b border-[#6D28D9]/20 bg-[#6D28D9]/[0.06] flex items-center justify-between">
+        <div className="px-5 py-4 border-b border-[#4338CA]/20 bg-[#4338CA]/[0.06] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-[#6D28D9]/20 text-[#A78BFA] border border-[#6D28D9]/30">
-              <Sparkles className="w-5 h-5 text-[#A78BFA]" />
+            <div className="p-2 rounded-xl bg-[#4338CA]/20 text-[#818CF8] border border-[#4338CA]/30">
+              <Sparkles className="w-5 h-5 text-[#818CF8]" />
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
@@ -239,17 +239,17 @@ export default function ShareReceiptModal({
           <div className="space-y-1.5">
             <div className="flex items-center justify-between gap-2 flex-wrap">
               <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-[#6D28D9]" />
+                <FileText className="w-3.5 h-3.5 text-[#4338CA]" />
                 <span>Receipt SMS / Message Text</span>
               </label>
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={handlePasteFromClipboard}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-bold bg-[#6D28D9]/20 hover:bg-[#6D28D9]/30 text-[#A78BFA] border border-[#6D28D9]/40 transition-colors cursor-pointer shadow-xs"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded text-[11px] font-bold bg-[#4338CA]/20 hover:bg-[#4338CA]/30 text-[#818CF8] border border-[#4338CA]/40 transition-colors cursor-pointer shadow-xs"
                   title="Paste copied SMS message"
                 >
-                  <ClipboardPaste className="w-3.5 h-3.5 text-[#A78BFA]" />
+                  <ClipboardPaste className="w-3.5 h-3.5 text-[#818CF8]" />
                   <span>Paste SMS from Clipboard</span>
                 </button>
                 {rawText.trim().length > 0 && (
@@ -270,7 +270,7 @@ export default function ShareReceiptModal({
               value={rawText}
               onChange={handleTextChange}
               placeholder="Paste any M-PESA SMS (e.g. QDH728JS9K Confirmed. Ksh50,660 sent to Loruk Energy by Birachi Filling Station on 05/11/2026...), bank alert, or transaction memo..."
-              className="w-full rounded-xl border border-white/15 bg-black/60 px-3 py-2.5 text-xs font-mono text-slate-100 placeholder:text-slate-600 focus:border-[#6D28D9] focus:outline-none focus:ring-1 focus:ring-[#6D28D9] transition-all resize-none"
+              className="w-full rounded-xl border border-white/15 bg-black/60 px-3 py-2.5 text-xs font-mono text-slate-100 placeholder:text-slate-600 focus:border-[#4338CA] focus:outline-none focus:ring-1 focus:ring-[#4338CA] transition-all resize-none"
             />
           </div>
 
@@ -291,7 +291,7 @@ export default function ShareReceiptModal({
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5 text-[#6D28D9]" />
+                  <User className="w-3.5 h-3.5 text-[#4338CA]" />
                   <span>Customer *</span>
                 </span>
                 {currentCustomer && (
@@ -305,7 +305,7 @@ export default function ShareReceiptModal({
                 value={selectedCustomerId}
                 onChange={(e) => setSelectedCustomerId(e.target.value)}
                 disabled={customersLoading}
-                className="w-full px-3 py-2.5 bg-[#000000] border border-white/15 rounded-lg text-slate-100 font-semibold cursor-pointer outline-none hover:border-[#6D28D9] focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9] text-sm shadow-sm transition-colors"
+                className="w-full px-3 py-2.5 bg-[#000000] border border-white/15 rounded-lg text-slate-100 font-semibold cursor-pointer outline-none hover:border-[#4338CA] focus:border-[#4338CA] focus:ring-1 focus:ring-[#4338CA] text-sm shadow-sm transition-colors"
               >
                 <option value="" disabled>-- Select a customer --</option>
                 {customers.map((c) => (
@@ -341,7 +341,7 @@ export default function ShareReceiptModal({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-[#6D28D9]" />
+                  <Calendar className="w-3.5 h-3.5 text-[#4338CA]" />
                   <span>Payment Date *</span>
                 </label>
                 <input
@@ -349,7 +349,7 @@ export default function ShareReceiptModal({
                   required
                   value={dateStr}
                   onChange={(e) => setDateStr(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-[#000000] border border-white/15 rounded-lg text-slate-100 font-mono text-sm outline-none focus:border-[#6D28D9] focus:ring-1 focus:ring-[#6D28D9] shadow-sm"
+                  className="w-full px-3 py-2.5 bg-[#000000] border border-white/15 rounded-lg text-slate-100 font-mono text-sm outline-none focus:border-[#4338CA] focus:ring-1 focus:ring-[#4338CA] shadow-sm"
                 />
               </div>
             </div>
@@ -357,7 +357,7 @@ export default function ShareReceiptModal({
             {detectedRef && (
               <div className="flex items-center justify-between text-xs pt-1 border-t border-white/5">
                 <span className="text-slate-400">Transaction Reference Code:</span>
-                <span className="font-mono font-bold text-[#A78BFA] bg-[#6D28D9]/20 px-2 py-0.5 rounded border border-[#6D28D9]/30">
+                <span className="font-mono font-bold text-[#818CF8] bg-[#4338CA]/20 px-2 py-0.5 rounded border border-[#4338CA]/30">
                   {detectedRef}
                 </span>
               </div>

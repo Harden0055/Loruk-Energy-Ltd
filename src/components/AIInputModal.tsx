@@ -73,7 +73,7 @@ export default function AIInputModal({ onClose, onResult }: AIInputModalProps) {
     <div className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4 animate-fade-in">
       <div className="bg-[#000000] rounded-2xl shadow-2xl border border-white/10 w-full max-w-lg overflow-hidden flex flex-col transform transition-all duration-300">
         <div className="px-6 py-5 border-b border-white/10 flex justify-between items-center bg-[#000000]">
-          <div className="flex items-center gap-2 text-violet-400">
+          <div className="flex items-center gap-2 text-indigo-400">
             <Bot className="w-6 h-6" />
             <h3 className="font-bold text-white text-xl">AI Data Extraction</h3>
           </div>
@@ -93,7 +93,7 @@ export default function AIInputModal({ onClose, onResult }: AIInputModalProps) {
               rows={4}
               value={text}
               onChange={(e) => setText(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg focus:outline-none focus:border-violet-500 shadow-sm text-white resize-none transition-colors"
+              className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg focus:outline-none focus:border-indigo-500 shadow-sm text-white resize-none transition-colors"
               placeholder="e.g. Paid KES 15,000 for Super fuel, truck KCF 119R..."
             />
           </div>
@@ -147,7 +147,7 @@ export default function AIInputModal({ onClose, onResult }: AIInputModalProps) {
           <button
             onClick={handleExtract}
             disabled={loading || (!text && !file)}
-            className="px-5 py-2 bg-gradient-to-r from-[#8B5CF6] to-[#00E676] hover:brightness-110 text-white rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+            className="px-5 py-2 bg-gradient-to-r from-[#6366F1] to-[#00E676] hover:brightness-110 text-white rounded-lg text-sm font-bold transition-all shadow-sm flex items-center gap-2 disabled:opacity-50 cursor-pointer"
           >
             {loading ? (
               <>

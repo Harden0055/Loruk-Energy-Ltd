@@ -321,14 +321,14 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
           const e = entriesList[data.row.index];
           
           if (data.column.index === debitCol && e.debit > 0) {
-            data.cell.styles.textColor = [139, 92, 246]; // Violet 500
-            data.cell.styles.fillColor = [245, 243, 255]; // Violet 50
+            data.cell.styles.textColor = [99, 102, 241]; // Indigo 500
+            data.cell.styles.fillColor = [238, 242, 255]; // Indigo 50
           } else if (data.column.index === creditCol && e.credit > 0) {
             data.cell.styles.textColor = [5, 150, 105]; // Emerald 600
             data.cell.styles.fillColor = [236, 253, 244]; // Emerald 50
           } else if (data.column.index === balanceCol) {
             if (e.runningBalance > 0) {
-              data.cell.styles.textColor = [139, 92, 246];
+              data.cell.styles.textColor = [99, 102, 241];
             } else if (e.runningBalance < 0) {
               data.cell.styles.textColor = [5, 150, 105];
             }
@@ -383,7 +383,7 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
 
       {selectedCustomer && (() => {
         const custBalance = filteredEntries.length > 0 ? filteredEntries[filteredEntries.length - 1].runningBalance : (selectedCustomer?.openingBalanceType === 'advance' ? -(selectedCustomer.openingBalance || 0) : (selectedCustomer?.openingBalance || 0));
-        const custBalanceColor = custBalance < 0 ? 'text-green-600 dark:text-green-400' : custBalance > 0 ? 'text-violet-600 dark:text-violet-400' : 'text-gray-900 dark:text-theme-text';
+        const custBalanceColor = custBalance < 0 ? 'text-green-600 dark:text-green-400' : custBalance > 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-900 dark:text-theme-text';
         return (
         <div className="grid grid-cols-2 gap-4">
           <div className="glass-panel border border-theme-border p-6 rounded-xl shadow-sm">
@@ -401,13 +401,13 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
 
       <div className="bg-[#000000] border border-white/[0.08] p-6 rounded-xl shadow-sm flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-violet-400 mb-1">Total Outstanding Balance (All Entries)</p>
-          <h3 className={`text-3xl font-bold ${overallBalance < 0 ? 'text-green-400' : overallBalance > 0 ? 'text-violet-400' : 'text-white'}`}>
+          <p className="text-sm font-medium text-indigo-400 mb-1">Total Outstanding Balance (All Entries)</p>
+          <h3 className={`text-3xl font-bold ${overallBalance < 0 ? 'text-green-400' : overallBalance > 0 ? 'text-indigo-400' : 'text-white'}`}>
             {formatCurrency(overallBalance)}
           </h3>
         </div>
         <div className="w-14 h-14 bg-white/[0.04] border border-white/10 rounded-full shadow-sm flex items-center justify-center">
-          <Wallet className="w-7 h-7 text-violet-400" />
+          <Wallet className="w-7 h-7 text-indigo-400" />
         </div>
       </div>
 
@@ -459,13 +459,13 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-[#000000] border border-white/[0.08] hover:border-[#6D28D9]/40 p-6 rounded-xl shadow-sm flex items-center justify-between transition-colors">
+        <div className="bg-[#000000] border border-white/[0.08] hover:border-[#4338CA]/40 p-6 rounded-xl shadow-sm flex items-center justify-between transition-colors">
           <div>
             <p className="text-sm font-semibold text-gray-400 mb-1">Filtered Debits (Deliveries)</p>
-            <h3 className="text-2xl font-bold text-[#6D28D9]">{formatCurrency(totalDebits)}</h3>
+            <h3 className="text-2xl font-bold text-[#4338CA]">{formatCurrency(totalDebits)}</h3>
           </div>
-          <div className="w-12 h-12 bg-[#6D28D9]/15 border border-[#6D28D9]/30 rounded-full shadow-sm flex items-center justify-center">
-            <ArrowUp className="w-6 h-6 text-[#6D28D9]" />
+          <div className="w-12 h-12 bg-[#4338CA]/15 border border-[#4338CA]/30 rounded-full shadow-sm flex items-center justify-center">
+            <ArrowUp className="w-6 h-6 text-[#4338CA]" />
           </div>
         </div>
         <div className="bg-[#000000] border border-white/[0.08] hover:border-emerald-500/30 p-6 rounded-xl shadow-sm flex items-center justify-between transition-colors">
@@ -477,10 +477,10 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
             <ArrowDown className="w-6 h-6 text-[#059669]" />
           </div>
         </div>
-        <div className="bg-[#000000] border border-white/[0.08] hover:border-[#6D28D9]/40 p-6 rounded-xl shadow-sm flex items-center justify-between transition-colors">
+        <div className="bg-[#000000] border border-white/[0.08] hover:border-[#4338CA]/40 p-6 rounded-xl shadow-sm flex items-center justify-between transition-colors">
           <div>
             <p className="text-sm font-medium text-gray-400 mb-1">Net Change</p>
-            <h3 className={`text-2xl font-bold ${totalDebits - totalCredits > 0 ? 'text-[#6D28D9]' : 'text-[#059669]'}`}>
+            <h3 className={`text-2xl font-bold ${totalDebits - totalCredits > 0 ? 'text-[#4338CA]' : 'text-[#059669]'}`}>
               {formatCurrency(Math.abs(totalDebits - totalCredits))}
               <span className="text-sm font-normal ml-1 text-gray-400">{totalDebits - totalCredits > 0 ? 'Due' : 'Credit'}</span>
             </h3>
@@ -588,11 +588,11 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
               ) : [...filteredEntries].reverse().map(e => (
                 <tr key={e.id} className="hover:bg-white/5 transition-colors duration-300">
                   <td className="modern-td">{format(e.date, 'MMM d, yyyy HH:mm')}</td>
-                  {selectedCustomerId === 'all' && <td className="modern-td"><button className="hover:underline text-[#6D28D9] hover:text-violet-300 cursor-pointer font-bold transition-colors" onClick={() => onViewCustomer?.(e.customerId)}>{e.customerName}</button></td>}
+                  {selectedCustomerId === 'all' && <td className="modern-td"><button className="hover:underline text-[#4338CA] hover:text-indigo-300 cursor-pointer font-bold transition-colors" onClick={() => onViewCustomer?.(e.customerId)}>{e.customerName}</button></td>}
                    <td className="modern-td">
                     <span className="flex items-center gap-2">
                        {e.type === 'delivery' || e.type === 'adjustment_debit' ? (
-                         <ArrowUp className="w-5 h-5 text-[#6D28D9] shrink-0" />
+                         <ArrowUp className="w-5 h-5 text-[#4338CA] shrink-0" />
                        ) : (
                          <ArrowDown className="w-5 h-5 text-emerald-400 shrink-0" />
                        )}
@@ -600,22 +600,22 @@ export default function Ledger({ onViewCustomer }: { onViewCustomer?: (id: strin
                     </span>
                   </td>
                   <td className="modern-td text-right font-mono font-bold text-sm tabular-nums">
-                    {e.debit > 0 ? <span className="!text-[#6D28D9]">{formatCurrency(e.debit)}</span> : '-'}
+                    {e.debit > 0 ? <span className="!text-[#4338CA]">{formatCurrency(e.debit)}</span> : '-'}
                   </td>
                   <td className="modern-td text-right font-mono font-bold text-sm tabular-nums">
                     {e.credit > 0 ? <span className="!text-[#059669]">{formatCurrency(e.credit)}</span> : '-'}
                   </td>
-                  <td className={`modern-td text-right font-mono font-bold text-sm tabular-nums ${e.runningBalance > 0 ? '!text-[#6D28D9]' : e.runningBalance < 0 ? '!text-[#059669]' : '!text-theme-text-muted'}`}>
+                  <td className={`modern-td text-right font-mono font-bold text-sm tabular-nums ${e.runningBalance > 0 ? '!text-[#4338CA]' : e.runningBalance < 0 ? '!text-[#059669]' : '!text-theme-text-muted'}`}>
                     {formatCurrency(e.runningBalance)}
                   </td>
                   <td className="modern-td">
                     <button 
                       onClick={() => setDeletingEntry(e)}
-                      className="p-2 text-gray-400 hover:text-[#6D28D9] hover:bg-[#6D28D9]/15 transition-colors rounded-md inline-flex items-center justify-center cursor-pointer"
+                      className="p-2 text-gray-400 hover:text-[#4338CA] hover:bg-[#4338CA]/15 transition-colors rounded-md inline-flex items-center justify-center cursor-pointer"
                       title="Delete Transaction"
                       id={`btn-delete-entry-${e.id}`}
                     >
-                      <Trash2 className="w-5 h-5 text-gray-400 hover:text-[#6D28D9]" />
+                      <Trash2 className="w-5 h-5 text-gray-400 hover:text-[#4338CA]" />
                     </button>
                   </td>
                 </tr>

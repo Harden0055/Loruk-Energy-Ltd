@@ -155,7 +155,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
           >
             <option value="all" className="bg-[#08080C] text-gray-100">All Statuses</option>
             <option value="active" className="bg-[#08080C] text-emerald-400">Active</option>
-            <option value="credit_risk" className="bg-[#08080C] text-violet-300">Credit Risk</option>
+            <option value="credit_risk" className="bg-[#08080C] text-indigo-300">Credit Risk</option>
           </select>
         </div>
         <button 
@@ -244,7 +244,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                     {onViewCustomer ? (
                       <button 
                         onClick={() => onViewCustomer(c.id)}
-                        className="hover:underline text-[#6D28D9] hover:text-violet-300 font-bold cursor-pointer text-left focus:outline-none"
+                        className="hover:underline text-[#4338CA] hover:text-indigo-300 font-bold cursor-pointer text-left focus:outline-none"
                       >
                         {c.name}
                       </button>
@@ -254,7 +254,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                   </td>
                   <td className="modern-td">{formatCurrency(c.creditLimit)}</td>
                   <td className="modern-td">
-                    <span className={c.openingBalanceType === 'advance' ? '!text-[#059669] font-bold' : (c.openingBalance || 0) > 0 ? '!text-[#6D28D9] font-semibold' : 'text-gray-400'}>
+                    <span className={c.openingBalanceType === 'advance' ? '!text-[#059669] font-bold' : (c.openingBalance || 0) > 0 ? '!text-[#4338CA] font-semibold' : 'text-gray-400'}>
                       {c.openingBalanceType === 'advance' ? '-' : ''}{formatCurrency(c.openingBalance || 0)}
                     </span>
                     {c.openingBalanceType === 'advance' && (
@@ -266,7 +266,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                     return (
                       <td className={`px-6 py-4 text-base font-mono font-bold text-right ${
                         dynamicBalance > 0 
-                          ? '!text-[#6D28D9]' 
+                          ? '!text-[#4338CA]' 
                           : dynamicBalance < 0 
                             ? '!text-[#059669] font-bold' 
                             : '!text-gray-300'
@@ -283,7 +283,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                     <span className={`inline-flex items-center px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${
                       c.status === 'active' 
                         ? 'rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
-                        : 'rounded-md bg-[#6D28D9]/15 text-[#6D28D9] border border-[#6D28D9]/30'
+                        : 'rounded-md bg-[#4338CA]/15 text-[#4338CA] border border-[#4338CA]/30'
                     }`}>
                       {c.status.replace('_', ' ')}
                     </span>
@@ -293,7 +293,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                       {onViewCustomer && (
                         <button 
                           onClick={() => onViewCustomer(c.id)}
-                          className="p-2 text-gray-400 hover:text-[#6D28D9] hover:bg-[#6D28D9]/15 transition-colors rounded-md cursor-pointer"
+                          className="p-2 text-gray-400 hover:text-[#4338CA] hover:bg-[#4338CA]/15 transition-colors rounded-md cursor-pointer"
                           title="View Customer Dashboard"
                           id={`btn-view-${c.id}`}
                         >
@@ -302,7 +302,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                       )}
                       <button 
                         onClick={() => setAdjustingCustomer(c)}
-                        className="p-2 text-gray-400 hover:text-[#6D28D9] hover:bg-[#6D28D9]/15 transition-colors rounded-md cursor-pointer"
+                        className="p-2 text-gray-400 hover:text-[#4338CA] hover:bg-[#4338CA]/15 transition-colors rounded-md cursor-pointer"
                         title="Credit / Debit Adjustment"
                         id={`btn-adjust-${c.id}`}
                       >
@@ -322,7 +322,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                             alert('Balance recalculated for ' + c.name);
                           }
                         }}
-                        className="p-2 text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors rounded-md"
+                        className="p-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors rounded-md"
                         title="Recalculate & Fix Balance"
                         id={`btn-recalc-${c.id}`}
                       >
@@ -889,7 +889,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
           <div>
             <label className="block text-sm font-semibold text-white mb-1.5">Current Balance</label>
             <div className={`px-4 py-2 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base font-mono font-bold shadow-sm ${
-              customer.balance > 0 ? 'text-[#6D28D9]' : customer.balance < 0 ? 'text-emerald-400' : 'text-gray-300'
+              customer.balance > 0 ? 'text-[#4338CA]' : customer.balance < 0 ? 'text-emerald-400' : 'text-gray-300'
             }`}>
               {formatCurrency(customer.balance)}
             </div>
@@ -914,7 +914,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
                 onClick={() => setType('debit')}
                 className={`py-2 px-4 rounded-lg border text-sm font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                   type === 'debit'
-                    ? 'border-[#8B5CF6] bg-[#8B5CF6]/20 text-[#8B5CF6]'
+                    ? 'border-[#6366F1] bg-[#6366F1]/20 text-[#6366F1]'
                     : 'border-white/10 text-gray-400 bg-white/[0.03] hover:text-white'
                 }`}
               >
@@ -940,7 +940,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
           </div>
 
           <div>
-            <label className={`block text-sm font-semibold mb-1.5 transition-colors ${type === 'credit' ? 'text-emerald-400' : 'text-[#8B5CF6]'}`}>
+            <label className={`block text-sm font-semibold mb-1.5 transition-colors ${type === 'credit' ? 'text-emerald-400' : 'text-[#6366F1]'}`}>
               Adjustment Amount (KES) * {type === 'credit' ? '(Credit - Deduct)' : '(Debit - Add)'}
             </label>
             <input
@@ -951,7 +951,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
               className={`w-full px-4 py-2.5 bg-[#000000] rounded-lg text-base font-mono font-bold outline-none transition-all border ${
                 type === 'credit'
                   ? 'text-emerald-400 border-emerald-500/50 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-500/50'
-                  : 'text-[#8B5CF6] border-[#8B5CF6]/50 focus:border-[#8B5CF6] focus:ring-1 focus:ring-[#8B5CF6]/50'
+                  : 'text-[#6366F1] border-[#6366F1]/50 focus:border-[#6366F1] focus:ring-1 focus:ring-[#6366F1]/50'
               }`}
               placeholder="0.00"
               value={amount}
@@ -986,7 +986,7 @@ function AdjustBalanceModal({ customer, onClose }: AdjustBalanceProps) {
               className={`px-5 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-md ${
                 type === 'credit'
                   ? 'bg-emerald-500 hover:bg-emerald-400 text-black'
-                  : 'bg-[#6D28D9] hover:bg-[#6D28D9]/90 text-white'
+                  : 'bg-[#4338CA] hover:bg-[#4338CA]/90 text-white'
               }`}
             >
               {loading ? 'Processing...' : 'Save Adjustment'}

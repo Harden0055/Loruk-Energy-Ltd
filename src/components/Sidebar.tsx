@@ -289,7 +289,7 @@ export default function Sidebar({
             )} />
             <span className="truncate">{item.label}</span>
             {item.badge && (
-              <span className="ml-auto bg-[#6D28D9]/15 text-[#6D28D9] border border-[#6D28D9]/30 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full shadow-sm shrink-0">
+              <span className="ml-auto bg-[#4338CA]/15 text-[#4338CA] border border-[#4338CA]/30 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full shadow-sm shrink-0">
                 {item.badge}
               </span>
             )}
@@ -372,7 +372,7 @@ export default function Sidebar({
       {/* Brand Header */}
       <div className="px-5 py-5 flex items-center justify-between border-b border-slate-800 mb-2 shrink-0 bg-[#000000]">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 bg-gradient-to-br from-[#8B5CF6] to-[#00E676] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.25)] transition-all duration-300 hover:scale-105 shrink-0">
+          <div className="w-10 h-10 bg-gradient-to-br from-[#6366F1] to-[#00E676] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(99, 102, 241,0.25)] transition-all duration-300 hover:scale-105 shrink-0">
             <FireLEIcon className="w-7 h-7 text-white" />
           </div>
           <span className="font-bold text-lg tracking-tight text-slate-200 transition-colors truncate">Loruk Energy</span>
@@ -419,7 +419,7 @@ export default function Sidebar({
         </div>
 
         <div className="flex items-center gap-3 px-3 py-2.5 mb-3 bg-[#000000] border border-slate-800 rounded-xl shadow-none">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#00E676] flex items-center justify-center font-bold text-sm text-white shadow-none shrink-0">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#6366F1] to-[#00E676] flex items-center justify-center font-bold text-sm text-white shadow-none shrink-0">
             {user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           <div className="flex-1 min-w-0">
