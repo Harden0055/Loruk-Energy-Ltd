@@ -285,6 +285,7 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
   const [name, setName] = useState('');
   const [creditLimit, setCreditLimit] = useState('');
   const [openingBalance, setOpeningBalance] = useState('');
+  const [profitMargin, setProfitMargin] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -313,6 +314,7 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
         totalPurchases: 0,
         status: 'active',
         openingBalance: opBal,
+        profitMargin: profitMargin ? Number(profitMargin) : 0,
         updatedBy: 'system',
         actionType: 'create'
       } as any);
@@ -381,15 +383,26 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
               />
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 mb-1">Opening Balance (KES)</label>
+              <label className="block text-[11px] font-semibold text-slate-400 mb-1">Profit Margin (KES/L)</label>
               <input
                 type="number"
-                placeholder="0"
-                value={openingBalance}
-                onChange={e => setOpeningBalance(e.target.value)}
+                step="0.01"
+                placeholder="e.g. 15"
+                value={profitMargin}
+                onChange={e => setProfitMargin(e.target.value)}
                 className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-mono focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
             </div>
+          </div>
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-400 mb-1">Opening Balance (KES)</label>
+            <input
+              type="number"
+              placeholder="0"
+              value={openingBalance}
+              onChange={e => setOpeningBalance(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-mono focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            />
           </div>
 
           <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-800">

@@ -122,6 +122,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
         Name: c.name,
         CreditLimit: c.creditLimit,
         OpeningBalance: c.openingBalance,
+        ProfitMargin: c.profitMargin || 0,
         Balance: getCustomerBalance(c),
         Status: c.status
     })));
@@ -220,6 +221,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                 <th className="modern-th">Opening Bal</th>
                 <th className="modern-th">Closing Balance</th>
                 <th className="modern-th">Total Purchases</th>
+                <th className="modern-th">Margin (KES/L)</th>
                 <th className="modern-th">Status</th>
                 <th className="modern-th">Actions</th>
               </tr>
@@ -227,13 +229,13 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
             <tbody className="divide-y divide-gray-100 dark:divide-blue-900">
               {loading ? (
                 <tr className="modern-tr">
-                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 text-base">
+                  <td colSpan={9} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 text-base">
                     Loading customers...
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr className="modern-tr">
-                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 text-base">
+                  <td colSpan={9} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 text-base">
                     No customers found.
                   </td>
                 </tr>
@@ -279,6 +281,13 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                     );
                   })()}
                   <td className="modern-td text-slate-200 font-mono">{formatCurrency(c.totalPurchases)}</td>
+                  <td className="modern-td font-mono">
+                    {(c.profitMargin || 0) > 0 ? (
+                      <span className="!text-[#059669] font-bold">{(c.profitMargin || 0).toLocaleString()}</span>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
+                  </td>
                   <td className="modern-td">
                     <span className={`inline-flex items-center px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${
                       c.status === 'active' 
@@ -369,6 +378,7 @@ function AddCustomerModal({ onClose, customers }: ModalProps) {
     creditLimit: '',
     openingBalance: '',
     openingBalanceType: 'arrears',
+    profitMargin: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -407,6 +417,7 @@ function AddCustomerModal({ onClose, customers }: ModalProps) {
         status: 'active',
         openingBalance: opBal,
         openingBalanceType: form.openingBalanceType as 'arrears' | 'advance',
+        profitMargin: Number(form.profitMargin) || 0,
         updatedBy: user?.email || 'system',
         actionType: 'create'
       });
@@ -515,6 +526,18 @@ function AddCustomerModal({ onClose, customers }: ModalProps) {
                 </button>
               </div>
             </div>
+            <div>
+              <label className="block text-sm font-semibold text-sky-300 mb-1.5">Profit Margin (KES per Litre)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={form.profitMargin}
+                onChange={e => setForm({...form, profitMargin: e.target.value})}
+                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:border-theme-border focus:ring-1 focus:ring-sky-500 text-theme-text dark:text-sky-100 text-base shadow-sm"
+                placeholder="e.g. 15"
+              />
+              <p className="text-xs text-gray-500 mt-1">Applied to all of this customer's deliveries (dated back): litres × margin.</p>
+            </div>
           </div>
           <div className="px-6 py-4 bg-sky-500/5 dark:bg-sky-500/5 border-t border-theme-border flex justify-end gap-3">
             <button 
@@ -554,6 +577,7 @@ function EditCustomerModal({ customer, customers, onClose }: EditProps) {
     openingBalance: customer.openingBalance?.toString() || '0',
     openingBalanceType: customer.openingBalanceType || 'arrears',
     status: customer.status || 'active',
+    profitMargin: customer.profitMargin?.toString() || '0',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -598,6 +622,7 @@ function EditCustomerModal({ customer, customers, onClose }: EditProps) {
         status: form.status as 'active' | 'credit_risk',
         openingBalance: newOpeningBalance,
         openingBalanceType: newType as 'arrears' | 'advance',
+        profitMargin: Number(form.profitMargin) || 0,
       }, {
          balance: balanceDiff,
       });
@@ -705,6 +730,18 @@ function EditCustomerModal({ customer, customers, onClose }: EditProps) {
                   Advance (Credit)
                 </button>
               </div>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-sky-300 mb-1.5">Profit Margin (KES per Litre)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={form.profitMargin}
+                onChange={e => setForm({...form, profitMargin: e.target.value})}
+                className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg focus:outline-none focus:border-theme-border focus:ring-1 focus:ring-sky-500 text-theme-text dark:text-sky-100 text-base shadow-sm"
+                placeholder="e.g. 15"
+              />
+              <p className="text-xs text-gray-500 mt-1">Applied to all of this customer's deliveries (dated back): litres × margin.</p>
             </div>
             <div>
               <label className="block text-sm font-semibold text-sky-300 mb-1.5">Status *</label>

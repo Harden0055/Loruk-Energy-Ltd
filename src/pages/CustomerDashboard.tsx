@@ -331,18 +331,22 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
   const timelineEvents = useMemo(() => {
     const rawTransactions = [
-      ...customerDeliveries.map(d => ({ 
-        id: `del-${d.id}`, 
-        date: d.date, 
-        createdAt: d.createdAt,
-        type: 'delivery' as const, 
-        title: 'Fuel Delivery',
-        description: d.productType === 'Super/Diesel Split' ? `Delivered ${(d.superLitres || 0)/1000}/${(d.dieselLitres || 0)/1000}L split` : ['lpg', 'lubricant'].some(str => d.productType.toLowerCase().includes(str)) ? `Delivered ${d.productType}` : `Delivered ${d.litres.toLocaleString()}L of ${d.productType}`,
-        amount: d.totalAmount, 
-        val: d.totalAmount,
-        createdBy: d.createdBy || 'System',
-        sortOrder: 1
-      })),
+      ...customerDeliveries.map(d => { 
+        const baseDesc = d.productType === 'Super/Diesel Split' ? `Delivered ${(d.superLitres || 0)/1000}/${(d.dieselLitres || 0)/1000}L split` : ['lpg', 'lubricant'].some(str => d.productType.toLowerCase().includes(str)) ? `Delivered ${d.productType}` : `Delivered ${d.litres.toLocaleString()}L of ${d.productType}`;
+        const deliveryMargin = (d.litres || 0) * (customer?.profitMargin || 0);
+        return {
+          id: `del-${d.id}`, 
+          date: d.date, 
+          createdAt: d.createdAt,
+          type: 'delivery' as const, 
+          title: 'Fuel Delivery',
+          description: deliveryMargin > 0 ? `${baseDesc} · Margin Ksh ${Math.round(deliveryMargin).toLocaleString()}` : baseDesc,
+          amount: d.totalAmount, 
+          val: d.totalAmount,
+          createdBy: d.createdBy || 'System',
+          sortOrder: 1
+        };
+      }),
       ...customerPayments.map(p => ({ 
         id: `pay-${p.id}`, 
         date: p.date, 
@@ -470,6 +474,14 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
     return customerPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
   }, [customerPayments]);
 
+  // Profit margin applied retroactively: every recorded delivery (dated back) earns litres × margin
+  const totalMarginValue = useMemo(() => {
+    if (!customer) return 0;
+    const margin = customer.profitMargin || 0;
+    if (margin <= 0) return 0;
+    return customerDeliveries.reduce((sum, d) => sum + (d.litres || 0) * margin, 0);
+  }, [customer, customerDeliveries]);
+
   const remainingCredit = useMemo(() => {
     if (!customer) return 0;
     const limit = customer.creditLimit || 0;
@@ -530,7 +542,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           { label: 'Outstanding Bal :', value: `KES ${calculatedBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
           { label: 'Total Purchases :', value: `KES ${totalSalesValue.toLocaleString()}` },
           { label: 'Total Payments :', value: `KES ${totalPaymentsValue.toLocaleString()}` },
-          { label: 'Total Litres :', value: formatLitres(totalFuelLitres) }
+          { label: 'Total Litres :', value: formatLitres(totalFuelLitres) },
+          { label: 'Est. Margin :', value: `KES ${totalMarginValue.toLocaleString('en-US', { maximumFractionDigits: 0 })} @ ${customer.profitMargin || 0}/L` }
         ]
       });
 
@@ -1014,6 +1027,11 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           <div className="mt-1 text-[10px] text-slate-400 font-medium">
             {customerDeliveries.length} orders dispensed
           </div>
+          {(customer?.profitMargin || 0) > 0 && (
+            <div className="mt-0.5 text-[10px] font-extrabold text-green-accent">
+              Est. Margin: Ksh {totalMarginValue.toLocaleString('en-US', { maximumFractionDigits: 0 })} @ KES {(customer?.profitMargin || 0).toLocaleString()}/L
+            </div>
+          )}
         </div>
 
         {/* Card 4: Total Payments Received - Green figure, hover border */}

@@ -23,6 +23,8 @@ export interface Customer {
   actionType: 'create' | 'update' | 'delete';
   openingBalance?: number;
   openingBalanceType?: 'arrears' | 'advance';
+  /** Profit margin in KES per litre; applied retroactively to all of this customer's deliveries (litres × margin). */
+  profitMargin?: number;
 }
 
 export interface Delivery {
