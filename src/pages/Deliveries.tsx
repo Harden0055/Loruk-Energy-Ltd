@@ -1648,6 +1648,7 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
       />
 
       <QuickAddStationModal
+        isOpen={showAddStationModal}
         customerId={form.customerId}
         customerName={customers.find(c => c.id === form.customerId)?.name}
         onClose={() => setShowAddStationModal(false)}

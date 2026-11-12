@@ -1936,6 +1936,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       )}
 
       <QuickAddStationModal
+        isOpen={showAddStationModal}
         customerId={customerId}
         customerName={customer.name}
         onClose={() => setShowAddStationModal(false)}

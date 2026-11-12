@@ -430,6 +430,7 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
 }
 
 interface QuickAddCustomerStationModalProps {
+  isOpen: boolean;
   customerId: string;
   customerName?: string;
   onClose: () => void;
@@ -441,14 +442,14 @@ interface QuickAddCustomerStationModalProps {
  * Shortcut modal for adding a filling station (name, location, profit margin)
  * to a customer directly from the delivery form's station dropdown.
  */
-export function QuickAddCustomerStationModal({ customerId, customerName, onClose, onCreated }: QuickAddCustomerStationModalProps) {
+export function QuickAddCustomerStationModal({ isOpen, customerId, customerName, onClose, onCreated }: QuickAddCustomerStationModalProps) {
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
   const [profitMargin, setProfitMargin] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  if (!customerId) return null;
+  if (!isOpen || !customerId) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
