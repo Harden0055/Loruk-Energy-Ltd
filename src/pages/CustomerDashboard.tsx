@@ -8,7 +8,8 @@ import {
   createPayment, 
   createAdjustment,
   updateAdjustment, 
-  updateCustomer 
+  updateCustomer,
+  useCustomerStations
 } from '../lib/db';
 import { 
   useDailyInvoices,
@@ -107,6 +108,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [modalLoading, setModalLoading] = useState(false);
 
   // Modal input states
+  const [deliveryStationId, setDeliveryStationId] = useState('');
   const [deliveryProduct, setDeliveryProduct] = useState<string>('Diesel');
   const [deliveryLitres, setDeliveryLitres] = useState('');
   const [deliveryAmount, setDeliveryAmount] = useState('');
@@ -304,6 +306,32 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
     return adjustments.filter(a => a.customerId === customerId);
   }, [adjustments, customerId]);
 
+  // Filling stations of this customer (each with its own profit margin)
+  const { data: allCustomerStations } = useCustomerStations();
+  const customerStations = useMemo(
+    () => allCustomerStations.filter(s => s.customerId === customerId),
+    [allCustomerStations, customerId]
+  );
+
+  // Profit (margin) date-range filter for the green profit card
+  const [profitStartDate, setProfitStartDate] = useState('');
+  const [profitEndDate, setProfitEndDate] = useState('');
+
+  // Profit margin that applies to a delivery: its station's margin, or the customer-level margin as fallback
+  const marginForDelivery = (d: Delivery): number => {
+    const st = customerStations.find(s => s.id === d.stationId);
+    return st?.profitMargin ?? customer?.profitMargin ?? 0;
+  };
+
+  // When the Log Delivery modal opens, pre-select the customer's first station (if any)
+  useEffect(() => {
+    if (activeModal === 'delivery' && customerStations.length > 0) {
+      setDeliveryStationId(prev =>
+        prev && customerStations.some(s => s.id === prev) ? prev : customerStations[0].id
+      );
+    }
+  }, [activeModal, customerStations]);
+
   // Unified unified transaction log
   const textMatches = (text: string, search: string) => {
     return text.toLowerCase().includes(search.toLowerCase());
@@ -333,7 +361,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
     const rawTransactions = [
       ...customerDeliveries.map(d => { 
         const baseDesc = d.productType === 'Super/Diesel Split' ? `Delivered ${(d.superLitres || 0)/1000}/${(d.dieselLitres || 0)/1000}L split` : ['lpg', 'lubricant'].some(str => d.productType.toLowerCase().includes(str)) ? `Delivered ${d.productType}` : `Delivered ${d.litres.toLocaleString()}L of ${d.productType}`;
-        const deliveryMargin = (d.litres || 0) * (customer?.profitMargin || 0);
+        const deliveryMargin = (d.litres || 0) * marginForDelivery(d);
         return {
           id: `del-${d.id}`, 
           date: d.date, 
@@ -474,13 +502,27 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
     return customerPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
   }, [customerPayments]);
 
+  // Profit generated from this customer's deliveries within the selected period (litres × station margin)
+  const profitInRange = useMemo(() => {
+    const startMs = profitStartDate ? parseDateToTimestamp(profitStartDate) - 43200000 : null;
+    const endMs = profitEndDate ? parseDateToTimestamp(profitEndDate) + 43200000 : null;
+    return customerDeliveries.reduce((sum, d) => {
+      if (startMs != null && (d.date || 0) < startMs) return sum;
+      if (endMs != null && (d.date || 0) > endMs) return sum;
+      return sum + (d.litres || 0) * marginForDelivery(d);
+    }, 0);
+  }, [customerDeliveries, customerStations, customer, profitStartDate, profitEndDate]);
+
   // Profit margin applied retroactively: every recorded delivery (dated back) earns litres × margin
   const totalMarginValue = useMemo(() => {
     if (!customer) return 0;
+    if (customerStations.length > 0) {
+      return customerDeliveries.reduce((sum, d) => sum + (d.litres || 0) * marginForDelivery(d), 0);
+    }
     const margin = customer.profitMargin || 0;
     if (margin <= 0) return 0;
     return customerDeliveries.reduce((sum, d) => sum + (d.litres || 0) * margin, 0);
-  }, [customer, customerDeliveries]);
+  }, [customer, customerDeliveries, customerStations]);
 
   const remainingCredit = useMemo(() => {
     if (!customer) return 0;
@@ -542,8 +584,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           { label: 'Outstanding Bal :', value: `KES ${calculatedBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
           { label: 'Total Purchases :', value: `KES ${totalSalesValue.toLocaleString()}` },
           { label: 'Total Payments :', value: `KES ${totalPaymentsValue.toLocaleString()}` },
-          { label: 'Total Litres :', value: formatLitres(totalFuelLitres) },
-          { label: 'Est. Margin :', value: `KES ${totalMarginValue.toLocaleString('en-US', { maximumFractionDigits: 0 })} @ ${customer.profitMargin || 0}/L` }
+          { label: 'Total Litres :', value: formatLitres(totalFuelLitres) }
         ]
       });
 
@@ -674,8 +715,11 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         amt = superA + dieselA;
       }
       
+      const selectedStation = customerStations.find(s => s.id === deliveryStationId);
       await createDelivery({
         customerId: customer.id,
+        stationId: selectedStation?.id || '',
+        stationName: selectedStation?.name || '',
         date: parseDateToTimestamp(deliveryDate),
         productType: deliveryProduct,
         litres: finalLitres,
@@ -693,6 +737,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       await updateCustomer(customer.id, {}, { balance: amt, totalPurchases: amt }, user?.email || 'Unknown');
 
       setActiveModal(null);
+      setDeliveryStationId('');
       setDeliveryLitres('');
       setDeliveryAmount('');
       setDeliverySuperAmount('');
@@ -1050,6 +1095,54 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           </div>
           <div className="mt-1 text-[10px] text-slate-400 font-medium">
             Settled via till & bank
+          </div>
+        </div>
+      </div>
+
+      {/* Profit (Margin) Generated — internal figure, intentionally excluded from the exported customer PDF */}
+      <div className="rounded-xl px-3.5 py-3 border border-emerald-500/25 bg-emerald-500/[0.04] card-hover-green transition-all duration-200">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <span className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+              <TrendingUp className="w-3 h-3" /> Profit Generated (Internal)
+            </span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-xs font-bold text-green-accent">Ksh</span>
+              <span className="text-lg font-black font-mono text-green-accent tracking-tight leading-none">
+                {profitInRange.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+            <div className="mt-0.5 text-[10px] text-slate-400 font-medium">
+              Litres × station margin {profitStartDate || profitEndDate ? 'within selected period' : '· all-time'} — hidden from the customer's PDF statement
+            </div>
+          </div>
+          <div className="flex items-end gap-2 flex-wrap">
+            <div>
+              <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">From</label>
+              <input
+                type="date"
+                value={profitStartDate}
+                onChange={e => setProfitStartDate(e.target.value)}
+                className="px-2 py-1.5 bg-black/40 border border-white/10 rounded-lg text-[11px] text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+              />
+            </div>
+            <div>
+              <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">To</label>
+              <input
+                type="date"
+                value={profitEndDate}
+                onChange={e => setProfitEndDate(e.target.value)}
+                className="px-2 py-1.5 bg-black/40 border border-white/10 rounded-lg text-[11px] text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+              />
+            </div>
+            {(profitStartDate || profitEndDate) && (
+              <button
+                onClick={() => { setProfitStartDate(''); setProfitEndDate(''); }}
+                className="px-2 py-1.5 text-[10px] font-bold text-slate-400 hover:text-white border border-white/10 hover:border-white/25 rounded-lg transition-colors cursor-pointer"
+              >
+                Clear
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -1481,6 +1574,23 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-[#A1A1AA] hover:text-white rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
               </div>
               <div className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Filling Station</label>
+                  <select
+                    value={deliveryStationId}
+                    onChange={e => setDeliveryStationId(e.target.value)}
+                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-white font-semibold cursor-pointer outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm transition-colors"
+                  >
+                    {customerStations.length === 0 && (
+                      <option value="" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">No stations — uses customer margin</option>
+                    )}
+                    {customerStations.map(s => (
+                      <option key={s.id} value={s.id} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">
+                        {s.name}{(s.profitMargin || 0) > 0 ? ` · KES ${s.profitMargin}/L` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div>
                   <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Date *</label>
                   <input 

@@ -1,6 +1,6 @@
 import { collection, onSnapshot, query, addDoc, updateDoc, doc, deleteDoc, orderBy, getDocs, increment, setDoc } from 'firebase/firestore';
 import { db, auth } from './firebase';
-import { Customer, Delivery, Payment, FleetExpense, StationReport, Adjustment, Truck } from '../types';
+import { Customer, CustomerStation, Delivery, Payment, FleetExpense, StationReport, Adjustment, Truck } from '../types';
 import { useState, useEffect } from 'react';
 import { useAuth } from './auth';
 import { 
@@ -140,6 +140,11 @@ export function usePayments() {
 export function useAdjustments() {
   const { data, loading } = useGenericDbCollection<Adjustment>('adjustments');
   return { adjustments: data, loading };
+}
+
+export function useCustomerStations() {
+  const { data, loading } = useGenericDbCollection<CustomerStation>('customer_stations', 'createdAt');
+  return { stations: data, loading };
 }
 
 export function useFleetExpenses() {
@@ -332,6 +337,44 @@ export const createAdjustment = async (data: Omit<Adjustment, 'id' | 'updatedBy'
     'create',
     undefined,
     payload
+  );
+};
+
+export const createCustomerStation = async (data: Omit<CustomerStation, 'id'>) => {
+  const payload = sanitizePayload({
+    ...data,
+    createdAt: Date.now(),
+    updatedAt: Date.now()
+  });
+  return executeDbMutation(
+    'customer_stations',
+    () => addDoc(collection(db, 'customer_stations'), payload),
+    () => addLocalDoc('customer_stations', payload),
+    'create',
+    undefined,
+    payload
+  );
+};
+
+export const updateCustomerStation = async (id: string, data: Partial<CustomerStation>) => {
+  const payload = sanitizePayload({ ...data, updatedAt: Date.now() });
+  return executeDbMutation(
+    'customer_stations',
+    () => updateDoc(doc(db, 'customer_stations', id), payload),
+    () => updateLocalDoc('customer_stations', id, payload),
+    'update',
+    id,
+    payload
+  );
+};
+
+export const deleteCustomerStation = async (id: string) => {
+  return executeDbMutation(
+    'customer_stations',
+    () => deleteDoc(doc(db, 'customer_stations', id)),
+    () => deleteLocalDoc('customer_stations', id),
+    'delete',
+    id
   );
 };
 

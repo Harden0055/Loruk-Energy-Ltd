@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useDeliveries, createDelivery, useCustomers, deleteDelivery, updateCustomer, updateDelivery } from '../lib/db';
+import { useDeliveries, createDelivery, useCustomers, deleteDelivery, updateCustomer, updateDelivery, useCustomerStations } from '../lib/db';
 import { useProducts } from '../lib/operationsDb';
 import { formatCurrency, formatLitres, parseDateToTimestamp } from '../lib/utils';
 import { useAuth } from '../lib/auth';
@@ -1153,6 +1153,7 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
     }
     return {
       customerId: matchedCustomerId || '',
+      stationId: '',
       productType: initialData?.productType || 'Diesel',
       litres: initialData?.litres ? String(initialData.litres) : '',
       totalAmount: initialData?.amount || initialData?.totalAmount ? String(initialData.amount || initialData.totalAmount) : '',
@@ -1166,6 +1167,22 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
   const [rate, setRate] = useState('');
   const [superRate, setSuperRate] = useState('');
   const [dieselRate, setDieselRate] = useState('');
+
+  // Filling stations of the selected customer (station dropdown + per-station profit margin applied in background)
+  const { data: allCustomerStations } = useCustomerStations();
+  const customerStations = useMemo(
+    () => allCustomerStations.filter(s => s.customerId === form.customerId),
+    [allCustomerStations, form.customerId]
+  );
+
+  // Keep the saved/auto-selected station valid for the currently selected customer
+  useEffect(() => {
+    if (form.stationId && !customerStations.some(s => s.id === form.stationId)) {
+      setForm((prev: typeof form) => ({ ...prev, stationId: '' }));
+    } else if (!form.stationId && customerStations.length === 1) {
+      setForm((prev: typeof form) => ({ ...prev, stationId: customerStations[0].id }));
+    }
+  }, [form.stationId, customerStations]);
 
   useEffect(() => {
     localStorage.setItem('addDeliveryForm', JSON.stringify(form));
@@ -1368,8 +1385,11 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
         amt = superA + dieselA;
       }
       
+      const selectedStation = customerStations.find(s => s.id === form.stationId);
       await createDelivery({ 
         customerId: form.customerId, 
+        stationId: selectedStation?.id || '',
+        stationName: selectedStation?.name || '',
         date: parseDateToTimestamp(form.date),
         productId: uniqueProducts.find(p => p.name === form.productType)?.id || '',
         productType: form.productType,
@@ -1418,7 +1438,7 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
                     if (e.target.value === '__ADD_NEW_CUSTOMER__') {
                       setShowAddCustomerModal(true);
                     } else {
-                      setForm({...form, customerId: e.target.value});
+                      setForm({...form, customerId: e.target.value, stationId: ''});
                     }
                   }}
                   className="flex-1 min-w-0 px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-slate-200 font-semibold cursor-pointer outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm transition-colors text-base customer-select"
@@ -1437,6 +1457,29 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
                 </button>
               </div>
             </div>
+            {customerStations.length > 0 && (
+              <div>
+                <label className="block text-sm font-semibold text-slate-300 mb-1.5">
+                  Filling Station{customerStations.length > 1 ? ' *' : ''}
+                </label>
+                <select
+                  required={customerStations.length > 1}
+                  value={form.stationId || ''}
+                  onChange={e => setForm({...form, stationId: e.target.value})}
+                  className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-slate-200 font-semibold cursor-pointer outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm transition-colors text-base product-select"
+                >
+                  <option value="" disabled className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">
+                    {customerStations.length > 1 ? 'Select a station' : customerStations[0].name}
+                  </option>
+                  {customerStations.map(s => (
+                    <option key={s.id} value={s.id} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">
+                      {s.name}{(s.profitMargin || 0) > 0 ? ` · KES ${s.profitMargin}/L` : ''}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">Profit is calculated in the background as litres × this station's margin.</p>
+              </div>
+            )}
             <div>
               <label className="block text-sm font-semibold text-slate-300 mb-1.5">Product Type</label>
               <select 

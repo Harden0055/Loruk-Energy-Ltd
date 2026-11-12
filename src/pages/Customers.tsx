@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useCustomers, createCustomer, deleteCustomer, updateCustomer, createAdjustment, useDeliveries, usePayments, useAdjustments, recalculateCustomerBalance } from '../lib/db';
+import { useCustomers, createCustomer, deleteCustomer, updateCustomer, createAdjustment, useDeliveries, usePayments, useAdjustments, recalculateCustomerBalance, useCustomerStations, createCustomerStation, updateCustomerStation, deleteCustomerStation } from '../lib/db';
 import { formatCurrency, parseDateToTimestamp } from '../lib/utils';
-import { Search, Plus, Trash2, Pencil, AlertTriangle, X, ArrowUpDown, Eye, Truck, Download, RefreshCw } from 'lucide-react';
-import { Customer } from '../types';
+import { Search, Plus, Trash2, Pencil, AlertTriangle, X, ArrowUpDown, Eye, Truck, Download, RefreshCw, Check, MapPin } from 'lucide-react';
+import { Customer, CustomerStation } from '../types';
 import { useAuth } from '../lib/auth';
 import { format } from 'date-fns';
 import Papa from 'papaparse';
@@ -582,6 +582,44 @@ function EditCustomerModal({ customer, customers, onClose }: EditProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Per-customer filling stations (each with its own profit margin)
+  const { data: allStations } = useCustomerStations();
+  const stations = allStations
+    .filter(s => s.customerId === customer.id)
+    .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  const [newStationName, setNewStationName] = useState('');
+  const [newStationMargin, setNewStationMargin] = useState('');
+  const [stationError, setStationError] = useState<string | null>(null);
+  const [stationBusy, setStationBusy] = useState(false);
+
+  const handleAddStation = async () => {
+    const trimmed = newStationName.trim();
+    if (!trimmed) {
+      setStationError('Station name is required.');
+      return;
+    }
+    if (stations.some(s => (s.name || '').trim().toLowerCase() === trimmed.toLowerCase())) {
+      setStationError(`Station "${trimmed}" already exists for this customer.`);
+      return;
+    }
+    setStationBusy(true);
+    setStationError(null);
+    try {
+      await createCustomerStation({
+        customerId: customer.id,
+        name: trimmed,
+        profitMargin: Number(newStationMargin) || 0,
+      });
+      setNewStationName('');
+      setNewStationMargin('');
+    } catch (err) {
+      console.error(err);
+      setStationError('Failed to add station. Please try again.');
+    } finally {
+      setStationBusy(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -754,6 +792,55 @@ function EditCustomerModal({ customer, customers, onClose }: EditProps) {
                 <option className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900" value="credit_risk">Credit Risk</option>
               </select>
             </div>
+
+            {/* Filling Stations manager */}
+            <div className="border border-theme-border dark:border-theme-border rounded-lg p-3 space-y-2.5 bg-sky-500/[0.02]">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-semibold text-sky-300 flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4" /> Filling Stations
+                </label>
+                <span className="text-[10px] text-gray-500 font-bold">{stations.length} station{stations.length === 1 ? '' : 's'}</span>
+              </div>
+              <p className="text-[11px] text-gray-500 leading-relaxed">
+                Add one or more stations for this customer, each with its own profit margin (KES per litre). Stations appear in the delivery form's station dropdown; profit is calculated in the background as litres × margin.
+              </p>
+              {stationError && (
+                <div className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 rounded-lg px-2.5 py-1.5">{stationError}</div>
+              )}
+              {stations.length > 0 && (
+                <div className="space-y-1.5">
+                  {stations.map(st => (
+                    <StationRow key={st.id} station={st} />
+                  ))}
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newStationName}
+                  onChange={e => setNewStationName(e.target.value)}
+                  placeholder="Station name e.g. Pako Filling Station"
+                  className="flex-1 min-w-0 px-2.5 py-2 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-theme-text dark:text-sky-100 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-sky-500"
+                />
+                <input
+                  type="number"
+                  step="0.01"
+                  value={newStationMargin}
+                  onChange={e => setNewStationMargin(e.target.value)}
+                  placeholder="Margin KES/L"
+                  className="w-28 px-2.5 py-2 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-theme-text dark:text-sky-100 text-sm font-mono shadow-sm focus:outline-none focus:ring-1 focus:ring-sky-500"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddStation}
+                  disabled={stationBusy}
+                  className="p-2 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 rounded-lg transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+                  title="Add station"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
           </div>
           <div className="px-6 py-4 bg-sky-500/5 dark:bg-sky-500/5 border-t border-theme-border flex justify-end gap-3">
             <button 
@@ -774,6 +861,100 @@ function EditCustomerModal({ customer, customers, onClose }: EditProps) {
           </div>
         </form>
       </div>
+    </div>
+  );
+}
+
+interface StationRowProps {
+  station: CustomerStation;
+}
+
+/** Editable row for one filling station of a customer (name + profit margin, save & delete). */
+function StationRow({ station }: StationRowProps) {
+  const [name, setName] = useState(station.name || '');
+  const [margin, setMargin] = useState(station.profitMargin != null ? String(station.profitMargin) : '');
+  const [busy, setBusy] = useState(false);
+  const [rowError, setRowError] = useState<string | null>(null);
+
+  const dirty =
+    name.trim() !== (station.name || '') ||
+    Number(margin) !== (station.profitMargin || 0);
+
+  const handleSave = async () => {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setRowError('Station name is required.');
+      return;
+    }
+    setBusy(true);
+    setRowError(null);
+    try {
+      await updateCustomerStation(station.id, {
+        name: trimmed,
+        profitMargin: Number(margin) || 0,
+      });
+    } catch (err) {
+      console.error(err);
+      setRowError('Failed to save station.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm(`Remove station "${station.name}" from this customer?`)) return;
+    setBusy(true);
+    try {
+      await deleteCustomerStation(station.id);
+    } catch (err) {
+      console.error(err);
+      setRowError('Failed to delete station.');
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center gap-2 bg-sky-500/[0.04] border border-theme-border dark:border-theme-border rounded-lg px-2 py-1.5">
+        <Pencil className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+        <input
+          type="text"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          className="flex-1 min-w-0 px-1.5 py-1 bg-transparent border-b border-transparent focus:border-sky-500 text-sky-100 text-sm font-semibold focus:outline-none"
+        />
+        <input
+          type="number"
+          step="0.01"
+          value={margin}
+          onChange={e => setMargin(e.target.value)}
+          title="Profit margin (KES per litre)"
+          className="w-24 px-1.5 py-1 bg-transparent border-b border-transparent focus:border-sky-500 text-sky-100 text-sm font-mono text-right focus:outline-none"
+        />
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={busy || !dirty}
+          className={`p-1.5 rounded-md transition-colors cursor-pointer shrink-0 ${
+            dirty
+              ? 'text-emerald-400 hover:bg-emerald-500/15'
+              : 'text-gray-600 cursor-default'
+          } disabled:opacity-40`}
+          title={dirty ? 'Save station changes' : 'Saved'}
+        >
+          <Check className="w-4 h-4" />
+        </button>
+        <button
+          type="button"
+          onClick={handleDelete}
+          disabled={busy}
+          className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-colors cursor-pointer shrink-0 disabled:opacity-40"
+          title="Delete station"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
+      {rowError && <p className="text-[11px] text-red-500 pl-2">{rowError}</p>}
     </div>
   );
 }

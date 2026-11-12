@@ -30,6 +30,9 @@ export interface Customer {
 export interface Delivery {
   id: string;
   customerId: string;
+  /** Optional filling station of the customer this delivery was made to. */
+  stationId?: string;
+  stationName?: string;
   date: number;
   productId?: string;
   productType: string;
@@ -43,6 +46,19 @@ export interface Delivery {
   createdAt?: number;
   updatedBy: string;
   actionType: 'create' | 'update' | 'delete';
+}
+
+/**
+ * A filling station belonging to a customer. Each station carries its own
+ * profit margin (KES per litre) used to compute profit on that station's deliveries.
+ */
+export interface CustomerStation {
+  id: string;
+  customerId: string;
+  name: string;
+  profitMargin: number;
+  createdAt?: number;
+  updatedAt?: number;
 }
 
 export interface Payment {
