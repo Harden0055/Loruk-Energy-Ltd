@@ -54,6 +54,7 @@ import {
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { setupPdfHeader, addPdfFooter } from '../lib/pdfTemplate';
+import { QuickAddCustomerStationModal as QuickAddStationModal } from '../components/QuickAddModal';
 
 
 interface CustomerDashboardProps {
@@ -109,6 +110,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
   // Modal input states
   const [deliveryStationId, setDeliveryStationId] = useState('');
+  // "+ Add New Station..." shortcut state for the Log Delivery modal
+  const [showAddStationModal, setShowAddStationModal] = useState(false);
+  const [pendingStationName, setPendingStationName] = useState('');
   const [deliveryProduct, setDeliveryProduct] = useState<string>('Diesel');
   const [deliveryLitres, setDeliveryLitres] = useState('');
   const [deliveryAmount, setDeliveryAmount] = useState('');
@@ -331,6 +335,18 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       );
     }
   }, [activeModal, customerStations]);
+
+  // Shortcut: after creating a new station from the dropdown, auto-select it once it appears
+  useEffect(() => {
+    if (!pendingStationName) return;
+    const match = customerStations.find(
+      s => (s.name || '').trim().toLowerCase() === pendingStationName.trim().toLowerCase()
+    );
+    if (match) {
+      setDeliveryStationId(match.id);
+      setPendingStationName('');
+    }
+  }, [pendingStationName, customerStations]);
 
   // Unified unified transaction log
   const textMatches = (text: string, search: string) => {
@@ -990,6 +1006,55 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         </div>
       )}
 
+      {/* Profit (Margin) Generated — all-time realized profit, sits at the top of the profile.
+          Internal figure, intentionally excluded from the exported customer PDF. */}
+      <div className="rounded-xl px-3.5 py-3 border border-emerald-500/25 bg-emerald-500/[0.04] card-hover-green transition-all duration-200">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <span className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+              <TrendingUp className="w-3 h-3" /> Profit Generated (Internal)
+            </span>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-xs font-bold text-green-accent">Ksh</span>
+              <span className="text-lg font-black font-mono text-green-accent tracking-tight leading-none">
+                {profitInRange.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+            </div>
+            <div className="mt-0.5 text-[10px] text-slate-400 font-medium">
+              Litres × station margin {profitStartDate || profitEndDate ? 'within selected period' : '· all-time'} — hidden from the customer's PDF statement
+            </div>
+          </div>
+          <div className="flex items-end gap-2 flex-wrap">
+            <div>
+              <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">From</label>
+              <input
+                type="date"
+                value={profitStartDate}
+                onChange={e => setProfitStartDate(e.target.value)}
+                className="px-2 py-1.5 bg-black/40 border border-white/10 rounded-lg text-[11px] text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+              />
+            </div>
+            <div>
+              <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">To</label>
+              <input
+                type="date"
+                value={profitEndDate}
+                onChange={e => setProfitEndDate(e.target.value)}
+                className="px-2 py-1.5 bg-black/40 border border-white/10 rounded-lg text-[11px] text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+              />
+            </div>
+            {(profitStartDate || profitEndDate) && (
+              <button
+                onClick={() => { setProfitStartDate(''); setProfitEndDate(''); }}
+                className="px-2 py-1.5 text-[10px] font-bold text-slate-400 hover:text-white border border-white/10 hover:border-white/25 rounded-lg transition-colors cursor-pointer"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Compressed Stats Row (4 compact columns) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
         {/* Card 1: Outstanding Balance (Indigo Indigo figure) OR Advance Balance (Green figure) */}
@@ -1095,54 +1160,6 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           </div>
           <div className="mt-1 text-[10px] text-slate-400 font-medium">
             Settled via till & bank
-          </div>
-        </div>
-      </div>
-
-      {/* Profit (Margin) Generated — internal figure, intentionally excluded from the exported customer PDF */}
-      <div className="rounded-xl px-3.5 py-3 border border-emerald-500/25 bg-emerald-500/[0.04] card-hover-green transition-all duration-200">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0">
-            <span className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-              <TrendingUp className="w-3 h-3" /> Profit Generated (Internal)
-            </span>
-            <div className="flex items-baseline gap-1 mt-0.5">
-              <span className="text-xs font-bold text-green-accent">Ksh</span>
-              <span className="text-lg font-black font-mono text-green-accent tracking-tight leading-none">
-                {profitInRange.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-            </div>
-            <div className="mt-0.5 text-[10px] text-slate-400 font-medium">
-              Litres × station margin {profitStartDate || profitEndDate ? 'within selected period' : '· all-time'} — hidden from the customer's PDF statement
-            </div>
-          </div>
-          <div className="flex items-end gap-2 flex-wrap">
-            <div>
-              <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">From</label>
-              <input
-                type="date"
-                value={profitStartDate}
-                onChange={e => setProfitStartDate(e.target.value)}
-                className="px-2 py-1.5 bg-black/40 border border-white/10 rounded-lg text-[11px] text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
-              />
-            </div>
-            <div>
-              <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">To</label>
-              <input
-                type="date"
-                value={profitEndDate}
-                onChange={e => setProfitEndDate(e.target.value)}
-                className="px-2 py-1.5 bg-black/40 border border-white/10 rounded-lg text-[11px] text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
-              />
-            </div>
-            {(profitStartDate || profitEndDate) && (
-              <button
-                onClick={() => { setProfitStartDate(''); setProfitEndDate(''); }}
-                className="px-2 py-1.5 text-[10px] font-bold text-slate-400 hover:text-white border border-white/10 hover:border-white/25 rounded-lg transition-colors cursor-pointer"
-              >
-                Clear
-              </button>
-            )}
           </div>
         </div>
       </div>
@@ -1578,7 +1595,13 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Filling Station</label>
                   <select
                     value={deliveryStationId}
-                    onChange={e => setDeliveryStationId(e.target.value)}
+                    onChange={e => {
+                      if (e.target.value === '__ADD_NEW_STATION__') {
+                        setShowAddStationModal(true);
+                        return;
+                      }
+                      setDeliveryStationId(e.target.value);
+                    }}
                     className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-white font-semibold cursor-pointer outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm transition-colors"
                   >
                     {customerStations.length === 0 && (
@@ -1586,9 +1609,10 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     )}
                     {customerStations.map(s => (
                       <option key={s.id} value={s.id} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">
-                        {s.name}{(s.profitMargin || 0) > 0 ? ` · KES ${s.profitMargin}/L` : ''}
+                        {s.name}{s.location ? ` — ${s.location}` : ''}{(s.profitMargin || 0) > 0 ? ` · KES ${s.profitMargin}/L` : ''}
                       </option>
                     ))}
+                    <option value="__ADD_NEW_STATION__" className="bg-[#1e1b4b] text-indigo-300 font-bold">+ Add New Station...</option>
                   </select>
                 </div>
                 <div>
@@ -1910,6 +1934,13 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           </div>
         </div>
       )}
+
+      <QuickAddStationModal
+        customerId={customerId}
+        customerName={customer.name}
+        onClose={() => setShowAddStationModal(false)}
+        onCreated={(name) => setPendingStationName(name)}
+      />
     </div>
   );
 }

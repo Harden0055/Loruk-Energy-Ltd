@@ -56,6 +56,7 @@ export interface CustomerStation {
   id: string;
   customerId: string;
   name: string;
+  location?: string;
   profitMargin: number;
   createdAt?: number;
   updatedAt?: number;

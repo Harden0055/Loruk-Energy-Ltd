@@ -588,6 +588,7 @@ function EditCustomerModal({ customer, customers, onClose }: EditProps) {
     .filter(s => s.customerId === customer.id)
     .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   const [newStationName, setNewStationName] = useState('');
+  const [newStationLocation, setNewStationLocation] = useState('');
   const [newStationMargin, setNewStationMargin] = useState('');
   const [stationError, setStationError] = useState<string | null>(null);
   const [stationBusy, setStationBusy] = useState(false);
@@ -608,9 +609,11 @@ function EditCustomerModal({ customer, customers, onClose }: EditProps) {
       await createCustomerStation({
         customerId: customer.id,
         name: trimmed,
+        location: newStationLocation.trim(),
         profitMargin: Number(newStationMargin) || 0,
       });
       setNewStationName('');
+      setNewStationLocation('');
       setNewStationMargin('');
     } catch (err) {
       console.error(err);
@@ -822,14 +825,6 @@ function EditCustomerModal({ customer, customers, onClose }: EditProps) {
                   placeholder="Station name e.g. Pako Filling Station"
                   className="flex-1 min-w-0 px-2.5 py-2 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-theme-text dark:text-sky-100 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-sky-500"
                 />
-                <input
-                  type="number"
-                  step="0.01"
-                  value={newStationMargin}
-                  onChange={e => setNewStationMargin(e.target.value)}
-                  placeholder="Margin KES/L"
-                  className="w-28 px-2.5 py-2 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-theme-text dark:text-sky-100 text-sm font-mono shadow-sm focus:outline-none focus:ring-1 focus:ring-sky-500"
-                />
                 <button
                   type="button"
                   onClick={handleAddStation}
@@ -839,6 +834,23 @@ function EditCustomerModal({ customer, customers, onClose }: EditProps) {
                 >
                   <Plus className="w-4 h-4" />
                 </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newStationLocation}
+                  onChange={e => setNewStationLocation(e.target.value)}
+                  placeholder="Location e.g. Kitale"
+                  className="flex-1 min-w-0 px-2.5 py-2 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-theme-text dark:text-sky-100 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-sky-500"
+                />
+                <input
+                  type="number"
+                  step="0.01"
+                  value={newStationMargin}
+                  onChange={e => setNewStationMargin(e.target.value)}
+                  placeholder="Profit margin KES/L"
+                  className="w-32 px-2.5 py-2 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-theme-text dark:text-sky-100 text-sm font-mono shadow-sm focus:outline-none focus:ring-1 focus:ring-sky-500"
+                />
               </div>
             </div>
           </div>
@@ -869,15 +881,17 @@ interface StationRowProps {
   station: CustomerStation;
 }
 
-/** Editable row for one filling station of a customer (name + profit margin, save & delete). */
+/** Editable row for one filling station of a customer (name, location, profit margin; save & delete). */
 function StationRow({ station }: StationRowProps) {
   const [name, setName] = useState(station.name || '');
+  const [location, setLocation] = useState(station.location || '');
   const [margin, setMargin] = useState(station.profitMargin != null ? String(station.profitMargin) : '');
   const [busy, setBusy] = useState(false);
   const [rowError, setRowError] = useState<string | null>(null);
 
   const dirty =
     name.trim() !== (station.name || '') ||
+    location.trim() !== (station.location || '') ||
     Number(margin) !== (station.profitMargin || 0);
 
   const handleSave = async () => {
@@ -891,6 +905,7 @@ function StationRow({ station }: StationRowProps) {
     try {
       await updateCustomerStation(station.id, {
         name: trimmed,
+        location: location.trim(),
         profitMargin: Number(margin) || 0,
       });
     } catch (err) {
@@ -915,44 +930,55 @@ function StationRow({ station }: StationRowProps) {
 
   return (
     <div className="space-y-1">
-      <div className="flex items-center gap-2 bg-sky-500/[0.04] border border-theme-border dark:border-theme-border rounded-lg px-2 py-1.5">
-        <Pencil className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-        <input
-          type="text"
-          value={name}
-          onChange={e => setName(e.target.value)}
-          className="flex-1 min-w-0 px-1.5 py-1 bg-transparent border-b border-transparent focus:border-sky-500 text-sky-100 text-sm font-semibold focus:outline-none"
-        />
-        <input
-          type="number"
-          step="0.01"
-          value={margin}
-          onChange={e => setMargin(e.target.value)}
-          title="Profit margin (KES per litre)"
-          className="w-24 px-1.5 py-1 bg-transparent border-b border-transparent focus:border-sky-500 text-sky-100 text-sm font-mono text-right focus:outline-none"
-        />
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={busy || !dirty}
-          className={`p-1.5 rounded-md transition-colors cursor-pointer shrink-0 ${
-            dirty
-              ? 'text-emerald-400 hover:bg-emerald-500/15'
-              : 'text-gray-600 cursor-default'
-          } disabled:opacity-40`}
-          title={dirty ? 'Save station changes' : 'Saved'}
-        >
-          <Check className="w-4 h-4" />
-        </button>
-        <button
-          type="button"
-          onClick={handleDelete}
-          disabled={busy}
-          className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-colors cursor-pointer shrink-0 disabled:opacity-40"
-          title="Delete station"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+      <div className="bg-sky-500/[0.04] border border-theme-border dark:border-theme-border rounded-lg px-2 py-1.5 space-y-1.5">
+        <div className="flex items-center gap-2">
+          <Pencil className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+          <input
+            type="text"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            className="flex-1 min-w-0 px-1.5 py-1 bg-transparent border-b border-transparent focus:border-sky-500 text-sky-100 text-sm font-semibold focus:outline-none"
+          />
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={busy || !dirty}
+            className={`p-1.5 rounded-md transition-colors cursor-pointer shrink-0 ${
+              dirty
+                ? 'text-emerald-400 hover:bg-emerald-500/15'
+                : 'text-gray-600 cursor-default'
+            } disabled:opacity-40`}
+            title={dirty ? 'Save station changes' : 'Saved'}
+          >
+            <Check className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={busy}
+            className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-md transition-colors cursor-pointer shrink-0 disabled:opacity-40"
+            title="Delete station"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="flex items-center gap-2 pl-6">
+          <input
+            type="text"
+            value={location}
+            onChange={e => setLocation(e.target.value)}
+            placeholder="Location e.g. Kitale"
+            className="flex-1 min-w-0 px-1.5 py-1 bg-transparent border-b border-transparent focus:border-sky-500 text-sky-200 text-xs focus:outline-none"
+          />
+          <input
+            type="number"
+            step="0.01"
+            value={margin}
+            onChange={e => setMargin(e.target.value)}
+            title="Profit margin (KES per litre)"
+            className="w-24 px-1.5 py-1 bg-transparent border-b border-transparent focus:border-sky-500 text-sky-100 text-sm font-mono text-right focus:outline-none"
+          />
+        </div>
       </div>
       {rowError && <p className="text-[11px] text-red-500 pl-2">{rowError}</p>}
     </div>

@@ -6,7 +6,7 @@ import { useAuth } from '../lib/auth';
 import { Search, Plus, Bot, Trash2, AlertTriangle, X, Edit2, Check, SlidersHorizontal, RotateCcw, Fuel, Users, Coins, Flame, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import AIInputModal from '../components/AIInputModal';
-import { QuickAddCustomerModal } from '../components/QuickAddModal';
+import { QuickAddCustomerModal, QuickAddCustomerStationModal as QuickAddStationModal } from '../components/QuickAddModal';
 import { Delivery } from '../types';
 import Papa from 'papaparse';
 
@@ -1184,6 +1184,21 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
     }
   }, [form.stationId, customerStations]);
 
+  // Shortcut: after creating a new station from the dropdown, auto-select it once it appears
+  const [showAddStationModal, setShowAddStationModal] = useState(false);
+  const [pendingStationName, setPendingStationName] = useState('');
+  useEffect(() => {
+    if (!pendingStationName) return;
+    const match = allCustomerStations.find(
+      s => s.customerId === form.customerId &&
+        (s.name || '').trim().toLowerCase() === pendingStationName.trim().toLowerCase()
+    );
+    if (match) {
+      setForm((prev: typeof form) => ({ ...prev, stationId: match.id }));
+      setPendingStationName('');
+    }
+  }, [pendingStationName, allCustomerStations, form.customerId]);
+
   useEffect(() => {
     localStorage.setItem('addDeliveryForm', JSON.stringify(form));
     if (form.date) {
@@ -1457,7 +1472,7 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
                 </button>
               </div>
             </div>
-            {customerStations.length > 0 && (
+            {(form.customerId) && (
               <div>
                 <label className="block text-sm font-semibold text-slate-300 mb-1.5">
                   Filling Station{customerStations.length > 1 ? ' *' : ''}
@@ -1465,17 +1480,28 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
                 <select
                   required={customerStations.length > 1}
                   value={form.stationId || ''}
-                  onChange={e => setForm({...form, stationId: e.target.value})}
+                  onChange={e => {
+                    if (e.target.value === '__ADD_NEW_STATION__') {
+                      setShowAddStationModal(true);
+                      return;
+                    }
+                    setForm({...form, stationId: e.target.value});
+                  }}
                   className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-slate-200 font-semibold cursor-pointer outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm transition-colors text-base product-select"
                 >
-                  <option value="" disabled className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">
-                    {customerStations.length > 1 ? 'Select a station' : customerStations[0].name}
-                  </option>
+                  {customerStations.length === 0 ? (
+                    <option value="" disabled className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">No stations yet</option>
+                  ) : (
+                    <option value="" disabled className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">
+                      {customerStations.length > 1 ? 'Select a station' : customerStations[0].name}
+                    </option>
+                  )}
                   {customerStations.map(s => (
                     <option key={s.id} value={s.id} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">
-                      {s.name}{(s.profitMargin || 0) > 0 ? ` · KES ${s.profitMargin}/L` : ''}
+                      {s.name}{s.location ? ` — ${s.location}` : ''}{(s.profitMargin || 0) > 0 ? ` · KES ${s.profitMargin}/L` : ''}
                     </option>
                   ))}
+                  <option value="__ADD_NEW_STATION__" className="bg-[#1e1b4b] text-indigo-300 font-bold">+ Add New Station...</option>
                 </select>
                 <p className="text-xs text-gray-500 mt-1">Profit is calculated in the background as litres × this station's margin.</p>
               </div>
@@ -1619,6 +1645,13 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
         onSuccess={(newCustId) => {
           setForm(prev => ({ ...prev, customerId: newCustId }));
         }}
+      />
+
+      <QuickAddStationModal
+        customerId={form.customerId}
+        customerName={customers.find(c => c.id === form.customerId)?.name}
+        onClose={() => setShowAddStationModal(false)}
+        onCreated={(name) => setPendingStationName(name)}
       />
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { X, Truck, Building2, UserPlus, Check, Plus } from 'lucide-react';
-import { createTruck, createCustomer } from '../lib/db';
+import { X, Truck, Building2, UserPlus, Check, Plus, MapPin } from 'lucide-react';
+import { createTruck, createCustomer, createCustomerStation } from '../lib/db';
 import { addStation } from '../lib/operationsDb';
 
 interface QuickAddTruckModalProps {
@@ -421,6 +421,146 @@ export function QuickAddCustomerModal({ isOpen, onClose, onSuccess }: QuickAddCu
             >
               <Check className="w-3.5 h-3.5" />
               {loading ? 'Adding...' : 'Save Customer'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+interface QuickAddCustomerStationModalProps {
+  customerId: string;
+  customerName?: string;
+  onClose: () => void;
+  /** Called with the new station's name once saved (caller can auto-select it). */
+  onCreated: (stationName: string) => void;
+}
+
+/**
+ * Shortcut modal for adding a filling station (name, location, profit margin)
+ * to a customer directly from the delivery form's station dropdown.
+ */
+export function QuickAddCustomerStationModal({ customerId, customerName, onClose, onCreated }: QuickAddCustomerStationModalProps) {
+  const [name, setName] = useState('');
+  const [location, setLocation] = useState('');
+  const [profitMargin, setProfitMargin] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  if (!customerId) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanName = name.trim();
+    if (!cleanName) {
+      setError('Station name is required');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    try {
+      await createCustomerStation({
+        customerId,
+        name: cleanName,
+        location: location.trim(),
+        profitMargin: profitMargin ? Number(profitMargin) : 0,
+      } as any);
+      onCreated(cleanName);
+      onClose();
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.message || 'Failed to create station');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-50">
+      <div className="bg-[#09090b] border border-[#4338CA]/40 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
+        <div className="px-5 py-4 border-b border-[#4338CA]/25 bg-[#4338CA]/[0.05] flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-[#4338CA]/15 text-[#4338CA]">
+              <MapPin className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-200">Add Station</h3>
+              {customerName && <p className="text-[10px] text-slate-400">for {customerName}</p>}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-200 transition-colors p-1"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
+          {error && (
+            <div className="text-xs text-slate-200 bg-[#4338CA]/15 border border-[#4338CA]/40 px-3 py-2 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+              Station Name <span className="text-indigo-400">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              autoFocus
+              placeholder="e.g. Pako Filling Station"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-semibold focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-400 mb-1">Location</label>
+            <input
+              type="text"
+              placeholder="e.g. Kitale"
+              value={location}
+              onChange={e => setLocation(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-semibold focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-400 mb-1">Profit Margin (KES per Litre)</label>
+            <input
+              type="number"
+              step="0.01"
+              placeholder="e.g. 3.50"
+              value={profitMargin}
+              onChange={e => setProfitMargin(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-mono focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            />
+            <p className="text-[10px] text-slate-500 mt-1">Profit on deliveries to this station = litres × margin.</p>
+          </div>
+
+          <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-800">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="px-3 py-1.5 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-1.5 bg-[#4F46E5] hover:bg-[#4338CA] text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-indigo-900/30"
+            >
+              <Check className="w-3.5 h-3.5" />
+              {loading ? 'Adding...' : 'Save Station'}
             </button>
           </div>
         </form>
