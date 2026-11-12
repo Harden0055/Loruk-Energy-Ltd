@@ -91,8 +91,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [endDate, setEndDate] = useState('');
   const [sortStrategy, setSortStrategy] = useState<'newest' | 'oldest'>('newest');
   const [showCharts, setShowCharts] = useState(false);
-  // Chart metric switch: litres of fuel delivered vs payments received, month by month
-  const [chartMetric, setChartMetric] = useState<'litres' | 'received'>('litres');
+  // Chart metric switch: litres delivered vs payments received vs daily fuel rate (AGO/PMS)
+  const [chartMetric, setChartMetric] = useState<'litres' | 'received' | 'rate'>('litres');
 
   const [verificationNotice, setVerificationNotice] = useState<string | null>(null);
 
@@ -545,6 +545,51 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
     }
     return Array.from(byMonth.values()).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
   }, [customerDeliveries, customerPayments]);
+
+  // Daily fuel rate KPI: delivery debit (KES) ÷ litres delivered that day, per product.
+  // AGO = Diesel, PMS = Super/Petrol. Split deliveries feed both lines from their own halves.
+  const dailyRateData = useMemo(() => {
+    interface DayPoint { key: string; label: string; sortKey: string; agoAmount: number; agoLitres: number; pmsAmount: number; pmsLitres: number; }
+    const byDay = new Map<string, DayPoint>();
+    for (const d of customerDeliveries) {
+      if (!d.date || !(d.litres > 0) && !(d.superLitres || d.dieselLitres)) continue;
+      const pt = String(d.productType || '');
+      const isNonLiquid = pt.toLowerCase().includes('lpg') || pt.toLowerCase().includes('lubricant');
+      if (isNonLiquid) continue;
+      const dt = new Date(d.date);
+      const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+      let entry = byDay.get(key);
+      if (!entry) {
+        entry = {
+          key,
+          label: `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')}`,
+          sortKey: key,
+          agoAmount: 0, agoLitres: 0, pmsAmount: 0, pmsLitres: 0
+        };
+        byDay.set(key, entry);
+      }
+      if (pt === 'Super/Diesel Split') {
+        // Split litres are stored ×1000 (superL = parts[0] * 1000 on entry)
+        entry.agoLitres += (d.dieselLitres || 0) / 1000;
+        entry.agoAmount += d.dieselAmount || 0;
+        entry.pmsLitres += (d.superLitres || 0) / 1000;
+        entry.pmsAmount += d.superAmount || 0;
+      } else if (pt.toLowerCase().includes('diesel')) {
+        entry.agoLitres += d.litres || 0;
+        entry.agoAmount += d.totalAmount || 0;
+      } else if (pt.toLowerCase().includes('super')) {
+        entry.pmsLitres += d.litres || 0;
+        entry.pmsAmount += d.totalAmount || 0;
+      }
+    }
+    return Array.from(byDay.values())
+      .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+      .map(e => ({
+        label: e.label,
+        AGO: e.agoLitres > 0 ? Number((e.agoAmount / e.agoLitres).toFixed(2)) : null,
+        PMS: e.pmsLitres > 0 ? Number((e.pmsAmount / e.pmsLitres).toFixed(2)) : null
+      }));
+  }, [customerDeliveries]);
 
   const totalSalesValue = useMemo(() => {
     return customerDeliveries.reduce((sum, d) => sum + d.totalAmount, 0);
@@ -1221,10 +1266,10 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             <div className="flex justify-between items-center mb-3">
               <div>
                 <h3 className="text-sm font-black text-theme-text tracking-tight">
-                  {chartMetric === 'litres' ? 'Monthly Fuel Delivered' : 'Monthly Amount Received'}
+                  {chartMetric === 'litres' ? 'Monthly Fuel Delivered' : chartMetric === 'received' ? 'Monthly Amount Received' : 'Daily Fuel Rate (AGO vs PMS)'}
                 </h3>
                 <p className="text-[11px] text-theme-text-muted">
-                  {chartMetric === 'litres' ? 'Month-by-month litres dispensed to this customer' : 'Month-by-month payments settled by this customer'}
+                  {chartMetric === 'litres' ? 'Month-by-month litres dispensed to this customer' : chartMetric === 'received' ? 'Month-by-month payments settled by this customer' : 'Delivery debit ÷ litres delivered each day, per product'}
                 </p>
               </div>
               <div className="flex items-center gap-0.5 bg-white/[0.03] border border-white/10 rounded-lg p-0.5 shadow-sm">
@@ -1250,14 +1295,49 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 >
                   Amount Received
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setChartMetric('rate')}
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer ${
+                    chartMetric === 'rate'
+                      ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40'
+                      : 'text-theme-text-muted hover:text-white border border-transparent'
+                  }`}
+                >
+                  Fuel Rate
+                </button>
               </div>
             </div>
             
             <div className="h-52 w-full relative overflow-hidden">
-              {monthlyTrendData.length === 0 ? (
+              {(chartMetric === 'rate' ? dailyRateData.length === 0 : monthlyTrendData.length === 0) ? (
                 <div className="h-full flex items-center justify-center text-xs text-theme-text-muted bg-white/[0.02] rounded-xl border border-dashed border-theme-border">
                   Not enough transactions to map chart data
                 </div>
+              ) : chartMetric === 'rate' ? (
+                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                  <LineChart data={dailyRateData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.07)" />
+                    <XAxis dataKey="label" fontSize={10} stroke="#94A3B8" tickLine={false} minTickGap={18} />
+                    <YAxis fontSize={10} stroke="#94A3B8" tickFormatter={(v) => `K${Math.round(v)}`} tickLine={false} domain={['auto', 'auto']} />
+                    <Tooltip
+                      formatter={(val: any, name: any) => [`KES ${Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / L`, `${name} Rate`]}
+                      contentStyle={{
+                        backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                        borderColor: 'rgba(139, 92, 246, 0.4)',
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.8)',
+                        color: '#F8FAFC',
+                        fontSize: '11px',
+                        fontWeight: 'bold',
+                        zIndex: 100
+                      }}
+                    />
+                    <Legend verticalAlign="top" height={20} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
+                    <Line type="monotone" dataKey="AGO" stroke="#00E676" strokeWidth={2} dot={{ r: 2 }} connectNulls strokeOpacity={0.95} />
+                    <Line type="monotone" dataKey="PMS" stroke="#8B5CF6" strokeWidth={2} dot={{ r: 2 }} connectNulls strokeOpacity={0.95} />
+                  </LineChart>
+                </ResponsiveContainer>
               ) : (
                 <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                   <BarChart data={monthlyTrendData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
