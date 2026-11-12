@@ -583,7 +583,7 @@ function EditCustomerModal({ customer, customers, onClose }: EditProps) {
   const [error, setError] = useState<string | null>(null);
 
   // Per-customer filling stations (each with its own profit margin)
-  const { data: allStations } = useCustomerStations();
+  const { stations: allStations } = useCustomerStations();
   const stations = allStations
     .filter(s => s.customerId === customer.id)
     .sort((a, b) => (a.name || '').localeCompare(b.name || ''));

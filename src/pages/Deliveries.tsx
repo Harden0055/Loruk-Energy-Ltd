@@ -1169,7 +1169,7 @@ export function AddDeliveryModal({ onClose, customers, initialData }: { onClose:
   const [dieselRate, setDieselRate] = useState('');
 
   // Filling stations of the selected customer (station dropdown + per-station profit margin applied in background)
-  const { data: allCustomerStations } = useCustomerStations();
+  const { stations: allCustomerStations } = useCustomerStations();
   const customerStations = useMemo(
     () => allCustomerStations.filter(s => s.customerId === form.customerId),
     [allCustomerStations, form.customerId]

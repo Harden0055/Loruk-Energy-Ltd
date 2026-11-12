@@ -311,7 +311,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   }, [adjustments, customerId]);
 
   // Filling stations of this customer (each with its own profit margin)
-  const { data: allCustomerStations } = useCustomerStations();
+  const { stations: allCustomerStations } = useCustomerStations();
   const customerStations = useMemo(
     () => allCustomerStations.filter(s => s.customerId === customerId),
     [allCustomerStations, customerId]
