@@ -1592,6 +1592,16 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               </div>
               <div className="p-6 space-y-4">
                 <div>
+                  <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={deliveryDate}
+                    onChange={e => setDeliveryDate(e.target.value)}
+                    className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+                  />
+                </div>
+                <div>
                   <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Filling Station</label>
                   <select
                     value={deliveryStationId}
@@ -1602,7 +1612,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       }
                       setDeliveryStationId(e.target.value);
                     }}
-                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-white font-semibold cursor-pointer outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm transition-colors"
+                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-white font-semibold cursor-pointer outline-none hover:border-violet-500 hover:text-violet-300 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 shadow-sm transition-colors"
                   >
                     {customerStations.length === 0 && (
                       <option value="" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">No stations — uses customer margin</option>
@@ -1614,16 +1624,6 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     ))}
                     <option value="__ADD_NEW_STATION__" className="bg-[#1e1b4b] text-indigo-300 font-bold">+ Add New Station...</option>
                   </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Date *</label>
-                  <input 
-                    type="date"
-                    required
-                    value={deliveryDate}
-                    onChange={e => setDeliveryDate(e.target.value)}
-                    className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
-                  />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Fuel Product</label>
