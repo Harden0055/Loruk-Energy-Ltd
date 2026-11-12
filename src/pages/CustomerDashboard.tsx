@@ -43,6 +43,8 @@ import {
   ResponsiveContainer, 
   AreaChart, 
   Area, 
+  BarChart, 
+  Bar, 
   LineChart, 
   Line, 
   XAxis, 
@@ -511,6 +513,21 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   // Compute stats for charts and display
   const totalFuelLitres = useMemo(() => {
     return customerDeliveries.reduce((sum, d) => sum + d.litres, 0);
+  }, [customerDeliveries]);
+
+  // Month-by-month fuel delivered (litres) for the bar chart
+  const monthlyDeliveryData = useMemo(() => {
+    const byMonth = new Map<string, { label: string; Litres: number; sortKey: string }>();
+    for (const d of customerDeliveries) {
+      if (!d.date) continue;
+      const dt = new Date(d.date);
+      const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}`;
+      const label = `${dt.toLocaleString('en-GB', { month: 'short' })} ${String(dt.getFullYear()).slice(-2)}`;
+      const entry = byMonth.get(key) || { label, Litres: 0, sortKey: key };
+      entry.Litres += d.litres || 0;
+      byMonth.set(key, entry);
+    }
+    return Array.from(byMonth.values()).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
   }, [customerDeliveries]);
 
   const totalSalesValue = useMemo(() => {
@@ -1183,41 +1200,42 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
       {showCharts && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-          {/* Chart 1: Cumulative Running Balance Trend */}
+          {/* Chart 1: Monthly Fuel Delivered (litres) */}
           <div className="lg:col-span-2 glass-panel border border-theme-border rounded-xl p-4 shadow-sm transition-colors">
             <div className="flex justify-between items-center mb-3">
               <div>
-                <h3 className="text-sm font-black text-theme-text tracking-tight">Statement Ledger Trend Line</h3>
-                <p className="text-[11px] text-theme-text-muted">Time-series tracking of outstanding balance evolution</p>
+                <h3 className="text-sm font-black text-theme-text tracking-tight">Monthly Fuel Delivered</h3>
+                <p className="text-[11px] text-theme-text-muted">Month-by-month litres dispensed to this customer</p>
               </div>
-              <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-1 rounded-lg shadow-sm">
-                <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-wider">Balance Scale</span>
+              <div className="flex items-center gap-1.5 bg-violet-500/10 border border-violet-500/25 px-2.5 py-1 rounded-lg shadow-sm">
+                <TrendingUp className="w-3.5 h-3.5 text-violet-400" />
+                <span className="text-[10px] font-bold text-violet-300 uppercase tracking-wider">Fuel Volume</span>
               </div>
             </div>
             
             <div className="h-52 w-full relative overflow-hidden">
-              {chartData.length === 0 ? (
+              {monthlyDeliveryData.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-xs text-theme-text-muted bg-white/[0.02] rounded-xl border border-dashed border-theme-border">
                   Not enough transactions to map chart data
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                  <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <BarChart data={monthlyDeliveryData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <defs>
-                      <linearGradient id="balanceGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6366F1" stopOpacity={0.4}/>
-                        <stop offset="95%" stopColor="#00E676" stopOpacity={0.05}/>
+                      <linearGradient id="fuelGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.95}/>
+                        <stop offset="95%" stopColor="#6D28D9" stopOpacity={0.55}/>
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.07)" />
-                    <XAxis dataKey="name" fontSize={10} stroke="#94A3B8" tickLine={false} />
-                    <YAxis fontSize={10} stroke="#94A3B8" tickFormatter={(v) => `K${Math.round(v/1000)}k`} tickLine={false} />
+                    <XAxis dataKey="label" fontSize={10} stroke="#94A3B8" tickLine={false} />
+                    <YAxis fontSize={10} stroke="#94A3B8" tickFormatter={(v) => `${Math.round(v/1000)}k L`} tickLine={false} />
                     <Tooltip 
-                      formatter={(val: any) => [`KES ${Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 'Ledger Balance']}
+                      formatter={(val: any) => [`${Number(val).toLocaleString('en-US')} L`, 'Fuel Delivered']}
+                      cursor={{ fill: 'rgba(0, 230, 118, 0.06)' }}
                       contentStyle={{ 
                         backgroundColor: 'rgba(0, 0, 0, 0.95)', 
-                        borderColor: 'rgba(0, 230, 118, 0.4)',
+                        borderColor: 'rgba(139, 92, 246, 0.4)',
                         borderRadius: '12px', 
                         boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.8)',
                         color: '#F8FAFC',
@@ -1226,8 +1244,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                         zIndex: 100 
                       }}
                     />
-                    <Area type="monotone" dataKey="Running Balance" stroke="#00E676" strokeWidth={2.5} fillOpacity={1} fill="url(#balanceGrad)" />
-                  </AreaChart>
+                    <Bar dataKey="Litres" fill="url(#fuelGrad)" radius={[5, 5, 0, 0]} maxBarSize={46} />
+                  </BarChart>
                 </ResponsiveContainer>
               )}
             </div>
