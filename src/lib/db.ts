@@ -341,8 +341,10 @@ export const createAdjustment = async (data: Omit<Adjustment, 'id' | 'updatedBy'
 };
 
 export const createCustomerStation = async (data: Omit<CustomerStation, 'id'>) => {
+  const owner = auth.currentUser?.email || 'Unknown';
   const payload = sanitizePayload({
     ...data,
+    createdBy: owner,
     createdAt: Date.now(),
     updatedAt: Date.now()
   });
@@ -357,7 +359,11 @@ export const createCustomerStation = async (data: Omit<CustomerStation, 'id'>) =
 };
 
 export const updateCustomerStation = async (id: string, data: Partial<CustomerStation>) => {
-  const payload = sanitizePayload({ ...data, updatedAt: Date.now() });
+  const payload = sanitizePayload({
+    ...data,
+    updatedBy: auth.currentUser?.email || 'Unknown',
+    updatedAt: Date.now()
+  });
   return executeDbMutation(
     'customer_stations',
     () => updateDoc(doc(db, 'customer_stations', id), payload),
