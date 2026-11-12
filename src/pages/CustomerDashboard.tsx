@@ -321,10 +321,13 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [profitStartDate, setProfitStartDate] = useState('');
   const [profitEndDate, setProfitEndDate] = useState('');
 
-  // Profit margin that applies to a delivery: its station's margin, or the customer-level margin as fallback
+  // Profit margin that applies to a delivery: its station's margin, or for older untagged
+  // deliveries the single station's margin, or the customer-level margin as final fallback
   const marginForDelivery = (d: Delivery): number => {
     const st = customerStations.find(s => s.id === d.stationId);
-    return st?.profitMargin ?? customer?.profitMargin ?? 0;
+    if (st) return st.profitMargin || 0;
+    if (customerStations.length === 1) return customerStations[0].profitMargin || 0;
+    return customer?.profitMargin ?? 0;
   };
 
   // When the Log Delivery modal opens, pre-select the customer's first station (if any)
