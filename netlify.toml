@@ -1,0 +1,14 @@
+# Netlify deployment settings for Loruk Energy Ltd (built from this GitHub repo)
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Serve the app for any URL (single-page app)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
