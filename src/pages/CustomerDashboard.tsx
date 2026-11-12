@@ -1207,9 +1207,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <h3 className="text-sm font-black text-theme-text tracking-tight">Monthly Fuel Delivered</h3>
                 <p className="text-[11px] text-theme-text-muted">Month-by-month litres dispensed to this customer</p>
               </div>
-              <div className="flex items-center gap-1.5 bg-violet-500/10 border border-violet-500/25 px-2.5 py-1 rounded-lg shadow-sm">
-                <TrendingUp className="w-3.5 h-3.5 text-violet-400" />
-                <span className="text-[10px] font-bold text-violet-300 uppercase tracking-wider">Fuel Volume</span>
+              <div className="flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/25 px-2.5 py-1 rounded-lg shadow-sm">
+                <TrendingUp className="w-3.5 h-3.5 text-indigo-400" />
+                <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">Fuel Volume</span>
               </div>
             </div>
             
@@ -1223,8 +1223,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   <BarChart data={monthlyDeliveryData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <defs>
                       <linearGradient id="fuelGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.95}/>
-                        <stop offset="95%" stopColor="#6D28D9" stopOpacity={0.55}/>
+                        <stop offset="5%" stopColor="#6366F1" stopOpacity={0.95}/>
+                        <stop offset="95%" stopColor="#4338CA" stopOpacity={0.55}/>
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.07)" />
@@ -1235,7 +1235,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       cursor={{ fill: 'rgba(0, 230, 118, 0.06)' }}
                       contentStyle={{ 
                         backgroundColor: 'rgba(0, 0, 0, 0.95)', 
-                        borderColor: 'rgba(139, 92, 246, 0.4)',
+                        borderColor: 'rgba(99, 102, 241, 0.4)',
                         borderRadius: '12px', 
                         boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.8)',
                         color: '#F8FAFC',
