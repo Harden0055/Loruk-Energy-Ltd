@@ -1314,7 +1314,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   onClick={() => setChartMetric('rate')}
                   className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer ${
                     chartMetric === 'rate'
-                      ? 'bg-violet-500/20 text-violet-300 border border-violet-500/40'
+                      ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40'
                       : 'text-theme-text-muted hover:text-white border border-transparent'
                   }`}
                 >
@@ -1338,7 +1338,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       formatter={(val: any, name: any) => [`KES ${Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / L`, `${name} Rate`]}
                       contentStyle={{
                         backgroundColor: 'rgba(0, 0, 0, 0.95)',
-                        borderColor: 'rgba(139, 92, 246, 0.4)',
+                        borderColor: 'rgba(99, 102, 241, 0.4)',
                         borderRadius: '12px',
                         boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.8)',
                         color: '#F8FAFC',
@@ -1349,7 +1349,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     />
                     <Legend verticalAlign="top" height={20} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
                     <Line type="monotone" dataKey="AGO" stroke="#00E676" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
-                    <Line type="monotone" dataKey="PMS" stroke="#8B5CF6" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
+                    <Line type="monotone" dataKey="PMS" stroke="#6366F1" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (

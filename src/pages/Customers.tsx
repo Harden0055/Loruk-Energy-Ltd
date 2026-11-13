@@ -394,8 +394,8 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-1.5 bg-violet-500/10 border border-violet-500/25 px-2.5 py-1 rounded-lg shadow-sm">
-              <span className="text-[10px] font-bold text-violet-300 uppercase tracking-wider">PMS</span>
+            <div className="flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/25 px-2.5 py-1 rounded-lg shadow-sm">
+              <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">PMS</span>
               <span className="text-[11px] font-black text-theme-text">
                 {rateChange.pmsLatest != null ? `K${rateChange.pmsLatest.toFixed(2)}/L` : '—'}
               </span>
@@ -423,7 +423,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                   formatter={(val: any, name: any) => [`KES ${Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / L`, `${name} Rate`]}
                   contentStyle={{
                     backgroundColor: 'rgba(0, 0, 0, 0.95)',
-                    borderColor: 'rgba(139, 92, 246, 0.4)',
+                    borderColor: 'rgba(99, 102, 241, 0.4)',
                     borderRadius: '12px',
                     boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.8)',
                     color: '#F8FAFC',
@@ -434,7 +434,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                 />
                 <Legend verticalAlign="top" height={24} iconType="circle" iconSize={9} wrapperStyle={{ fontSize: '11px', fontWeight: 'bold' }} />
                 <Line type="monotone" dataKey="AGO" stroke="#00E676" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} strokeOpacity={0.95} />
-                <Line type="monotone" dataKey="PMS" stroke="#8B5CF6" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} strokeOpacity={0.95} />
+                <Line type="monotone" dataKey="PMS" stroke="#6366F1" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} strokeOpacity={0.95} />
               </LineChart>
             </ResponsiveContainer>
           )}
