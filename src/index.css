@@ -13,20 +13,20 @@
   --color-theme-text-dark: #94A3B8;
   --color-theme-text-muted: #8B9BB4;
   --color-theme-text-muted-dark: #8B9BB4;
-  --color-theme-primary: #00E676;
+  --color-theme-primary: #34D399;
   --color-theme-secondary: #6366F1;
   --color-theme-tertiary: #6366F1;
   --color-theme-spark: #10B981;
   --color-theme-accent: #6366F1;
   --color-theme-highlight: #C7D2FE;
-  --color-theme-highlight-glow: #00E676;
+  --color-theme-highlight-glow: #34D399;
 
   --theme-canvas-bg: #000000;
   --theme-gradient-start: #000000;
   --theme-gradient-end: #000000;
   --theme-glass-bg: #000000;
   --theme-glass-border: rgba(99, 102, 241, 0.18);
-  --theme-glass-hover-border: rgba(0, 230, 118, 0.4);
+  --theme-glass-hover-border: rgba(52, 211, 153, 0.4);
   --theme-glass-hover-shadow: rgba(0, 0, 0, 0.9);
   --theme-input-bg: #000000;
   --theme-input-border: rgba(99, 102, 241, 0.18);
@@ -34,7 +34,7 @@
   --theme-sidebar-bg: #000000;
   --theme-sidebar-border: rgba(99, 102, 241, 0.14);
 
-  --theme-accent-gradient: linear-gradient(135deg, #6366F1 0%, #4F46E5 35%, #00E676 100%);
+  --theme-accent-gradient: linear-gradient(135deg, #6366F1 0%, #4F46E5 35%, #34D399 100%);
   --theme-card-gradient: #000000;
   --theme-glow-accent: 0 0 15px rgba(99, 102, 241, 0.15);
 }
@@ -57,20 +57,20 @@
   --color-theme-text-dark: #94A3B8;
   --color-theme-text-muted: #8B9BB4;
   --color-theme-text-muted-dark: #8B9BB4;
-  --color-theme-primary: #00E676;
+  --color-theme-primary: #34D399;
   --color-theme-secondary: #6366F1;
   --color-theme-tertiary: #6366F1;
   --color-theme-spark: #10B981;
   --color-theme-accent: #6366F1;
   --color-theme-highlight: #C7D2FE;
-  --color-theme-highlight-glow: #00E676;
+  --color-theme-highlight-glow: #34D399;
 
   --theme-canvas-bg: #000000;
   --theme-gradient-start: #000000;
   --theme-gradient-end: #000000;
   --theme-glass-bg: #000000;
   --theme-glass-border: rgba(99, 102, 241, 0.18);
-  --theme-glass-hover-border: rgba(0, 230, 118, 0.4);
+  --theme-glass-hover-border: rgba(52, 211, 153, 0.4);
   --theme-glass-hover-shadow: rgba(0, 0, 0, 0.9);
   --theme-input-bg: #000000;
   --theme-input-border: rgba(99, 102, 241, 0.18);
@@ -78,7 +78,7 @@
   --theme-sidebar-bg: #000000;
   --theme-sidebar-border: rgba(99, 102, 241, 0.14);
 
-  --theme-accent-gradient: linear-gradient(135deg, #6366F1 0%, #4F46E5 35%, #00E676 100%);
+  --theme-accent-gradient: linear-gradient(135deg, #6366F1 0%, #4F46E5 35%, #34D399 100%);
   --theme-card-gradient: #000000;
   --theme-glow-accent: 0 0 15px rgba(99, 102, 241, 0.15);
 }
@@ -103,7 +103,7 @@
   --color-theme-text-muted: var(--color-theme-text-muted, #94A3B8);
   --color-theme-text-muted-dark: var(--color-theme-text-muted-dark, #94A3B8);
   
-  --color-theme-primary: var(--color-theme-primary, #00E676);
+  --color-theme-primary: var(--color-theme-primary, #34D399);
   --color-theme-secondary: var(--color-theme-secondary, #6366F1);
   --color-theme-tertiary: var(--color-theme-tertiary, #6366F1);
   --color-theme-spark: var(--color-theme-spark, #10B981);
@@ -429,7 +429,7 @@ svg.lucide {
   }
 
   .text-indigo-green-fade {
-    background: linear-gradient(135deg, #6366F1 0%, #6366F1 35%, #00E676 100%) !important;
+    background: linear-gradient(135deg, #6366F1 0%, #6366F1 35%, #34D399 100%) !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     background-clip: text !important;
@@ -438,7 +438,7 @@ svg.lucide {
 
   .text-gradient-green,
   .text-gradient-emerald {
-    background: linear-gradient(135deg, #00FF85 0%, #00E676 50%, #10B981 100%) !important;
+    background: linear-gradient(135deg, #34D399 0%, #34D399 50%, #10B981 100%) !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
     background-clip: text !important;
@@ -474,23 +474,23 @@ svg.lucide {
   }
 
   .deepcharts-btn-green {
-    background: linear-gradient(135deg, #00E676 0%, #10B981 100%) !important;
+    background: linear-gradient(135deg, #34D399 0%, #10B981 100%) !important;
     color: #000000 !important;
     font-weight: 700 !important;
-    border: 1px solid rgba(0, 230, 118, 0.6) !important;
-    box-shadow: 0 0 25px rgba(0, 230, 118, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+    border: 1px solid rgba(52, 211, 153, 0.6) !important;
+    box-shadow: 0 0 25px rgba(52, 211, 153, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }
   .deepcharts-btn-green:hover {
-    box-shadow: 0 0 35px rgba(0, 230, 118, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+    box-shadow: 0 0 35px rgba(52, 211, 153, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
     transform: translateY(-1px);
   }
 
   .deepcharts-badge-green {
-    background: rgba(0, 230, 118, 0.12) !important;
-    color: #00E676 !important;
-    border: 1px solid rgba(0, 230, 118, 0.35) !important;
-    box-shadow: 0 0 12px rgba(0, 230, 118, 0.2) !important;
+    background: rgba(52, 211, 153, 0.12) !important;
+    color: #34D399 !important;
+    border: 1px solid rgba(52, 211, 153, 0.35) !important;
+    box-shadow: 0 0 12px rgba(52, 211, 153, 0.2) !important;
   }
 
   .deepcharts-badge-indigo {
@@ -509,7 +509,7 @@ svg.lucide {
 
   .sidebar-item:hover {
     background: transparent !important;
-    color: #00E676 !important;
+    color: #34D399 !important;
   }
 
   .sidebar-item-active {
@@ -664,7 +664,7 @@ svg.lucide {
 }
 
 .recharts-tooltip-label {
-  color: #00E676 !important;
+  color: #34D399 !important;
   font-weight: 700 !important;
 }
 
@@ -730,8 +730,8 @@ select.customer-select:hover,
 select.product-select:hover,
 select[name*="customer"]:hover,
 select[name*="product"]:hover {
-  border-color: #00E676 !important;
-  color: #00E676 !important;
+  border-color: #34D399 !important;
+  color: #34D399 !important;
   box-shadow: none !important;
 }
 
@@ -739,8 +739,8 @@ select:focus,
 .glass-select:focus,
 select.customer-select:focus,
 select.product-select:focus {
-  border-color: #00E676 !important;
-  box-shadow: 0 0 0 1px rgba(0, 230, 118, 0.5) !important;
+  border-color: #34D399 !important;
+  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.5) !important;
   outline: none !important;
 }
 
@@ -749,18 +749,18 @@ select.dropdown-green,
 select.select-positive,
 select[data-type="positive"],
 .select-positive {
-  border-color: rgba(0, 230, 118, 0.45) !important;
-  color: #00E676 !important;
+  border-color: rgba(52, 211, 153, 0.45) !important;
+  color: #34D399 !important;
 }
 select.dropdown-green:focus,
 select.select-positive:focus,
 select[data-type="positive"]:focus,
 .select-positive:focus {
-  border-color: #00E676 !important;
-  box-shadow: 0 0 0 1px rgba(0, 230, 118, 0.5) !important;
+  border-color: #34D399 !important;
+  box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.5) !important;
 }
 
-/* Table debits strictly deep indigo #4F46E5, and credits green #00E676 */
+/* Table debits strictly deep indigo #4F46E5, and credits green #34D399 */
 .debit-amount,
 .table-debit,
 [data-type="debit"],
@@ -772,7 +772,7 @@ select[data-type="positive"]:focus,
 .table-credit,
 [data-type="credit"],
 .text-credit {
-  color: #00E676 !important;
+  color: #34D399 !important;
 }
 
 select option {
@@ -784,30 +784,30 @@ select option {
 .btn-positive,
 .btn-green,
 .deepcharts-btn-green {
-  background: linear-gradient(135deg, #00E676 0%, #10B981 100%) !important;
+  background: linear-gradient(135deg, #34D399 0%, #10B981 100%) !important;
   color: #000000 !important;
   font-weight: 700 !important;
-  border: 1px solid rgba(0, 230, 118, 0.6) !important;
-  box-shadow: 0 2px 8px rgba(0, 230, 118, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+  border: 1px solid rgba(52, 211, 153, 0.6) !important;
+  box-shadow: 0 2px 8px rgba(52, 211, 153, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 .btn-positive:hover,
 .btn-green:hover,
 .deepcharts-btn-green:hover {
-  background: linear-gradient(135deg, #34D399 0%, #00E676 100%) !important;
-  box-shadow: 0 4px 12px rgba(0, 230, 118, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+  background: linear-gradient(135deg, #34D399 0%, #34D399 100%) !important;
+  box-shadow: 0 4px 12px rgba(52, 211, 153, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
   transform: translateY(-1px);
 }
 
 .btn-positive-ghost {
-  background: rgba(0, 230, 118, 0.1) !important;
-  color: #00E676 !important;
-  border: 1px solid rgba(0, 230, 118, 0.35) !important;
+  background: rgba(52, 211, 153, 0.1) !important;
+  color: #34D399 !important;
+  border: 1px solid rgba(52, 211, 153, 0.35) !important;
   transition: all 0.2s ease !important;
 }
 .btn-positive-ghost:hover {
-  background: rgba(0, 230, 118, 0.2) !important;
-  border-color: #00E676 !important;
+  background: rgba(52, 211, 153, 0.2) !important;
+  border-color: #34D399 !important;
   color: #34D399 !important;
 }
 
@@ -845,8 +845,8 @@ select option {
 .hover-positive:hover,
 tr.hover-positive:hover,
 .hover\:border-emerald-500\/50:hover {
-  border-color: rgba(0, 230, 118, 0.5) !important;
-  background-color: rgba(0, 230, 118, 0.08) !important;
+  border-color: rgba(52, 211, 153, 0.5) !important;
+  background-color: rgba(52, 211, 153, 0.08) !important;
 }
 
 .hover-negative:hover,
@@ -859,7 +859,7 @@ tr.hover-negative:hover,
 /* 5. DeepCharts table row hover */
 .modern-tr:hover {
   background: rgba(99, 102, 241, 0.04) !important;
-  border-bottom-color: rgba(0, 230, 118, 0.2) !important;
+  border-bottom-color: rgba(52, 211, 153, 0.2) !important;
 }
 
 /* Custom scrollbars */
@@ -871,7 +871,7 @@ tr.hover-negative:hover,
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 230, 118, 0.5) !important;
+  background: rgba(52, 211, 153, 0.5) !important;
 }
 
 /* Chart Styles */
@@ -982,9 +982,9 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 }
 
 .card-hover-green:hover {
-  border-color: #00E676 !important;
-  box-shadow: inset 0 0 0 1px #00E676 !important;
-  background-color: rgba(0, 230, 118, 0.06) !important;
+  border-color: #34D399 !important;
+  box-shadow: inset 0 0 0 1px #34D399 !important;
+  background-color: rgba(52, 211, 153, 0.06) !important;
 }
 
 .card-hover-grey:hover {
@@ -1012,7 +1012,7 @@ textarea::placeholder {
 .text-emerald-500,
 span.\!text-\[\#059669\],
 span.\!text-emerald-400 {
-  color: #00E676 !important;
+  color: #34D399 !important;
 }
 
 .text-indigo-accent,

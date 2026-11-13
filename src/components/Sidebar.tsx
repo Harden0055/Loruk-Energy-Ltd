@@ -277,7 +277,7 @@ export default function Sidebar({
               "flex-1 flex items-center gap-3 px-3.5 py-2.5 text-sm font-semibold rounded-xl sidebar-item cursor-pointer text-left transition-all duration-200",
               isActive 
                 ? "sidebar-item-active text-emerald-400 font-bold"
-                : "text-theme-text-muted hover:text-[#00E676] hover:bg-emerald-500/[0.04]"
+                : "text-theme-text-muted hover:text-[#34D399] hover:bg-emerald-500/[0.04]"
             )}
             title={`Go to ${item.label}`}
           >
@@ -285,7 +285,7 @@ export default function Sidebar({
               "w-5 h-5 shrink-0 transition-colors duration-200", 
               isActive 
                 ? "text-emerald-400" 
-                : "group-hover/parent:text-[#00E676]"
+                : "group-hover/parent:text-[#34D399]"
             )} />
             <span className="truncate">{item.label}</span>
             {item.badge && (
@@ -301,14 +301,14 @@ export default function Sidebar({
               type="button"
               onClick={(e) => toggleExpand(item.id, e)}
               className={cn(
-                "p-1.5 rounded-lg text-theme-text-muted hover:text-[#00E676] hover:bg-[#00E676]/10 transition-colors cursor-pointer shrink-0 ml-1",
-                expanded ? "text-[#00E676] bg-white/[0.04]" : ""
+                "p-1.5 rounded-lg text-theme-text-muted hover:text-[#34D399] hover:bg-[#34D399]/10 transition-colors cursor-pointer shrink-0 ml-1",
+                expanded ? "text-[#34D399] bg-white/[0.04]" : ""
               )}
               title={expanded ? "Collapse sub-pages" : "Expand sub-pages"}
             >
               <ChevronDown className={cn(
                 "w-4 h-4 transition-transform duration-250 ease-out",
-                expanded ? "transform rotate-180 text-[#00E676]" : "transform rotate-0"
+                expanded ? "transform rotate-180 text-[#34D399]" : "transform rotate-0"
               )} />
             </button>
           )}
@@ -372,7 +372,7 @@ export default function Sidebar({
       {/* Brand Header */}
       <div className="px-5 py-5 flex items-center justify-between border-b border-slate-800 mb-2 shrink-0 bg-[#000000]">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 bg-gradient-to-br from-[#6366F1] to-[#00E676] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(99, 102, 241,0.25)] transition-all duration-300 hover:scale-105 shrink-0">
+          <div className="w-10 h-10 bg-gradient-to-br from-[#6366F1] to-[#34D399] rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(99, 102, 241,0.25)] transition-all duration-300 hover:scale-105 shrink-0">
             <FireLEIcon className="w-7 h-7 text-white" />
           </div>
           <span className="font-bold text-lg tracking-tight text-slate-200 transition-colors truncate">Loruk Energy</span>
@@ -419,7 +419,7 @@ export default function Sidebar({
         </div>
 
         <div className="flex items-center gap-3 px-3 py-2.5 mb-3 bg-[#000000] border border-slate-800 rounded-xl shadow-none">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#6366F1] to-[#00E676] flex items-center justify-center font-bold text-sm text-white shadow-none shrink-0">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#6366F1] to-[#34D399] flex items-center justify-center font-bold text-sm text-white shadow-none shrink-0">
             {user?.displayName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           <div className="flex-1 min-w-0">

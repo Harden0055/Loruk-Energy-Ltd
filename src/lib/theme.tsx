@@ -37,12 +37,12 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
     category: 'Pitch Black & Accounting Duality',
     badge: 'DeepCharts ⚡',
     tagline: 'Pure pitch-black canvas with candlestick green for positive revenue/payments and deep indigo for negative expenses/deliveries.',
-    accentColor: '#00E676',
-    primaryColor: '#00E676',
+    accentColor: '#34D399',
+    primaryColor: '#34D399',
     secondaryColor: '#4F46E5',
     tertiaryColor: '#6366F1',
     sparkColor: '#10B981',
-    gradientFrom: '#00E676',
+    gradientFrom: '#34D399',
     gradientVia: '#4F46E5',
     gradientTo: '#4F46E5',
     solidPreview: '#000000',
@@ -50,13 +50,13 @@ export const THEME_CONFIGS: Record<Theme, ThemeConfig> = {
     borderClass: 'border-[#4338CA]/40 shadow-[0_0_25px_rgba(67, 56, 202,0.3)]',
     textAccentClass: 'text-emerald-400',
     harmonicPalette: [
-      { name: 'Candle Green', hex: '#00E676', role: 'Positive (Revenue / Inflow)' },
+      { name: 'Candle Green', hex: '#34D399', role: 'Positive (Revenue / Inflow)' },
       { name: 'Deep Indigo', hex: '#4F46E5', role: 'Negative (Expense / Outflow)' },
       { name: 'Royal Indigo', hex: '#6366F1', role: 'Negative Accent' },
       { name: 'Mint Specular', hex: '#10B981', role: 'Positive Glow' },
       { name: 'Pitch Black', hex: '#000000', role: 'Deep Canvas' }
     ],
-    chartColors: ['#00E676', '#4F46E5', '#10B981', '#6366F1', '#34D399'],
+    chartColors: ['#34D399', '#4F46E5', '#10B981', '#6366F1', '#34D399'],
   }
 };
 

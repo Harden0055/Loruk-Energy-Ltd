@@ -646,7 +646,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                 <Line
                   type="monotone"
                   dataKey="AGO"
-                  stroke="#00E676"
+                  stroke="#34D399"
                   strokeWidth={2}
                   strokeOpacity={0.95}
                   dot={{ r: combinedRateData.length > 90 ? 2 : 3 }}

@@ -1348,7 +1348,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       }}
                     />
                     <Legend verticalAlign="top" height={20} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
-                    <Line type="monotone" dataKey="AGO" stroke="#00E676" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
+                    <Line type="monotone" dataKey="AGO" stroke="#34D399" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
                     <Line type="monotone" dataKey="PMS" stroke="#6366F1" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
                   </LineChart>
                 </ResponsiveContainer>
@@ -1361,7 +1361,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                         <stop offset="95%" stopColor="#4338CA" stopOpacity={0.55}/>
                       </linearGradient>
                       <linearGradient id="receivedGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#00E676" stopOpacity={0.95}/>
+                        <stop offset="5%" stopColor="#34D399" stopOpacity={0.95}/>
                         <stop offset="95%" stopColor="#059669" stopOpacity={0.55}/>
                       </linearGradient>
                     </defs>
@@ -1377,10 +1377,10 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       formatter={(val: any) => chartMetric === 'litres'
                         ? [`${Number(val).toLocaleString('en-US')} L`, 'Fuel Delivered']
                         : [`KES ${Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 'Amount Received']}
-                      cursor={{ fill: chartMetric === 'litres' ? 'rgba(99, 102, 241, 0.08)' : 'rgba(0, 230, 118, 0.06)' }}
+                      cursor={{ fill: chartMetric === 'litres' ? 'rgba(99, 102, 241, 0.08)' : 'rgba(52, 211, 153, 0.06)' }}
                       contentStyle={{ 
                         backgroundColor: 'rgba(0, 0, 0, 0.95)', 
-                        borderColor: chartMetric === 'litres' ? 'rgba(99, 102, 241, 0.4)' : 'rgba(0, 230, 118, 0.4)',
+                        borderColor: chartMetric === 'litres' ? 'rgba(99, 102, 241, 0.4)' : 'rgba(52, 211, 153, 0.4)',
                         borderRadius: '12px', 
                         boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.8)',
                         color: '#F8FAFC',
