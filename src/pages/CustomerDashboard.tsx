@@ -548,6 +548,17 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
   // Daily fuel rate KPI: delivery debit (KES) ÷ litres delivered that day, per product.
   // AGO = Diesel, PMS = Super/Petrol. Split deliveries feed both lines from their own halves.
+  // Delivery litres exist under two storage conventions (current: split halves ×1000;
+  // older records: raw litres) — detect per record by plausible-rate reading.
+  const plausibleLitres = (stored: number, amount: number, preferThousand: boolean): number => {
+    if (!(stored > 0)) return 0;
+    const asThousand = amount / (stored / 1000);
+    const asRaw = amount / stored;
+    const ok = (r: number) => r >= 10 && r <= 10000;
+    if (ok(asThousand)) return stored / 1000;
+    if (ok(asRaw)) return stored;
+    return preferThousand ? stored / 1000 : stored;
+  };
   const dailyRateData = useMemo(() => {
     interface DayPoint { key: string; label: string; sortKey: string; agoAmount: number; agoLitres: number; pmsAmount: number; pmsLitres: number; }
     const byDay = new Map<string, DayPoint>();
@@ -569,16 +580,16 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         byDay.set(key, entry);
       }
       if (pt === 'Super/Diesel Split') {
-        // Split litres are stored ×1000 (superL = parts[0] * 1000 on entry)
-        entry.agoLitres += (d.dieselLitres || 0) / 1000;
+        // Split litres are stored ×1000 in current records, raw in older ones
+        entry.agoLitres += plausibleLitres(d.dieselLitres || 0, d.dieselAmount || 0, true);
         entry.agoAmount += d.dieselAmount || 0;
-        entry.pmsLitres += (d.superLitres || 0) / 1000;
+        entry.pmsLitres += plausibleLitres(d.superLitres || 0, d.superAmount || 0, true);
         entry.pmsAmount += d.superAmount || 0;
       } else if (pt.toLowerCase().includes('diesel')) {
-        entry.agoLitres += d.litres || 0;
+        entry.agoLitres += plausibleLitres(d.litres || 0, d.totalAmount || 0, false);
         entry.agoAmount += d.totalAmount || 0;
       } else if (pt.toLowerCase().includes('super')) {
-        entry.pmsLitres += d.litres || 0;
+        entry.pmsLitres += plausibleLitres(d.litres || 0, d.totalAmount || 0, false);
         entry.pmsAmount += d.totalAmount || 0;
       }
     }
