@@ -1334,8 +1334,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       }}
                     />
                     <Legend verticalAlign="top" height={20} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
-                    <Line type="monotone" dataKey="AGO" stroke="#00E676" strokeWidth={2} dot={{ r: 2 }} connectNulls strokeOpacity={0.95} />
-                    <Line type="monotone" dataKey="PMS" stroke="#8B5CF6" strokeWidth={2} dot={{ r: 2 }} connectNulls strokeOpacity={0.95} />
+                    <Line type="monotone" dataKey="AGO" stroke="#00E676" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
+                    <Line type="monotone" dataKey="PMS" stroke="#8B5CF6" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
