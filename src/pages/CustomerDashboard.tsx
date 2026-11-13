@@ -582,35 +582,13 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         entry.pmsAmount += d.totalAmount || 0;
       }
     }
-    const days = Array.from(byDay.values()).sort((a, b) => a.sortKey.localeCompare(b.sortKey));
-    // Per-day raw rate (null on days with no delivery of that product)
-    const rates = days.map(e => ({
-      label: e.label,
-      ago: e.agoLitres > 0 ? e.agoAmount / e.agoLitres : null,
-      pms: e.pmsLitres > 0 ? e.pmsAmount / e.pmsLitres : null
-    }));
-    // Carry the last known rate forward (and back-fill leading gaps) so both
-    // lines span the entire timeline side by side in the same grid
-    const fillSeries = (key: 'ago' | 'pms') => {
-      let last: number | null = null;
-      for (const r of rates) {
-        if (r[key] != null) last = r[key];
-        else if (last != null) r[key] = last;
-      }
-      const firstKnown = rates.find(r => r[key] != null)?.[key] ?? null;
-      if (firstKnown != null) {
-        for (const r of rates) {
-          if (r[key] == null) r[key] = firstKnown;
-        }
-      }
-    };
-    fillSeries('ago');
-    fillSeries('pms');
-    return rates.map(r => ({
-      label: r.label,
-      AGO: r.ago != null ? Number(r.ago.toFixed(2)) : null,
-      PMS: r.pms != null ? Number(r.pms.toFixed(2)) : null
-    }));
+    return Array.from(byDay.values())
+      .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+      .map(e => ({
+        label: e.label,
+        AGO: e.agoLitres > 0 ? Number((e.agoAmount / e.agoLitres).toFixed(2)) : null,
+        PMS: e.pmsLitres > 0 ? Number((e.pmsAmount / e.pmsLitres).toFixed(2)) : null
+      }));
   }, [customerDeliveries]);
 
   const totalSalesValue = useMemo(() => {

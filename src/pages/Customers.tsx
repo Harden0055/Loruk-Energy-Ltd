@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useCustomers, createCustomer, deleteCustomer, updateCustomer, createAdjustment, useDeliveries, usePayments, useAdjustments, recalculateCustomerBalance, useCustomerStations, createCustomerStation, updateCustomerStation, deleteCustomerStation } from '../lib/db';
 import { formatCurrency, parseDateToTimestamp } from '../lib/utils';
-import { Search, Plus, Trash2, Pencil, AlertTriangle, X, ArrowUpDown, Eye, Truck, Download, RefreshCw, Check, MapPin } from 'lucide-react';
+import { Search, Plus, Trash2, Pencil, AlertTriangle, X, ArrowUpDown, Eye, Truck, Download, RefreshCw, Check, MapPin, Users, Fuel, Coins, TrendingUp, Scale } from 'lucide-react';
 import { Customer, CustomerStation } from '../types';
 import { useAuth } from '../lib/auth';
 import { format } from 'date-fns';
@@ -19,6 +19,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
   const { deliveries, loading: deliveriesLoading } = useDeliveries();
   const { payments, loading: paymentsLoading } = usePayments();
   const { adjustments, loading: adjustmentsLoading } = useAdjustments();
+  const { stations: allCustomerStations } = useCustomerStations();
   const loading = customersLoading || deliveriesLoading || paymentsLoading || adjustmentsLoading;
 
   const [search, setSearch] = useState('');
@@ -75,6 +76,35 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
     if (idB === 'CUST-001') return 1;
     return idA.localeCompare(idB, undefined, { numeric: true, sensitivity: 'base' });
   });
+
+  // Combined KPI across ALL customers: outstanding, deliveries (KES + litres),
+  // received, and internal profit (retroactive station/customer margin rule).
+  const allCustomersKpi = useMemo(() => {
+    const stationsByCustomer = new Map<string, CustomerStation[]>();
+    for (const s of allCustomerStations) {
+      const arr = stationsByCustomer.get(s.customerId) || [];
+      arr.push(s);
+      stationsByCustomer.set(s.customerId, arr);
+    }
+    let litres = 0, sales = 0, received = 0, profit = 0, outstanding = 0, riskCount = 0;
+    for (const c of customers) {
+      outstanding += getCustomerBalance(c);
+      if (c.status === 'credit_risk') riskCount++;
+    }
+    for (const d of deliveries) {
+      litres += d.litres || 0;
+      sales += d.totalAmount || 0;
+      const sts = stationsByCustomer.get(d.customerId);
+      const st = sts?.find(s => s.id === d.stationId);
+      let margin = 0;
+      if (st) margin = st.profitMargin || 0;
+      else if (sts?.length === 1) margin = sts[0].profitMargin || 0;
+      else margin = customers.find(c => c.id === d.customerId)?.profitMargin ?? 0;
+      profit += (d.litres || 0) * margin;
+    }
+    for (const p of payments) received += p.amount || 0;
+    return { litres, sales, received, profit, outstanding, riskCount, count: customers.length };
+  }, [customers, deliveries, payments, adjustments, allCustomerStations]);
 
   // Automated background self-healing balance synchronization
   useEffect(() => {
@@ -209,6 +239,54 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
           onClose={() => setAdjustingCustomer(null)}
         />
       )}
+
+      {/* Combined KPI across all customers */}
+      <div className="glass-panel border border-theme-border rounded-xl p-4 shadow-sm transition-colors">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="text-sm font-black text-theme-text tracking-tight">All Customers Combined</h3>
+            <p className="text-[11px] text-theme-text-muted">Portfolio-wide totals across every customer on the books</p>
+          </div>
+          <div className="flex items-center gap-1.5 bg-indigo-500/10 border border-indigo-500/25 px-2.5 py-1 rounded-lg shadow-sm">
+            <Users className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">{allCustomersKpi.count} Customers</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="bg-white/[0.02] border border-theme-border rounded-lg p-3">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Scale className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="text-[10px] font-bold text-theme-text-muted uppercase tracking-wider">Outstanding Balance</span>
+            </div>
+            <div className="text-lg font-black text-indigo-300">Ksh {allCustomersKpi.outstanding.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div className="text-[10px] text-theme-text-muted mt-0.5">{allCustomersKpi.riskCount} credit risk customer{allCustomersKpi.riskCount === 1 ? '' : 's'}</div>
+          </div>
+          <div className="bg-white/[0.02] border border-theme-border rounded-lg p-3">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Fuel className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="text-[10px] font-bold text-theme-text-muted uppercase tracking-wider">Total Deliveries</span>
+            </div>
+            <div className="text-lg font-black text-theme-text">Ksh {allCustomersKpi.sales.toLocaleString('en-US')}</div>
+            <div className="text-[10px] text-theme-text-muted mt-0.5">{allCustomersKpi.litres.toLocaleString('en-US')} L dispensed</div>
+          </div>
+          <div className="bg-white/[0.02] border border-theme-border rounded-lg p-3">
+            <div className="flex items-center gap-1.5 mb-1">
+              <Coins className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-[10px] font-bold text-theme-text-muted uppercase tracking-wider">Total Received</span>
+            </div>
+            <div className="text-lg font-black text-emerald-300">Ksh {allCustomersKpi.received.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div className="text-[10px] text-theme-text-muted mt-0.5">Settled via till &amp; bank</div>
+          </div>
+          <div className="bg-white/[0.02] border border-theme-border rounded-lg p-3">
+            <div className="flex items-center gap-1.5 mb-1">
+              <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-[10px] font-bold text-theme-text-muted uppercase tracking-wider">Profit Generated</span>
+            </div>
+            <div className="text-lg font-black text-emerald-300">Ksh {allCustomersKpi.profit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div className="text-[10px] text-theme-text-muted mt-0.5">Litres × station margin — internal only</div>
+          </div>
+        </div>
+      </div>
 
       <div className="glass-panel border border-theme-border rounded-lg overflow-hidden shadow-sm transition-colors">
         <div className="overflow-x-auto">
