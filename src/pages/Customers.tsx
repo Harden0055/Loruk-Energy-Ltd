@@ -449,7 +449,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                   stroke="#00E676"
                   strokeWidth={2}
                   strokeOpacity={0.95}
-                  dot={combinedRateData.length > 60 ? false : { r: 3 }}
+                  dot={{ r: combinedRateData.length > 90 ? 2 : 3 }}
                   activeDot={{ r: 5 }}
                 />
                 <Line
@@ -458,7 +458,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                   stroke="#6366F1"
                   strokeWidth={2}
                   strokeOpacity={0.95}
-                  dot={combinedRateData.length > 60 ? false : { r: 3 }}
+                  dot={{ r: combinedRateData.length > 90 ? 2 : 3 }}
                   activeDot={{ r: 5 }}
                 />
               </LineChart>
