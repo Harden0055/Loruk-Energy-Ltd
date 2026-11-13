@@ -10,7 +10,8 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  CartesianGrid
+  CartesianGrid,
+  Legend
 } from 'recharts';
 import { useAuth } from '../lib/auth';
 import { format } from 'date-fns';
@@ -407,17 +408,17 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
           </div>
         </div>
 
-        <div className="h-48 w-full relative overflow-hidden">
+        <div className="h-72 w-full relative overflow-hidden">
           {combinedRateData.length === 0 ? (
             <div className="h-full flex items-center justify-center text-xs text-theme-text-muted bg-white/[0.02] rounded-xl border border-dashed border-theme-border">
               No fuel deliveries recorded yet
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-              <LineChart data={combinedRateData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <LineChart data={combinedRateData} margin={{ top: 22, right: 10, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.07)" />
-                <XAxis dataKey="label" fontSize={10} stroke="#94A3B8" tickLine={false} minTickGap={18} />
-                <YAxis fontSize={10} stroke="#94A3B8" tickFormatter={(v) => `K${Math.round(v)}`} tickLine={false} domain={['auto', 'auto']} />
+                <XAxis dataKey="label" fontSize={11} stroke="#94A3B8" tickLine={false} minTickGap={24} />
+                <YAxis fontSize={11} stroke="#94A3B8" tickFormatter={(v) => `K${Math.round(v)}`} tickLine={false} domain={['auto', 'auto']} />
                 <Tooltip
                   formatter={(val: any, name: any) => [`KES ${Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / L`, `${name} Rate`]}
                   contentStyle={{
@@ -431,8 +432,9 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                     zIndex: 100
                   }}
                 />
-                <Line type="monotone" dataKey="AGO" stroke="#00E676" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
-                <Line type="monotone" dataKey="PMS" stroke="#8B5CF6" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
+                <Legend verticalAlign="top" height={24} iconType="circle" iconSize={9} wrapperStyle={{ fontSize: '11px', fontWeight: 'bold' }} />
+                <Line type="monotone" dataKey="AGO" stroke="#00E676" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} strokeOpacity={0.95} />
+                <Line type="monotone" dataKey="PMS" stroke="#8B5CF6" strokeWidth={2.5} dot={{ r: 3 }} activeDot={{ r: 5 }} strokeOpacity={0.95} />
               </LineChart>
             </ResponsiveContainer>
           )}
