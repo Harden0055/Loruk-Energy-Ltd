@@ -3,6 +3,15 @@ import { useCustomers, createCustomer, deleteCustomer, updateCustomer, createAdj
 import { formatCurrency, parseDateToTimestamp } from '../lib/utils';
 import { Search, Plus, Trash2, Pencil, AlertTriangle, X, ArrowUpDown, Eye, Truck, Download, RefreshCw, Check, MapPin, Users, Fuel, Coins, TrendingUp, Scale } from 'lucide-react';
 import { Customer, CustomerStation } from '../types';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid
+} from 'recharts';
 import { useAuth } from '../lib/auth';
 import { format } from 'date-fns';
 import Papa from 'papaparse';
@@ -105,6 +114,67 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
     for (const p of payments) received += p.amount || 0;
     return { litres, sales, received, profit, outstanding, riskCount, count: customers.length };
   }, [customers, deliveries, payments, adjustments, allCustomerStations]);
+
+  // Combined daily fuel rate across ALL customers: total delivery debit (KES) ÷ litres
+  // delivered that day, per product. Same rules as the customer-profile KPI:
+  // AGO = Diesel, PMS = Super/Petrol, splits feed both lines, LPG/lubricants excluded.
+  const combinedRateData = useMemo(() => {
+    interface DayPoint { key: string; label: string; sortKey: string; agoAmount: number; agoLitres: number; pmsAmount: number; pmsLitres: number; }
+    const byDay = new Map<string, DayPoint>();
+    for (const d of deliveries) {
+      const hasSplit = !!(d.superLitres || d.dieselLitres);
+      if (!d.date || (!(d.litres > 0) && !hasSplit)) continue;
+      const pt = String(d.productType || '');
+      const low = pt.toLowerCase();
+      if (low.includes('lpg') || low.includes('lubricant')) continue;
+      const dt = new Date(d.date);
+      const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+      let entry = byDay.get(key);
+      if (!entry) {
+        entry = {
+          key,
+          label: `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')}`,
+          sortKey: key,
+          agoAmount: 0, agoLitres: 0, pmsAmount: 0, pmsLitres: 0
+        };
+        byDay.set(key, entry);
+      }
+      if (pt === 'Super/Diesel Split') {
+        // Split litres are stored ×1000 (÷1000 = litres)
+        entry.agoLitres += (d.dieselLitres || 0) / 1000;
+        entry.agoAmount += d.dieselAmount || 0;
+        entry.pmsLitres += (d.superLitres || 0) / 1000;
+        entry.pmsAmount += d.superAmount || 0;
+      } else if (low.includes('diesel')) {
+        entry.agoLitres += d.litres || 0;
+        entry.agoAmount += d.totalAmount || 0;
+      } else if (low.includes('super')) {
+        entry.pmsLitres += d.litres || 0;
+        entry.pmsAmount += d.totalAmount || 0;
+      }
+    }
+    return Array.from(byDay.values())
+      .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+      .map(e => ({
+        label: e.label,
+        AGO: e.agoLitres > 0 ? Number((e.agoAmount / e.agoLitres).toFixed(2)) : null,
+        PMS: e.pmsLitres > 0 ? Number((e.pmsAmount / e.pmsLitres).toFixed(2)) : null
+      }));
+  }, [deliveries]);
+
+  // Rate of change: latest combined rate vs the previous delivery of that product
+  const rateChange = useMemo(() => {
+    const series = (key: 'AGO' | 'PMS') =>
+      combinedRateData.map(r => r[key]).filter((v): v is number => v != null);
+    const agoVals = series('AGO');
+    const pmsVals = series('PMS');
+    return {
+      agoLatest: agoVals.length ? agoVals[agoVals.length - 1] : null,
+      agoChange: agoVals.length >= 2 ? Number((agoVals[agoVals.length - 1] - agoVals[agoVals.length - 2]).toFixed(2)) : null,
+      pmsLatest: pmsVals.length ? pmsVals[pmsVals.length - 1] : null,
+      pmsChange: pmsVals.length >= 2 ? Number((pmsVals[pmsVals.length - 1] - pmsVals[pmsVals.length - 2]).toFixed(2)) : null
+    };
+  }, [combinedRateData]);
 
   // Automated background self-healing balance synchronization
   useEffect(() => {
@@ -285,6 +355,71 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
             <div className="text-lg font-black text-emerald-300">Ksh {allCustomersKpi.profit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             <div className="text-[10px] text-theme-text-muted mt-0.5">Litres × station margin — internal only</div>
           </div>
+        </div>
+      </div>
+
+      {/* Combined fuel rate of change across all customers */}
+      <div className="glass-panel border border-theme-border rounded-xl p-4 shadow-sm transition-colors">
+        <div className="flex justify-between items-center mb-3 flex-wrap gap-2">
+          <div>
+            <h3 className="text-sm font-black text-theme-text tracking-tight">Combined Fuel Rate — All Customers</h3>
+            <p className="text-[11px] text-theme-text-muted">Daily delivery debit ÷ litres across every customer, per product</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/25 px-2.5 py-1 rounded-lg shadow-sm">
+              <span className="text-[10px] font-bold text-emerald-300 uppercase tracking-wider">AGO</span>
+              <span className="text-[11px] font-black text-theme-text">
+                {rateChange.agoLatest != null ? `K${rateChange.agoLatest.toFixed(2)}/L` : '—'}
+              </span>
+              {rateChange.agoChange != null && (
+                <span className={`text-[10px] font-bold ${rateChange.agoChange > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                  {rateChange.agoChange > 0 ? '▲' : '▼'} K{Math.abs(rateChange.agoChange).toFixed(2)}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 bg-violet-500/10 border border-violet-500/25 px-2.5 py-1 rounded-lg shadow-sm">
+              <span className="text-[10px] font-bold text-violet-300 uppercase tracking-wider">PMS</span>
+              <span className="text-[11px] font-black text-theme-text">
+                {rateChange.pmsLatest != null ? `K${rateChange.pmsLatest.toFixed(2)}/L` : '—'}
+              </span>
+              {rateChange.pmsChange != null && (
+                <span className={`text-[10px] font-bold ${rateChange.pmsChange > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                  {rateChange.pmsChange > 0 ? '▲' : '▼'} K{Math.abs(rateChange.pmsChange).toFixed(2)}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="h-48 w-full relative overflow-hidden">
+          {combinedRateData.length === 0 ? (
+            <div className="h-full flex items-center justify-center text-xs text-theme-text-muted bg-white/[0.02] rounded-xl border border-dashed border-theme-border">
+              No fuel deliveries recorded yet
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+              <LineChart data={combinedRateData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.07)" />
+                <XAxis dataKey="label" fontSize={10} stroke="#94A3B8" tickLine={false} minTickGap={18} />
+                <YAxis fontSize={10} stroke="#94A3B8" tickFormatter={(v) => `K${Math.round(v)}`} tickLine={false} domain={['auto', 'auto']} />
+                <Tooltip
+                  formatter={(val: any, name: any) => [`KES ${Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / L`, `${name} Rate`]}
+                  contentStyle={{
+                    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+                    borderColor: 'rgba(139, 92, 246, 0.4)',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.8)',
+                    color: '#F8FAFC',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    zIndex: 100
+                  }}
+                />
+                <Line type="monotone" dataKey="AGO" stroke="#00E676" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
+                <Line type="monotone" dataKey="PMS" stroke="#8B5CF6" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
 
