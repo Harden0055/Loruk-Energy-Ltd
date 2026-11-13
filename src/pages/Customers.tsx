@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useCustomers, createCustomer, deleteCustomer, updateCustomer, createAdjustment, useDeliveries, usePayments, useAdjustments, recalculateCustomerBalance, useCustomerStations, createCustomerStation, updateCustomerStation, deleteCustomerStation } from '../lib/db';
 import { formatCurrency, parseDateToTimestamp } from '../lib/utils';
-import { Search, Plus, Trash2, Pencil, AlertTriangle, X, ArrowUpDown, Eye, Truck, Download, RefreshCw, Check, MapPin, Users, Fuel, Coins, TrendingUp, Scale, FileText } from 'lucide-react';
+import { Search, Plus, Trash2, Pencil, AlertTriangle, X, ArrowUpDown, Eye, Truck, Download, RefreshCw, Check, MapPin, Users, Fuel, Coins, TrendingUp, Scale, FileText, MoreVertical } from 'lucide-react';
 import { Customer, CustomerStation } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -60,6 +60,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(null);
   const [adjustingCustomer, setAdjustingCustomer] = useState<Customer | null>(null);
+  const [actionsMenuFor, setActionsMenuFor] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -680,20 +681,19 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                 <th className="modern-th">Total Litres</th>
                 <th className="modern-th">Margin (KES/L)</th>
                 <th className="modern-th">Profit Made</th>
-                <th className="modern-th">Status</th>
                 <th className="modern-th">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-blue-900">
               {loading ? (
                 <tr className="modern-tr">
-                  <td colSpan={11} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 text-base">
+                  <td colSpan={10} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 text-base">
                     Loading customers...
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr className="modern-tr">
-                  <td colSpan={11} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 text-base">
+                  <td colSpan={10} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 text-base">
                     No customers found.
                   </td>
                 </tr>
@@ -779,70 +779,64 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                     })()}
                   </td>
                   <td className="modern-td">
-                    <span className={`inline-flex items-center px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${
-                      c.status === 'active' 
-                        ? 'rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
-                        : 'rounded-md bg-[#4338CA]/15 text-[#4338CA] border border-[#4338CA]/30'
-                    }`}>
-                      {c.status.replace('_', ' ')}
-                    </span>
-                  </td>
-                  <td className="modern-td">
-                    <div className="flex justify-end gap-2">
-                      {onViewCustomer && (
-                        <button 
-                          onClick={() => onViewCustomer(c.id)}
-                          className="p-2 text-gray-400 hover:text-[#4338CA] hover:bg-[#4338CA]/15 transition-colors rounded-md cursor-pointer"
-                          title="View Customer Dashboard"
-                          id={`btn-view-${c.id}`}
-                        >
-                          <Eye className="w-5 h-5" />
-                        </button>
-                      )}
-                      <button 
-                        onClick={() => setAdjustingCustomer(c)}
+                    <div className="relative inline-block">
+                      <button
+                        onClick={() => setActionsMenuFor(actionsMenuFor === c.id ? null : c.id)}
                         className="p-2 text-gray-400 hover:text-[#4338CA] hover:bg-[#4338CA]/15 transition-colors rounded-md cursor-pointer"
-                        title="Credit / Debit Adjustment"
-                        id={`btn-adjust-${c.id}`}
+                        title="Actions"
+                        id={`btn-actions-${c.id}`}
                       >
-                        <ArrowUpDown className="w-5 h-5" />
+                        <MoreVertical className="w-5 h-5" />
                       </button>
-                      <button 
-                        onClick={async () => {
-                          if (confirm(`Recalculate and fix balance for ${c.name}?`)) {
-                            await recalculateCustomerBalance(
-                              c.id,
-                              deliveries.filter(d => d.customerId === c.id),
-                              payments.filter(p => p.customerId === c.id),
-                              adjustments.filter(a => a.customerId === c.id),
-                              c.openingBalance || 0,
-                              c.openingBalanceType || 'arrears'
-                            );
-                            alert('Balance recalculated for ' + c.name);
-                          }
-                        }}
-                        className="p-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors rounded-md"
-                        title="Recalculate & Fix Balance"
-                        id={`btn-recalc-${c.id}`}
-                      >
-                        <RefreshCw className="w-5 h-5" />
-                      </button>
-                      <button 
-                        onClick={() => setEditingCustomer(c)}
-                        className="p-2 text-gray-500 dark:text-gray-400 hover:text-sky-400 dark:hover:text-sky-300 hover:bg-sky-500/10 transition-colors rounded-md"
-                        title="Edit Customer"
-                        id={`btn-edit-${c.id}`}
-                      >
-                        <Pencil className="w-5 h-5" />
-                      </button>
-                      <button 
-                        onClick={() => setDeletingCustomer(c)}
-                        className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors rounded-md"
-                        title="Delete Customer"
-                        id={`btn-delete-${c.id}`}
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                      {actionsMenuFor === c.id && (
+                        <div className="absolute right-0 top-full mt-1 w-56 z-50 bg-[#0B0B10] border border-theme-border rounded-xl shadow-2xl py-1.5">
+                          {onViewCustomer && (
+                            <button
+                              onClick={() => { onViewCustomer(c.id); setActionsMenuFor(null); }}
+                              className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-theme-text-muted hover:text-[#4338CA] hover:bg-white/5 transition-colors cursor-pointer text-left"
+                            >
+                              <Eye className="w-4 h-4" /> View Dashboard
+                            </button>
+                          )}
+                          <button
+                            onClick={() => { setAdjustingCustomer(c); setActionsMenuFor(null); }}
+                            className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-theme-text-muted hover:text-[#4338CA] hover:bg-white/5 transition-colors cursor-pointer text-left"
+                          >
+                            <ArrowUpDown className="w-4 h-4" /> Credit / Debit Adjustment
+                          </button>
+                          <button
+                            onClick={async () => {
+                              setActionsMenuFor(null);
+                              if (confirm(`Recalculate and fix balance for ${c.name}?`)) {
+                                await recalculateCustomerBalance(
+                                  c.id,
+                                  deliveries.filter(d => d.customerId === c.id),
+                                  payments.filter(p => p.customerId === c.id),
+                                  adjustments.filter(a => a.customerId === c.id),
+                                  c.openingBalance || 0,
+                                  c.openingBalanceType || 'arrears'
+                                );
+                                alert('Balance recalculated for ' + c.name);
+                              }
+                            }}
+                            className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-theme-text-muted hover:text-indigo-400 hover:bg-white/5 transition-colors cursor-pointer text-left"
+                          >
+                            <RefreshCw className="w-4 h-4" /> Recalculate & Fix Balance
+                          </button>
+                          <button
+                            onClick={() => { setEditingCustomer(c); setActionsMenuFor(null); }}
+                            className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-theme-text-muted hover:text-sky-400 hover:bg-white/5 transition-colors cursor-pointer text-left"
+                          >
+                            <Pencil className="w-4 h-4" /> Edit Customer
+                          </button>
+                          <button
+                            onClick={() => { setDeletingCustomer(c); setActionsMenuFor(null); }}
+                            className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-semibold text-theme-text-muted hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer text-left"
+                          >
+                            <Trash2 className="w-4 h-4" /> Delete Customer
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </td>
                 </tr>
