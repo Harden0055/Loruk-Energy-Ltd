@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useCustomers, createCustomer, deleteCustomer, updateCustomer, createAdjustment, useDeliveries, usePayments, useAdjustments, recalculateCustomerBalance, useCustomerStations, createCustomerStation, updateCustomerStation, deleteCustomerStation } from '../lib/db';
 import { formatCurrency, parseDateToTimestamp } from '../lib/utils';
-import { Search, Plus, Trash2, Pencil, AlertTriangle, X, ArrowUpDown, Eye, Truck, Download, RefreshCw, Check, MapPin, Users, Fuel, Coins, TrendingUp, Scale } from 'lucide-react';
+import { Search, Plus, Trash2, Pencil, AlertTriangle, X, ArrowUpDown, Eye, Truck, Download, RefreshCw, Check, MapPin, Users, Fuel, Coins, TrendingUp, Scale, FileText } from 'lucide-react';
 import { Customer, CustomerStation } from '../types';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { setupPdfHeader, addPdfFooter } from '../lib/pdfTemplate';
 import {
   ResponsiveContainer,
   LineChart,
@@ -36,6 +39,12 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'credit_risk'>(initialFilter === 'debtors' ? 'credit_risk' : 'all');
   const [isAdding, setIsAdding] = useState(initialAction === 'add');
+  // Optional From/To date range applied to the KPI panel, litres/purchases/profit
+  // columns and the combined PDF report (balances stay cumulative)
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const rangeStart = fromDate ? new Date(`${fromDate}T00:00:00`).getTime() : null;
+  const rangeEnd = toDate ? new Date(`${toDate}T23:59:59.999`).getTime() : null;
 
   useEffect(() => {
     if (initialAction === 'add') {
@@ -97,19 +106,24 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
       arr.push(s);
       stationsByCustomer.set(s.customerId, arr);
     }
+    const inRange = (ts?: number) => ts != null && (rangeStart == null || ts >= rangeStart) && (rangeEnd == null || ts <= rangeEnd);
     let litres = 0, sales = 0, received = 0, profit = 0, outstanding = 0, riskCount = 0;
     const profitByCustomer = new Map<string, number>();
     const litresByCustomer = new Map<string, number>();
+    const purchasesByCustomer = new Map<string, number>();
     for (const c of customers) {
       outstanding += getCustomerBalance(c);
       profitByCustomer.set(c.id, 0);
       litresByCustomer.set(c.id, 0);
+      purchasesByCustomer.set(c.id, 0);
       if (c.status === 'credit_risk') riskCount++;
     }
     for (const d of deliveries) {
+      if (!inRange(d.date)) continue;
       litres += d.litres || 0;
       sales += d.totalAmount || 0;
       litresByCustomer.set(d.customerId, (litresByCustomer.get(d.customerId) || 0) + (d.litres || 0));
+      purchasesByCustomer.set(d.customerId, (purchasesByCustomer.get(d.customerId) || 0) + (d.totalAmount || 0));
       const sts = stationsByCustomer.get(d.customerId);
       const st = sts?.find(s => s.id === d.stationId);
       let margin = 0;
@@ -120,9 +134,12 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
       profit += deliveryProfit;
       profitByCustomer.set(d.customerId, (profitByCustomer.get(d.customerId) || 0) + deliveryProfit);
     }
-    for (const p of payments) received += p.amount || 0;
-    return { litres, sales, received, profit, outstanding, riskCount, count: customers.length, profitByCustomer, litresByCustomer };
-  }, [customers, deliveries, payments, adjustments, allCustomerStations]);
+    for (const p of payments) {
+      if (!inRange(p.date)) continue;
+      received += p.amount || 0;
+    }
+    return { litres, sales, received, profit, outstanding, riskCount, count: customers.length, profitByCustomer, litresByCustomer, purchasesByCustomer };
+  }, [customers, deliveries, payments, adjustments, allCustomerStations, rangeStart, rangeEnd]);
 
   // Stations grouped by customer, for the per-row margin listing
   const stationsByCustomerMap = useMemo(() => {
@@ -274,6 +291,130 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
     URL.revokeObjectURL(url);
   };
 
+  // Combined all-customers PDF report, laid out like the debits/credits statement:
+  // header boxes, a debits vs credits table (one row per customer), summary, stamp+footer.
+  const handleExportAllCustomersPdf = async () => {
+    try {
+      const inRange = (ts?: number) => ts != null && (rangeStart == null || ts >= rangeStart) && (rangeEnd == null || ts <= rangeEnd);
+      const fmt = (v: number) => v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      const debits = new Map<string, number>();
+      const credits = new Map<string, number>();
+      let totalDebits = 0, totalCredits = 0;
+      for (const c of customers) { debits.set(c.id, 0); credits.set(c.id, 0); }
+      for (const d of deliveries) {
+        if (!inRange(d.date)) continue;
+        debits.set(d.customerId, (debits.get(d.customerId) || 0) + (d.totalAmount || 0));
+        totalDebits += d.totalAmount || 0;
+      }
+      for (const p of payments) {
+        if (!inRange(p.date)) continue;
+        credits.set(p.customerId, (credits.get(p.customerId) || 0) + (p.amount || 0));
+        totalCredits += p.amount || 0;
+      }
+      for (const a of adjustments) {
+        if (!inRange(a.date)) continue;
+        if (a.type === 'debit') {
+          debits.set(a.customerId, (debits.get(a.customerId) || 0) + (a.amount || 0));
+          totalDebits += a.amount || 0;
+        } else {
+          credits.set(a.customerId, (credits.get(a.customerId) || 0) + (a.amount || 0));
+          totalCredits += a.amount || 0;
+        }
+      }
+
+      const doc = new jsPDF();
+      const currentY = await setupPdfHeader({
+        doc,
+        title: 'ALL CUSTOMERS SUMMARY',
+        leftBoxLines: [
+          'Loruk Energy Limited',
+          'T/A Sales & Distribution',
+          'P.O BOX 342',
+          `Period: ${rangeStart ? format(rangeStart, 'dd/MM/yyyy') : 'Beginning'} - ${rangeEnd ? format(rangeEnd, 'dd/MM/yyyy') : 'Latest'}`,
+          `Customers: ${customers.length}`
+        ],
+        rightBoxLines: [
+          { label: 'Total Debits :', value: `KES ${fmt(totalDebits)}` },
+          { label: 'Total Credits :', value: `KES ${fmt(totalCredits)}` },
+          { label: 'Total Litres :', value: `${allCustomersKpi.litres.toLocaleString('en-US')} L` },
+          { label: 'Profit (Internal) :', value: `KES ${fmt(allCustomersKpi.profit)}` }
+        ]
+      });
+
+      const tableHeaders = [['ID', 'Customer', 'Debit (KES)', 'Credit (KES)', 'Closing Bal (KES)', 'Litres', 'Profit (KES)']];
+      const tableRows = customers.map(c => {
+        const bal = getCustomerBalance(c);
+        return [
+          c.customerId,
+          c.name,
+          fmt(debits.get(c.id) || 0),
+          fmt(credits.get(c.id) || 0),
+          fmt(bal),
+          (allCustomersKpi.litresByCustomer.get(c.id) || 0).toLocaleString('en-US'),
+          fmt(allCustomersKpi.profitByCustomer.get(c.id) || 0)
+        ];
+      });
+
+      autoTable(doc, {
+        head: tableHeaders,
+        body: tableRows,
+        startY: currentY,
+        theme: 'grid',
+        headStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
+        bodyStyles: { textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [200, 200, 200] },
+        footStyles: { fillColor: [245, 245, 245], textColor: [0, 0, 0], fontStyle: 'normal', lineWidth: 0.1, lineColor: [200, 200, 200] },
+        styles: { fontSize: 8 },
+        columnStyles: {
+          2: { halign: 'right', fontStyle: 'bold' },
+          3: { halign: 'right', fontStyle: 'bold' },
+          4: { halign: 'right', fontStyle: 'bold' },
+          5: { halign: 'right' },
+          6: { halign: 'right' }
+        },
+        didParseCell: function (data) {
+          if (data.section === 'body') {
+            if (data.column.index === 2) {
+              data.cell.styles.textColor = [99, 102, 241];   // Debits — indigo
+              data.cell.styles.fillColor = [238, 242, 255];  // Indigo 50
+            }
+            if (data.column.index === 3) {
+              data.cell.styles.textColor = [5, 150, 105];    // Credits — emerald
+              data.cell.styles.fillColor = [236, 253, 244];  // Emerald 50
+            }
+            const c = customers[data.row.index];
+            if (data.column.index === 4 && c) {
+              const bal = getCustomerBalance(c);
+              data.cell.styles.textColor = bal > 0 ? [99, 102, 241] : bal < 0 ? [5, 150, 105] : [0, 0, 0];
+            }
+          }
+        }
+      });
+
+      // Summary strip: combined closing balance
+      let summaryY = (doc as any).lastAutoTable.finalY + 10;
+      if (summaryY + 20 > 270) {
+        doc.addPage();
+        summaryY = 20;
+      }
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.1);
+      doc.rect(14, summaryY, 182, 14, 'S');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(30, 41, 59);
+      const combinedBalance = customers.reduce((s, c) => s + getCustomerBalance(c), 0);
+      doc.text(`Combined Closing Balance (KES) :   ${fmt(combinedBalance)}`, 192, summaryY + 9, { align: 'right' });
+
+      addPdfFooter(doc, summaryY + 14 + 10);
+
+      doc.save(`AllCustomers_Report_${format(new Date(), 'yyyyMMdd')}.pdf`);
+    } catch (err) {
+      console.error(err);
+      alert('Could not generate the all-customers report: ' + err);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -298,12 +439,49 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
             <option value="credit_risk" className="bg-[#08080C] text-indigo-300">Credit Risk</option>
           </select>
         </div>
+        <div className="flex items-center gap-2">
+          <div>
+            <label className="block text-[10px] font-bold text-theme-text-muted uppercase tracking-wider mb-1">From</label>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={e => setFromDate(e.target.value)}
+              className="px-3 py-2 bg-transparent border border-theme-border rounded-lg text-sm text-theme-text focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors cursor-pointer"
+            />
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-theme-text-muted uppercase tracking-wider mb-1">To</label>
+            <input
+              type="date"
+              value={toDate}
+              onChange={e => setToDate(e.target.value)}
+              className="px-3 py-2 bg-transparent border border-theme-border rounded-lg text-sm text-theme-text focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors cursor-pointer"
+            />
+          </div>
+          {(fromDate || toDate) && (
+            <button
+              onClick={() => { setFromDate(''); setToDate(''); }}
+              className="self-end px-3 py-2 text-xs font-bold text-theme-text-muted hover:text-white border border-theme-border hover:border-theme-border rounded-lg transition-colors cursor-pointer"
+              title="Clear date filter"
+            >
+              Clear
+            </button>
+          )}
+        </div>
         <button 
           onClick={exportCustomers}
           className="px-5 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-base font-semibold flex items-center gap-2 transition-colors cursor-pointer hover:border-emerald-400"
         >
           <Download className="w-5 h-5" />
           Export CSV
+        </button>
+        <button 
+          onClick={handleExportAllCustomersPdf}
+          className="px-5 py-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-lg text-base font-semibold flex items-center gap-2 transition-colors cursor-pointer hover:border-indigo-400"
+          title="Combined all-customers debits & credits report"
+        >
+          <FileText className="w-5 h-5" />
+          Export PDF
         </button>
         <button 
           onClick={() => setIsAdding(true)}
@@ -560,7 +738,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                       </td>
                     );
                   })()}
-                  <td className="modern-td text-slate-200 font-mono">{formatCurrency(c.totalPurchases)}</td>
+                  <td className="modern-td text-slate-200 font-mono">{formatCurrency(allCustomersKpi.purchasesByCustomer.get(c.id) || 0)}</td>
                   <td className="modern-td font-mono text-slate-200">
                     {(() => {
                       const l = allCustomersKpi.litresByCustomer.get(c.id) || 0;
