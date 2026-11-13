@@ -98,8 +98,10 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
       stationsByCustomer.set(s.customerId, arr);
     }
     let litres = 0, sales = 0, received = 0, profit = 0, outstanding = 0, riskCount = 0;
+    const profitByCustomer = new Map<string, number>();
     for (const c of customers) {
       outstanding += getCustomerBalance(c);
+      profitByCustomer.set(c.id, 0);
       if (c.status === 'credit_risk') riskCount++;
     }
     for (const d of deliveries) {
@@ -111,10 +113,12 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
       if (st) margin = st.profitMargin || 0;
       else if (sts?.length === 1) margin = sts[0].profitMargin || 0;
       else margin = customers.find(c => c.id === d.customerId)?.profitMargin ?? 0;
-      profit += (d.litres || 0) * margin;
+      const deliveryProfit = (d.litres || 0) * margin;
+      profit += deliveryProfit;
+      profitByCustomer.set(d.customerId, (profitByCustomer.get(d.customerId) || 0) + deliveryProfit);
     }
     for (const p of payments) received += p.amount || 0;
-    return { litres, sales, received, profit, outstanding, riskCount, count: customers.length };
+    return { litres, sales, received, profit, outstanding, riskCount, count: customers.length, profitByCustomer };
   }, [customers, deliveries, payments, adjustments, allCustomerStations]);
 
   // Delivery litres exist under two storage conventions: current records store
@@ -241,6 +245,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
         CreditLimit: c.creditLimit,
         OpeningBalance: c.openingBalance,
         ProfitMargin: c.profitMargin || 0,
+        ProfitMade: allCustomersKpi.profitByCustomer.get(c.id) || 0,
         Balance: getCustomerBalance(c),
         Status: c.status
     })));
@@ -479,6 +484,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                 <th className="modern-th">Closing Balance</th>
                 <th className="modern-th">Total Purchases</th>
                 <th className="modern-th">Margin (KES/L)</th>
+                <th className="modern-th">Profit Made</th>
                 <th className="modern-th">Status</th>
                 <th className="modern-th">Actions</th>
               </tr>
@@ -486,13 +492,13 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
             <tbody className="divide-y divide-gray-100 dark:divide-blue-900">
               {loading ? (
                 <tr className="modern-tr">
-                  <td colSpan={9} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 text-base">
+                  <td colSpan={10} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 text-base">
                     Loading customers...
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr className="modern-tr">
-                  <td colSpan={9} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 text-base">
+                  <td colSpan={10} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 text-base">
                     No customers found.
                   </td>
                 </tr>
@@ -544,6 +550,14 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                     ) : (
                       <span className="text-gray-400">—</span>
                     )}
+                  </td>
+                  <td className="modern-td font-mono">
+                    {(() => {
+                      const p = allCustomersKpi.profitByCustomer.get(c.id) || 0;
+                      return p > 0
+                        ? <span className="!text-[#059669] font-bold">{formatCurrency(p)}</span>
+                        : <span className="text-gray-400">—</span>;
+                    })()}
                   </td>
                   <td className="modern-td">
                     <span className={`inline-flex items-center px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${
