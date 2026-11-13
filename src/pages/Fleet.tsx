@@ -231,17 +231,17 @@ export default function Fleet({
   // everyone else gets a slightly different shade of green (deterministic).
   const getStationBadgeStyle = (stationName: string) => {
     const s = (stationName || '').toLowerCase();
-    if (s.includes('bungoma')) return 'bg-indigo-500/15 text-indigo-400';
-    if (s.includes('ndalu')) return 'bg-violet-500/15 text-violet-400';
-    if (s.includes('junction')) return 'bg-purple-500/15 text-purple-400';
-    if (s.includes('kapenguria')) return 'bg-emerald-500/15 text-emerald-400';
+    if (s.includes('bungoma')) return 'bg-indigo-500/15 text-indigo-400 border border-transparent hover:border-indigo-400/40';
+    if (s.includes('ndalu')) return 'bg-violet-500/15 text-violet-400 border border-transparent hover:border-violet-400/40';
+    if (s.includes('junction')) return 'bg-purple-500/15 text-purple-400 border border-transparent hover:border-purple-400/40';
+    if (s.includes('kapenguria')) return 'bg-emerald-500/15 text-emerald-400 border border-transparent hover:border-emerald-400/40';
     // Rest of the stations: slight variations within the green family
     const greens = [
-      'bg-emerald-500/15 text-emerald-400',
-      'bg-emerald-600/15 text-emerald-500',
-      'bg-green-500/15 text-green-400',
-      'bg-emerald-400/15 text-emerald-300',
-      'bg-green-600/15 text-green-500',
+      'bg-emerald-500/15 text-emerald-400 border border-transparent hover:border-emerald-400/40',
+      'bg-emerald-600/15 text-emerald-500 border border-transparent hover:border-emerald-500/40',
+      'bg-green-500/15 text-green-400 border border-transparent hover:border-green-400/40',
+      'bg-emerald-400/15 text-emerald-300 border border-transparent hover:border-emerald-300/40',
+      'bg-green-600/15 text-green-500 border border-transparent hover:border-green-500/40',
     ];
     let hash = 0;
     for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
@@ -251,18 +251,18 @@ export default function Fleet({
   const getProductBadgeStyle = (productName?: string) => {
     const p = (productName || 'Diesel').toLowerCase();
     if (p.includes('engine oil')) {
-      return 'bg-[#6366F1]/15 text-[#818CF8]';
+      return 'bg-[#6366F1]/15 text-[#818CF8] border border-transparent hover:border-[#818CF8]/40';
     }
     if (p.includes('brake fluid')) {
-      return 'bg-amber-500/15 text-amber-300';
+      return 'bg-amber-500/15 text-amber-300 border border-transparent hover:border-amber-400/40';
     }
     if (p.includes('greasing')) {
-      return 'bg-cyan-500/15 text-cyan-300';
+      return 'bg-cyan-500/15 text-cyan-300 border border-transparent hover:border-cyan-400/40';
     }
     if (p.includes('premium') || p.includes('super')) {
-      return 'bg-teal-500/15 text-teal-300';
+      return 'bg-teal-500/15 text-teal-300 border border-transparent hover:border-teal-400/40';
     }
-    return 'bg-emerald-500/15 text-emerald-400';
+    return 'bg-emerald-500/15 text-emerald-400 border border-transparent hover:border-emerald-400/40';
   };
 
   const filteredExpenses = useMemo(() => {
