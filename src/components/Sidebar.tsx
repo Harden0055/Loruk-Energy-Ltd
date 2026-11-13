@@ -276,7 +276,7 @@ export default function Sidebar({
             className={cn(
               "flex-1 flex items-center gap-3 px-3.5 py-2.5 text-sm font-semibold rounded-xl sidebar-item cursor-pointer text-left transition-all duration-200",
               isActive 
-                ? "sidebar-item-active bg-emerald-500/12 text-emerald-400 border border-emerald-500/35 font-bold shadow-[0_0_16px_rgba(16,185,129,0.12)]"
+                ? "sidebar-item-active text-emerald-400 font-bold"
                 : "text-theme-text-muted hover:text-[#00E676] hover:bg-emerald-500/[0.04]"
             )}
             title={`Go to ${item.label}`}
@@ -335,7 +335,7 @@ export default function Sidebar({
                       className={cn(
                         "w-full flex items-center gap-2.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-150 cursor-pointer text-left group/sub",
                         isSubItemActive
-                          ? "bg-emerald-500/15 text-emerald-400 font-bold border border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.15)]"
+                          ? "text-emerald-400 font-bold"
                           : "text-theme-text-muted hover:text-slate-200 hover:bg-slate-800/40 hover:translate-x-1"
                       )}
                     >
