@@ -155,10 +155,13 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
     }
     return Array.from(byDay.values())
       .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+      // Only days where a fuel was actually delivered with a real debit count;
+      // deliveries with litres but no amount (or unmatched products) are skipped
+      .filter(e => (e.agoLitres > 0 && e.agoAmount > 0) || (e.pmsLitres > 0 && e.pmsAmount > 0))
       .map(e => ({
         label: e.label,
-        AGO: e.agoLitres > 0 ? Number((e.agoAmount / e.agoLitres).toFixed(2)) : null,
-        PMS: e.pmsLitres > 0 ? Number((e.pmsAmount / e.pmsLitres).toFixed(2)) : null
+        AGO: e.agoLitres > 0 && e.agoAmount > 0 ? Number((e.agoAmount / e.agoLitres).toFixed(2)) : null,
+        PMS: e.pmsLitres > 0 && e.pmsAmount > 0 ? Number((e.pmsAmount / e.pmsLitres).toFixed(2)) : null
       }));
   }, [deliveries]);
 
