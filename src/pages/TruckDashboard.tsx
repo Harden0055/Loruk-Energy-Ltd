@@ -88,18 +88,18 @@ export default function TruckDashboard({
   const getProductBadgeStyle = (productName?: string) => {
     const p = (productName || 'Diesel').toLowerCase();
     if (p.includes('engine oil')) {
-      return 'bg-[#4338CA]/15 text-[#4338CA] border border-[#4338CA]/30';
+      return 'bg-[#6366F1]/15 text-[#818CF8] border border-transparent hover:border-[#818CF8]/40';
     }
     if (p.includes('brake fluid')) {
-      return 'bg-amber-500/15 text-amber-300 border border-amber-500/30';
+      return 'bg-amber-500/15 text-amber-300 border border-transparent hover:border-amber-400/40';
     }
     if (p.includes('greasing')) {
-      return 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30';
+      return 'bg-cyan-500/15 text-cyan-300 border border-transparent hover:border-cyan-400/40';
     }
     if (p.includes('premium') || p.includes('super')) {
-      return 'bg-teal-500/15 text-teal-300 border border-teal-500/30';
+      return 'bg-teal-500/15 text-teal-300 border border-transparent hover:border-teal-400/40';
     }
-    return 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
+    return 'bg-emerald-500/15 text-emerald-400 border border-transparent hover:border-emerald-400/40';
   };
 
   return (
@@ -124,19 +124,19 @@ export default function TruckDashboard({
       
        {/* Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="glass-panel border border-[#4338CA]/30 bg-[#4338CA]/[0.03] p-5 rounded-xl">
+        <div className="glass-panel border border-transparent hover:border-[#6366F1]/50 bg-[#4338CA]/[0.03] p-5 rounded-xl transition-colors">
            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Spent</p>
            <h3 className="text-2xl font-black font-mono text-[#4338CA] mt-2">{formatCurrency(totalExpense)}</h3>
         </div>
-        <div className="glass-panel border border-emerald-500/25 bg-emerald-500/[0.03] p-5 rounded-xl">
+        <div className="glass-panel border border-transparent hover:border-emerald-400/50 bg-emerald-500/[0.03] p-5 rounded-xl transition-colors">
            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Litres</p>
            <h3 className="text-2xl font-black font-mono text-[#059669] mt-2">{totalLitres.toLocaleString()} <span className="text-xs font-sans font-bold">L</span></h3>
         </div>
-        <div className="glass-panel border border-[#4338CA]/30 bg-[#4338CA]/[0.03] p-5 rounded-xl">
+        <div className="glass-panel border border-transparent hover:border-[#6366F1]/50 bg-[#4338CA]/[0.03] p-5 rounded-xl transition-colors">
            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Avg Fuel Cost</p>
            <h3 className="text-2xl font-black font-mono text-[#4338CA] mt-2">{avgCostPerLitre > 0 ? `${formatCurrency(avgCostPerLitre)}/L` : 'N/A'}</h3>
         </div>
-        <div className="glass-panel border border-emerald-500/25 bg-emerald-500/[0.03] p-5 rounded-xl">
+        <div className="glass-panel border border-transparent hover:border-emerald-400/50 bg-emerald-500/[0.03] p-5 rounded-xl transition-colors">
            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Active Fleet</p>
            <h3 className="text-2xl font-black font-mono text-[#059669] mt-2">{activeTrucksCount} <span className="text-xs font-sans font-bold">Trucks</span></h3>
         </div>
@@ -287,15 +287,31 @@ export default function TruckDashboard({
               ) : (
                 [...displayedExpenses].sort((a, b) => b.date - a.date).map(e => {
                   const s = (e.station || '').toLowerCase();
-                  let stationClass = 'bg-[#4338CA]/15 text-[#4338CA] border-[#4338CA]/30';
-                  if (s.includes('kapenguria')) {
-                    stationClass = 'bg-[#059669]/20 text-[#059669] border-[#059669]/40';
-                  } else if (s.includes('bungoma')) {
-                    stationClass = 'bg-[#4338CA]/20 text-[#4338CA] border-[#4338CA]/40';
-                  } else if (s.includes('ndalu') || s.includes('junction')) {
-                    stationClass = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
+                  // Same per-station palette as Fleet Consumption Logs:
+                  // Bungoma = indigo, Ndalu = violet, Junction = purple,
+                  // Kapenguria = green, rest = slight green variations.
+                  let stationClass = 'bg-indigo-500/15 text-indigo-400 border border-transparent hover:border-indigo-400/40';
+                  if (s.includes('bungoma')) {
+                    stationClass = 'bg-indigo-500/15 text-indigo-400 border border-transparent hover:border-indigo-400/40';
+                  } else if (s.includes('ndalu')) {
+                    stationClass = 'bg-violet-500/15 text-violet-400 border border-transparent hover:border-violet-400/40';
+                  } else if (s.includes('junction')) {
+                    stationClass = 'bg-purple-500/15 text-purple-400 border border-transparent hover:border-purple-400/40';
+                  } else if (s.includes('kapenguria')) {
+                    stationClass = 'bg-emerald-500/15 text-emerald-400 border border-transparent hover:border-emerald-400/40';
+                  } else {
+                    const greens = [
+                      'bg-emerald-500/15 text-emerald-400 border border-transparent hover:border-emerald-400/40',
+                      'bg-emerald-600/15 text-emerald-500 border border-transparent hover:border-emerald-500/40',
+                      'bg-green-500/15 text-green-400 border border-transparent hover:border-green-400/40',
+                      'bg-emerald-400/15 text-emerald-300 border border-transparent hover:border-emerald-300/40',
+                      'bg-green-600/15 text-green-500 border border-transparent hover:border-green-500/40',
+                    ];
+                    let hash = 0;
+                    for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+                    stationClass = greens[hash % greens.length];
                   }
-                  
+
                   return (
                     <tr key={e.id} className="hover:bg-white/5 transition-colors">
                       <td className="modern-td">{format(e.date, 'MMM d, yyyy')}</td>
@@ -305,7 +321,7 @@ export default function TruckDashboard({
                           <button
                             type="button"
                             onClick={() => onNavigateToStation?.(e.station, e.station)}
-                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border transition-all cursor-pointer ${stationClass}`}
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold transition-all cursor-pointer ${stationClass}`}
                             title={`Open ${e.station} Dashboard`}
                           >
                             <span>{e.station}</span>
