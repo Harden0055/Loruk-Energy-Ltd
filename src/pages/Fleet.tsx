@@ -226,35 +226,43 @@ export default function Fleet({
     };
   }, [expenses]);
 
+  // Station badge colors — borderless tinted pills, one hue per station:
+  // Bungoma = indigo, Ndalu = violet, Junction = purple, Kapenguria = green,
+  // everyone else gets a slightly different shade of green (deterministic).
   const getStationBadgeStyle = (stationName: string) => {
     const s = (stationName || '').toLowerCase();
-    // Gel-Bungoma and Bendera: deep indigo
-    if (s.includes('bungoma') || s.includes('bendera')) {
-      return 'bg-[#4F46E5]/20 text-[#4F46E5] border border-[#4F46E5]/40';
-    }
-    // Ndalu and Junction: slightly indigo after Gel-Bungoma and Bendera
-    if (s.includes('ndalu') || s.includes('junction')) {
-      return 'bg-[#6366F1]/15 text-[#6366F1] border border-[#6366F1]/30';
-    }
-    // The rest: slightly green
-    return 'bg-emerald-500/15 text-[#059669] border border-emerald-500/30';
+    if (s.includes('bungoma')) return 'bg-indigo-500/15 text-indigo-400';
+    if (s.includes('ndalu')) return 'bg-violet-500/15 text-violet-400';
+    if (s.includes('junction')) return 'bg-purple-500/15 text-purple-400';
+    if (s.includes('kapenguria')) return 'bg-emerald-500/15 text-emerald-400';
+    // Rest of the stations: slight variations within the green family
+    const greens = [
+      'bg-emerald-500/15 text-emerald-400',
+      'bg-emerald-600/15 text-emerald-500',
+      'bg-green-500/15 text-green-400',
+      'bg-emerald-400/15 text-emerald-300',
+      'bg-green-600/15 text-green-500',
+    ];
+    let hash = 0;
+    for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+    return greens[hash % greens.length];
   };
 
   const getProductBadgeStyle = (productName?: string) => {
     const p = (productName || 'Diesel').toLowerCase();
     if (p.includes('engine oil')) {
-      return 'bg-[#6366F1]/15 text-[#6366F1] border border-[#6366F1]/30';
+      return 'bg-[#6366F1]/15 text-[#818CF8]';
     }
     if (p.includes('brake fluid')) {
-      return 'bg-amber-500/15 text-amber-300 border border-amber-500/30';
+      return 'bg-amber-500/15 text-amber-300';
     }
     if (p.includes('greasing')) {
-      return 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30';
+      return 'bg-cyan-500/15 text-cyan-300';
     }
     if (p.includes('premium') || p.includes('super')) {
-      return 'bg-teal-500/15 text-teal-300 border border-teal-500/30';
+      return 'bg-teal-500/15 text-teal-300';
     }
-    return 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30';
+    return 'bg-emerald-500/15 text-emerald-400';
   };
 
   const filteredExpenses = useMemo(() => {
