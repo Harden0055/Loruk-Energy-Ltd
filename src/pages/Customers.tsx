@@ -99,14 +99,17 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
     }
     let litres = 0, sales = 0, received = 0, profit = 0, outstanding = 0, riskCount = 0;
     const profitByCustomer = new Map<string, number>();
+    const litresByCustomer = new Map<string, number>();
     for (const c of customers) {
       outstanding += getCustomerBalance(c);
       profitByCustomer.set(c.id, 0);
+      litresByCustomer.set(c.id, 0);
       if (c.status === 'credit_risk') riskCount++;
     }
     for (const d of deliveries) {
       litres += d.litres || 0;
       sales += d.totalAmount || 0;
+      litresByCustomer.set(d.customerId, (litresByCustomer.get(d.customerId) || 0) + (d.litres || 0));
       const sts = stationsByCustomer.get(d.customerId);
       const st = sts?.find(s => s.id === d.stationId);
       let margin = 0;
@@ -118,8 +121,19 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
       profitByCustomer.set(d.customerId, (profitByCustomer.get(d.customerId) || 0) + deliveryProfit);
     }
     for (const p of payments) received += p.amount || 0;
-    return { litres, sales, received, profit, outstanding, riskCount, count: customers.length, profitByCustomer };
+    return { litres, sales, received, profit, outstanding, riskCount, count: customers.length, profitByCustomer, litresByCustomer };
   }, [customers, deliveries, payments, adjustments, allCustomerStations]);
+
+  // Stations grouped by customer, for the per-row margin listing
+  const stationsByCustomerMap = useMemo(() => {
+    const m = new Map<string, CustomerStation[]>();
+    for (const s of allCustomerStations) {
+      const arr = m.get(s.customerId) || [];
+      arr.push(s);
+      m.set(s.customerId, arr);
+    }
+    return m;
+  }, [allCustomerStations]);
 
   // Delivery litres exist under two storage conventions: current records store
   // split halves ×1000, older records stored raw litres. Detect per record:
@@ -246,6 +260,8 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
         OpeningBalance: c.openingBalance,
         ProfitMargin: c.profitMargin || 0,
         ProfitMade: allCustomersKpi.profitByCustomer.get(c.id) || 0,
+        TotalLitres: allCustomersKpi.litresByCustomer.get(c.id) || 0,
+        Stations: (stationsByCustomerMap.get(c.id) || []).map(s => `${s.name} (K${s.profitMargin || 0}/L)`).join('; '),
         Balance: getCustomerBalance(c),
         Status: c.status
     })));
@@ -483,6 +499,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                 <th className="modern-th">Opening Bal</th>
                 <th className="modern-th">Closing Balance</th>
                 <th className="modern-th">Total Purchases</th>
+                <th className="modern-th">Total Litres</th>
                 <th className="modern-th">Margin (KES/L)</th>
                 <th className="modern-th">Profit Made</th>
                 <th className="modern-th">Status</th>
@@ -492,13 +509,13 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
             <tbody className="divide-y divide-gray-100 dark:divide-blue-900">
               {loading ? (
                 <tr className="modern-tr">
-                  <td colSpan={10} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 text-base">
+                  <td colSpan={11} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 text-base">
                     Loading customers...
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr className="modern-tr">
-                  <td colSpan={10} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 text-base">
+                  <td colSpan={11} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400 text-base">
                     No customers found.
                   </td>
                 </tr>
@@ -544,12 +561,36 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                     );
                   })()}
                   <td className="modern-td text-slate-200 font-mono">{formatCurrency(c.totalPurchases)}</td>
+                  <td className="modern-td font-mono text-slate-200">
+                    {(() => {
+                      const l = allCustomersKpi.litresByCustomer.get(c.id) || 0;
+                      return l > 0 ? `${l.toLocaleString('en-US')} L` : <span className="text-gray-400">—</span>;
+                    })()}
+                  </td>
                   <td className="modern-td font-mono">
-                    {(c.profitMargin || 0) > 0 ? (
-                      <span className="!text-[#059669] font-bold">{(c.profitMargin || 0).toLocaleString()}</span>
-                    ) : (
-                      <span className="text-gray-400">—</span>
-                    )}
+                    {(() => {
+                      const sts = stationsByCustomerMap.get(c.id) || [];
+                      if (sts.length === 0) {
+                        return (c.profitMargin || 0) > 0
+                          ? <span className="!text-[#059669] font-bold">{(c.profitMargin || 0).toLocaleString()}</span>
+                          : <span className="text-gray-400">—</span>;
+                      }
+                      if (sts.length === 1) {
+                        const m = sts[0].profitMargin || 0;
+                        return m > 0
+                          ? <span className="!text-[#059669] font-bold">{m.toLocaleString()}</span>
+                          : <span className="text-gray-400">—</span>;
+                      }
+                      return (
+                        <div className="space-y-0.5">
+                          {sts.map(s => (
+                            <div key={s.id} className="text-[10px] leading-tight !text-[#059669] font-semibold whitespace-nowrap">
+                              {s.name}: K{(s.profitMargin || 0).toLocaleString()}
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="modern-td font-mono">
                     {(() => {
