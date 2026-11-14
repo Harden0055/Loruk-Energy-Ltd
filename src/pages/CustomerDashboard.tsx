@@ -867,9 +867,12 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       stationName: selectedStation?.name || '',
       productType: deliveryProduct,
       litres,
-      amount: amt,
-      rate: parseFloat(deliveryRate) || undefined
+      amount: amt
     };
+    // Only attach rate fields when they parse — never write `undefined` into
+    // nested entries (Firestore rejects undefined deep inside documents)
+    const rateNum = parseFloat(deliveryRate);
+    if (Number.isFinite(rateNum) && rateNum > 0) entry.rate = rateNum;
     if (isSplit) {
       const parts = String(deliveryLitres).split('/');
       const superL = parts.length === 2 ? (parseFloat(parts[0]) || 0) * 1000 : 0;
@@ -879,8 +882,10 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       entry.dieselLitres = dieselL;
       entry.superAmount = parseFloat(deliverySuperAmount) || 0;
       entry.dieselAmount = parseFloat(deliveryDieselAmount) || 0;
-      entry.superRate = parseFloat(deliverySuperRate) || undefined;
-      entry.dieselRate = parseFloat(deliveryDieselRate) || undefined;
+      const sRate = parseFloat(deliverySuperRate);
+      if (Number.isFinite(sRate) && sRate > 0) entry.superRate = sRate;
+      const dRate = parseFloat(deliveryDieselRate);
+      if (Number.isFinite(dRate) && dRate > 0) entry.dieselRate = dRate;
       entry.amount = entry.superAmount + entry.dieselAmount;
     }
     return entry;

@@ -163,13 +163,29 @@ export function useStationReports() {
 }
 
 export function sanitizePayload<T extends Record<string, any>>(obj: T): T {
-  const result: any = {};
-  for (const [key, value] of Object.entries(obj)) {
-    if (value !== undefined && !Number.isNaN(value)) {
-      result[key] = value;
+  const isPlainObject = (v: any) =>
+    v !== null && typeof v === 'object' &&
+    (Object.getPrototypeOf(v) === Object.prototype || Object.getPrototypeOf(v) === null);
+  const clean = (value: any): any => {
+    if (Array.isArray(value)) {
+      const arr: any[] = [];
+      for (const item of value) {
+        if (item === undefined || Number.isNaN(item)) continue;
+        arr.push(isPlainObject(item) ? clean(item) : item);
+      }
+      return arr;
     }
-  }
-  return result;
+    if (isPlainObject(value)) {
+      const res: any = {};
+      for (const [key, val] of Object.entries(value)) {
+        if (val === undefined || Number.isNaN(val)) continue;
+        res[key] = isPlainObject(val) || Array.isArray(val) ? clean(val) : val;
+      }
+      return res;
+    }
+    return value;
+  };
+  return clean(obj);
 }
 
 // ---------------- MUTATIONS WRAPPER ----------------
