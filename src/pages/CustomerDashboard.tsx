@@ -73,7 +73,6 @@ const RateTooltipContent = ({ active, payload, label }: any) => {
       {p.AGO != null && <div style={{ color: '#34D399' }}>AGO Rate : {fmtKES(p.AGO)} /L</div>}
       {p.PMS != null && <div style={{ color: '#A5B4FC' }}>PMS Rate : {fmtKES(p.PMS)} /L</div>}
       {p.litres > 0 && <div style={{ color: '#34D399', marginTop: 2 }}>Delivered : {Number(p.litres).toLocaleString('en-US', { maximumFractionDigits: 2 })} L</div>}
-      {p.payments > 0 && <div style={{ color: '#C4B5FD' }}>Received : {fmtKES(p.payments)}</div>}
     </div>
   );
 };
@@ -639,33 +638,18 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       }));
   }, [customerDeliveries]);
 
-  // Three-band layout for the daily rate chart on a single hidden display axis
-  // (domain [-100, 300] → bottom edge to top edge):
-  //   • top band   — AGO/PMS rate lines (their own axis is scaled to only use it)
-  //   • middle band — green litres-delivered bars, one per delivery day
-  //   • bottom band — violet payments-received bars hanging upside down below the
-  //     litres baseline; every payment made that day (even several transactions)
-  //     is summed into that day's single bar. Days without a delivery are absent.
+  // Two-band layout for the daily rate chart on a single hidden display axis
+  // (domain [0, 300] → bottom edge to top edge):
+  //   • top band    — AGO/PMS rate lines (their own axis is scaled to only use it)
+  //   • bottom band — green litres-delivered bars, one per delivery day.
+  // Days without a delivery are absent from the axis entirely (empty).
   const rateHistogramData = useMemo(() => {
-    const payByDay = new Map<string, number>();
-    for (const p of customerPayments) {
-      if (!p.date) continue;
-      const dt = new Date(p.date);
-      const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
-      payByDay.set(key, (payByDay.get(key) || 0) + (p.amount || 0));
-    }
     const maxLitres = Math.max(0, ...dailyRateData.map(r => r.litres || 0));
-    const maxPayments = Math.max(0, ...dailyRateData.map(r => payByDay.get(r.key) || 0));
-    return dailyRateData.map(r => {
-      const pay = payByDay.get(r.key) || 0;
-      return {
-        ...r,
-        payments: pay,
-        litresNorm: maxLitres > 0 ? (r.litres / maxLitres) * 100 : 0,
-        paymentsNorm: maxPayments > 0 ? -(pay / maxPayments) * 100 : 0
-      };
-    });
-  }, [dailyRateData, customerPayments]);
+    return dailyRateData.map(r => ({
+      ...r,
+      litresNorm: maxLitres > 0 ? (r.litres / maxLitres) * 100 : 0
+    }));
+  }, [dailyRateData]);
 
   // Rate axis domain: stretches the AGO/PMS lines into the top band only, so
   // they never overlap the histogram bands at the bottom of the grid.
@@ -1472,16 +1456,15 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.07)" />
                     <XAxis dataKey="label" fontSize={10} stroke="#94A3B8" tickLine={false} minTickGap={18} />
                     <YAxis yAxisId="rate" fontSize={10} stroke="#94A3B8" tickFormatter={(v) => `K${Math.round(v)}`} tickLine={false} domain={rateAxisDomain} />
-                    {/* Hidden display axis for the three-band layout: litres occupy
-                        0..100, payments hang below in -100..0, lines stay above 100 */}
-                    <YAxis yAxisId="vol" hide domain={[-100, 300]} />
+                    {/* Hidden display axis for the two-band layout: litres occupy
+                        the bottom third, rate lines stay in the upper region */}
+                    <YAxis yAxisId="vol" hide domain={[0, 300]} />
                     <Tooltip
                       content={<RateTooltipContent />}
                       cursor={{ fill: 'rgba(99, 102, 241, 0.06)' }}
                     />
                     <Legend verticalAlign="top" height={20} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
                     <Bar yAxisId="vol" dataKey="litresNorm" name="Delivered (L)" fill="#34D399" fillOpacity={0.45} radius={[2, 2, 0, 0]} maxBarSize={12} />
-                    <Bar yAxisId="vol" dataKey="paymentsNorm" name="Received (KES)" fill="#8B5CF6" fillOpacity={0.5} radius={[0, 0, 2, 2]} maxBarSize={12} />
                     <Line yAxisId="rate" type="monotone" dataKey="AGO" stroke="#34D399" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
                     <Line yAxisId="rate" type="monotone" dataKey="PMS" stroke="#6366F1" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
                     <Brush

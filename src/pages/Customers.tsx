@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useCustomers, createCustomer, deleteCustomer, updateCustomer, createAdjustment, useDeliveries, usePayments, useAdjustments, recalculateCustomerBalance, useCustomerStations, createCustomerStation, updateCustomerStation, deleteCustomerStation } from '../lib/db';
 import { formatCurrency, parseDateToTimestamp } from '../lib/utils';
-import { Search, Plus, Trash2, Pencil, AlertTriangle, X, ArrowUpDown, Eye, Truck, Download, RefreshCw, Check, MapPin, Users, Fuel, Coins, TrendingUp, Scale, FileText, MoreVertical } from 'lucide-react';
+import { Search, Plus, Trash2, Pencil, AlertTriangle, X, ArrowUpDown, Eye, Truck, Download, RefreshCw, Check, MapPin, Users, Fuel, Coins, TrendingUp, Scale, FileText, MoreVertical, ChevronDown, ChevronUp } from 'lucide-react';
 import { Customer, CustomerStation } from '../types';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -35,7 +35,6 @@ const CombinedRateTooltip = ({ active, payload, label }: any) => {
       {p.AGO != null && <div style={{ color: '#34D399' }}>AGO Rate : {fmtKES(p.AGO)} /L</div>}
       {p.PMS != null && <div style={{ color: '#A5B4FC' }}>PMS Rate : {fmtKES(p.PMS)} /L</div>}
       {p.litres > 0 && <div style={{ color: '#34D399', marginTop: 2 }}>Delivered : {Number(p.litres).toLocaleString('en-US', { maximumFractionDigits: 2 })} L</div>}
-      {p.payments > 0 && <div style={{ color: '#C4B5FD' }}>Received : {fmtKES(p.payments)}</div>}
     </div>
   );
 };
@@ -79,6 +78,8 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
     }
   }, [initialFilter]);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  // Customer ids whose "Stations Delivered" cell is expanded to show every station
+  const [expandedStationRows, setExpandedStationRows] = useState<Set<string>>(new Set());
   const [deletingCustomer, setDeletingCustomer] = useState<Customer | null>(null);
   const [adjustingCustomer, setAdjustingCustomer] = useState<Customer | null>(null);
   const [actionsMenuFor, setActionsMenuFor] = useState<string | null>(null);
@@ -301,33 +302,18 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
       }));
   }, [deliveries]);
 
-  // Three-band layout for the combined rate chart on a single hidden display
-  // axis (domain [-100, 300] → bottom edge to top edge):
-  //   • top band   — AGO/PMS rate lines (their own axis is scaled to only use it)
-  //   • middle band — green litres-delivered bars, one per delivery day
-  //   • bottom band — violet payments-received bars hanging upside down below the
-  //     litres baseline; every payment made that day (even several transactions)
-  //     is summed into that day's single bar. Days without a delivery are absent.
+  // Two-band layout for the combined rate chart on a single hidden display axis
+  // (domain [0, 300] → bottom edge to top edge):
+  //   • top band    — AGO/PMS rate lines (their own axis is scaled to only use it)
+  //   • bottom band — green litres-delivered bars, one per delivery day.
+  // Days without a delivery are absent from the axis entirely (empty).
   const combinedHistogramData = useMemo(() => {
-    const payByDay = new Map<string, number>();
-    for (const p of payments) {
-      if (!p.date) continue;
-      const dt = new Date(p.date);
-      const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
-      payByDay.set(key, (payByDay.get(key) || 0) + (p.amount || 0));
-    }
     const maxLitres = Math.max(0, ...combinedRateData.map(r => r.litres || 0));
-    const maxPayments = Math.max(0, ...combinedRateData.map(r => payByDay.get(r.key) || 0));
-    return combinedRateData.map(r => {
-      const pay = payByDay.get(r.key) || 0;
-      return {
-        ...r,
-        payments: pay,
-        litresNorm: maxLitres > 0 ? (r.litres / maxLitres) * 100 : 0,
-        paymentsNorm: maxPayments > 0 ? -(pay / maxPayments) * 100 : 0
-      };
-    });
-  }, [combinedRateData, payments]);
+    return combinedRateData.map(r => ({
+      ...r,
+      litresNorm: maxLitres > 0 ? (r.litres / maxLitres) * 100 : 0
+    }));
+  }, [combinedRateData]);
 
   // Rate axis domain: stretches the AGO/PMS lines into the top band only, so
   // they never overlap the histogram bands at the bottom of the grid.
@@ -749,9 +735,9 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.07)" />
                 <XAxis dataKey="label" fontSize={11} stroke="#94A3B8" tickLine={false} minTickGap={40} />
                 <YAxis yAxisId="rate" fontSize={11} stroke="#94A3B8" tickFormatter={(v) => `K${Math.round(v)}`} tickLine={false} domain={rateAxisDomain} />
-                {/* Hidden display axis for the three-band layout: litres occupy
-                    0..100, payments hang below in -100..0, lines stay above 100 */}
-                <YAxis yAxisId="vol" hide domain={[-100, 300]} />
+                {/* Hidden display axis for the two-band layout: litres occupy
+                    the bottom third, rate lines stay in the upper region */}
+                <YAxis yAxisId="vol" hide domain={[0, 300]} />
                 <Tooltip
                   content={<CombinedRateTooltip />}
                   cursor={{ fill: 'rgba(99, 102, 241, 0.06)' }}
@@ -767,7 +753,6 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                   tickFormatter={() => ''}
                 />
                 <Bar yAxisId="vol" dataKey="litresNorm" name="Delivered (L)" fill="#34D399" fillOpacity={0.45} radius={[2, 2, 0, 0]} maxBarSize={10} />
-                <Bar yAxisId="vol" dataKey="paymentsNorm" name="Received (KES)" fill="#8B5CF6" fillOpacity={0.5} radius={[0, 0, 2, 2]} maxBarSize={10} />
                 <Line
                   yAxisId="rate"
                   type="monotone"
@@ -907,15 +892,37 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                     {(() => {
                       const summary = [...(allCustomersKpi.stationSummaryByCustomer.get(c.id) || [])].sort((a, b) => b.litres - a.litres);
                       if (summary.length === 0) return <span className="text-gray-400">—</span>;
+                      // Collapsed by default: show the top few stations, expand for the rest
+                      const isExpanded = expandedStationRows.has(c.id);
+                      const VISIBLE_COUNT = 3;
+                      const visible = isExpanded ? summary : summary.slice(0, VISIBLE_COUNT);
+                      const hiddenCount = summary.length - VISIBLE_COUNT;
                       return (
                         <div className="space-y-0.5">
-                          {summary.map(st => (
+                          {visible.map(st => (
                             <div key={st.key} className="text-[10px] leading-tight font-semibold whitespace-nowrap">
                               <span className="!text-[#818CF8]">{st.name}</span>
                               <span className="text-theme-text-muted"> · </span>
                               <span className="font-mono text-theme-text">{st.litres.toLocaleString('en-US', { maximumFractionDigits: 2 })} L</span>
                             </div>
                           ))}
+                          {summary.length > VISIBLE_COUNT && (
+                            <button
+                              type="button"
+                              onClick={() => setExpandedStationRows(prev => {
+                                const next = new Set(prev);
+                                if (next.has(c.id)) next.delete(c.id); else next.add(c.id);
+                                return next;
+                              })}
+                              className="text-[10px] font-bold text-[#818CF8] hover:text-indigo-300 flex items-center gap-0.5 cursor-pointer mt-0.5"
+                            >
+                              {isExpanded ? (
+                                <>Show less <ChevronUp className="w-3 h-3" /></>
+                              ) : (
+                                <>+{hiddenCount} more station{hiddenCount === 1 ? '' : 's'} <ChevronDown className="w-3 h-3" /></>
+                              )}
+                            </button>
+                          )}
                         </div>
                       );
                     })()}
@@ -1509,6 +1516,7 @@ interface StationRowProps {
 
 /** Editable row for one filling station of a customer (name, location, profit margin; save & delete). */
 function StationRow({ station }: StationRowProps) {
+  const [editing, setEditing] = useState(false);
   const [name, setName] = useState(station.name || '');
   const [location, setLocation] = useState(station.location || '');
   const [margin, setMargin] = useState(station.profitMargin != null ? String(station.profitMargin) : '');
@@ -1554,9 +1562,33 @@ function StationRow({ station }: StationRowProps) {
     }
   };
 
+  // Collapsed by default: the row shows the station summary with a Pencil icon;
+  // clicking the icon expands the inline editor (name, location, margin, save & delete).
+  if (!editing) {
+    return (
+      <div className="bg-sky-500/[0.04] border border-theme-border dark:border-theme-border rounded-lg px-2 py-1.5 flex items-center gap-2">
+        <MapPin className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+        <div className="flex-1 min-w-0">
+          <div className="text-sky-100 text-sm font-semibold truncate">{station.name || 'Unnamed station'}</div>
+          <div className="text-sky-200/70 text-[10px] truncate">
+            {station.location?.trim() ? station.location : 'No location'} · Margin KES {(station.profitMargin || 0).toLocaleString('en-US', { maximumFractionDigits: 2 })}/L
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="p-1.5 text-sky-400 hover:bg-sky-500/15 rounded-md transition-colors cursor-pointer shrink-0"
+          title="Edit station"
+        >
+          <Pencil className="w-4 h-4" />
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-1">
-      <div className="bg-sky-500/[0.04] border border-theme-border dark:border-theme-border rounded-lg px-2 py-1.5 space-y-1.5">
+      <div className="bg-sky-500/[0.04] border border-sky-500/30 rounded-lg px-2 py-1.5 space-y-1.5">
         <div className="flex items-center gap-2">
           <Pencil className="w-3.5 h-3.5 text-sky-400 shrink-0" />
           <input
@@ -1586,6 +1618,14 @@ function StationRow({ station }: StationRowProps) {
             title="Delete station"
           >
             <Trash2 className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setEditing(false)}
+            className="p-1.5 text-gray-500 hover:text-sky-300 hover:bg-sky-500/10 rounded-md transition-colors cursor-pointer shrink-0"
+            title="Close editor"
+          >
+            <X className="w-4 h-4" />
           </button>
         </div>
         <div className="flex items-center gap-2 pl-6">
