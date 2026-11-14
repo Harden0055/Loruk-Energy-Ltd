@@ -62,6 +62,8 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
   // columns and the combined PDF report (balances stay cumulative)
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  // Index of the day currently hovered on the combined rate chart (for the full-date readout)
+  const [hoveredRateIdx, setHoveredRateIdx] = useState<number | null>(null);
   const rangeStart = fromDate ? new Date(`${fromDate}T00:00:00`).getTime() : null;
   const rangeEnd = toDate ? new Date(`${toDate}T23:59:59.999`).getTime() : null;
 
@@ -244,6 +246,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
       .map(e => ({
         key: e.key,
         label: e.label,
+        fullDate: format(new Date(`${e.key}T00:00:00`), 'EEE, dd MMM yyyy'),
         AGO: e.agoLitres > 0 && e.agoAmount > 0 ? Number((e.agoAmount / e.agoLitres).toFixed(2)) : null,
         PMS: e.pmsLitres > 0 && e.pmsAmount > 0 ? Number((e.pmsAmount / e.pmsLitres).toFixed(2)) : null,
         litres: e.agoLitres + e.pmsLitres
@@ -675,7 +678,12 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-              <ComposedChart data={combinedHistogramData} margin={{ top: 22, right: 10, left: 0, bottom: 0 }}>
+              <ComposedChart
+                data={combinedHistogramData}
+                margin={{ top: 22, right: 10, left: 0, bottom: 0 }}
+                onMouseMove={(s: any) => setHoveredRateIdx(s?.activeTooltipIndex ?? null)}
+                onMouseLeave={() => setHoveredRateIdx(null)}
+              >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.07)" />
                 <XAxis dataKey="label" fontSize={11} stroke="#94A3B8" tickLine={false} minTickGap={40} />
                 <YAxis yAxisId="rate" fontSize={11} stroke="#94A3B8" tickFormatter={(v) => `K${Math.round(v)}`} tickLine={false} domain={['auto', 'auto']} />
@@ -721,6 +729,12 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
               </ComposedChart>
             </ResponsiveContainer>
           )}
+        </div>
+        {/* Full-date readout for the hovered day, pinned under the x-axis */}
+        <div className="h-4 mt-0.5 text-center text-[10px] font-bold tracking-wide text-theme-text-muted">
+          {hoveredRateIdx != null && combinedHistogramData[hoveredRateIdx]
+            ? combinedHistogramData[hoveredRateIdx].fullDate
+            : ''}
         </div>
       </div>
 

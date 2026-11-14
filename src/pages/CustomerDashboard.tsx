@@ -111,6 +111,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [showCharts, setShowCharts] = useState(false);
   // Chart metric switch: litres delivered vs payments received vs daily fuel rate (AGO/PMS)
   const [chartMetric, setChartMetric] = useState<'litres' | 'received' | 'rate'>('litres');
+  // Index of the day currently hovered on the rate chart (for the full-date readout)
+  const [hoveredRateIdx, setHoveredRateIdx] = useState<number | null>(null);
 
   const [verificationNotice, setVerificationNotice] = useState<string | null>(null);
 
@@ -629,6 +631,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       .map(e => ({
         key: e.key,
         label: e.label,
+        fullDate: format(new Date(`${e.key}T00:00:00`), 'EEE, dd MMM yyyy'),
         AGO: e.agoLitres > 0 && e.agoAmount > 0 ? Number((e.agoAmount / e.agoLitres).toFixed(2)) : null,
         PMS: e.pmsLitres > 0 && e.pmsAmount > 0 ? Number((e.pmsAmount / e.pmsLitres).toFixed(2)) : null,
         litres: e.agoLitres + e.pmsLitres
@@ -1494,7 +1497,12 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 </div>
               ) : chartMetric === 'rate' ? (
                 <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                  <ComposedChart data={rateHistogramData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <ComposedChart
+                    data={rateHistogramData}
+                    margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                    onMouseMove={(s: any) => setHoveredRateIdx(s?.activeTooltipIndex ?? null)}
+                    onMouseLeave={() => setHoveredRateIdx(null)}
+                  >
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.07)" />
                     <XAxis dataKey="label" fontSize={10} stroke="#94A3B8" tickLine={false} minTickGap={18} />
                     <YAxis yAxisId="rate" fontSize={10} stroke="#94A3B8" tickFormatter={(v) => `K${Math.round(v)}`} tickLine={false} domain={['auto', 'auto']} />
@@ -1559,6 +1567,14 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 </ResponsiveContainer>
               )}
             </div>
+            {/* Full-date readout for the hovered day, pinned under the x-axis (rate view only) */}
+            {chartMetric === 'rate' && (
+              <div className="h-4 mt-0.5 text-center text-[10px] font-bold tracking-wide text-theme-text-muted">
+                {hoveredRateIdx != null && rateHistogramData[hoveredRateIdx]
+                  ? rateHistogramData[hoveredRateIdx].fullDate
+                  : ''}
+              </div>
+            )}
           </div>
 
           {/* Chart 2: Transaction Volume Distribution */}
