@@ -187,7 +187,11 @@ export interface FuelAuditEntry {
 // ---------------- CONSTANTS ----------------
 
 export const FUEL_PAYMENT_METHODS = ['Cash', 'M-Pesa', 'Bank', 'Cheque', 'Other'];
-export const FUEL_PRODUCT_CATEGORIES = ['LPG Cylinder', 'Burner', 'Grill', 'Other'];
+export const FUEL_PRODUCT_CATEGORIES = ['LPG Cylinder', 'Burner', 'Grill', 'White Oils', 'Other'];
+export const DEFAULT_FUEL_PRODUCTS = [
+  { name: 'Premium', category: 'White Oils', unit: 'L' },
+  { name: 'Diesel', category: 'White Oils', unit: 'L' },
+];
 export const DEFAULT_EXPENSE_CATEGORIES = [
   'Fuel & Energy', 'Staff Wages', 'Transport', 'Rent', 'Repairs & Maintenance',
   'Utilities', 'Licences & Permits', 'Bank Charges', 'Miscellaneous'
@@ -586,6 +590,24 @@ export async function ensureFuelExpenseCategories(existing: FuelExpenseCategory[
   if (names.length > 0) return;
   for (const name of DEFAULT_EXPENSE_CATEGORIES) {
     await fuelAdd(COLLECTIONS.expenseCategories, { name });
+  }
+}
+
+/** Seeds Premium & Diesel under White Oils once, when no products exist yet. */
+export async function ensureFuelDefaultProducts(existing: FuelProduct[]) {
+  if (existing.length > 0) return;
+  const local = getLocalCollection(COLLECTIONS.products);
+  if (local.length > 0) return;
+  for (const def of DEFAULT_FUEL_PRODUCTS) {
+    await createFuelProduct({
+      name: def.name,
+      category: def.category,
+      unit: def.unit,
+      buyingPrice: 0,
+      sellingPrice: 0,
+      stock: 0,
+      sellable: true,
+    });
   }
 }
 

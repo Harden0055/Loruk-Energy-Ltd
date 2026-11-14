@@ -2,14 +2,14 @@
  * FuelSuite — Products: LPG cylinders, burners, grills & other items.
  * Empty cylinders are non-sellable containers. Buying/selling prices editable.
  */
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Package, Plus, Pencil, Trash2, Search, Save, ShoppingCart, Ban, CheckCircle2, Layers,
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 import {
   useFuelProducts, createFuelProduct, updateFuelProduct, deleteFuelProduct,
-  useFuelProductSales, useFuelPurchases,
+  useFuelProductSales, useFuelPurchases, ensureFuelDefaultProducts,
   FUEL_PRODUCT_CATEGORIES, FuelProduct,
 } from '../../lib/fuelDb';
 import { useFuelDateRange } from './fuelShared';
@@ -22,6 +22,7 @@ const CAT_COLORS: Record<string, string> = {
   'LPG Cylinder': '#34D399',
   'Burner': '#6366F1',
   'Grill': '#8B5CF6',
+  'White Oils': '#38BDF8',
   'Other': '#94A3B8',
 };
 
@@ -38,12 +39,16 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
   const [error, setError] = useState<string | null>(null);
 
   const [name, setName] = useState('');
-  const [category, setCategory] = useState(FUEL_PRODUCT_CATEGORIES[0]);
-  const [unit, setUnit] = useState('pcs');
+  const [category, setCategory] = useState(FUEL_PRODUCT_CATEGORIES[0]);  const [unit, setUnit] = useState('pcs');
   const [buyingPrice, setBuyingPrice] = useState('');
   const [sellingPrice, setSellingPrice] = useState('');
   const [stock, setStock] = useState('');
   const [sellable, setSellable] = useState(true);
+
+  // Seed Premium & Diesel (White Oils) once, when no products exist yet
+  useEffect(() => {
+    ensureFuelDefaultProducts(products).catch(console.error);
+  }, [products.length]);
 
   const openModal = (p: FuelProduct | null) => {
     setName(p?.name || '');
