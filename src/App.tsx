@@ -26,8 +26,19 @@ import { format } from 'date-fns';
 import { useProducts, addProduct, deleteProduct } from './lib/operationsDb';
 import { PWAInstallButton } from './components/PWAInstallButton';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import FuelSuiteHome from './pages/fuelsuite/FuelSuiteHome';
+import FuelDailyRecords from './pages/fuelsuite/FuelDailyRecords';
+import FuelProductSales from './pages/fuelsuite/FuelProductSales';
+import FuelPurchases from './pages/fuelsuite/FuelPurchases';
+import FuelExpenses from './pages/fuelsuite/FuelExpenses';
+import FuelDebts from './pages/fuelsuite/FuelDebts';
+import FuelPaidDebts from './pages/fuelsuite/FuelPaidDebts';
+import FuelPayments from './pages/fuelsuite/FuelPayments';
+import FuelSetup from './pages/fuelsuite/FuelSetup';
+import FuelProducts from './pages/fuelsuite/FuelProducts';
 
-type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'trucks' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'stationDashboard' | 'settings' | 'stations' | 'products' | 'assistant';
+type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'trucks' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'stationDashboard' | 'settings' | 'stations' | 'products' | 'assistant'
+  | 'fuelHome' | 'fuelDaily' | 'fuelSales' | 'fuelPurchases' | 'fuelExpenses' | 'fuelDebts' | 'fuelPaidDebts' | 'fuelPayments' | 'fuelSetup' | 'fuelProducts';
 
 function AuthenticatedApp() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -426,6 +437,20 @@ function AuthenticatedApp() {
               />
             )}
             {currentPage === 'products' && <Products />}
+            {currentPage === 'fuelHome' && (
+              <FuelSuiteHome
+                onNavigate={(p, action) => navigateTo(p as Page, action ? { action } : undefined)}
+              />
+            )}
+            {currentPage === 'fuelDaily' && <FuelDailyRecords />}
+            {currentPage === 'fuelSales' && <FuelProductSales initialAction={pageParams?.action} />}
+            {currentPage === 'fuelPurchases' && <FuelPurchases initialAction={pageParams?.action} />}
+            {currentPage === 'fuelExpenses' && <FuelExpenses initialAction={pageParams?.action} />}
+            {currentPage === 'fuelDebts' && <FuelDebts initialAction={pageParams?.action} />}
+            {currentPage === 'fuelPaidDebts' && <FuelPaidDebts initialAction={pageParams?.action} />}
+            {currentPage === 'fuelPayments' && <FuelPayments initialAction={pageParams?.action} />}
+            {currentPage === 'fuelSetup' && <FuelSetup initialAction={pageParams?.action} />}
+            {currentPage === 'fuelProducts' && <FuelProducts initialAction={pageParams?.action} />}
           </ErrorBoundary>
         </main>
       </div>

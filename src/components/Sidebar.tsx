@@ -28,7 +28,17 @@ import {
   BarChart3,
   Layers,
   Database,
-  ArrowRight
+  ArrowRight,
+  ClipboardList,
+  ShoppingBag,
+  ShoppingCart,
+  Receipt,
+  HandCoins,
+  Banknote,
+  Smartphone,
+  MapPinned,
+  Package,
+  LayoutGrid,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { cn } from '../lib/utils';
@@ -179,6 +189,23 @@ export default function Sidebar({
         { id: 'st-junction', label: 'Junction Station Hub', icon: MapPin, page: 'stationDashboard', params: { stationId: 'junction', stationName: 'Junction' }, badge: 'JUNCTION' },
       ]
     },
+    {
+      id: 'fuelsuite',
+      label: 'FuelSuite',
+      icon: LayoutGrid,
+      subPages: [
+        { id: 'fs-home', label: 'FuelSuite Overview', icon: LayoutGrid, page: 'fuelHome' },
+        { id: 'fs-daily', label: 'Daily Fuel Records', icon: ClipboardList, page: 'fuelDaily' },
+        { id: 'fs-sales', label: 'Product Sales', icon: ShoppingCart, page: 'fuelSales' },
+        { id: 'fs-purchases', label: 'Purchases', icon: ShoppingBag, page: 'fuelPurchases' },
+        { id: 'fs-expenses', label: 'Expenses', icon: Receipt, page: 'fuelExpenses' },
+        { id: 'fs-debts', label: 'Debts', icon: HandCoins, page: 'fuelDebts' },
+        { id: 'fs-paid-debts', label: 'Paid Debts', icon: Banknote, page: 'fuelPaidDebts' },
+        { id: 'fs-payments', label: 'Payments', icon: Smartphone, page: 'fuelPayments' },
+        { id: 'fs-setup', label: 'Stations & Salespeople', icon: MapPinned, page: 'fuelSetup' },
+        { id: 'fs-products', label: 'Products & Prices', icon: Package, page: 'fuelProducts' },
+      ]
+    },
     { 
       id: 'products', 
       label: 'Products', 
@@ -220,6 +247,7 @@ export default function Sidebar({
     if (currentPage === 'customerDashboard' && parentId === 'customers') return true;
     if (currentPage === 'truckDashboard' && parentId === 'trucks') return true;
     if (currentPage === 'stationDashboard' && parentId === 'stations') return true;
+    if (parentId === 'fuelsuite') return currentPage.startsWith('fuel');
     return false;
   };
 
@@ -268,7 +296,7 @@ export default function Sidebar({
               if (item.subPages && item.subPages.length > 0) {
                 toggleExpand(item.id);
               }
-              onNavigate(item.id);
+              onNavigate(item.id === 'fuelsuite' ? 'fuelHome' : item.id);
               if (onClose) onClose();
             }}
             className={cn(
