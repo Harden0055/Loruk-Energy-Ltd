@@ -2136,6 +2136,55 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     </div>
                   </div>
                 )}
+                {/* Live pre-save summary: combined totals + balance impact, each metric
+                    color-distinct; balances violet when outstanding, green when advance */}
+                {(() => {
+                  const currentEntryPreview = buildDeliveryEntryFromForm();
+                  const previewPages = currentEntryPreview
+                    ? (deliveryPageIndex < deliveryPages.length
+                        ? deliveryPages.map((p, i) => i === deliveryPageIndex ? currentEntryPreview : p)
+                        : [...deliveryPages, currentEntryPreview])
+                    : deliveryPages;
+                  if (previewPages.length === 0) return null;
+                  const previewLitres = previewPages.reduce((s, x) => s + x.litres, 0);
+                  const previewAmount = previewPages.reduce((s, x) => s + x.amount, 0);
+                  const balBefore = calculatedBalance || 0;
+                  const balAfter = balBefore + previewAmount;
+                  const balClass = (v: number) => v > 0
+                    ? 'border-violet-500/25 bg-violet-500/[0.07] text-violet-300'
+                    : v < 0
+                      ? 'border-emerald-500/25 bg-emerald-500/[0.07] text-emerald-400'
+                      : 'border-white/10 bg-white/[0.03] text-gray-300';
+                  const balLabel = (v: number) => v > 0 ? 'Outstanding' : v < 0 ? 'Advance' : 'Settled';
+                  return (
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <div className="rounded-lg border border-emerald-500/25 bg-emerald-500/[0.06] px-3 py-2">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted">Combined Litres</p>
+                        <p className="text-sm font-black font-mono text-emerald-400 mt-0.5">
+                          {previewLitres.toLocaleString('en-US', { maximumFractionDigits: 2 })} L
+                        </p>
+                      </div>
+                      <div className="rounded-lg border border-indigo-500/25 bg-indigo-500/[0.06] px-3 py-2">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted">Combined Amount</p>
+                        <p className="text-sm font-black font-mono text-indigo-300 mt-0.5">
+                          KES {previewAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                      <div className={`rounded-lg border px-3 py-2 ${balClass(balBefore)}`}>
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted">Balance Before · {balLabel(balBefore)}</p>
+                        <p className="text-sm font-black font-mono mt-0.5">
+                          {formatCurrency(balBefore)}
+                        </p>
+                      </div>
+                      <div className={`rounded-lg border px-3 py-2 ${balClass(balAfter)}`}>
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted">Expected Closing · {balLabel(balAfter)}</p>
+                        <p className="text-sm font-black font-mono mt-0.5">
+                          {formatCurrency(balAfter)}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
               <div className="px-6 py-4 bg-[#000000] border-t border-white/10 flex justify-end gap-3 rounded-b-xl">
                 {deliveryPageIndex > 0 && (
