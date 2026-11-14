@@ -42,6 +42,19 @@ export interface Delivery {
   dieselLitres?: number;
   superAmount?: number;
   dieselAmount?: number;
+  /** Optional per-station breakdown when one delivery covers several stations of the same customer. */
+  stationEntries?: Array<{
+    stationId: string;
+    stationName: string;
+    productType: string;
+    litres: number;
+    rate?: number;
+    amount: number;
+    superLitres?: number;
+    dieselLitres?: number;
+    superAmount?: number;
+    dieselAmount?: number;
+  }>;
   createdBy: string;
   createdAt?: number;
   updatedBy: string;

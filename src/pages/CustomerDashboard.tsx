@@ -126,6 +126,12 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [deliverySuperRate, setDeliverySuperRate] = useState('');
   const [deliveryDieselRate, setDeliveryDieselRate] = useState('');
   const [deliveryDate, setDeliveryDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  // Staged per-station entries for a multi-station delivery (one delivery, several stations)
+  const [stagedDeliveryEntries, setStagedDeliveryEntries] = useState<Array<{
+    stationId: string; stationName: string; productType: string;
+    litres: number; amount: number;
+    superLitres?: number; dieselLitres?: number; superAmount?: number; dieselAmount?: number;
+  }>>([]);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentDate, setPaymentDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [adjustType, setAdjustType] = useState<'credit' | 'debit'>('credit');
@@ -382,14 +388,16 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
   const timelineEvents = useMemo(() => {
     const rawTransactions = [
-      ...customerDeliveries.map(d => { 
-        const baseDesc = d.productType === 'Super/Diesel Split' ? `Delivered ${(d.superLitres || 0)/1000}/${(d.dieselLitres || 0)/1000}L split` : ['lpg', 'lubricant'].some(str => d.productType.toLowerCase().includes(str)) ? `Delivered ${d.productType}` : `Delivered ${d.litres.toLocaleString()}L of ${d.productType}`;
+      ...customerDeliveries.map(d => {
+        const baseDesc = d.stationEntries && d.stationEntries.length > 1
+          ? `Delivered ${d.litres.toLocaleString()}L across ${d.stationEntries.length} stations: ` + d.stationEntries.map(se => `${se.stationName || 'Station'} ${se.litres.toLocaleString()}L`).join(', ')
+          : d.productType === 'Super/Diesel Split' ? `Delivered ${(d.superLitres || 0)/1000}/${(d.dieselLitres || 0)/1000}L split` : ['lpg', 'lubricant'].some(str => d.productType.toLowerCase().includes(str)) ? `Delivered ${d.productType}` : `Delivered ${d.litres.toLocaleString()}L of ${d.productType}`;
         const deliveryMargin = (d.litres || 0) * marginForDelivery(d);
         return {
-          id: `del-${d.id}`, 
-          date: d.date, 
+          id: `del-${d.id}`,
+          date: d.date,
           createdAt: d.createdAt,
-          type: 'delivery' as const, 
+          type: 'delivery' as const,
           title: 'Fuel Delivery',
           description: deliveryMargin > 0 ? `${baseDesc} · Margin Ksh ${Math.round(deliveryMargin).toLocaleString()}` : baseDesc,
           amount: d.totalAmount, 
@@ -789,57 +797,103 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   };
 
   // Submit handers for quick operations
+  // Build one station entry from the current form values (shared by stage-next and save).
+  const buildDeliveryEntryFromForm = () => {
+    const isNonLiquid = deliveryProduct.toLowerCase().includes('lpg') || deliveryProduct.toLowerCase().includes('lubricant');
+    const isSplit = deliveryProduct === 'Super/Diesel Split';
+    if (!isSplit && ((!isNonLiquid && !deliveryLitres) || !deliveryAmount)) return null;
+    if (isSplit && (!deliveryLitres || !deliverySuperAmount || !deliveryDieselAmount)) return null;
+
+    const selectedStation = customerStations.find(s => s.id === deliveryStationId);
+    let litres = isNonLiquid ? 0 : (parseFloat(deliveryLitres) || 0);
+    let amt = parseFloat(deliveryAmount) || 0;
+    const entry: {
+      stationId: string; stationName: string; productType: string;
+      litres: number; amount: number;
+      superLitres?: number; dieselLitres?: number; superAmount?: number; dieselAmount?: number;
+    } = {
+      stationId: selectedStation?.id || '',
+      stationName: selectedStation?.name || '',
+      productType: deliveryProduct,
+      litres,
+      amount: amt
+    };
+    if (isSplit) {
+      const parts = String(deliveryLitres).split('/');
+      const superL = parts.length === 2 ? (parseFloat(parts[0]) || 0) * 1000 : 0;
+      const dieselL = parts.length === 2 ? (parseFloat(parts[1]) || 0) * 1000 : 0;
+      entry.litres = superL + dieselL;
+      entry.superLitres = superL;
+      entry.dieselLitres = dieselL;
+      entry.superAmount = parseFloat(deliverySuperAmount) || 0;
+      entry.dieselAmount = parseFloat(deliveryDieselAmount) || 0;
+      entry.amount = entry.superAmount + entry.dieselAmount;
+    }
+    return entry;
+  };
+
+  const resetDeliveryFormFields = () => {
+    setDeliveryStationId('');
+    setDeliveryLitres('');
+    setDeliveryAmount('');
+    setDeliverySuperAmount('');
+    setDeliveryDieselAmount('');
+    setDeliveryRate('');
+    setDeliverySuperRate('');
+    setDeliveryDieselRate('');
+  };
+
+  const closeDeliveryModal = () => {
+    setActiveModal(null);
+    setStagedDeliveryEntries([]);
+    resetDeliveryFormFields();
+  };
+
+  // "Next Station →": stage the current entry and open a fresh page for another station.
+  // All staged entries are later saved as ONE delivery to the customer.
+  const handleStageNextStation = () => {
+    const entry = buildDeliveryEntryFromForm();
+    if (!entry) {
+      alert('Please fill in the current station details before adding the next one');
+      return;
+    }
+    setStagedDeliveryEntries(prev => [...prev, entry]);
+    resetDeliveryFormFields();
+  };
+
   const handleAddDelivery = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customer) return;
-    
-    const isNonLiquid = deliveryProduct.toLowerCase().includes('lpg') || deliveryProduct.toLowerCase().includes('lubricant');
-    const isSplit = deliveryProduct === 'Super/Diesel Split';
-    
-    if (!isSplit && ((!isNonLiquid && !deliveryLitres) || !deliveryAmount)) {
+
+    const currentEntry = buildDeliveryEntryFromForm();
+    const entries = currentEntry ? [...stagedDeliveryEntries, currentEntry] : [...stagedDeliveryEntries];
+    if (entries.length === 0) {
       alert('Please fill in required fields');
       return;
     }
-    if (isSplit && (!deliveryLitres || !deliverySuperAmount || !deliveryDieselAmount)) {
-      alert('Please fill in required split fields');
-      return;
-    }
-    
+
     setModalLoading(true);
     try {
-      let amt = parseFloat(deliveryAmount) || 0;
-      let finalLitres = isNonLiquid ? 0 : parseFloat(deliveryLitres);
-      let superL = 0;
-      let dieselL = 0;
-      let superA = 0;
-      let dieselA = 0;
-      
-      if (isSplit) {
-        const parts = String(deliveryLitres).split('/');
-        if (parts.length === 2) {
-          superL = parseFloat(parts[0]) * 1000;
-          dieselL = parseFloat(parts[1]) * 1000;
-          finalLitres = superL + dieselL;
-        }
-        superA = parseFloat(deliverySuperAmount) || 0;
-        dieselA = parseFloat(deliveryDieselAmount) || 0;
-        amt = superA + dieselA;
-      }
-      
-      const selectedStation = customerStations.find(s => s.id === deliveryStationId);
+      const amt = entries.reduce((s, x) => s + x.amount, 0);
+      const finalLitres = entries.reduce((s, x) => s + x.litres, 0);
+      // Same product across entries → keep that product; mixed → label as multi-station
+      const distinctProducts = new Set(entries.map(x => x.productType));
+      const productType = distinctProducts.size === 1 ? entries[0].productType : 'Multi-Station';
+
       await createDelivery({
         customerId: customer.id,
-        stationId: selectedStation?.id || '',
-        stationName: selectedStation?.name || '',
+        stationId: entries[0].stationId || '',
+        stationName: entries[0].stationName || '',
         date: parseDateToTimestamp(deliveryDate),
-        productType: deliveryProduct,
+        productType,
         litres: finalLitres,
         totalAmount: amt,
-        ...(isSplit ? {
-          superLitres: superL,
-          dieselLitres: dieselL,
-          superAmount: superA,
-          dieselAmount: dieselA
+        ...(entries.length > 1 ? { stationEntries: entries } : {}),
+        ...(entries.length === 1 && entries[0].superLitres != null ? {
+          superLitres: entries[0].superLitres,
+          dieselLitres: entries[0].dieselLitres,
+          superAmount: entries[0].superAmount,
+          dieselAmount: entries[0].dieselAmount
         } : {}),
         createdBy: user?.email || 'Unknown'
       }, user?.email || 'Unknown');
@@ -848,14 +902,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       await updateCustomer(customer.id, {}, { balance: amt, totalPurchases: amt }, user?.email || 'Unknown');
 
       setActiveModal(null);
-      setDeliveryStationId('');
-      setDeliveryLitres('');
-      setDeliveryAmount('');
-      setDeliverySuperAmount('');
-      setDeliveryDieselAmount('');
-      setDeliveryRate('');
-      setDeliverySuperRate('');
-      setDeliveryDieselRate('');
+      setStagedDeliveryEntries([]);
+      resetDeliveryFormFields();
     } catch (err) {
       console.error(err);
       alert('Error recording delivery');
@@ -1757,10 +1805,32 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               <div className="px-6 py-5 border-b border-white/10 bg-[#000000] flex justify-between items-center">
                 <div>
                   <h3 className="text-xl font-bold text-white">Log Fuel Delivery</h3>
-                  <p className="text-xs text-theme-text-muted font-medium pb-1">For {customer.name}</p>
+                  <p className="text-xs text-theme-text-muted font-medium pb-1">
+                    For {customer.name}{stagedDeliveryEntries.length > 0 ? ` · ${stagedDeliveryEntries.length + 1} stations` : ''}
+                  </p>
                 </div>
-                <button type="button" onClick={() => setActiveModal(null)} className="p-1 px-2 text-[#A1A1AA] hover:text-white rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
+                <button type="button" onClick={closeDeliveryModal} className="p-1 px-2 text-[#A1A1AA] hover:text-white rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
               </div>
+              {stagedDeliveryEntries.length > 0 && (
+                <div className="px-6 pt-4 space-y-1.5">
+                  {stagedDeliveryEntries.map((st, idx) => (
+                    <div key={idx} className="flex items-center justify-between gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5">
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-white truncate">{st.stationName || 'No station'} <span className="text-theme-text-muted font-medium">· {st.productType}</span></p>
+                        <p className="text-[10px] text-theme-text-muted font-mono">{st.litres.toLocaleString('en-US', { maximumFractionDigits: 2 })} L · KES {st.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setStagedDeliveryEntries(prev => prev.filter((_, i) => i !== idx))}
+                        className="p-1 text-gray-500 hover:text-red-400 rounded transition-colors cursor-pointer shrink-0"
+                        title="Remove this station"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="p-6 space-y-4">
                 <div>
                   <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Date *</label>
@@ -1824,7 +1894,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     <div>
                       <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Litres Split (Super/Diesel e.g. 7/3)</label>
                       <input 
-                        type="text" required placeholder="e.g. 7/3"
+                        type="text" placeholder="e.g. 7/3"
                         value={deliveryLitres} onChange={e => handleLitresChange(e.target.value)}
                         className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
                       />
@@ -1852,7 +1922,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       <div>
                         <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Super Amount (KES)</label>
                         <input 
-                          type="number" step="0.01" required placeholder="0.00"
+                          type="number" step="0.01" placeholder="0.00"
                           value={deliverySuperAmount} onChange={e => handleSuperAmountChange(e.target.value)}
                           className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
                         />
@@ -1860,7 +1930,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       <div>
                         <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Diesel Amount (KES)</label>
                         <input 
-                          type="number" step="0.01" required placeholder="0.00"
+                          type="number" step="0.01" placeholder="0.00"
                           value={deliveryDieselAmount} onChange={e => handleDieselAmountChange(e.target.value)}
                           className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
                         />
@@ -1869,7 +1939,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     <div>
                       <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Total Amount (KES)</label>
                       <input 
-                        type="number" step="1" required
+                        type="number" step="1"
                         value={deliveryAmount} onChange={e => handleTotalAmountChange(e.target.value)}
                         className="w-full px-3.5 py-2.5 glass-panel border border-theme-border dark:border-theme-border rounded-lg text-base text-blue-900 dark:text-blue-50 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
                       />
@@ -1884,7 +1954,6 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                           <input 
                             type="number"
                             step="0.01"
-                            required
                             placeholder="0.00"
                             value={deliveryLitres}
                             onChange={e => handleLitresChange(e.target.value)}
@@ -1909,7 +1978,6 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       <input 
                         type="number"
                         step="0.01"
-                        required
                         placeholder="0.00"
                         value={deliveryAmount}
                         onChange={e => handleTotalAmountChange(e.target.value)}
@@ -1922,17 +1990,27 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
               <div className="px-6 py-4 bg-[#000000] border-t border-white/10 flex justify-end gap-3 rounded-b-xl">
                 <button
                   type="button"
-                  onClick={() => setActiveModal(null)}
+                  onClick={closeDeliveryModal}
                   className="px-4 py-2 font-semibold text-gray-400 hover:text-white transition-colors cursor-pointer"
                 >
                   Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleStageNextStation}
+                  className="px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-lg text-sm font-bold transition-colors cursor-pointer"
+                  title="Stage this station and add another station to the same delivery"
+                >
+                  Next Station →
                 </button>
                 <button
                   type="submit"
                   disabled={modalLoading}
                   className="px-5 py-2 bg-[#4338CA] hover:bg-[#4338CA]/90 text-white rounded-lg text-sm font-bold shadow-md shadow-[#4338CA]/25 disabled:opacity-50 transition-colors cursor-pointer"
                 >
-                  Save Delivery
+                  {stagedDeliveryEntries.length > 0
+                    ? `Save Delivery (${stagedDeliveryEntries.length + 1} stations)`
+                    : 'Save Delivery'}
                 </button>
               </div>
             </form>

@@ -112,6 +112,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
     const profitByCustomer = new Map<string, number>();
     const litresByCustomer = new Map<string, number>();
     const purchasesByCustomer = new Map<string, number>();
+    const stationSummaryByCustomer = new Map<string, Array<{ key: string; name: string; litres: number; amount: number }>>();
     for (const c of customers) {
       outstanding += getCustomerBalance(c);
       profitByCustomer.set(c.id, 0);
@@ -134,12 +135,24 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
       const deliveryProfit = (d.litres || 0) * margin;
       profit += deliveryProfit;
       profitByCustomer.set(d.customerId, (profitByCustomer.get(d.customerId) || 0) + deliveryProfit);
+      // Per-station delivered summary (litres + amount per station, range-filtered)
+      const stName = st?.name || d.stationName || 'Station';
+      let sm = stationSummaryByCustomer.get(d.customerId);
+      if (!sm) { sm = []; stationSummaryByCustomer.set(d.customerId, sm); }
+      const sKey = d.stationId || stName.toLowerCase();
+      const existing = sm.find(x => x.key === sKey);
+      if (existing) {
+        existing.litres += d.litres || 0;
+        existing.amount += d.totalAmount || 0;
+      } else {
+        sm.push({ key: sKey, name: stName, litres: d.litres || 0, amount: d.totalAmount || 0 });
+      }
     }
     for (const p of payments) {
       if (!inRange(p.date)) continue;
       received += p.amount || 0;
     }
-    return { litres, sales, received, profit, outstanding, riskCount, count: customers.length, profitByCustomer, litresByCustomer, purchasesByCustomer };
+    return { litres, sales, received, profit, outstanding, riskCount, count: customers.length, profitByCustomer, litresByCustomer, purchasesByCustomer, stationSummaryByCustomer };
   }, [customers, deliveries, payments, adjustments, allCustomerStations, rangeStart, rangeEnd]);
 
   // Stations grouped by customer, for the per-row margin listing
@@ -680,7 +693,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                 <th className="modern-th">Total Purchases</th>
                 <th className="modern-th">Total Litres</th>
                 <th className="modern-th">Margin (KES/L)</th>
-                <th className="modern-th">Profit Made</th>
+                <th className="modern-th">Stations Delivered</th>
                 <th className="modern-th">Actions</th>
               </tr>
             </thead>
@@ -770,12 +783,21 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                       );
                     })()}
                   </td>
-                  <td className="modern-td font-mono">
+                  <td className="modern-td">
                     {(() => {
-                      const p = allCustomersKpi.profitByCustomer.get(c.id) || 0;
-                      return p > 0
-                        ? <span className="!text-[#059669] font-bold">{formatCurrency(p)}</span>
-                        : <span className="text-gray-400">—</span>;
+                      const summary = [...(allCustomersKpi.stationSummaryByCustomer.get(c.id) || [])].sort((a, b) => b.litres - a.litres);
+                      if (summary.length === 0) return <span className="text-gray-400">—</span>;
+                      return (
+                        <div className="space-y-0.5">
+                          {summary.map(st => (
+                            <div key={st.key} className="text-[10px] leading-tight font-semibold whitespace-nowrap">
+                              <span className="!text-[#818CF8]">{st.name}</span>
+                              <span className="text-theme-text-muted"> · </span>
+                              <span className="font-mono text-theme-text">{st.litres.toLocaleString('en-US', { maximumFractionDigits: 2 })} L</span>
+                            </div>
+                          ))}
+                        </div>
+                      );
                     })()}
                   </td>
                   <td className="modern-td">

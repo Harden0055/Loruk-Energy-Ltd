@@ -56,8 +56,41 @@ export default function TruckDashboard({
 
   const totalExpense = displayedExpenses.reduce((sum, e) => sum + e.amount, 0);
   const totalLitres = displayedExpenses.reduce((sum, e) => sum + (e.litres || 0), 0);
-  const activeTrucksCount = new Set(displayedExpenses.map(e => e.carRegistration)).size;
-  const avgCostPerLitre = totalLitres > 0 ? totalExpense / totalLitres : 0;
+
+  // Per-station fuel consumption summary for this truck
+  const stationFuelData = useMemo(() => {
+    const map = new Map<string, { name: string; litres: number; amount: number }>();
+    for (const e of displayedExpenses) {
+      const name = (e.station || '').trim() || 'Unknown Station';
+      const key = name.toLowerCase();
+      const cur = map.get(key) || { name, litres: 0, amount: 0 };
+      cur.litres += e.litres || 0;
+      cur.amount += e.amount || 0;
+      map.set(key, cur);
+    }
+    return [...map.values()].sort((a, b) => b.litres - a.litres);
+  }, [displayedExpenses]);
+
+  // Per-station badge colors (same palette as Fleet Consumption Logs):
+  // Bungoma = indigo, Ndalu = violet, Junction = purple, Kapenguria = green,
+  // everyone else gets a slightly different shade of green (deterministic).
+  const getStationBadgeStyle = (stationName: string) => {
+    const s = (stationName || '').toLowerCase();
+    if (s.includes('bungoma')) return 'bg-indigo-500/15 text-indigo-400 border border-transparent hover:border-indigo-400/40';
+    if (s.includes('ndalu')) return 'bg-violet-500/15 text-violet-400 border border-transparent hover:border-violet-400/40';
+    if (s.includes('junction')) return 'bg-purple-500/15 text-purple-400 border border-transparent hover:border-purple-400/40';
+    if (s.includes('kapenguria')) return 'bg-emerald-500/15 text-emerald-400 border border-transparent hover:border-emerald-400/40';
+    const greens = [
+      'bg-emerald-500/15 text-emerald-400 border border-transparent hover:border-emerald-400/40',
+      'bg-emerald-600/15 text-emerald-500 border border-transparent hover:border-emerald-500/40',
+      'bg-green-500/15 text-green-400 border border-transparent hover:border-green-400/40',
+      'bg-emerald-400/15 text-emerald-300 border border-transparent hover:border-emerald-300/40',
+      'bg-green-600/15 text-green-500 border border-transparent hover:border-green-500/40',
+    ];
+    let hash = 0;
+    for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+    return greens[hash % greens.length];
+  };
 
   const vehicleSpendData = useMemo(() => {
     return CAR_REGISTRATIONS.map(car => {
@@ -132,13 +165,32 @@ export default function TruckDashboard({
            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Total Litres</p>
            <h3 className="text-2xl font-black font-mono text-[#059669] mt-2">{totalLitres.toLocaleString()} <span className="text-xs font-sans font-bold">L</span></h3>
         </div>
-        <div className="glass-panel border border-transparent hover:border-[#6366F1]/50 bg-[#4338CA]/[0.03] p-5 rounded-xl transition-colors">
-           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Avg Fuel Cost</p>
-           <h3 className="text-2xl font-black font-mono text-[#4338CA] mt-2">{avgCostPerLitre > 0 ? `${formatCurrency(avgCostPerLitre)}/L` : 'N/A'}</h3>
-        </div>
-        <div className="glass-panel border border-transparent hover:border-emerald-400/50 bg-emerald-500/[0.03] p-5 rounded-xl transition-colors">
-           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Active Fleet</p>
-           <h3 className="text-2xl font-black font-mono text-[#059669] mt-2">{activeTrucksCount} <span className="text-xs font-sans font-bold">Trucks</span></h3>
+        <div className="glass-panel border border-transparent hover:border-emerald-400/50 bg-emerald-500/[0.03] p-5 rounded-xl sm:col-span-2 lg:col-span-2 transition-colors">
+           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Fuel Consumed by Station</p>
+           {stationFuelData.length === 0 ? (
+             <p className="text-xs text-theme-text-muted py-2">No fuel consumed yet.</p>
+           ) : (
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+               {stationFuelData.map(st => (
+                 <div key={st.name}>
+                   <div className="flex items-center justify-between gap-2">
+                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold truncate transition-all cursor-default ${getStationBadgeStyle(st.name)}`}>
+                       {st.name}
+                     </span>
+                     <span className="font-mono text-sm font-bold text-emerald-400 whitespace-nowrap">
+                       {st.litres.toLocaleString('en-US', { maximumFractionDigits: 2 })} L
+                     </span>
+                   </div>
+                   <div className="h-1 mt-1.5 rounded-full bg-white/5 overflow-hidden">
+                     <div
+                       className="h-full rounded-full bg-emerald-500/60 transition-all"
+                       style={{ width: `${totalLitres > 0 ? Math.max(2, (st.litres / totalLitres) * 100) : 0}%` }}
+                     />
+                   </div>
+                 </div>
+               ))}
+             </div>
+           )}
         </div>
       </div>
 
@@ -286,31 +338,7 @@ export default function TruckDashboard({
                 </tr>
               ) : (
                 [...displayedExpenses].sort((a, b) => b.date - a.date).map(e => {
-                  const s = (e.station || '').toLowerCase();
-                  // Same per-station palette as Fleet Consumption Logs:
-                  // Bungoma = indigo, Ndalu = violet, Junction = purple,
-                  // Kapenguria = green, rest = slight green variations.
-                  let stationClass = 'bg-indigo-500/15 text-indigo-400 border border-transparent hover:border-indigo-400/40';
-                  if (s.includes('bungoma')) {
-                    stationClass = 'bg-indigo-500/15 text-indigo-400 border border-transparent hover:border-indigo-400/40';
-                  } else if (s.includes('ndalu')) {
-                    stationClass = 'bg-violet-500/15 text-violet-400 border border-transparent hover:border-violet-400/40';
-                  } else if (s.includes('junction')) {
-                    stationClass = 'bg-purple-500/15 text-purple-400 border border-transparent hover:border-purple-400/40';
-                  } else if (s.includes('kapenguria')) {
-                    stationClass = 'bg-emerald-500/15 text-emerald-400 border border-transparent hover:border-emerald-400/40';
-                  } else {
-                    const greens = [
-                      'bg-emerald-500/15 text-emerald-400 border border-transparent hover:border-emerald-400/40',
-                      'bg-emerald-600/15 text-emerald-500 border border-transparent hover:border-emerald-500/40',
-                      'bg-green-500/15 text-green-400 border border-transparent hover:border-green-400/40',
-                      'bg-emerald-400/15 text-emerald-300 border border-transparent hover:border-emerald-300/40',
-                      'bg-green-600/15 text-green-500 border border-transparent hover:border-green-500/40',
-                    ];
-                    let hash = 0;
-                    for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
-                    stationClass = greens[hash % greens.length];
-                  }
+                  const stationClass = getStationBadgeStyle(e.station);
 
                   return (
                     <tr key={e.id} className="hover:bg-white/5 transition-colors">
