@@ -168,6 +168,54 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
         sm.push({ key: sKey, name: stName, litres: d.litres || 0, amount: d.totalAmount || 0 });
       }
     }
+    // Litres bucketed under a generic "Station" (deliveries logged before the
+    // customer's stations existed) are re-attributed to the customer's created
+    // stations: a single-station customer absorbs everything into that station
+    // and the "Station" row disappears; multi-station customers split it evenly
+    // with a 1,000 L minimum per receiving station — when the pool is too small
+    // to fund every station at 1,000 L, full 1,000 L shares go to as many
+    // stations as possible and the leftover folds into one station.
+    const MIN_STATION_SHARE = 1000;
+    for (const [custId, sm] of stationSummaryByCustomer) {
+      const sts = stationsByCustomer.get(custId) || [];
+      if (sts.length === 0) continue;
+      const createdIds = new Set(sts.map(s => s.id));
+      const createdNames = new Set(sts.map(s => (s.name || '').toLowerCase()));
+      const generic = sm.filter(e => !createdIds.has(e.key) && !createdNames.has((e.name || '').toLowerCase()));
+      if (generic.length === 0) continue;
+      const genLitres = generic.reduce((s, e) => s + e.litres, 0);
+      const genAmount = generic.reduce((s, e) => s + e.amount, 0);
+      for (const g of generic) {
+        const idx = sm.indexOf(g);
+        if (idx >= 0) sm.splice(idx, 1);
+      }
+      const ordered = [...sts].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      const shares = ordered.map(() => 0);
+      if (ordered.length === 1 || genLitres < MIN_STATION_SHARE) {
+        shares[0] = genLitres;
+      } else {
+        const even = Math.floor(genLitres / ordered.length);
+        if (even >= MIN_STATION_SHARE) {
+          shares.fill(even);
+          shares[0] += genLitres - even * ordered.length; // leftover → one station gets more
+        } else {
+          const full = Math.floor(genLitres / MIN_STATION_SHARE);
+          for (let i = 0; i < full; i++) shares[i] = MIN_STATION_SHARE;
+          shares[0] += genLitres - full * MIN_STATION_SHARE;
+        }
+      }
+      ordered.forEach((st, i) => {
+        if (!(shares[i] > 0)) return;
+        const amt = genLitres > 0 ? genAmount * (shares[i] / genLitres) : 0;
+        const existing = sm.find(x => x.key === st.id);
+        if (existing) {
+          existing.litres += shares[i];
+          existing.amount += amt;
+        } else {
+          sm.push({ key: st.id, name: st.name || 'Station', litres: shares[i], amount: amt });
+        }
+      });
+    }
     for (const p of payments) {
       if (!inRange(p.date)) continue;
       received += p.amount || 0;
