@@ -1533,7 +1533,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             {/* Profit payable — internal figure, intentionally excluded from the exported customer PDF. */}
             <div className="glass-panel rounded-xl px-4 py-3.5 shadow-sm transition-colors border border-emerald-500/25 bg-emerald-500/[0.04] card-hover-green">
               <div className="min-w-0">
-                <span className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-wider">
+                <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
                   Profit payable to loruk trucks logistics company
                 </span>
                 <div className="flex items-baseline gap-1 mt-0.5">
