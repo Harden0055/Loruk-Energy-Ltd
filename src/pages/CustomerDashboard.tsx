@@ -44,7 +44,8 @@ import {
   AreaChart, 
   Area, 
   BarChart, 
-  Bar, 
+  Bar,
+  ComposedChart,
   LineChart, 
   Line, 
   XAxis, 
@@ -58,6 +59,23 @@ import autoTable from 'jspdf-autotable';
 import { setupPdfHeader, addPdfFooter } from '../lib/pdfTemplate';
 import { QuickAddCustomerStationModal as QuickAddStationModal } from '../components/QuickAddModal';
 
+
+// Custom tooltip for the daily fuel-rate chart: rates per product plus the
+// histogram underlay values (litres delivered, payments received) for the day.
+const RateTooltipContent = ({ active, payload, label }: any) => {
+  if (!active || !payload || payload.length === 0) return null;
+  const p = payload[0].payload;
+  const fmtKES = (v: number) => `KES ${Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return (
+    <div style={{ backgroundColor: 'rgba(0,0,0,0.95)', border: '1px solid rgba(99,102,241,0.4)', borderRadius: '12px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.8)', color: '#F8FAFC', fontSize: '11px', fontWeight: 'bold', padding: '8px 12px', zIndex: 100 }}>
+      <div style={{ marginBottom: 4, color: '#94A3B8' }}>{label}</div>
+      {p.AGO != null && <div style={{ color: '#34D399' }}>AGO Rate : {fmtKES(p.AGO)} /L</div>}
+      {p.PMS != null && <div style={{ color: '#A5B4FC' }}>PMS Rate : {fmtKES(p.PMS)} /L</div>}
+      {p.litres > 0 && <div style={{ color: '#34D399', marginTop: 2 }}>Delivered : {Number(p.litres).toLocaleString('en-US', { maximumFractionDigits: 2 })} L</div>}
+      {p.payments > 0 && <div style={{ color: '#C4B5FD' }}>Received : {fmtKES(p.payments)}</div>}
+    </div>
+  );
+};
 
 interface CustomerDashboardProps {
   customerId: string;
@@ -609,11 +627,38 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       // deliveries with litres but no amount (or unmatched products) are skipped
       .filter(e => (e.agoLitres > 0 && e.agoAmount > 0) || (e.pmsLitres > 0 && e.pmsAmount > 0))
       .map(e => ({
+        key: e.key,
         label: e.label,
         AGO: e.agoLitres > 0 && e.agoAmount > 0 ? Number((e.agoAmount / e.agoLitres).toFixed(2)) : null,
-        PMS: e.pmsLitres > 0 && e.pmsAmount > 0 ? Number((e.pmsAmount / e.pmsLitres).toFixed(2)) : null
+        PMS: e.pmsLitres > 0 && e.pmsAmount > 0 ? Number((e.pmsAmount / e.pmsLitres).toFixed(2)) : null,
+        litres: e.agoLitres + e.pmsLitres
       }));
   }, [customerDeliveries]);
+
+  // Histogram underlay for the daily rate chart: litres delivered (green, above
+  // the baseline) and payments received (violet, below it) per delivery day.
+  // Litres and KES live on very different magnitudes, so each side is normalized
+  // to its own maximum before plotting on a single hidden display axis.
+  const rateHistogramData = useMemo(() => {
+    const payByDay = new Map<string, number>();
+    for (const p of customerPayments) {
+      if (!p.date) continue;
+      const dt = new Date(p.date);
+      const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+      payByDay.set(key, (payByDay.get(key) || 0) + (p.amount || 0));
+    }
+    const maxLitres = Math.max(0, ...dailyRateData.map(r => r.litres || 0));
+    const maxPayments = Math.max(0, ...dailyRateData.map(r => payByDay.get(r.key) || 0));
+    return dailyRateData.map(r => {
+      const pay = payByDay.get(r.key) || 0;
+      return {
+        ...r,
+        payments: pay,
+        litresNorm: maxLitres > 0 ? (r.litres / maxLitres) * 32 : 0,
+        paymentsNorm: maxPayments > 0 ? -(pay / maxPayments) * 15 : 0
+      };
+    });
+  }, [dailyRateData, customerPayments]);
 
   const totalSalesValue = useMemo(() => {
     return customerDeliveries.reduce((sum, d) => sum + d.totalAmount, 0);
@@ -1449,27 +1494,23 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 </div>
               ) : chartMetric === 'rate' ? (
                 <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                  <LineChart data={dailyRateData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <ComposedChart data={rateHistogramData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.07)" />
                     <XAxis dataKey="label" fontSize={10} stroke="#94A3B8" tickLine={false} minTickGap={18} />
-                    <YAxis fontSize={10} stroke="#94A3B8" tickFormatter={(v) => `K${Math.round(v)}`} tickLine={false} domain={['auto', 'auto']} />
+                    <YAxis yAxisId="rate" fontSize={10} stroke="#94A3B8" tickFormatter={(v) => `K${Math.round(v)}`} tickLine={false} domain={['auto', 'auto']} />
+                    {/* Hidden display axis for the histogram underlay: baseline 13% up
+                        from the bottom; green bars rise above it, violet bars below */}
+                    <YAxis yAxisId="vol" hide domain={[-15, 100]} />
                     <Tooltip
-                      formatter={(val: any, name: any) => [`KES ${Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} / L`, `${name} Rate`]}
-                      contentStyle={{
-                        backgroundColor: 'rgba(0, 0, 0, 0.95)',
-                        borderColor: 'rgba(99, 102, 241, 0.4)',
-                        borderRadius: '12px',
-                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.8)',
-                        color: '#F8FAFC',
-                        fontSize: '11px',
-                        fontWeight: 'bold',
-                        zIndex: 100
-                      }}
+                      content={<RateTooltipContent />}
+                      cursor={{ fill: 'rgba(99, 102, 241, 0.06)' }}
                     />
                     <Legend verticalAlign="top" height={20} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
-                    <Line type="monotone" dataKey="AGO" stroke="#34D399" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
-                    <Line type="monotone" dataKey="PMS" stroke="#6366F1" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
-                  </LineChart>
+                    <Bar yAxisId="vol" dataKey="litresNorm" name="Delivered (L)" stackId="vol" fill="#34D399" fillOpacity={0.45} radius={[2, 2, 0, 0]} maxBarSize={12} />
+                    <Bar yAxisId="vol" dataKey="paymentsNorm" name="Received (KES)" stackId="vol" fill="#8B5CF6" fillOpacity={0.5} radius={[0, 0, 2, 2]} maxBarSize={12} />
+                    <Line yAxisId="rate" type="monotone" dataKey="AGO" stroke="#34D399" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
+                    <Line yAxisId="rate" type="monotone" dataKey="PMS" stroke="#6366F1" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
+                  </ComposedChart>
                 </ResponsiveContainer>
               ) : (
                 <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
