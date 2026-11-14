@@ -1273,54 +1273,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         </div>
       )}
 
-      {/* Profit (Margin) Generated — all-time realized profit, sits at the top of the profile.
-          Internal figure, intentionally excluded from the exported customer PDF. */}
-      <div className="rounded-xl px-3.5 py-3 border border-emerald-500/25 bg-emerald-500/[0.04] card-hover-green transition-all duration-200">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0">
-            <span className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-              <TrendingUp className="w-3 h-3" /> Profit Generated (Internal)
-            </span>
-            <div className="flex items-baseline gap-1 mt-0.5">
-              <span className="text-xs font-bold text-green-accent">Ksh</span>
-              <span className="text-lg font-black font-mono text-green-accent tracking-tight leading-none">
-                {profitInRange.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-            </div>
-            <div className="mt-0.5 text-[10px] text-slate-400 font-medium">
-              Litres × station margin {profitStartDate || profitEndDate ? 'within selected period' : '· all-time'} — hidden from the customer's PDF statement
-            </div>
-          </div>
-          <div className="flex items-end gap-2 flex-wrap">
-            <div>
-              <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">From</label>
-              <input
-                type="date"
-                value={profitStartDate}
-                onChange={e => setProfitStartDate(e.target.value)}
-                className="px-2 py-1.5 bg-black/40 border border-white/10 rounded-lg text-[11px] text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
-              />
-            </div>
-            <div>
-              <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">To</label>
-              <input
-                type="date"
-                value={profitEndDate}
-                onChange={e => setProfitEndDate(e.target.value)}
-                className="px-2 py-1.5 bg-black/40 border border-white/10 rounded-lg text-[11px] text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
-              />
-            </div>
-            {(profitStartDate || profitEndDate) && (
-              <button
-                onClick={() => { setProfitStartDate(''); setProfitEndDate(''); }}
-                className="px-2 py-1.5 text-[10px] font-bold text-slate-400 hover:text-white border border-white/10 hover:border-white/25 rounded-lg transition-colors cursor-pointer"
-              >
-                Clear
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
+      {/* Profit (Margin) Generated now lives beside the Daily Fuel Rate chart in the
+          analytics grid below — internal figure, excluded from the customer PDF. */}
 
       {/* Compressed Stats Row (4 compact columns) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
@@ -1582,63 +1536,87 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             )}
           </div>
 
-          {/* Chart 2: Transaction Volume Distribution */}
-          <div className="glass-panel border border-theme-border rounded-xl p-4 shadow-sm transition-colors flex flex-col justify-between">
-            <div>
-              <div className="mb-3">
-                <h3 className="text-sm font-black text-theme-text tracking-tight">Recent Activity Distribution</h3>
-                <p className="text-[11px] text-theme-text-muted">Magnitude comparing customer payments to fuel orders</p>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex justify-between items-center p-2.5 glass-panel rounded-xl border border-theme-border bg-white/[0.02]">
-                  <span className="text-[11px] font-bold text-theme-text-muted uppercase tracking-wider">Opening Context</span>
-                  <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-md border ${
-                    customer.openingBalanceType === 'advance'
-                      ? 'text-[#059669] bg-emerald-500/15 border-emerald-500/30'
-                      : 'text-[#4338CA] bg-[#4338CA]/15 border-[#4338CA]/30'
-                  }`}>
-                    {customer.openingBalanceType === 'advance' ? '-' : '+'}Ksh {(customer.openingBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          {/* Right column: internal profit panel + activity distribution */}
+          <div className="flex flex-col gap-3 min-w-0">
+            {/* Profit (Margin) Generated — all-time realized profit beside the rate chart.
+                Internal figure, intentionally excluded from the exported customer PDF. */}
+            <div className="glass-panel rounded-xl px-4 py-3.5 shadow-sm transition-colors border border-emerald-500/25 bg-emerald-500/[0.04] card-hover-green">
+              <div className="min-w-0">
+                <span className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <TrendingUp className="w-3 h-3" /> Profit Generated (Internal)
+                </span>
+                <div className="flex items-baseline gap-1 mt-0.5">
+                  <span className="text-xs font-bold text-green-accent">Ksh</span>
+                  <span className="text-lg font-black font-mono text-green-accent tracking-tight leading-none">
+                    {profitInRange.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
-                
-                <div className="space-y-2">
-                  <div>
-                    <div className="flex justify-between text-[11px] font-semibold mb-1">
-                      <span className="text-theme-text-muted">Avg Delivery</span>
-                      <span className="font-mono font-bold text-[#4338CA]">
-                        {customerDeliveries.length ? `Ksh ${(totalSalesValue / customerDeliveries.length).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'}
-                      </span>
-                    </div>
-                    <div className="h-1.5 bg-theme-panel rounded-full overflow-hidden border border-theme-border/60">
-                      <div className="h-full bg-gradient-to-r from-indigo-800 via-indigo-600 to-indigo-400 rounded-full" style={{ width: '65%' }} />
-                    </div>
-                  </div>
+                <div className="mt-0.5 text-[10px] text-slate-400 font-medium">
+                  Litres × station margin {profitStartDate || profitEndDate ? 'within selected period' : '· all-time'} — hidden from the customer's PDF statement
+                </div>
+              </div>
+              <div className="mt-2.5 pt-2.5 border-t border-white/10 flex items-end gap-2 flex-wrap">
+                <div>
+                  <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">From</label>
+                  <input
+                    type="date"
+                    value={profitStartDate}
+                    onChange={e => setProfitStartDate(e.target.value)}
+                    className="px-2 py-1.5 bg-black/40 border border-white/10 rounded-lg text-[11px] text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-400 mb-0.5">To</label>
+                  <input
+                    type="date"
+                    value={profitEndDate}
+                    onChange={e => setProfitEndDate(e.target.value)}
+                    className="px-2 py-1.5 bg-black/40 border border-white/10 rounded-lg text-[11px] text-slate-200 outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+                  />
+                </div>
+                {(profitStartDate || profitEndDate) && (
+                  <button
+                    onClick={() => { setProfitStartDate(''); setProfitEndDate(''); }}
+                    className="px-2 py-1.5 text-[10px] font-bold text-slate-400 hover:text-white border border-white/10 hover:border-white/25 rounded-lg transition-colors cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
 
-                  <div>
-                    <div className="flex justify-between text-[11px] font-semibold mb-1">
-                      <span className="text-theme-text-muted">Avg Payment</span>
-                      <span className="font-mono font-bold text-emerald-400">
-                        {customerPayments.length ? `Ksh ${(totalPaymentsValue / customerPayments.length).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 'N/A'}
-                      </span>
-                    </div>
-                    <div className="h-1.5 bg-theme-panel rounded-full overflow-hidden border border-theme-border/60">
-                      <div className="h-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400 rounded-full" style={{ width: '45%' }} />
-                    </div>
+            {/* Chart 2: Transaction Volume Distribution */}
+            <div className="glass-panel border border-theme-border rounded-xl p-4 shadow-sm transition-colors flex flex-col justify-between">
+              <div>
+                <div className="mb-3">
+                  <h3 className="text-sm font-black text-theme-text tracking-tight">Recent Activity Distribution</h3>
+                  <p className="text-[11px] text-theme-text-muted">Magnitude comparing customer payments to fuel orders</p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-2.5 glass-panel rounded-xl border border-theme-border bg-white/[0.02]">
+                    <span className="text-[11px] font-bold text-theme-text-muted uppercase tracking-wider">Opening Context</span>
+                    <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-md border ${
+                      customer.openingBalanceType === 'advance'
+                        ? 'text-[#059669] bg-emerald-500/15 border-emerald-500/30'
+                        : 'text-[#4338CA] bg-[#4338CA]/15 border-[#4338CA]/30'
+                    }`}>
+                      {customer.openingBalanceType === 'advance' ? '-' : '+'}Ksh {(customer.openingBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            <div className="pt-2.5 mt-2.5 border-t border-theme-border text-center">
-              <button 
-                type="button"
-                className="text-xs text-[#4338CA] hover:text-indigo-300 font-bold hover:underline cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#4338CA]/10 border border-[#4338CA]/25 transition-all" 
-                onClick={handleExportStatement}
-              >
-                <Calendar className="w-3.5 h-3.5 text-[#4338CA]" />
-                <span>Open statement PDF report</span>
-              </button>
+
+              <div className="pt-2.5 mt-2.5 border-t border-theme-border text-center">
+                <button
+                  type="button"
+                  className="text-xs text-[#4338CA] hover:text-indigo-300 font-bold hover:underline cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#4338CA]/10 border border-[#4338CA]/25 transition-all"
+                  onClick={handleExportStatement}
+                >
+                  <Calendar className="w-3.5 h-3.5 text-[#4338CA]" />
+                  <span>Open statement PDF report</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
