@@ -52,7 +52,8 @@ import {
   YAxis, 
   Tooltip, 
   CartesianGrid, 
-  Legend 
+  Legend,
+  Brush 
 } from 'recharts';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -1453,6 +1454,15 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     <Bar yAxisId="vol" dataKey="litresNorm" name="Delivered (L)" fill="#34D399" fillOpacity={0.45} radius={[2, 2, 0, 0]} maxBarSize={12} />
                     <Line yAxisId="rate" type="monotone" dataKey="AGO" stroke="#34D399" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
                     <Line yAxisId="rate" type="monotone" dataKey="PMS" stroke="#6366F1" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
+                    <Brush
+                      dataKey="label"
+                      height={22}
+                      travellerWidth={9}
+                      stroke="#6366F1"
+                      fill="rgba(99, 102, 241, 0.06)"
+                      startIndex={rateHistogramData.length > 56 ? rateHistogramData.length - 56 : 0}
+                      tickFormatter={() => ''}
+                    />
                   </ComposedChart>
                 </ResponsiveContainer>
               ) : (
@@ -1497,6 +1507,15 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       fill={chartMetric === 'litres' ? 'url(#fuelGrad)' : 'url(#receivedGrad)'}
                       radius={[5, 5, 0, 0]}
                       maxBarSize={46}
+                    />
+                    <Brush
+                      dataKey="label"
+                      height={22}
+                      travellerWidth={9}
+                      stroke={chartMetric === 'litres' ? '#6366F1' : '#34D399'}
+                      fill="rgba(99, 102, 241, 0.06)"
+                      startIndex={monthlyTrendData.length > 12 ? monthlyTrendData.length - 12 : 0}
+                      tickFormatter={() => ''}
                     />
                   </BarChart>
                 </ResponsiveContainer>
