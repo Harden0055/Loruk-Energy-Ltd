@@ -24,7 +24,7 @@ import { format } from 'date-fns';
 import Papa from 'papaparse';
 
 // Custom tooltip for the combined fuel-rate chart: rates per product plus the
-// histogram underlay value (litres delivered that day).
+// histogram values (litres delivered, payments received) for the day.
 const CombinedRateTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload || payload.length === 0) return null;
   const p = payload[0].payload;
@@ -35,6 +35,7 @@ const CombinedRateTooltip = ({ active, payload, label }: any) => {
       {p.AGO != null && <div style={{ color: '#34D399' }}>AGO Rate : {fmtKES(p.AGO)} /L</div>}
       {p.PMS != null && <div style={{ color: '#A5B4FC' }}>PMS Rate : {fmtKES(p.PMS)} /L</div>}
       {p.litres > 0 && <div style={{ color: '#34D399', marginTop: 2 }}>Delivered : {Number(p.litres).toLocaleString('en-US', { maximumFractionDigits: 2 })} L</div>}
+      {p.payments > 0 && <div style={{ color: '#C4B5FD' }}>Received : {fmtKES(p.payments)}</div>}
     </div>
   );
 };
@@ -300,15 +301,43 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
       }));
   }, [deliveries]);
 
-  // Histogram underlay for the combined rate chart: one green bar per day showing
-  // the litres of fuel delivered on that exact date. Days without a delivery
-  // are simply absent from the axis (empty). Normalized to the biggest day.
+  // Three-band layout for the combined rate chart on a single hidden display
+  // axis (domain [-100, 300] → bottom edge to top edge):
+  //   • top band   — AGO/PMS rate lines (their own axis is scaled to only use it)
+  //   • middle band — green litres-delivered bars, one per delivery day
+  //   • bottom band — violet payments-received bars hanging upside down below the
+  //     litres baseline; every payment made that day (even several transactions)
+  //     is summed into that day's single bar. Days without a delivery are absent.
   const combinedHistogramData = useMemo(() => {
+    const payByDay = new Map<string, number>();
+    for (const p of payments) {
+      if (!p.date) continue;
+      const dt = new Date(p.date);
+      const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+      payByDay.set(key, (payByDay.get(key) || 0) + (p.amount || 0));
+    }
     const maxLitres = Math.max(0, ...combinedRateData.map(r => r.litres || 0));
-    return combinedRateData.map(r => ({
-      ...r,
-      litresNorm: maxLitres > 0 ? (r.litres / maxLitres) * 40 : 0
-    }));
+    const maxPayments = Math.max(0, ...combinedRateData.map(r => payByDay.get(r.key) || 0));
+    return combinedRateData.map(r => {
+      const pay = payByDay.get(r.key) || 0;
+      return {
+        ...r,
+        payments: pay,
+        litresNorm: maxLitres > 0 ? (r.litres / maxLitres) * 100 : 0,
+        paymentsNorm: maxPayments > 0 ? -(pay / maxPayments) * 100 : 0
+      };
+    });
+  }, [combinedRateData, payments]);
+
+  // Rate axis domain: stretches the AGO/PMS lines into the top band only, so
+  // they never overlap the histogram bands at the bottom of the grid.
+  const rateAxisDomain = useMemo(() => {
+    const rates = combinedRateData.flatMap(r => [r.AGO, r.PMS]).filter((v): v is number => v != null);
+    if (rates.length === 0) return ['auto', 'auto'] as [number | string, number | string];
+    const min = Math.min(...rates);
+    const max = Math.max(...rates);
+    const span = max - min || Math.abs(max) * 0.5 || 100;
+    return [min - 1.5 * span, max] as [number, number];
   }, [combinedRateData]);
 
   // Rate of change: latest combined rate vs the previous delivery of that product
@@ -719,10 +748,10 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
               >
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.07)" />
                 <XAxis dataKey="label" fontSize={11} stroke="#94A3B8" tickLine={false} minTickGap={40} />
-                <YAxis yAxisId="rate" fontSize={11} stroke="#94A3B8" tickFormatter={(v) => `K${Math.round(v)}`} tickLine={false} domain={['auto', 'auto']} />
-                {/* Hidden display axis for the histogram underlay: baseline 13% up from
-                    the bottom; green bars rise above it, violet bars hang below it */}
-                <YAxis yAxisId="vol" hide domain={[0, 100]} />
+                <YAxis yAxisId="rate" fontSize={11} stroke="#94A3B8" tickFormatter={(v) => `K${Math.round(v)}`} tickLine={false} domain={rateAxisDomain} />
+                {/* Hidden display axis for the three-band layout: litres occupy
+                    0..100, payments hang below in -100..0, lines stay above 100 */}
+                <YAxis yAxisId="vol" hide domain={[-100, 300]} />
                 <Tooltip
                   content={<CombinedRateTooltip />}
                   cursor={{ fill: 'rgba(99, 102, 241, 0.06)' }}
@@ -738,6 +767,7 @@ export default function Customers({ onViewCustomer, onNavigate, initialAction, i
                   tickFormatter={() => ''}
                 />
                 <Bar yAxisId="vol" dataKey="litresNorm" name="Delivered (L)" fill="#34D399" fillOpacity={0.45} radius={[2, 2, 0, 0]} maxBarSize={10} />
+                <Bar yAxisId="vol" dataKey="paymentsNorm" name="Received (KES)" fill="#8B5CF6" fillOpacity={0.5} radius={[0, 0, 2, 2]} maxBarSize={10} />
                 <Line
                   yAxisId="rate"
                   type="monotone"
