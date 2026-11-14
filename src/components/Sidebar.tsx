@@ -34,8 +34,6 @@ import { useAuth } from '../lib/auth';
 import { cn } from '../lib/utils';
 import { useTheme } from '../lib/theme';
 import FireLEIcon from './FireLEIcon';
-import ThemeToggle from './ThemeToggle';
-
 export interface SubPageItem {
   id: string;
   label: string;
@@ -412,10 +410,6 @@ export default function Sidebar({
       <div className="p-4 border-t border-slate-800 mt-auto shrink-0 bg-[#000000]">
         <div className="mb-3 space-y-1.5">
           {bottomItems.map(renderNavParent)}
-        </div>
-
-        <div className="mb-3">
-          <ThemeToggle variant="pill" className="w-full justify-between" />
         </div>
 
         <div className="flex items-center gap-3 px-3 py-2.5 mb-3 bg-[#000000] border border-slate-800 rounded-xl shadow-none">

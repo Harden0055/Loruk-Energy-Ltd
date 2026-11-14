@@ -190,13 +190,12 @@ export default function Settings() {
               Interface Theme & Surface Styling
             </h3>
             <p className="text-xs text-theme-text-muted mt-1">
-              DeepCharts Black with green and indigo accounting duality. Toggle between solid matte, ambient gradient, and cosmic mesh surfaces.
+              Toggle between solid matte, ambient gradient, and cosmic mesh surface rendering styles.
             </p>
           </div>
-          <ThemeToggle variant="button" />
         </div>
 
-        <ThemeToggle variant="cards" />
+        <ThemeToggle variant="surface-switch" />
       </section>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

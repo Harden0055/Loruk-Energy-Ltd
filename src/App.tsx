@@ -21,7 +21,6 @@ import Products from './pages/Products';
 import AIAssistant from './pages/AIAssistant';
 import ProfileDrawer from './components/ProfileDrawer';
 import FireLEIcon from './components/FireLEIcon';
-import ThemeToggle from './components/ThemeToggle';
 import { Fuel, LogIn, RefreshCcw, Printer, Menu, AlertTriangle, User, PanelLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { useProducts, addProduct, deleteProduct } from './lib/operationsDb';
@@ -297,7 +296,6 @@ function AuthenticatedApp() {
           )}
 
           <div className="flex items-center gap-3 shrink-0 print-hide">
-            <ThemeToggle variant="button" />
             <button 
               onClick={() => setIsProfileOpen(true)}
               className="hidden sm:flex items-center justify-center w-9 h-9 rounded-xl bg-white/[0.04] text-[#4338CA] hover:bg-slate-800/40 transition-all duration-300 border border-[#4338CA]/30 cursor-pointer"

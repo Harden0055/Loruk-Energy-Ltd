@@ -1211,14 +1211,6 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
             <h2 className="text-base sm:text-xl font-black text-slate-200 tracking-tight truncate">
               {customer.name}
             </h2>
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border shrink-0 ${
-              customer.status === 'active' 
-                ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' 
-                : 'bg-[#6366F1]/15 text-[#6366F1] border-[#6366F1]/30'
-            }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${customer.status === 'active' ? 'bg-emerald-400' : 'bg-[#6366F1]'}`} />
-              {customer.status === 'active' ? 'Active' : 'Credit Risk'}
-            </span>
           </div>
         </div>
 
@@ -1538,21 +1530,17 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
 
           {/* Right column: internal profit panel + activity distribution */}
           <div className="flex flex-col gap-3 min-w-0">
-            {/* Profit (Margin) Generated — all-time realized profit beside the rate chart.
-                Internal figure, intentionally excluded from the exported customer PDF. */}
+            {/* Profit payable — internal figure, intentionally excluded from the exported customer PDF. */}
             <div className="glass-panel rounded-xl px-4 py-3.5 shadow-sm transition-colors border border-emerald-500/25 bg-emerald-500/[0.04] card-hover-green">
               <div className="min-w-0">
-                <span className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <TrendingUp className="w-3 h-3" /> Profit Generated (Internal)
+                <span className="text-[10px] font-extrabold text-emerald-400 uppercase tracking-wider">
+                  Profit payable to loruk trucks logistics company
                 </span>
                 <div className="flex items-baseline gap-1 mt-0.5">
                   <span className="text-xs font-bold text-green-accent">Ksh</span>
                   <span className="text-lg font-black font-mono text-green-accent tracking-tight leading-none">
                     {profitInRange.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
-                </div>
-                <div className="mt-0.5 text-[10px] text-slate-400 font-medium">
-                  Litres × station margin {profitStartDate || profitEndDate ? 'within selected period' : '· all-time'} — hidden from the customer's PDF statement
                 </div>
               </div>
               <div className="mt-2.5 pt-2.5 border-t border-white/10 flex items-end gap-2 flex-wrap">
@@ -1591,19 +1579,6 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <div className="mb-3">
                   <h3 className="text-sm font-black text-theme-text tracking-tight">Recent Activity Distribution</h3>
                   <p className="text-[11px] text-theme-text-muted">Magnitude comparing customer payments to fuel orders</p>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-2.5 glass-panel rounded-xl border border-theme-border bg-white/[0.02]">
-                    <span className="text-[11px] font-bold text-theme-text-muted uppercase tracking-wider">Opening Context</span>
-                    <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-md border ${
-                      customer.openingBalanceType === 'advance'
-                        ? 'text-[#059669] bg-emerald-500/15 border-emerald-500/30'
-                        : 'text-[#4338CA] bg-[#4338CA]/15 border-[#4338CA]/30'
-                    }`}>
-                      {customer.openingBalanceType === 'advance' ? '-' : '+'}Ksh {(customer.openingBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </span>
-                  </div>
                 </div>
               </div>
 
