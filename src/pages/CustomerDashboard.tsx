@@ -126,12 +126,14 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [deliverySuperRate, setDeliverySuperRate] = useState('');
   const [deliveryDieselRate, setDeliveryDieselRate] = useState('');
   const [deliveryDate, setDeliveryDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  // Staged per-station entries for a multi-station delivery (one delivery, several stations)
-  const [stagedDeliveryEntries, setStagedDeliveryEntries] = useState<Array<{
+  // Multi-station delivery wizard: one page per station, all saved as ONE delivery.
+  const [deliveryPages, setDeliveryPages] = useState<Array<{
     stationId: string; stationName: string; productType: string;
-    litres: number; amount: number;
+    litres: number; amount: number; rate?: number;
     superLitres?: number; dieselLitres?: number; superAmount?: number; dieselAmount?: number;
+    superRate?: number; dieselRate?: number;
   }>>([]);
+  const [deliveryPageIndex, setDeliveryPageIndex] = useState(0);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentDate, setPaymentDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [adjustType, setAdjustType] = useState<'credit' | 'debit'>('credit');
@@ -797,7 +799,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   };
 
   // Submit handers for quick operations
-  // Build one station entry from the current form values (shared by stage-next and save).
+  // Build one station entry from the current form values (shared by next/prev/save).
   const buildDeliveryEntryFromForm = () => {
     const isNonLiquid = deliveryProduct.toLowerCase().includes('lpg') || deliveryProduct.toLowerCase().includes('lubricant');
     const isSplit = deliveryProduct === 'Super/Diesel Split';
@@ -809,14 +811,16 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
     let amt = parseFloat(deliveryAmount) || 0;
     const entry: {
       stationId: string; stationName: string; productType: string;
-      litres: number; amount: number;
+      litres: number; amount: number; rate?: number;
       superLitres?: number; dieselLitres?: number; superAmount?: number; dieselAmount?: number;
+      superRate?: number; dieselRate?: number;
     } = {
       stationId: selectedStation?.id || '',
       stationName: selectedStation?.name || '',
       productType: deliveryProduct,
       litres,
-      amount: amt
+      amount: amt,
+      rate: parseFloat(deliveryRate) || undefined
     };
     if (isSplit) {
       const parts = String(deliveryLitres).split('/');
@@ -827,6 +831,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       entry.dieselLitres = dieselL;
       entry.superAmount = parseFloat(deliverySuperAmount) || 0;
       entry.dieselAmount = parseFloat(deliveryDieselAmount) || 0;
+      entry.superRate = parseFloat(deliverySuperRate) || undefined;
+      entry.dieselRate = parseFloat(deliveryDieselRate) || undefined;
       entry.amount = entry.superAmount + entry.dieselAmount;
     }
     return entry;
@@ -843,57 +849,113 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
     setDeliveryDieselRate('');
   };
 
+  // Load a saved page back into the form (used by Previous / chip jumps for rechecking)
+  const loadDeliveryPageIntoForm = (entry?: {
+    stationId: string; stationName: string; productType: string;
+    litres: number; amount: number; rate?: number;
+    superLitres?: number; dieselLitres?: number; superAmount?: number; dieselAmount?: number;
+    superRate?: number; dieselRate?: number;
+  }) => {
+    if (!entry) {
+      resetDeliveryFormFields();
+      return;
+    }
+    setDeliveryStationId(entry.stationId || '');
+    setDeliveryProduct(entry.productType || 'Diesel');
+    if (entry.superLitres != null) {
+      setDeliveryLitres(`${(entry.superLitres || 0) / 1000}/${(entry.dieselLitres || 0) / 1000}`);
+      setDeliverySuperAmount(String(entry.superAmount || ''));
+      setDeliveryDieselAmount(String(entry.dieselAmount || ''));
+      setDeliverySuperRate(entry.superRate != null ? String(entry.superRate) : '');
+      setDeliveryDieselRate(entry.dieselRate != null ? String(entry.dieselRate) : '');
+      setDeliveryAmount(String(entry.amount || ''));
+      setDeliveryRate('');
+    } else {
+      setDeliveryLitres(entry.litres ? String(entry.litres) : '');
+      setDeliveryAmount(entry.amount ? String(entry.amount) : '');
+      setDeliveryRate(entry.rate != null ? String(entry.rate) : '');
+      setDeliverySuperAmount('');
+      setDeliveryDieselAmount('');
+      setDeliverySuperRate('');
+      setDeliveryDieselRate('');
+    }
+  };
+
   const closeDeliveryModal = () => {
     setActiveModal(null);
-    setStagedDeliveryEntries([]);
+    setDeliveryPages([]);
+    setDeliveryPageIndex(0);
     resetDeliveryFormFields();
   };
 
-  // "Next Station →": stage the current entry and open a fresh page for another station.
-  // All staged entries are later saved as ONE delivery to the customer.
-  const handleStageNextStation = () => {
+  // Store the current page's form values into the wizard (create or replace)
+  const commitCurrentDeliveryPage = () => {
     const entry = buildDeliveryEntryFromForm();
-    if (!entry) {
-      alert('Please fill in the current station details before adding the next one');
+    if (!entry) return false;
+    setDeliveryPages(prev => {
+      const next = [...prev];
+      if (deliveryPageIndex < next.length) next[deliveryPageIndex] = entry;
+      else next.push(entry);
+      return next;
+    });
+    return true;
+  };
+
+  // "Next Station →": keep the current station on its page and open the next page.
+  const handleNextStationPage = () => {
+    if (!commitCurrentDeliveryPage()) {
+      alert('Please fill in the current station details before moving to the next one');
       return;
     }
-    setStagedDeliveryEntries(prev => [...prev, entry]);
-    resetDeliveryFormFields();
+    setDeliveryPageIndex(i => i + 1);
+  };
+
+  // "← Previous": keep the current page and reopen the earlier one for rechecking.
+  const handlePrevStationPage = () => {
+    commitCurrentDeliveryPage();
+    if (deliveryPageIndex > 0) {
+      setDeliveryPageIndex(i => i - 1);
+    }
   };
 
   const handleAddDelivery = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customer) return;
 
+    // Commit the page currently in the form, if it's valid
     const currentEntry = buildDeliveryEntryFromForm();
-    const entries = currentEntry ? [...stagedDeliveryEntries, currentEntry] : [...stagedDeliveryEntries];
-    if (entries.length === 0) {
+    let pages = [...deliveryPages];
+    if (currentEntry) {
+      if (deliveryPageIndex < pages.length) pages[deliveryPageIndex] = currentEntry;
+      else pages.push(currentEntry);
+    }
+    if (pages.length === 0) {
       alert('Please fill in required fields');
       return;
     }
 
     setModalLoading(true);
     try {
-      const amt = entries.reduce((s, x) => s + x.amount, 0);
-      const finalLitres = entries.reduce((s, x) => s + x.litres, 0);
-      // Same product across entries → keep that product; mixed → label as multi-station
-      const distinctProducts = new Set(entries.map(x => x.productType));
-      const productType = distinctProducts.size === 1 ? entries[0].productType : 'Multi-Station';
+      const amt = pages.reduce((s, x) => s + x.amount, 0);
+      const finalLitres = pages.reduce((s, x) => s + x.litres, 0);
+      // Same product across pages → keep that product; mixed → label as multi-station
+      const distinctProducts = new Set(pages.map(x => x.productType));
+      const productType = distinctProducts.size === 1 ? pages[0].productType : 'Multi-Station';
 
       await createDelivery({
         customerId: customer.id,
-        stationId: entries[0].stationId || '',
-        stationName: entries[0].stationName || '',
+        stationId: pages[0].stationId || '',
+        stationName: pages[0].stationName || '',
         date: parseDateToTimestamp(deliveryDate),
         productType,
         litres: finalLitres,
         totalAmount: amt,
-        ...(entries.length > 1 ? { stationEntries: entries } : {}),
-        ...(entries.length === 1 && entries[0].superLitres != null ? {
-          superLitres: entries[0].superLitres,
-          dieselLitres: entries[0].dieselLitres,
-          superAmount: entries[0].superAmount,
-          dieselAmount: entries[0].dieselAmount
+        ...(pages.length > 1 ? { stationEntries: pages } : {}),
+        ...(pages.length === 1 && pages[0].superLitres != null ? {
+          superLitres: pages[0].superLitres,
+          dieselLitres: pages[0].dieselLitres,
+          superAmount: pages[0].superAmount,
+          dieselAmount: pages[0].dieselAmount
         } : {}),
         createdBy: user?.email || 'Unknown'
       }, user?.email || 'Unknown');
@@ -902,7 +964,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       await updateCustomer(customer.id, {}, { balance: amt, totalPurchases: amt }, user?.email || 'Unknown');
 
       setActiveModal(null);
-      setStagedDeliveryEntries([]);
+      setDeliveryPages([]);
+      setDeliveryPageIndex(0);
       resetDeliveryFormFields();
     } catch (err) {
       console.error(err);
@@ -911,6 +974,14 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       setModalLoading(false);
     }
   };
+
+  // Wizard page loader: whenever the page index (or modal) changes, load that page's
+  // saved values back into the form — blank when on a fresh trailing page.
+  useEffect(() => {
+    if (activeModal !== 'delivery') return;
+    loadDeliveryPageIntoForm(deliveryPages[deliveryPageIndex]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deliveryPageIndex, activeModal]);
 
   const handleAddPayment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1806,28 +1877,45 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 <div>
                   <h3 className="text-xl font-bold text-white">Log Fuel Delivery</h3>
                   <p className="text-xs text-theme-text-muted font-medium pb-1">
-                    For {customer.name}{stagedDeliveryEntries.length > 0 ? ` · ${stagedDeliveryEntries.length + 1} stations` : ''}
+                    For {customer.name} · Station {deliveryPageIndex + 1}
                   </p>
                 </div>
                 <button type="button" onClick={closeDeliveryModal} className="p-1 px-2 text-[#A1A1AA] hover:text-white rounded-lg transition-colors cursor-pointer"><X className="w-5 h-5"/></button>
               </div>
-              {stagedDeliveryEntries.length > 0 && (
+              {deliveryPages.length > 0 && (
                 <div className="px-6 pt-4 space-y-1.5">
-                  {stagedDeliveryEntries.map((st, idx) => (
-                    <div key={idx} className="flex items-center justify-between gap-2 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5">
+                  <p className="text-[10px] font-bold text-theme-text-muted uppercase tracking-wider">Captured Stations ({deliveryPages.length}) — click to recheck</p>
+                  {deliveryPages.map((st, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        commitCurrentDeliveryPage();
+                        setDeliveryPageIndex(idx);
+                      }}
+                      className={`w-full flex items-center justify-between gap-2 border rounded-lg px-3 py-1.5 text-left transition-colors cursor-pointer ${
+                        idx === deliveryPageIndex
+                          ? 'bg-indigo-500/15 border-indigo-500/40'
+                          : 'bg-white/5 border-white/10 hover:bg-white/10'
+                      }`}
+                    >
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-white truncate">{st.stationName || 'No station'} <span className="text-theme-text-muted font-medium">· {st.productType}</span></p>
+                        <p className="text-xs font-bold text-white truncate">
+                          <span className="text-theme-text-muted font-medium">{idx + 1}. </span>
+                          {st.stationName || 'No station'} <span className="text-theme-text-muted font-medium">· {st.productType}</span>
+                        </p>
                         <p className="text-[10px] text-theme-text-muted font-mono">{st.litres.toLocaleString('en-US', { maximumFractionDigits: 2 })} L · KES {st.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => setStagedDeliveryEntries(prev => prev.filter((_, i) => i !== idx))}
-                        className="p-1 text-gray-500 hover:text-red-400 rounded transition-colors cursor-pointer shrink-0"
-                        title="Remove this station"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                      <X
+                        className="w-3.5 h-3.5 text-gray-500 hover:text-red-400 shrink-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeliveryPages(prev => prev.filter((_, i) => i !== idx));
+                          if (idx < deliveryPageIndex) setDeliveryPageIndex(i => i - 1);
+                          else if (idx === deliveryPageIndex && deliveryPageIndex >= deliveryPages.length - 1) setDeliveryPageIndex(Math.max(0, deliveryPages.length - 2));
+                        }}
+                      />
+                    </button>
                   ))}
                 </div>
               )}
@@ -1988,6 +2076,16 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 )}
               </div>
               <div className="px-6 py-4 bg-[#000000] border-t border-white/10 flex justify-end gap-3 rounded-b-xl">
+                {deliveryPageIndex > 0 && (
+                  <button
+                    type="button"
+                    onClick={handlePrevStationPage}
+                    className="px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-300 border border-white/10 rounded-lg text-sm font-bold transition-colors cursor-pointer"
+                    title="Go back to the previous station to recheck"
+                  >
+                    ← Previous
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={closeDeliveryModal}
@@ -1997,9 +2095,9 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                 </button>
                 <button
                   type="button"
-                  onClick={handleStageNextStation}
+                  onClick={handleNextStationPage}
                   className="px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-lg text-sm font-bold transition-colors cursor-pointer"
-                  title="Stage this station and add another station to the same delivery"
+                  title="Keep this station and open the next page for another station"
                 >
                   Next Station →
                 </button>
@@ -2008,9 +2106,12 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   disabled={modalLoading}
                   className="px-5 py-2 bg-[#4338CA] hover:bg-[#4338CA]/90 text-white rounded-lg text-sm font-bold shadow-md shadow-[#4338CA]/25 disabled:opacity-50 transition-colors cursor-pointer"
                 >
-                  {stagedDeliveryEntries.length > 0
-                    ? `Save Delivery (${stagedDeliveryEntries.length + 1} stations)`
-                    : 'Save Delivery'}
+                  {(() => {
+                    const currentValid = !!buildDeliveryEntryFromForm();
+                    const trailingNew = deliveryPageIndex >= deliveryPages.length;
+                    const total = trailingNew ? deliveryPages.length + (currentValid ? 1 : 0) : deliveryPages.length;
+                    return total > 1 ? `Save Delivery (${total} stations)` : 'Save Delivery';
+                  })()}
                 </button>
               </div>
             </form>
