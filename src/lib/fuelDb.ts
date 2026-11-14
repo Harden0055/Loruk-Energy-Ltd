@@ -69,9 +69,10 @@ export interface FuelDailyRecord {
 
 export interface FuelProduct {
   id: string;
+  itemCode?: string;         // e.g. FS-0001
   name: string;
-  category: string;          // LPG Cylinder | Burner | Grill | Other
-  unit: string;              // pcs | kg
+  category: string;          // LPG Cylinder | Burner | Grill | White Oils | Other
+  unit: string;              // pcs | kg | L
   buyingPrice: number;
   sellingPrice: number;
   stock: number;
@@ -189,8 +190,8 @@ export interface FuelAuditEntry {
 export const FUEL_PAYMENT_METHODS = ['Cash', 'M-Pesa', 'Bank', 'Cheque', 'Other'];
 export const FUEL_PRODUCT_CATEGORIES = ['LPG Cylinder', 'Burner', 'Grill', 'White Oils', 'Other'];
 export const DEFAULT_FUEL_PRODUCTS = [
-  { name: 'Premium', category: 'White Oils', unit: 'L' },
-  { name: 'Diesel', category: 'White Oils', unit: 'L' },
+  { itemCode: 'FS-0001', name: 'Premium', category: 'White Oils', unit: 'L' },
+  { itemCode: 'FS-0002', name: 'Diesel', category: 'White Oils', unit: 'L' },
 ];
 export const DEFAULT_EXPENSE_CATEGORIES = [
   'Fuel & Energy', 'Staff Wages', 'Transport', 'Rent', 'Repairs & Maintenance',
@@ -442,25 +443,27 @@ export async function correctFuelDailyRecord(
 // ---------------- PRODUCTS ----------------
 
 export async function createFuelProduct(data: {
+  itemCode?: string;
   name: string; category: string; unit: string;
   buyingPrice: number; sellingPrice: number; stock: number; sellable: boolean;
 }) {
   const payload = { ...data, ...nowStamp() };
   const id = await fuelAdd(COLLECTIONS.products, payload);
-  await logFuelAudit({ area: 'Products', action: 'create', entityLabel: data.name, details: `Buying ${data.buyingPrice} · Selling ${data.sellingPrice}` });
+  await logFuelAudit({ area: 'Products', action: 'create', entityLabel: `${data.itemCode ? data.itemCode + ' · ' : ''}${data.name}`, details: `Buying ${data.buyingPrice} · Selling ${data.sellingPrice}` });
   return id;
 }
 
 export async function updateFuelProduct(id: string, current: FuelProduct, updates: Partial<FuelProduct>) {
   await fuelUpdate(COLLECTIONS.products, id, { ...updates, updatedAt: Date.now() });
   const priceBits: string[] = [];
+  if (updates.itemCode != null && updates.itemCode !== current.itemCode) priceBits.push(`code ${current.itemCode || '—'} → ${updates.itemCode}`);
   if (updates.buyingPrice != null && updates.buyingPrice !== current.buyingPrice) priceBits.push(`buying ${current.buyingPrice} → ${updates.buyingPrice}`);
   if (updates.sellingPrice != null && updates.sellingPrice !== current.sellingPrice) priceBits.push(`selling ${current.sellingPrice} → ${updates.sellingPrice}`);
   if (updates.stock != null && updates.stock !== current.stock) priceBits.push(`stock ${current.stock} → ${updates.stock}`);
   await logFuelAudit({
     area: 'Products',
     action: priceBits.length ? 'price-change' : 'edit',
-    entityLabel: updates.name || current.name,
+    entityLabel: `${(updates.itemCode || current.itemCode) ? (updates.itemCode || current.itemCode) + ' · ' : ''}${updates.name || current.name}`,
     details: priceBits.join('; ') || JSON.stringify(updates),
   });
 }
@@ -600,6 +603,7 @@ export async function ensureFuelDefaultProducts(existing: FuelProduct[]) {
   if (local.length > 0) return;
   for (const def of DEFAULT_FUEL_PRODUCTS) {
     await createFuelProduct({
+      itemCode: def.itemCode,
       name: def.name,
       category: def.category,
       unit: def.unit,

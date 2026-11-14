@@ -26,6 +26,16 @@ const CAT_COLORS: Record<string, string> = {
   'Other': '#94A3B8',
 };
 
+/** Next free item code: FS-0001, FS-0002, … skipping codes already taken. */
+const nextItemCode = (products: FuelProduct[]) => {
+  const taken = new Set(products.map(p => (p.itemCode || '').toUpperCase()).filter(Boolean));
+  let n = products.length + 1;
+  for (let i = 1; i <= products.length + 1; i++) {
+    if (!taken.has(`FS-${String(i).padStart(4, '0')}`)) { n = i; break; }
+  }
+  return `FS-${String(n).padStart(4, '0')}`;
+};
+
 export default function FuelProducts({ initialAction }: { initialAction?: string }) {
   const { data: products, loading } = useFuelProducts();
   const { data: sales } = useFuelProductSales();
@@ -38,6 +48,7 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [itemCode, setItemCode] = useState('');
   const [name, setName] = useState('');
   const [category, setCategory] = useState(FUEL_PRODUCT_CATEGORIES[0]);  const [unit, setUnit] = useState('pcs');
   const [buyingPrice, setBuyingPrice] = useState('');
@@ -51,6 +62,7 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
   }, [products.length]);
 
   const openModal = (p: FuelProduct | null) => {
+    setItemCode(p?.itemCode || nextItemCode(products));
     setName(p?.name || '');
     setCategory(p?.category || FUEL_PRODUCT_CATEGORIES[0]);
     setUnit(p?.unit || 'pcs');
@@ -70,6 +82,7 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
     setSaving(true);
     try {
       const payload = {
+        itemCode: itemCode.trim(),
         name: name.trim(), category, unit: unit.trim() || 'pcs',
         buyingPrice: bp, sellingPrice: sp, stock: st, sellable,
       };
@@ -177,7 +190,7 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
         right={<FuelSearch value={search} onChange={setSearch} placeholder="Search products…" />}
       >
         <FuelTable
-          headers={['Product', 'Category', 'Buying', 'Selling', 'Margin', 'Stock', 'Sellable', '']}
+          headers={['Code', 'Product', 'Category', 'Buying', 'Selling', 'Margin', 'Stock', 'Sellable', '']}
           empty={filtered.length === 0}
         >
           {filtered.map(p => {
@@ -185,6 +198,7 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
             const lowStock = p.sellable && (p.stock || 0) <= 0;
             return (
               <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
+                <td className="py-2.5 px-2.5 text-xs font-mono text-violet-400 font-bold whitespace-nowrap">{p.itemCode || '—'}</td>
                 <td className="py-2.5 px-2.5 text-xs font-bold text-theme-text">{p.name}</td>
                 <td className="py-2.5 px-2.5"><FuelBadge tone={p.category === 'LPG Cylinder' ? 'green' : p.category === 'Burner' ? 'violet' : 'slate'}>{p.category}</FuelBadge></td>
                 <td className="py-2.5 px-2.5 text-xs font-mono text-theme-text-muted">{ksh(p.buyingPrice)}</td>
@@ -216,6 +230,7 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
         <div className="flex items-center justify-between mt-2.5 flex-wrap gap-2">
           {loading && <p className="text-xs text-gray-500">Loading products…</p>}
           <FuelExportButton name="fuelsuite_products" rows={filtered.map(p => ({
+            'Item Code': p.itemCode || '',
             Name: p.name, Category: p.category, Unit: p.unit,
             'Buying Price': p.buyingPrice, 'Selling Price': p.sellingPrice,
             Stock: p.stock, Sellable: p.sellable ? 'Yes' : 'No (container)',
@@ -238,9 +253,14 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
             </>
           }
         >
-          <FuelField label="Product name" required>
-            <input type="text" className={fuelInputClass} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. LPG Cylinder 6kg (Filled)" />
-          </FuelField>
+          <div className="grid grid-cols-[minmax(0,110px)_1fr] gap-3">
+            <FuelField label="Item code" hint="Auto-suggested">
+              <input type="text" className={fuelInputClass} value={itemCode} onChange={e => setItemCode(e.target.value)} placeholder="FS-0001" />
+            </FuelField>
+            <FuelField label="Product name" required>
+              <input type="text" className={fuelInputClass} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. LPG Cylinder 6kg (Filled)" />
+            </FuelField>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <FuelField label="Category" required>
               <select value={category} onChange={e => setCategory(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
