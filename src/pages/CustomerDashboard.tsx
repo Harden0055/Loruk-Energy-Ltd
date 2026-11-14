@@ -61,7 +61,7 @@ import { QuickAddCustomerStationModal as QuickAddStationModal } from '../compone
 
 
 // Custom tooltip for the daily fuel-rate chart: rates per product plus the
-// histogram underlay values (litres delivered, payments received) for the day.
+// histogram underlay value (litres delivered that day).
 const RateTooltipContent = ({ active, payload, label }: any) => {
   if (!active || !payload || payload.length === 0) return null;
   const p = payload[0].payload;
@@ -72,7 +72,6 @@ const RateTooltipContent = ({ active, payload, label }: any) => {
       {p.AGO != null && <div style={{ color: '#34D399' }}>AGO Rate : {fmtKES(p.AGO)} /L</div>}
       {p.PMS != null && <div style={{ color: '#A5B4FC' }}>PMS Rate : {fmtKES(p.PMS)} /L</div>}
       {p.litres > 0 && <div style={{ color: '#34D399', marginTop: 2 }}>Delivered : {Number(p.litres).toLocaleString('en-US', { maximumFractionDigits: 2 })} L</div>}
-      {p.payments > 0 && <div style={{ color: '#C4B5FD' }}>Received : {fmtKES(p.payments)}</div>}
     </div>
   );
 };
@@ -638,30 +637,16 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       }));
   }, [customerDeliveries]);
 
-  // Histogram underlay for the daily rate chart: litres delivered (green, above
-  // the baseline) and payments received (violet, below it) per delivery day.
-  // Litres and KES live on very different magnitudes, so each side is normalized
-  // to its own maximum before plotting on a single hidden display axis.
+  // Histogram underlay for the daily rate chart: one green bar per day showing
+  // the litres of fuel delivered on that exact date. Days without a delivery
+  // are simply absent from the axis (empty). Normalized to the biggest day.
   const rateHistogramData = useMemo(() => {
-    const payByDay = new Map<string, number>();
-    for (const p of customerPayments) {
-      if (!p.date) continue;
-      const dt = new Date(p.date);
-      const key = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
-      payByDay.set(key, (payByDay.get(key) || 0) + (p.amount || 0));
-    }
     const maxLitres = Math.max(0, ...dailyRateData.map(r => r.litres || 0));
-    const maxPayments = Math.max(0, ...dailyRateData.map(r => payByDay.get(r.key) || 0));
-    return dailyRateData.map(r => {
-      const pay = payByDay.get(r.key) || 0;
-      return {
-        ...r,
-        payments: pay,
-        litresNorm: maxLitres > 0 ? (r.litres / maxLitres) * 32 : 0,
-        paymentsNorm: maxPayments > 0 ? -(pay / maxPayments) * 15 : 0
-      };
-    });
-  }, [dailyRateData, customerPayments]);
+    return dailyRateData.map(r => ({
+      ...r,
+      litresNorm: maxLitres > 0 ? (r.litres / maxLitres) * 40 : 0
+    }));
+  }, [dailyRateData]);
 
   const totalSalesValue = useMemo(() => {
     return customerDeliveries.reduce((sum, d) => sum + d.totalAmount, 0);
@@ -1459,14 +1444,13 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                     <YAxis yAxisId="rate" fontSize={10} stroke="#94A3B8" tickFormatter={(v) => `K${Math.round(v)}`} tickLine={false} domain={['auto', 'auto']} />
                     {/* Hidden display axis for the histogram underlay: baseline 13% up
                         from the bottom; green bars rise above it, violet bars below */}
-                    <YAxis yAxisId="vol" hide domain={[-15, 100]} />
+                    <YAxis yAxisId="vol" hide domain={[0, 100]} />
                     <Tooltip
                       content={<RateTooltipContent />}
                       cursor={{ fill: 'rgba(99, 102, 241, 0.06)' }}
                     />
                     <Legend verticalAlign="top" height={20} iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
-                    <Bar yAxisId="vol" dataKey="litresNorm" name="Delivered (L)" stackId="vol" fill="#34D399" fillOpacity={0.45} radius={[2, 2, 0, 0]} maxBarSize={12} />
-                    <Bar yAxisId="vol" dataKey="paymentsNorm" name="Received (KES)" stackId="vol" fill="#8B5CF6" fillOpacity={0.5} radius={[0, 0, 2, 2]} maxBarSize={12} />
+                    <Bar yAxisId="vol" dataKey="litresNorm" name="Delivered (L)" fill="#34D399" fillOpacity={0.45} radius={[2, 2, 0, 0]} maxBarSize={12} />
                     <Line yAxisId="rate" type="monotone" dataKey="AGO" stroke="#34D399" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
                     <Line yAxisId="rate" type="monotone" dataKey="PMS" stroke="#6366F1" strokeWidth={2} dot={{ r: 2 }} strokeOpacity={0.95} />
                   </ComposedChart>
