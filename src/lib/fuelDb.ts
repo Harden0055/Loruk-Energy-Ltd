@@ -59,6 +59,15 @@ export interface FuelDailyRecord {
   ago: FuelProductReading;
   pms: FuelProductReading;
   startSource: 'auto' | 'manual';
+  // Daily cash & M-Pesa reconciliation (mirrors the paper sales sheet)
+  mpesaStart?: number;         // M-Pesa till balance at start of day
+  mpesaStop?: number;          // M-Pesa till balance at end of day
+  mpesaReceived?: number;      // money received via M-Pesa today
+  cashAtHand?: number;         // cash counted at close of day
+  deposited?: number;          // banked / deposited today
+  transactionFee?: number;     // transaction / withdrawal charges
+  fuelBalanceSuper?: number;   // dip: litres of PMS left in tank
+  fuelBalanceDiesel?: number;  // dip: litres of AGO left in tank
   note?: string;
   createdBy?: string;
   createdAt: number;
@@ -423,6 +432,11 @@ export async function correctFuelDailyRecord(
         changes.push(`${p.toUpperCase()}.${k}: ${o?.[k] ?? '—'} → ${n?.[k] ?? '—'}`);
       }
     });
+  });
+  (['mpesaStart', 'mpesaStop', 'mpesaReceived', 'cashAtHand', 'deposited', 'transactionFee', 'fuelBalanceSuper', 'fuelBalanceDiesel'] as const).forEach(k => {
+    const o = (record as any)[k] ?? 0;
+    const n = (updates as any)[k] ?? 0;
+    if (o !== n) changes.push(`${k}: ${o} → ${n}`);
   });
   const correction = { at: Date.now(), by: currentUserEmail(), reason, changes: changes.join('; ') || 'metadata only' };
   await fuelUpdate(COLLECTIONS.dailyRecords, record.id, {

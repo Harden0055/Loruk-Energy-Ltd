@@ -7,11 +7,13 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import {
   ClipboardList, Plus, Pencil, AlertTriangle, Save, Eye,
-  CalendarDays, Fuel, ChevronDown, ChevronUp, History, MapPin, UserRound
+  CalendarDays, Fuel, ChevronDown, ChevronUp, History, MapPin, UserRound,
+  Calculator, Smartphone, Droplets, Banknote,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   useFuelStations, useFuelSalespeople, useFuelDailyRecords,
+  useFuelProductSales, useFuelExpenses, useFuelCreditTxs, useFuelPayments,
   createFuelDailyRecord, correctFuelDailyRecord,
   FuelStation, FuelSalesperson, FuelDailyRecord, FuelProductReading,
 } from '../../lib/fuelDb';
@@ -48,6 +50,10 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
   const { data: stations, loading: stationsLoading } = useFuelStations();
   const salespeople = useFuelSalespeople().data;
   const { data: records, loading } = useFuelDailyRecords();
+  const { data: productSales } = useFuelProductSales();
+  const { data: expenses } = useFuelExpenses();
+  const { data: creditTxs } = useFuelCreditTxs();
+  const { data: payments } = useFuelPayments();
 
   const activeStations = stations.filter(s => s.active !== false);
 
@@ -60,6 +66,16 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
   const [pms, setPms] = useState<FuelProductReading>(emptyReading());
   const [note, setNote] = useState('');
   const [startSource, setStartSource] = useState<'auto' | 'manual'>('manual');
+
+  // Daily cash & M-Pesa reconciliation + fuel dip balance (paper-sheet fields)
+  const [mpesaStart, setMpesaStart] = useState('');
+  const [mpesaStop, setMpesaStop] = useState('');
+  const [mpesaReceived, setMpesaReceived] = useState('');
+  const [cashAtHand, setCashAtHand] = useState('');
+  const [deposited, setDeposited] = useState('');
+  const [transactionFee, setTransactionFee] = useState('');
+  const [fuelBalanceSuper, setFuelBalanceSuper] = useState('');
+  const [fuelBalanceDiesel, setFuelBalanceDiesel] = useState('');
 
   const [editingRecord, setEditingRecord] = useState<FuelDailyRecord | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -117,6 +133,47 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
   const totalExpected = agoC.expected + pmsC.expected;
   const totalDifference = agoC.difference + pmsC.difference;
 
+  // ---- Day figures pulled from the other FuelSuite ledgers (for the cash check) ----
+  const dayFigures = useMemo(() => {
+    const ps = productSales.filter(s => s.dateKey === dateKey);
+    const ex = expenses.filter(e => e.dateKey === dateKey);
+    const tx = creditTxs.filter(t => t.dateKey === dateKey);
+    const pm = payments.filter(p => p.dateKey === dateKey);
+    const isCash = (m?: string) => (m || '').toLowerCase().startsWith('cash');
+    const isMpesa = (m?: string) => (m || '').toLowerCase().includes('m-pesa');
+    return {
+      ps, ex, tx, pm,
+      productCash: ps.filter(s => !s.onCredit).reduce((a, s) => a + s.total, 0),
+      productCredit: ps.filter(s => s.onCredit).reduce((a, s) => a + s.total, 0),
+      expensesCash: ex.filter(e => isCash(e.paymentMethod)).reduce((a, e) => a + e.amount, 0),
+      expensesMpesa: ex.filter(e => isMpesa(e.paymentMethod)).reduce((a, e) => a + e.amount, 0),
+      expensesTotal: ex.reduce((a, e) => a + e.amount, 0),
+      repaymentsCash: tx.filter(t => t.type === 'repayment' && isCash(t.method)).reduce((a, t) => a + t.amount, 0),
+      repaymentsMpesa: tx.filter(t => t.type === 'repayment' && isMpesa(t.method)).reduce((a, t) => a + t.amount, 0),
+      paymentsCash: pm.filter(p => isCash(p.method)).reduce((a, p) => a + p.amount, 0),
+      paymentsMpesa: pm.filter(p => isMpesa(p.method)).reduce((a, p) => a + p.amount, 0),
+      debtsGiven: tx.filter(t => t.type === 'credit').reduce((a, t) => a + t.amount, 0),
+    };
+  }, [productSales, expenses, creditTxs, payments, dateKey]);
+
+  // M-Pesa received today: from till balances (stop − start), like the notebook
+  const mpesaReceivedToday = useMemo(() => {
+    if (mpesaStart === '' && mpesaStop === '') return num(mpesaReceived);
+    return num(mpesaStop) - num(mpesaStart);
+  }, [mpesaStart, mpesaStop, mpesaReceived]);
+
+  // Expected cash at hand: cash collected − cash expenses − banked − charges.
+  // M-Pesa money and credit sales are not cash at hand.
+  const cashCheck = useMemo(() => {
+    const fuelSales = agoC.machineSales + pmsC.machineSales;
+    const collectedCash =
+      fuelSales + dayFigures.productCash + dayFigures.repaymentsCash + dayFigures.paymentsCash;
+    const expectedCash =
+      collectedCash - dayFigures.expensesCash - num(deposited) - num(transactionFee);
+    const counted = num(cashAtHand);
+    return { fuelSales, collectedCash, expectedCash, counted, difference: counted - expectedCash };
+  }, [agoC.machineSales, pmsC.machineSales, dayFigures, deposited, transactionFee, cashAtHand]);
+
   // ---- Flags ----
   const duplicate = useMemo(() => {
     if (editingRecord) return null;
@@ -149,6 +206,12 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
   if (negativeReading) flags.push({ tone: 'red', text: 'Negative difference: a stop reading is below its start reading' });
   if (unreliablePrevious) flags.push({ tone: 'amber', text: 'Previous record has negative readings — auto start figures may be unreliable' });
   if (unusualDifference) flags.push({ tone: 'violet', text: 'Unusual difference between machine sales and expected sales (>2%)' });
+  if (num(cashAtHand) > 0 && Math.abs(cashCheck.difference) > 0.99) {
+    flags.push({
+      tone: cashCheck.difference < 0 ? 'red' : 'violet',
+      text: `Cash check: counted ${ksh(cashCheck.counted)} vs expected ${ksh(cashCheck.expectedCash)} — difference ${ksh(cashCheck.difference)}`,
+    });
+  }
 
   const blockingSave = !!duplicate || negativeReading || !stationId || !dateKey;
 
@@ -162,6 +225,14 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
     setPms({ ...emptyReading(), ...rec.pms });
     setNote(rec.note || '');
     setStartSource(rec.startSource || 'manual');
+    setMpesaStart(rec.mpesaStart != null ? String(rec.mpesaStart) : '');
+    setMpesaStop(rec.mpesaStop != null ? String(rec.mpesaStop) : '');
+    setMpesaReceived(rec.mpesaReceived != null ? String(rec.mpesaReceived) : '');
+    setCashAtHand(rec.cashAtHand != null ? String(rec.cashAtHand) : '');
+    setDeposited(rec.deposited != null ? String(rec.deposited) : '');
+    setTransactionFee(rec.transactionFee != null ? String(rec.transactionFee) : '');
+    setFuelBalanceSuper(rec.fuelBalanceSuper != null ? String(rec.fuelBalanceSuper) : '');
+    setFuelBalanceDiesel(rec.fuelBalanceDiesel != null ? String(rec.fuelBalanceDiesel) : '');
     setCorrectionReason('');
     setNotice(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -178,6 +249,9 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
       setAgo(emptyReading(ago.rate));
       setPms(emptyReading(pms.rate));
     }
+    setMpesaStart(''); setMpesaStop(''); setMpesaReceived('');
+    setCashAtHand(''); setDeposited(''); setTransactionFee('');
+    setFuelBalanceSuper(''); setFuelBalanceDiesel('');
   };
 
   const openReview = () => {
@@ -205,6 +279,14 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
           editingRecord,
           {
             ago, pms, note, startSource,
+            mpesaStart: num(mpesaStart),
+            mpesaStop: num(mpesaStop),
+            mpesaReceived: mpesaReceivedToday,
+            cashAtHand: num(cashAtHand),
+            deposited: num(deposited),
+            transactionFee: num(transactionFee),
+            fuelBalanceSuper: num(fuelBalanceSuper),
+            fuelBalanceDiesel: num(fuelBalanceDiesel),
             salespersonId: salespersonId || undefined,
             salespersonName: salesperson?.name || editingRecord.salespersonName,
           },
@@ -220,6 +302,14 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
           salespersonId: salespersonId || undefined,
           salespersonName: salesperson?.name,
           ago, pms, note, startSource,
+          mpesaStart: num(mpesaStart),
+          mpesaStop: num(mpesaStop),
+          mpesaReceived: mpesaReceivedToday,
+          cashAtHand: num(cashAtHand),
+          deposited: num(deposited),
+          transactionFee: num(transactionFee),
+          fuelBalanceSuper: num(fuelBalanceSuper),
+          fuelBalanceDiesel: num(fuelBalanceDiesel),
         });
         setNotice('Daily record saved.');
       }
@@ -230,6 +320,9 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
       setAgo(emptyReading(ago.rate));
       setPms(emptyReading(pms.rate));
       setStartSource(previousRecord ? 'auto' : 'manual');
+      setMpesaStart(''); setMpesaStop(''); setMpesaReceived('');
+      setCashAtHand(''); setDeposited(''); setTransactionFee('');
+      setFuelBalanceSuper(''); setFuelBalanceDiesel('');
     } catch (err) {
       console.error(err);
       setError('Failed to save the record. Please try again.');
@@ -368,6 +461,80 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
         <ReadingGrid reading={ago} computed={agoC} setter={setAgoField} label="AGO (Diesel)" color="text-emerald-400" />
         <ReadingGrid reading={pms} computed={pmsC} setter={setPmsField} label="PMS (Petrol)" color="text-violet-400" />
 
+        {/* Daily cash & M-Pesa reconciliation (mirrors the paper sales sheet) */}
+        <div className="border border-theme-border rounded-xl p-3.5 bg-white/[0.02]">
+          <div className="flex items-center justify-between mb-2.5 flex-wrap gap-1.5">
+            <h4 className="text-xs font-black text-theme-text flex items-center gap-1.5">
+              <Calculator className="w-3.5 h-3.5 text-violet-400" /> Daily cash &amp; M-Pesa check
+            </h4>
+            <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">same arithmetic as your paper sheet</span>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            <FuelField label="M-Pesa Start"><input type="number" className={fuelInputClass} value={mpesaStart} onChange={e => setMpesaStart(e.target.value)} placeholder="till balance" /></FuelField>
+            <FuelField label="M-Pesa Stop"><input type="number" className={fuelInputClass} value={mpesaStop} onChange={e => setMpesaStop(e.target.value)} placeholder="till balance" /></FuelField>
+            <FuelField label="Cash Counted"><input type="number" className={fuelInputClass} value={cashAtHand} onChange={e => setCashAtHand(e.target.value)} placeholder="0" /></FuelField>
+            <FuelField label="Deposited (Bank)"><input type="number" className={fuelInputClass} value={deposited} onChange={e => setDeposited(e.target.value)} placeholder="0" /></FuelField>
+            <FuelField label="Transaction Fee"><input type="number" className={fuelInputClass} value={transactionFee} onChange={e => setTransactionFee(e.target.value)} placeholder="0" /></FuelField>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2.5">
+            {[
+              { l: 'M-Pesa Received', v: ksh(mpesaReceivedToday), tone: 'violet', icon: Smartphone, hint: mpesaStart !== '' || mpesaStop !== '' ? 'stop − start' : 'entered directly' },
+              { l: 'Total Collected (Cash)', v: ksh(cashCheck.collectedCash), tone: 'green', icon: Banknote },
+              { l: 'Expected Cash at Hand', v: ksh(cashCheck.expectedCash), tone: 'slate', icon: Calculator },
+              { l: 'Cash Check Difference', v: ksh(cashCheck.difference), tone: cashCheck.counted <= 0 ? 'slate' : Math.abs(cashCheck.difference) <= 0.99 ? 'green' : cashCheck.difference < 0 ? 'red' : 'violet', icon: AlertTriangle },
+            ].map(x => {
+              const tones: Record<string, string> = {
+                red: 'text-red-400 border-red-500/25 bg-red-500/[0.06]',
+                green: 'text-emerald-400 border-emerald-500/25 bg-emerald-500/[0.06]',
+                violet: 'text-violet-400 border-violet-500/25 bg-violet-500/[0.06]',
+                slate: 'text-slate-300 border-white/10 bg-white/[0.03]',
+              };
+              const Icon = x.icon;
+              return (
+                <div key={x.l} className={`rounded-lg border px-2.5 py-1.5 ${tones[x.tone]}`} title={x.hint}>
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted flex items-center gap-1"><Icon className="w-3 h-3" />{x.l}</p>
+                  <p className="text-xs font-black font-mono mt-0.5">{x.v}</p>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-2.5 pt-2 border-t border-white/[0.06] text-[10px] text-theme-text-muted leading-relaxed space-y-0.5">
+            <p>
+              <span className="font-bold text-theme-text">{ksh(cashCheck.fuelSales)}</span> fuel machine sales (AGO + PMS)
+              {' + '}<span className="font-bold text-emerald-400">{ksh(dayFigures.productCash)}</span> cash product sales
+              {' + '}<span className="font-bold text-emerald-400">{ksh(dayFigures.repaymentsCash)}</span> cash repayments
+              {' + '}<span className="font-bold text-emerald-400">{ksh(dayFigures.paymentsCash)}</span> other cash received
+              {' − '}<span className="font-bold text-red-400">{ksh(dayFigures.expensesCash)}</span> cash expenses
+              {' − '}<span className="font-bold text-red-400">{ksh(num(deposited))}</span> deposited
+              {' − '}<span className="font-bold text-red-400">{ksh(num(transactionFee))}</span> fees
+              {' = '}<span className="font-bold text-theme-text">{ksh(cashCheck.expectedCash)}</span> expected cash at hand
+            </p>
+            <p className="flex flex-wrap gap-x-3 gap-y-0.5">
+              <span className="text-amber-400">Debts given this date: <span className="font-mono font-bold">{ksh(dayFigures.debtsGiven)}</span></span>
+              <span className="text-amber-400">Credit product sales: <span className="font-mono font-bold">{ksh(dayFigures.productCredit)}</span> (not cash)</span>
+              <span className="text-violet-400">M-Pesa expenses: <span className="font-mono font-bold">{ksh(dayFigures.expensesMpesa)}</span></span>
+              <span className="text-violet-400">M-Pesa repayments: <span className="font-mono font-bold">{ksh(dayFigures.repaymentsMpesa)}</span></span>
+            </p>
+            <p className="text-gray-500">
+              These figures come from the Product Sales, Expenses, Debts and Payments pages for {fmtDate(dateKey)} — record them there and they appear here automatically.
+            </p>
+          </div>
+        </div>
+
+        {/* Fuel balance (dip) */}
+        <div className="border border-theme-border rounded-xl p-3.5 bg-white/[0.02]">
+          <div className="flex items-center justify-between mb-2.5">
+            <h4 className="text-xs font-black text-theme-text flex items-center gap-1.5">
+              <Droplets className="w-3.5 h-3.5 text-emerald-400" /> Fuel balance (dip) — litres left in tank
+            </h4>
+            <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">end of day</span>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <FuelField label="Super / PMS left (L)"><input type="number" className={fuelInputClass} value={fuelBalanceSuper} onChange={e => setFuelBalanceSuper(e.target.value)} placeholder="0" /></FuelField>
+            <FuelField label="Diesel / AGO left (L)"><input type="number" className={fuelInputClass} value={fuelBalanceDiesel} onChange={e => setFuelBalanceDiesel(e.target.value)} placeholder="0" /></FuelField>
+          </div>
+        </div>
+
         <FuelField label="Note (optional)">
           <input type="text" className={fuelInputClass} value={note} onChange={e => setNote(e.target.value)} placeholder="e.g. generator ran overnight" />
         </FuelField>
@@ -472,6 +639,16 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
                             <p className="text-gray-400">Saved: {format(rec.createdAt, 'dd MMM yyyy HH:mm')}</p>
                           </div>
                         </div>
+                        {(rec.mpesaReceived != null || rec.cashAtHand != null || rec.deposited != null || rec.fuelBalanceSuper != null || rec.fuelBalanceDiesel != null) && (
+                          <div className="pt-1.5 border-t border-white/[0.06] grid grid-cols-2 sm:grid-cols-4 gap-x-3 gap-y-1 font-mono text-gray-400">
+                            <p>M-Pesa received: <span className="text-violet-400 font-bold">{ksh(rec.mpesaReceived || 0)}</span></p>
+                            <p>Cash counted: <span className="text-emerald-400 font-bold">{ksh(rec.cashAtHand || 0)}</span></p>
+                            <p>Deposited: <span className="text-theme-text font-bold">{ksh(rec.deposited || 0)}</span></p>
+                            <p>Fees: <span className="text-theme-text font-bold">{ksh(rec.transactionFee || 0)}</span></p>
+                            <p>Fuel balance Super: <span className="text-emerald-400 font-bold">{fmtQty(rec.fuelBalanceSuper || 0)} L</span></p>
+                            <p>Fuel balance Diesel: <span className="text-emerald-400 font-bold">{fmtQty(rec.fuelBalanceDiesel || 0)} L</span></p>
+                          </div>
+                        )}
                         {rec.note && <p className="text-gray-400">Note: {rec.note}</p>}
                         {(rec.corrections?.length || 0) > 0 && (
                           <div className="pt-1.5 border-t border-white/[0.06] space-y-1">
@@ -536,6 +713,30 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
                 </div>
               </div>
             ))}
+            <div className="bg-white/[0.03] border border-theme-border rounded-lg p-2.5">
+              <p className="text-[9px] uppercase tracking-wider text-theme-text-muted font-bold mb-1 flex items-center gap-1.5">
+                <Calculator className="w-3 h-3 text-violet-400" /> Cash &amp; M-Pesa check
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-3 gap-y-1 font-mono">
+                <span className="text-gray-400">M-Pesa received: <span className="text-violet-400 font-bold">{ksh(mpesaReceivedToday)}</span></span>
+                <span className="text-gray-400">Cash collected: <span className="text-emerald-400 font-bold">{ksh(cashCheck.collectedCash)}</span></span>
+                <span className="text-gray-400">Expected cash: <span className="text-theme-text font-bold">{ksh(cashCheck.expectedCash)}</span></span>
+                <span className="text-gray-400">Counted: <span className="text-emerald-400 font-bold">{ksh(cashCheck.counted)}</span></span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-3 gap-y-1 font-mono mt-1">
+                <span className="text-gray-400">Deposited: <span className="text-theme-text font-bold">{ksh(num(deposited))}</span></span>
+                <span className="text-gray-400">Fees: <span className="text-theme-text font-bold">{ksh(num(transactionFee))}</span></span>
+                <span className="text-gray-400">Debts given: <span className="text-amber-400 font-bold">{ksh(dayFigures.debtsGiven)}</span></span>
+                <span className="text-gray-400">Fuel dip: <span className="text-emerald-400 font-bold">{fmtQty(num(fuelBalanceSuper))} / {fmtQty(num(fuelBalanceDiesel))} L</span></span>
+              </div>
+              {num(cashAtHand) > 0 && (
+                <p className={`mt-1.5 text-[11px] font-bold ${Math.abs(cashCheck.difference) <= 0.99 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {Math.abs(cashCheck.difference) <= 0.99
+                    ? '✓ Cash check passes — counted matches expected.'
+                    : `Cash check difference: ${ksh(cashCheck.difference)} — confirm against your paper sheet before saving.`}
+                </p>
+              )}
+            </div>
             {editingRecord && (
               <FuelField label="Reason for correction" required>
                 <input type="text" className={fuelInputClass} value={correctionReason} onChange={e => setCorrectionReason(e.target.value)} placeholder="e.g. wrong stop figure keyed yesterday" />
