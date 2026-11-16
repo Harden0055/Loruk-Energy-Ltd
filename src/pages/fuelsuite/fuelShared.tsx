@@ -287,11 +287,14 @@ export function FuelModal({
 
 // ---------------- FORM FIELD ----------------
 
-export const FuelField = ({ label, children, hint, required }: { label: string; children: React.ReactNode; hint?: string; required?: boolean }) => (
+export const FuelField = ({ label, labelRight, children, hint, required }: { label: string; labelRight?: React.ReactNode; children: React.ReactNode; hint?: string; required?: boolean }) => (
   <div className="min-w-0">
-    <label className="block text-[10px] font-bold uppercase tracking-wider text-theme-text-muted mb-1">
-      {label}{required && <span className="text-red-400"> *</span>}
-    </label>
+    <div className="flex items-center justify-between gap-2 mb-1">
+      <label className="text-[10px] font-bold uppercase tracking-wider text-theme-text-muted">
+        {label}{required && <span className="text-red-400"> *</span>}
+      </label>
+      {labelRight}
+    </div>
     {children}
     {hint && <p className="text-[10px] text-gray-500 mt-1">{hint}</p>}
   </div>

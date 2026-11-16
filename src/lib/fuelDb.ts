@@ -152,6 +152,7 @@ export interface FuelExpense {
 }
 
 export interface FuelExpenseCategory { id: string; name: string; }
+export interface FuelProductCategory { id: string; name: string; }
 
 export interface FuelCreditCustomer {
   id: string;
@@ -235,6 +236,7 @@ export const COLLECTIONS = {
   productSales: 'fs_product_sales',
   expenses: 'fs_expenses',
   expenseCategories: 'fs_expense_categories',
+  productCategories: 'fs_product_categories',
   creditCustomers: 'fs_credit_customers',
   creditTxs: 'fs_credit_transactions',
   payments: 'fs_payments',
@@ -304,6 +306,7 @@ export const useFuelPurchases = () => useFuelCollection<FuelPurchase>(COLLECTION
 export const useFuelProductSales = () => useFuelCollection<FuelProductSale>(COLLECTIONS.productSales, 'date', 'desc');
 export const useFuelExpenses = () => useFuelCollection<FuelExpense>(COLLECTIONS.expenses, 'date', 'desc');
 export const useFuelExpenseCategories = () => useFuelCollection<FuelExpenseCategory>(COLLECTIONS.expenseCategories, 'name', 'asc');
+export const useFuelProductCategories = () => useFuelCollection<FuelProductCategory>(COLLECTIONS.productCategories, 'name', 'asc');
 export const useFuelCreditCustomers = () => useFuelCollection<FuelCreditCustomer>(COLLECTIONS.creditCustomers, 'name', 'asc');
 export const useFuelCreditTxs = () => useFuelCollection<FuelCreditTx>(COLLECTIONS.creditTxs, 'date', 'desc');
 export const useFuelPayments = () => useFuelCollection<FuelPayment>(COLLECTIONS.payments, 'date', 'desc');
@@ -612,6 +615,14 @@ export async function deleteFuelExpense(expense: FuelExpense) {
 export async function createFuelExpenseCategory(name: string) {
   const id = await fuelAdd(COLLECTIONS.expenseCategories, { name });
   await logFuelAudit({ area: 'Expenses', action: 'category-create', entityLabel: name });
+  return id;
+}
+
+/** Adds a custom product category (used by the + shortcut on Products & Prices). */
+export async function createFuelProductCategory(name: string) {
+  const trimmed = name.trim();
+  const id = await fuelAdd(COLLECTIONS.productCategories, { name: trimmed });
+  await logFuelAudit({ area: 'Products', action: 'category-create', entityLabel: trimmed });
   return id;
 }
 

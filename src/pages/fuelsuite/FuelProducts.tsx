@@ -10,6 +10,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import {
   useFuelProducts, createFuelProduct, updateFuelProduct, deleteFuelProduct,
   useFuelProductSales, useFuelPurchases, useFuelStations,
+  useFuelProductCategories, createFuelProductCategory,
   FUEL_PRODUCT_CATEGORIES, LEGACY_FUEL_PRODUCT_CATEGORIES, FuelProduct,
 } from '../../lib/fuelDb';
 import { useFuelDateRange } from './fuelShared';
@@ -46,6 +47,7 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
   const { data: sales } = useFuelProductSales();
   const { data: purchases } = useFuelPurchases();
   const { data: stations } = useFuelStations();
+  const { data: customCategories } = useFuelProductCategories();
   const { scope, isAll, inScope } = useFuelStationScope();
   const range = useFuelDateRange();
 
@@ -54,6 +56,21 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
   const [deleteTarget, setDeleteTarget] = useState<FuelProduct | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Inline "add category" shortcut state
+  const [catAddOpen, setCatAddOpen] = useState(false);
+  const [newCategory, setNewCategory] = useState('');
+  const [catSaving, setCatSaving] = useState(false);
+  const [catError, setCatError] = useState<string | null>(null);
+
+  // Full category list: defaults + any custom ones you add via the + shortcut.
+  const categoryOptions = useMemo(() => {
+    const seen = new Set(FUEL_PRODUCT_CATEGORIES.map(c => c.toLowerCase()));
+    const extras = customCategories
+      .map(c => c.name)
+      .filter(n => n && !seen.has(n.toLowerCase()));
+    return [...FUEL_PRODUCT_CATEGORIES, ...extras.sort((a, b) => a.localeCompare(b))];
+  }, [customCategories]);
 
   const [itemCode, setItemCode] = useState('');
   const [name, setName] = useState('');
@@ -74,8 +91,32 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
     setSellingPrice(p ? String(p.sellingPrice) : '');
     setStock(p ? String(p.stock) : '');
     setSellable(p ? p.sellable : true);
+    setCatAddOpen(false); setNewCategory(''); setCatError(null);
     setModal({ open: true, editing: p });
     setError(null);
+  };
+
+  /** + shortcut: saves a new category to Firestore and selects it immediately. */
+  const saveNewCategory = async () => {
+    const name = newCategory.trim();
+    if (!name) { setCatError('Type a category name first.'); return; }
+    if (categoryOptions.some(c => c.toLowerCase() === name.toLowerCase())) {
+      // Already exists — just select it.
+      setCategory(categoryOptions.find(c => c.toLowerCase() === name.toLowerCase())!);
+      setCatAddOpen(false); setNewCategory(''); setCatError(null);
+      return;
+    }
+    setCatSaving(true);
+    try {
+      await createFuelProductCategory(name);
+      setCategory(name);
+      setCatAddOpen(false); setNewCategory(''); setCatError(null);
+    } catch (err) {
+      console.error(err);
+      setCatError('Failed to add the category. Try again.');
+    } finally {
+      setCatSaving(false);
+    }
   };
 
   const save = async () => {
@@ -136,7 +177,10 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
   };
   const filtered = useMemo(() => {
     const base = q
-      ? scopedProducts.filter(p => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))
+      ? scopedProducts.filter(p =>
+          p.name.toLowerCase().includes(q) ||
+          p.category.toLowerCase().includes(q) ||
+          categoryOf(p.category).toLowerCase().includes(q))
       : scopedProducts;
     return [...base].sort(byItemCode);
   }, [scopedProducts, q]);
@@ -286,10 +330,52 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
             </FuelField>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <FuelField label="Category" required>
+            <FuelField
+              label="Category"
+              required
+              labelRight={
+                <button
+                  type="button"
+                  onClick={() => { setCatAddOpen(v => !v); setNewCategory(''); setCatError(null); }}
+                  title="Add a new category"
+                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold text-violet-300 hover:text-violet-200 bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/30 transition-colors cursor-pointer"
+                >
+                  <Plus className="w-3 h-3" /> Add category
+                </button>
+              }
+            >
               <select value={category} onChange={e => setCategory(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
-                {FUEL_PRODUCT_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                {categoryOptions.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
+              {catAddOpen && (
+                <div className="mt-2 flex items-center gap-2">
+                  <input
+                    type="text"
+                    autoFocus
+                    className={fuelInputClass}
+                    value={newCategory}
+                    onChange={e => setNewCategory(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); saveNewCategory(); } }}
+                    placeholder="New category name, e.g. Lubricants"
+                  />
+                  <button
+                    type="button"
+                    onClick={saveNewCategory}
+                    disabled={catSaving || !newCategory.trim()}
+                    className="px-2.5 py-2 shrink-0 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 rounded-lg text-[10px] font-bold transition-colors cursor-pointer disabled:opacity-40"
+                  >
+                    {catSaving ? '…' : 'Save'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setCatAddOpen(false); setNewCategory(''); setCatError(null); }}
+                    className="px-2 py-2 text-[10px] font-bold text-gray-400 hover:text-white cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+              {catError && <p className="text-[10px] text-red-400 mt-1">{catError}</p>}
             </FuelField>
             <FuelField label="Unit">
               <input type="text" className={fuelInputClass} value={unit} onChange={e => setUnit(e.target.value)} placeholder="pcs" />
