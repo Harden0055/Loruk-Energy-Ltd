@@ -211,7 +211,12 @@ export interface FuelAuditEntry {
 // ---------------- CONSTANTS ----------------
 
 export const FUEL_PAYMENT_METHODS = ['Cash', 'M-Pesa', 'Bank', 'Cheque', 'Other'];
-export const FUEL_PRODUCT_CATEGORIES = ['LPG Cylinder', 'Burner', 'Grill', 'White Oils', 'Other'];
+export const FUEL_PRODUCT_CATEGORIES = ['LPG Cylinder', 'Accessories', 'White Oils', 'Other'];
+/** Older products may still carry these; they belong under Accessories. */
+export const LEGACY_FUEL_PRODUCT_CATEGORIES: Record<string, string> = {
+  'Burner': 'Accessories',
+  'Grill': 'Accessories',
+};
 export const DEFAULT_FUEL_PRODUCTS = [
   { itemCode: 'FS-0001', name: 'Premium', category: 'White Oils', unit: 'L' },
   { itemCode: 'FS-0002', name: 'Diesel', category: 'White Oils', unit: 'L' },

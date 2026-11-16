@@ -10,7 +10,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import {
   useFuelProducts, createFuelProduct, updateFuelProduct, deleteFuelProduct,
   useFuelProductSales, useFuelPurchases, useFuelStations,
-  FUEL_PRODUCT_CATEGORIES, FuelProduct,
+  FUEL_PRODUCT_CATEGORIES, LEGACY_FUEL_PRODUCT_CATEGORIES, FuelProduct,
 } from '../../lib/fuelDb';
 import { useFuelDateRange } from './fuelShared';
 import { useFuelStationScope } from './fuelStationContext';
@@ -22,11 +22,14 @@ import {
 
 const CAT_COLORS: Record<string, string> = {
   'LPG Cylinder': '#34D399',
-  'Burner': '#6366F1',
-  'Grill': '#8B5CF6',
+  'Accessories': '#6366F1',
   'White Oils': '#38BDF8',
   'Other': '#94A3B8',
 };
+
+/** Burners & grills belong under Accessories — map legacy categories when editing. */
+const categoryOf = (cat?: string) =>
+  LEGACY_FUEL_PRODUCT_CATEGORIES[cat || ''] || cat || FUEL_PRODUCT_CATEGORIES[0];
 
 /** Next free item code: FS-0001, FS-0002, … skipping codes already taken. */
 const nextItemCode = (products: FuelProduct[]) => {
@@ -64,7 +67,7 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
   const openModal = (p: FuelProduct | null) => {
     setItemCode(p?.itemCode || nextItemCode(products));
     setName(p?.name || '');
-    setCategory(p?.category || FUEL_PRODUCT_CATEGORIES[0]);
+    setCategory(p ? categoryOf(p.category) : FUEL_PRODUCT_CATEGORIES[0]);
     setUnit(p?.unit || 'pcs');
     setFormStationId(p ? (p.stationId || '') : (scope !== 'all' ? scope : ''));
     setBuyingPrice(p ? String(p.buyingPrice) : '');
@@ -150,7 +153,7 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
       sellableCount: scopedProducts.filter(p => p.sellable).length,
       stockValue,
       chart: scopedProducts
-        .map(p => ({ name: p.name, qty: soldQtyByProduct.get(p.id) || 0, cat: p.category }))
+        .map(p => ({ name: p.name, qty: soldQtyByProduct.get(p.id) || 0, cat: categoryOf(p.category) }))
         .filter(d => d.qty > 0)
         .sort((a, b) => b.qty - a.qty)
         .slice(0, 8),
@@ -220,7 +223,7 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
                 <td className="py-2.5 px-2.5 text-xs font-mono text-violet-400 font-bold whitespace-nowrap">{p.itemCode || '—'}</td>
                 <td className="py-2.5 px-2.5"><FuelStationBadge stationName={p.stationName} /></td>
                 <td className="py-2.5 px-2.5 text-xs font-bold text-theme-text">{p.name}</td>
-                <td className="py-2.5 px-2.5"><FuelBadge tone={p.category === 'LPG Cylinder' ? 'green' : p.category === 'Burner' ? 'violet' : 'slate'}>{p.category}</FuelBadge></td>
+                <td className="py-2.5 px-2.5"><FuelBadge tone={p.category === 'LPG Cylinder' ? 'green' : p.category === 'Accessories' || p.category === 'Burner' || p.category === 'Grill' ? 'violet' : 'slate'}>{categoryOf(p.category)}</FuelBadge></td>
                 <td className="py-2.5 px-2.5 text-xs font-mono text-theme-text-muted">{ksh(p.buyingPrice)}</td>
                 <td className="py-2.5 px-2.5 text-xs font-mono text-theme-text">{ksh(p.sellingPrice)}</td>
                 <td className={`py-2.5 px-2.5 text-xs font-mono ${margin >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{ksh(margin)}</td>
