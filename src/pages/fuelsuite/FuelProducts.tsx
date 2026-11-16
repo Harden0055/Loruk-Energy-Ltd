@@ -2,21 +2,21 @@
  * FuelSuite — Products: LPG cylinders, burners, grills & other items.
  * Empty cylinders are non-sellable containers. Buying/selling prices editable.
  */
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Package, Plus, Pencil, Trash2, Search, Save, ShoppingCart, Ban, CheckCircle2, Layers,
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 import {
   useFuelProducts, createFuelProduct, updateFuelProduct, deleteFuelProduct,
-  useFuelProductSales, useFuelPurchases, useFuelStations, ensureFuelDefaultProducts,
+  useFuelProductSales, useFuelPurchases, useFuelStations,
   FUEL_PRODUCT_CATEGORIES, FuelProduct,
 } from '../../lib/fuelDb';
 import { useFuelDateRange } from './fuelShared';
 import { useFuelStationScope } from './fuelStationContext';
 import {
   FuelPageShell, FuelSection, FuelKpiGrid, FuelTable, FuelModal, FuelField,
-  FuelSearch, FuelBadge, FuelStationBadge, FuelUnassignedNotice, FuelExportButton,
+  FuelSearch, FuelBadge, FuelStationBadge, FuelExportButton,
   stationCsvLabel, ksh, fmtQty, fuelInputClass,
 } from './fuelShared';
 
@@ -60,11 +60,6 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
   const [sellingPrice, setSellingPrice] = useState('');
   const [stock, setStock] = useState('');
   const [sellable, setSellable] = useState(true);
-
-  // Seed Premium & Diesel (White Oils) once, when no products exist yet
-  useEffect(() => {
-    ensureFuelDefaultProducts(products).catch(console.error);
-  }, [products.length]);
 
   const openModal = (p: FuelProduct | null) => {
     setItemCode(p?.itemCode || nextItemCode(products));
@@ -126,10 +121,22 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
   // Per-station catalogue: a station view shows only that station's products.
   // Unassigned (legacy) products stay visible under All Stations, flagged.
   const scopedProducts = useMemo(() => products.filter(p => inScope(p.stationId)), [products, inScope]);
-  const unassignedCount = useMemo(() => products.filter(p => !p.stationId).length, [products]);
-  const filtered = q
-    ? scopedProducts.filter(p => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))
-    : scopedProducts;
+  // Item-code order: FS-0001 at the top. Codes sort numerically (FS-0002 before
+  // FS-0010); products without a code go last.
+  const byItemCode = (a: FuelProduct, b: FuelProduct) => {
+    const na = parseInt((a.itemCode || '').replace(/\D/g, ''), 10);
+    const nb = parseInt((b.itemCode || '').replace(/\D/g, ''), 10);
+    if (Number.isNaN(na) && Number.isNaN(nb)) return (a.itemCode || '').localeCompare(b.itemCode || '') || a.name.localeCompare(b.name);
+    if (Number.isNaN(na)) return 1;
+    if (Number.isNaN(nb)) return -1;
+    return na - nb || a.name.localeCompare(b.name);
+  };
+  const filtered = useMemo(() => {
+    const base = q
+      ? scopedProducts.filter(p => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))
+      : scopedProducts;
+    return [...base].sort(byItemCode);
+  }, [scopedProducts, q]);
 
   // Stats (respect date filter and station scope)
   const stats = useMemo(() => {
@@ -161,7 +168,6 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
         </button>
       }
     >
-      {!isAll && <FuelUnassignedNotice count={unassignedCount} noun="products" />}
       <FuelKpiGrid
         kpis={[
           { label: 'Products', value: String(stats.count), sub: `${stats.sellableCount} sellable`, icon: Package, tone: 'green' },
