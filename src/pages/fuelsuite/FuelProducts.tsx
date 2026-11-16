@@ -9,13 +9,15 @@ import {
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 import {
   useFuelProducts, createFuelProduct, updateFuelProduct, deleteFuelProduct,
-  useFuelProductSales, useFuelPurchases, ensureFuelDefaultProducts,
+  useFuelProductSales, useFuelPurchases, useFuelStations, ensureFuelDefaultProducts,
   FUEL_PRODUCT_CATEGORIES, FuelProduct,
 } from '../../lib/fuelDb';
 import { useFuelDateRange } from './fuelShared';
+import { useFuelStationScope } from './fuelStationContext';
 import {
   FuelPageShell, FuelSection, FuelKpiGrid, FuelTable, FuelModal, FuelField,
-  FuelSearch, FuelBadge, FuelExportButton, ksh, fmtQty, fuelInputClass,
+  FuelSearch, FuelBadge, FuelStationBadge, FuelUnassignedNotice, FuelExportButton,
+  stationCsvLabel, ksh, fmtQty, fuelInputClass,
 } from './fuelShared';
 
 const CAT_COLORS: Record<string, string> = {
@@ -40,6 +42,8 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
   const { data: products, loading } = useFuelProducts();
   const { data: sales } = useFuelProductSales();
   const { data: purchases } = useFuelPurchases();
+  const { data: stations } = useFuelStations();
+  const { scope, isAll, inScope } = useFuelStationScope();
   const range = useFuelDateRange();
 
   const [search, setSearch] = useState('');
@@ -51,6 +55,7 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
   const [itemCode, setItemCode] = useState('');
   const [name, setName] = useState('');
   const [category, setCategory] = useState(FUEL_PRODUCT_CATEGORIES[0]);  const [unit, setUnit] = useState('pcs');
+  const [formStationId, setFormStationId] = useState('');
   const [buyingPrice, setBuyingPrice] = useState('');
   const [sellingPrice, setSellingPrice] = useState('');
   const [stock, setStock] = useState('');
@@ -66,6 +71,7 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
     setName(p?.name || '');
     setCategory(p?.category || FUEL_PRODUCT_CATEGORIES[0]);
     setUnit(p?.unit || 'pcs');
+    setFormStationId(p ? (p.stationId || '') : (scope !== 'all' ? scope : ''));
     setBuyingPrice(p ? String(p.buyingPrice) : '');
     setSellingPrice(p ? String(p.sellingPrice) : '');
     setStock(p ? String(p.stock) : '');
@@ -83,6 +89,8 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
     try {
       const payload = {
         itemCode: itemCode.trim(),
+        stationId: formStationId || undefined,
+        stationName: stations.find(s => s.id === formStationId)?.name || undefined,
         name: name.trim(), category, unit: unit.trim() || 'pcs',
         buyingPrice: bp, sellingPrice: sp, stock: st, sellable,
       };
@@ -115,28 +123,32 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
   };
 
   const q = search.trim().toLowerCase();
+  // Per-station catalogue: a station view shows only that station's products.
+  // Unassigned (legacy) products stay visible under All Stations, flagged.
+  const scopedProducts = useMemo(() => products.filter(p => inScope(p.stationId)), [products, inScope]);
+  const unassignedCount = useMemo(() => products.filter(p => !p.stationId).length, [products]);
   const filtered = q
-    ? products.filter(p => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))
-    : products;
+    ? scopedProducts.filter(p => p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q))
+    : scopedProducts;
 
-  // Stats (respect date filter where relevant)
+  // Stats (respect date filter and station scope)
   const stats = useMemo(() => {
-    const soldInRange = sales.filter(s => range.inRange(s.date));
-    const boughtInRange = purchases.filter(p => range.inRange(p.date));
-    const stockValue = products.reduce((s, p) => s + (p.stock || 0) * (p.buyingPrice || 0), 0);
+    const soldInRange = sales.filter(s => range.inRange(s.date) && inScope(s.stationId));
+    const boughtInRange = purchases.filter(p => range.inRange(p.date) && inScope(p.stationId));
+    const stockValue = scopedProducts.reduce((s, p) => s + (p.stock || 0) * (p.buyingPrice || 0), 0);
     const soldQtyByProduct = new Map<string, number>();
     soldInRange.forEach(s => soldQtyByProduct.set(s.productId, (soldQtyByProduct.get(s.productId) || 0) + s.qty));
     return {
-      count: products.length,
-      sellableCount: products.filter(p => p.sellable).length,
+      count: scopedProducts.length,
+      sellableCount: scopedProducts.filter(p => p.sellable).length,
       stockValue,
-      chart: products
+      chart: scopedProducts
         .map(p => ({ name: p.name, qty: soldQtyByProduct.get(p.id) || 0, cat: p.category }))
         .filter(d => d.qty > 0)
         .sort((a, b) => b.qty - a.qty)
         .slice(0, 8),
     };
-  }, [products, sales, purchases, range.start, range.end]);
+  }, [scopedProducts, sales, purchases, inScope, range.start, range.end]);
 
   return (
     <FuelPageShell
@@ -149,6 +161,7 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
         </button>
       }
     >
+      {!isAll && <FuelUnassignedNotice count={unassignedCount} noun="products" />}
       <FuelKpiGrid
         kpis={[
           { label: 'Products', value: String(stats.count), sub: `${stats.sellableCount} sellable`, icon: Package, tone: 'green' },
@@ -190,7 +203,7 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
         right={<FuelSearch value={search} onChange={setSearch} placeholder="Search products…" />}
       >
         <FuelTable
-          headers={['Code', 'Product', 'Category', 'Buying', 'Selling', 'Margin', 'Stock', 'Sellable', '']}
+          headers={['Code', 'Station', 'Product', 'Category', 'Buying', 'Selling', 'Margin', 'Stock', 'Sellable', '']}
           empty={filtered.length === 0}
         >
           {filtered.map(p => {
@@ -199,6 +212,7 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
             return (
               <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
                 <td className="py-2.5 px-2.5 text-xs font-mono text-violet-400 font-bold whitespace-nowrap">{p.itemCode || '—'}</td>
+                <td className="py-2.5 px-2.5"><FuelStationBadge stationName={p.stationName} /></td>
                 <td className="py-2.5 px-2.5 text-xs font-bold text-theme-text">{p.name}</td>
                 <td className="py-2.5 px-2.5"><FuelBadge tone={p.category === 'LPG Cylinder' ? 'green' : p.category === 'Burner' ? 'violet' : 'slate'}>{p.category}</FuelBadge></td>
                 <td className="py-2.5 px-2.5 text-xs font-mono text-theme-text-muted">{ksh(p.buyingPrice)}</td>
@@ -231,6 +245,7 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
           {loading && <p className="text-xs text-gray-500">Loading products…</p>}
           <FuelExportButton name="fuelsuite_products" rows={filtered.map(p => ({
             'Item Code': p.itemCode || '',
+            Station: stationCsvLabel(p.stationName),
             Name: p.name, Category: p.category, Unit: p.unit,
             'Buying Price': p.buyingPrice, 'Selling Price': p.sellingPrice,
             Stock: p.stock, Sellable: p.sellable ? 'Yes' : 'No (container)',
@@ -271,6 +286,12 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
               <input type="text" className={fuelInputClass} value={unit} onChange={e => setUnit(e.target.value)} placeholder="pcs" />
             </FuelField>
           </div>
+          <FuelField label="Station" hint="Which station's stock this product belongs to">
+            <select value={formStationId} onChange={e => setFormStationId(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
+              <option value="">— Unassigned —</option>
+              {stations.filter(s => s.active !== false).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </FuelField>
           <div className="grid grid-cols-2 gap-3">
             <FuelField label="Buying price (KSh)" required>
               <input type="number" className={fuelInputClass} value={buyingPrice} onChange={e => setBuyingPrice(e.target.value)} placeholder="0" />

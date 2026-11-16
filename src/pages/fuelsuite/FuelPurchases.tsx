@@ -11,15 +11,17 @@ import {
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 import { format } from 'date-fns';
 import {
-  useFuelPurchases, useFuelProducts, useFuelPayments, useFuelProductSales,
+  useFuelPurchases, useFuelProducts, useFuelPayments, useFuelProductSales, useFuelStations,
   createFuelPurchase, deleteFuelPurchase,
   FUEL_PAYMENT_METHODS, FuelPurchase,
 } from '../../lib/fuelDb';
 import { useFuelDateRange } from './fuelShared';
+import { useFuelStationScope } from './fuelStationContext';
 import { parseDateToTimestamp, formatDateToInput } from '../../lib/utils';
 import {
   FuelPageShell, FuelSection, FuelKpiGrid, FuelTable, FuelModal, FuelField,
-  FuelSearch, FuelBadge, FuelExportButton, ksh, fmtQty, fmtDate, todayKey, dateKeyOf, fuelInputClass,
+  FuelSearch, FuelBadge, FuelStationBadge, FuelUnassignedNotice, FuelExportButton,
+  stationCsvLabel, ksh, fmtQty, fmtDate, todayKey, dateKeyOf, fuelInputClass,
 } from './fuelShared';
 
 const BAR_COLORS = ['#34D399', '#6366F1', '#8B5CF6', '#F59E0B', '#38BDF8', '#F87171', '#A3E635', '#94A3B8'];
@@ -29,6 +31,8 @@ export default function FuelPurchases({ initialAction }: { initialAction?: strin
   const { data: products } = useFuelProducts();
   const { data: payments } = useFuelPayments();
   const { data: productSales } = useFuelProductSales();
+  const { data: stations } = useFuelStations();
+  const { scope, isAll, inScope } = useFuelStationScope();
   const range = useFuelDateRange();
 
   const [search, setSearch] = useState('');
@@ -39,6 +43,7 @@ export default function FuelPurchases({ initialAction }: { initialAction?: strin
   // Form
   const [date, setDate] = useState(todayKey());
   const [supplier, setSupplier] = useState('');
+  const [formStationId, setFormStationId] = useState('');
   const [productId, setProductId] = useState('');
   const [qty, setQty] = useState('');
   const [buyingPrice, setBuyingPrice] = useState('');
@@ -66,9 +71,12 @@ export default function FuelPurchases({ initialAction }: { initialAction?: strin
     if (bp <= 0) { setError('Buying price must be greater than zero.'); return; }
     setSaving(true);
     try {
+      const formStation = stations.find(s => s.id === formStationId);
       await createFuelPurchase({
         date: parseDateToTimestamp(date),
         dateKey: date,
+        stationId: formStationId || undefined,
+        stationName: formStation?.name || undefined,
         supplier: supplier.trim(),
         productId: selectedProduct.id,
         productName: selectedProduct.name,
@@ -100,8 +108,17 @@ export default function FuelPurchases({ initialAction }: { initialAction?: strin
     }
   };
 
-  // ---- Filtering + stats ----
-  const inRangePurchases = useMemo(() => purchases.filter(p => range.inRange(p.date)), [purchases, range.start, range.end]);
+  // ---- Filtering + stats (respect the station scope) ----
+  const inRangeAll = useMemo(() => purchases.filter(p => range.inRange(p.date)), [purchases, range.start, range.end]);
+  const unassignedCount = useMemo(() => inRangeAll.filter(p => !p.stationId).length, [inRangeAll]);
+  const inRangePurchases = useMemo(() => inRangeAll.filter(p => inScope(p.stationId)), [inRangeAll, inScope]);
+
+  // Products visible in the picker: with a station selected, that station's
+  // products plus unassigned ones (so legacy stock can still be bought/sold).
+  const productOptions = useMemo(
+    () => (isAll ? products : products.filter(p => p.stationId === scope || !p.stationId)),
+    [products, isAll, scope]
+  );
 
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();
@@ -125,19 +142,19 @@ export default function FuelPurchases({ initialAction }: { initialAction?: strin
     return { total, qtyTotal, chart, count: inRangePurchases.length };
   }, [inRangePurchases]);
 
-  // ---- Funding from proceeds ----
+  // ---- Funding from proceeds (station-scoped) ----
   const funding = useMemo(() => {
     const cashSales = productSales
-      .filter(s => range.inRange(s.date) && !s.onCredit)
+      .filter(s => range.inRange(s.date) && inScope(s.stationId) && !s.onCredit)
       .reduce((s, x) => s + x.total, 0);
     const creditSales = productSales
-      .filter(s => range.inRange(s.date) && s.onCredit)
+      .filter(s => range.inRange(s.date) && inScope(s.stationId) && s.onCredit)
       .reduce((s, x) => s + x.total, 0);
-    const received = payments.filter(p => range.inRange(p.date)).reduce((s, p) => s + p.amount, 0);
+    const received = payments.filter(p => range.inRange(p.date) && inScope(p.stationId)).reduce((s, p) => s + p.amount, 0);
     const spent = inRangePurchases.reduce((s, p) => s + p.totalCost, 0);
     const available = cashSales + received - spent;
     return { cashSales, creditSales, received, spent, available };
-  }, [productSales, payments, inRangePurchases, range.start, range.end]);
+  }, [productSales, payments, inRangePurchases, inScope, range.start, range.end]);
 
   return (
     <FuelPageShell
@@ -145,11 +162,12 @@ export default function FuelPurchases({ initialAction }: { initialAction?: strin
       title="Purchases"
       subtitle="Stock bought from suppliers — updates stock and buying-price history automatically"
       actions={
-        <button type="button" onClick={() => { setError(null); setModalOpen(true); }} className="px-3 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer">
+        <button type="button" onClick={() => { setError(null); setFormStationId(scope !== 'all' ? scope : ''); setModalOpen(true); }} className="px-3 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer">
           <Plus className="w-3.5 h-3.5" /> Add Purchase
         </button>
       }
     >
+      {!isAll && <FuelUnassignedNotice count={unassignedCount} noun="purchases" />}
       <FuelKpiGrid
         kpis={[
           { label: 'Purchases', value: String(stats.count), sub: 'in selected period', icon: Truck, tone: 'green' },
@@ -210,12 +228,13 @@ export default function FuelPurchases({ initialAction }: { initialAction?: strin
         right={<FuelSearch value={search} onChange={setSearch} placeholder="Search supplier, product or reference…" />}
       >
         <FuelTable
-          headers={['Date', 'Supplier', 'Product', 'Qty', 'Buying Price', 'Total', 'Payment', 'Ref', '']}
+          headers={['Date', 'Station', 'Supplier', 'Product', 'Qty', 'Buying Price', 'Total', 'Payment', 'Ref', '']}
           empty={filtered.length === 0}
         >
           {filtered.map(p => (
             <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
               <td className="py-2.5 px-2.5 text-xs font-bold text-theme-text whitespace-nowrap">{fmtDate(p.dateKey)}</td>
+              <td className="py-2.5 px-2.5"><FuelStationBadge stationName={p.stationName} /></td>
               <td className="py-2.5 px-2.5 text-xs text-theme-text">{p.supplier}</td>
               <td className="py-2.5 px-2.5 text-xs text-theme-text-muted">{p.productName}</td>
               <td className="py-2.5 px-2.5 text-xs font-mono text-emerald-400">{fmtQty(p.qty)}</td>
@@ -236,7 +255,7 @@ export default function FuelPurchases({ initialAction }: { initialAction?: strin
         <div className="flex items-center justify-between mt-2.5 flex-wrap gap-2">
           {loading && <p className="text-xs text-gray-500">Loading purchases…</p>}
           <FuelExportButton name="fuelsuite_purchases" rows={filtered.map(p => ({
-            Date: p.dateKey, Supplier: p.supplier, Product: p.productName, Qty: p.qty,
+            Date: p.dateKey, Station: stationCsvLabel(p.stationName), Supplier: p.supplier, Product: p.productName, Qty: p.qty,
             'Buying Price': p.buyingPrice, Total: p.totalCost,
             'Payment Method': p.paymentMethod, Reference: p.reference || '', Note: p.note || '',
           }))} />
@@ -263,9 +282,9 @@ export default function FuelPurchases({ initialAction }: { initialAction?: strin
             </>
           }
         >
-          {products.filter(p => p.sellable).length === 0 ? (
+          {productOptions.filter(p => p.sellable).length === 0 ? (
             <div className="text-xs text-amber-400 bg-amber-500/[0.06] border border-amber-500/30 rounded-lg px-3 py-2.5">
-              No sellable products yet. Add products (LPG cylinders, burners, grills) in Products &amp; Prices first.
+              No sellable products for this station yet. Add products (LPG cylinders, burners, grills) in Products &amp; Prices first.
             </div>
           ) : (
             <>
@@ -278,12 +297,22 @@ export default function FuelPurchases({ initialAction }: { initialAction?: strin
                 </FuelField>
               </div>
               <div className="grid grid-cols-2 gap-3">
+                <FuelField label="Station" hint="Where the stock was delivered">
+                  <select value={formStationId} onChange={e => setFormStationId(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
+                    <option value="">— Unassigned / company-wide —</option>
+                    {stations.filter(s => s.active !== false).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </select>
+                </FuelField>
                 <FuelField label="Product" required>
                   <select value={productId} onChange={e => pickProduct(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
                     <option value="">— choose —</option>
-                    {products.filter(p => p.sellable).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    {productOptions.filter(p => p.sellable).map(p => (
+                      <option key={p.id} value={p.id}>{p.name}{!p.stationName ? ' (unassigned)' : ''}</option>
+                    ))}
                   </select>
                 </FuelField>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
                 <FuelField label="Quantity" required>
                   <input type="number" className={fuelInputClass} value={qty} onChange={e => setQty(e.target.value)} placeholder="0" min="0" />
                 </FuelField>

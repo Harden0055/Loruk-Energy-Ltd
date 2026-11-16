@@ -79,6 +79,8 @@ export interface FuelDailyRecord {
 export interface FuelProduct {
   id: string;
   itemCode?: string;         // e.g. FS-0001
+  stationId?: string;        // owning station (per-station stock); undefined = Unassigned (legacy record)
+  stationName?: string;
   name: string;
   category: string;          // LPG Cylinder | Burner | Grill | White Oils | Other
   unit: string;              // pcs | kg | L
@@ -94,6 +96,8 @@ export interface FuelPurchase {
   id: string;
   date: number;
   dateKey: string;
+  stationId?: string;        // station the stock was delivered to; undefined = Unassigned (legacy record)
+  stationName?: string;
   supplier: string;
   productId: string;
   productName: string;
@@ -112,6 +116,8 @@ export interface FuelProductSale {
   id: string;
   date: number;
   dateKey: string;
+  stationId?: string;        // station where the sale happened; undefined = Unassigned (legacy record)
+  stationName?: string;
   productId: string;
   productName: string;
   qty: number;
@@ -132,6 +138,8 @@ export interface FuelExpense {
   id: string;
   date: number;
   dateKey: string;
+  stationId?: string;        // station the expense belongs to; undefined = Unassigned / company-level
+  stationName?: string;
   category: string;
   description: string;
   amount: number;
@@ -149,6 +157,8 @@ export interface FuelCreditCustomer {
   id: string;
   name: string;
   phone?: string;
+  stationId?: string;        // owning station; undefined = Unassigned (legacy record)
+  stationName?: string;
   creditLimit: number;
   balance: number;           // positive = owed to us
   createdAt: number;
@@ -159,6 +169,8 @@ export interface FuelCreditTx {
   id: string;
   customerId: string;
   customerName: string;
+  stationId?: string;        // station of the customer's owning station; undefined = Unassigned
+  stationName?: string;
   date: number;
   dateKey: string;
   amount: number;
@@ -175,6 +187,8 @@ export interface FuelPayment {
   id: string;
   date: number;
   dateKey: string;
+  stationId?: string;        // station where the money was received; undefined = Unassigned
+  stationName?: string;
   amount: number;
   method: string;            // M-Pesa | Cash at Hand | Bank | Other
   reference?: string;
@@ -458,12 +472,13 @@ export async function correctFuelDailyRecord(
 
 export async function createFuelProduct(data: {
   itemCode?: string;
+  stationId?: string; stationName?: string;
   name: string; category: string; unit: string;
   buyingPrice: number; sellingPrice: number; stock: number; sellable: boolean;
 }) {
   const payload = { ...data, ...nowStamp() };
   const id = await fuelAdd(COLLECTIONS.products, payload);
-  await logFuelAudit({ area: 'Products', action: 'create', entityLabel: `${data.itemCode ? data.itemCode + ' · ' : ''}${data.name}`, details: `Buying ${data.buyingPrice} · Selling ${data.sellingPrice}` });
+  await logFuelAudit({ area: 'Products', action: 'create', entityLabel: `${data.itemCode ? data.itemCode + ' · ' : ''}${data.name}`, details: `Buying ${data.buyingPrice} · Selling ${data.sellingPrice}${data.stationName ? ` · Station ${data.stationName}` : ' · Unassigned'}` });
   return id;
 }
 
@@ -631,13 +646,13 @@ export async function ensureFuelDefaultProducts(existing: FuelProduct[]) {
 
 // ---------------- DEBTS (CREDIT CUSTOMERS & TRANSACTIONS) ----------------
 
-export async function createFuelCreditCustomer(data: { name: string; phone?: string; creditLimit: number; openingBalance?: number }) {
+export async function createFuelCreditCustomer(data: { name: string; phone?: string; stationId?: string; stationName?: string; creditLimit: number; openingBalance?: number }) {
   const balance = data.openingBalance || 0;
   const payload = { name: data.name, phone: data.phone, creditLimit: data.creditLimit, balance, ...nowStamp() };
   const id = await fuelAdd(COLLECTIONS.creditCustomers, payload);
   await logFuelAudit({
     area: 'Debts', action: 'customer-create', entityLabel: data.name,
-    details: `Limit Ksh ${data.creditLimit.toLocaleString()} · Opening balance Ksh ${balance.toLocaleString()}`,
+    details: `Limit Ksh ${data.creditLimit.toLocaleString()} · Opening balance Ksh ${balance.toLocaleString()}${data.stationName ? ` · Station ${data.stationName}` : ' · Unassigned'}`,
   });
   if (balance !== 0) {
     await fuelAdd(COLLECTIONS.creditTxs, sanitizePayload({
@@ -659,7 +674,7 @@ export async function updateFuelCreditCustomer(id: string, current: FuelCreditCu
 
 /** Records a credit or repayment transaction and moves the customer balance. */
 export async function recordFuelCreditTx(data: {
-  customerId: string; customerName: string; date: number; dateKey: string;
+  customerId: string; customerName: string; stationId?: string; stationName?: string; date: number; dateKey: string;
   amount: number; type: 'credit' | 'repayment'; method?: string; reference?: string; note?: string;
 }, currentBalance: number) {
   const signed = data.type === 'credit' ? data.amount : -data.amount;

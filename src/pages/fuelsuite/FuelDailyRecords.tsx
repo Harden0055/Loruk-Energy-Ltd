@@ -20,8 +20,9 @@ import {
 import { parseDateToTimestamp, formatDateToInput } from '../../lib/utils';
 import {
   FuelPageShell, FuelSection, FuelKpiGrid, FuelTable, FuelModal, FuelField,
-  FuelSearch, FuelBadge, FuelTone, ksh, fmtQty, fmtDate, todayKey, dateKeyOf, fuelInputClass,
+  FuelSearch, FuelBadge, FuelStationBadge, FuelTone, ksh, fmtQty, fmtDate, todayKey, dateKeyOf, fuelInputClass,
 } from './fuelShared';
+import { useFuelStationScope } from './fuelStationContext';
 
 interface FuelDailyRecordsProps {
   initialAction?: string;
@@ -54,6 +55,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
   const { data: expenses } = useFuelExpenses();
   const { data: creditTxs } = useFuelCreditTxs();
   const { data: payments } = useFuelPayments();
+  const { scope, isAll, scopeName, inScope } = useFuelStationScope();
 
   const activeStations = stations.filter(s => s.active !== false);
 
@@ -86,10 +88,13 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
   const [search, setSearch] = useState('');
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
-  // Default station once stations load
+  // Default station once stations load; follow the header station switcher
+  // when it changes (the form picker can still be changed manually after).
   useEffect(() => {
+    if (editingRecord) return;
+    if (scope !== 'all') { setStationId(scope); return; }
     if (!stationId && activeStations.length > 0) setStationId(activeStations[0].id);
-  }, [activeStations.length, stationId]);
+  }, [scope, activeStations.length, stationId, editingRecord]);
 
   const station = stations.find(s => s.id === stationId);
   const stationSalespeople = salespeople.filter(
@@ -133,12 +138,14 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
   const totalExpected = agoC.expected + pmsC.expected;
   const totalDifference = agoC.difference + pmsC.difference;
 
-  // ---- Day figures pulled from the other FuelSuite ledgers (for the cash check) ----
+  // ---- Day figures pulled from the other FuelSuite ledgers (for the cash check).
+  // Restricted to the form's station so the reconciliation never mixes stations. ----
   const dayFigures = useMemo(() => {
-    const ps = productSales.filter(s => s.dateKey === dateKey);
-    const ex = expenses.filter(e => e.dateKey === dateKey);
-    const tx = creditTxs.filter(t => t.dateKey === dateKey);
-    const pm = payments.filter(p => p.dateKey === dateKey);
+    const stationOf = (id?: string) => (!stationId ? true : id === stationId);
+    const ps = productSales.filter(s => s.dateKey === dateKey && stationOf(s.stationId));
+    const ex = expenses.filter(e => e.dateKey === dateKey && stationOf(e.stationId));
+    const tx = creditTxs.filter(t => t.dateKey === dateKey && stationOf(t.stationId));
+    const pm = payments.filter(p => p.dateKey === dateKey && stationOf(p.stationId));
     const isCash = (m?: string) => (m || '').toLowerCase().startsWith('cash');
     const isMpesa = (m?: string) => (m || '').toLowerCase().includes('m-pesa');
     return {
@@ -154,7 +161,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
       paymentsMpesa: pm.filter(p => isMpesa(p.method)).reduce((a, p) => a + p.amount, 0),
       debtsGiven: tx.filter(t => t.type === 'credit').reduce((a, t) => a + t.amount, 0),
     };
-  }, [productSales, expenses, creditTxs, payments, dateKey]);
+  }, [productSales, expenses, creditTxs, payments, dateKey, stationId]);
 
   // M-Pesa received today: from till balances (stop − start), like the notebook
   const mpesaReceivedToday = useMemo(() => {
@@ -331,9 +338,9 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
     }
   };
 
-  // ---- Records table for the selected station ----
+  // ---- Records table for the selected station scope ----
   const stationRecords = useMemo(() => {
-    const base = records.filter(r => !stationId || r.stationId === stationId);
+    const base = records.filter(r => inScope(r.stationId));
     const q = search.trim().toLowerCase();
     const filtered = q
       ? base.filter(r =>
@@ -342,15 +349,15 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
           r.stationName.toLowerCase().includes(q))
       : base;
     return [...filtered].sort((a, b) => b.dateKey.localeCompare(a.dateKey));
-  }, [records, stationId, search]);
+  }, [records, inScope, search]);
 
   const rangeKpis = useMemo(() => {
-    const todays = records.filter(r => r.dateKey === todayKey());
+    const todays = records.filter(r => r.dateKey === todayKey() && inScope(r.stationId));
     const litres = todays.reduce((s, r) => s + compute(r.ago).litresSold + compute(r.pms).litresSold, 0);
     const expected = todays.reduce((s, r) => s + compute(r.ago).expected + compute(r.pms).expected, 0);
     const diff = todays.reduce((s, r) => s + compute(r.ago).difference + compute(r.pms).difference, 0);
     return { count: todays.length, litres, expected, diff };
-  }, [records]);
+  }, [records, inScope]);
 
   const diffTone = (d: number): FuelTone => (d < 0 ? 'red' : Math.abs(d) > 1000 ? 'violet' : 'green');
 
@@ -578,11 +585,11 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
       </FuelSection>
 
       {/* Records table */}
-      <FuelSection title={`Recorded days — ${station?.name || 'select a station'}`} icon={MapPin}
+      <FuelSection title={`Recorded days — ${isAll ? 'all stations' : scopeName}`} icon={MapPin}
         right={<FuelSearch value={search} onChange={setSearch} placeholder="Search date or salesperson…" />}
       >
         <FuelTable
-          headers={['Date', 'Salesperson', 'AGO Litres', 'AGO Sales', 'AGO Diff', 'PMS Litres', 'PMS Sales', 'PMS Diff', 'Status', '']}
+          headers={['Date', 'Station', 'Salesperson', 'AGO Litres', 'AGO Sales', 'AGO Diff', 'PMS Litres', 'PMS Sales', 'PMS Diff', 'Status', '']}
           empty={stationRecords.length === 0}
         >
           {stationRecords.map(rec => {
@@ -593,6 +600,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
               <React.Fragment key={rec.id}>
                 <tr className="hover:bg-white/[0.02] transition-colors">
                   <td className="py-2 px-2.5 text-xs font-bold text-theme-text whitespace-nowrap">{fmtDate(rec.dateKey)}</td>
+                  <td className="py-2 px-2.5"><FuelStationBadge stationName={rec.stationName} /></td>
                   <td className="py-2 px-2.5 text-xs text-theme-text-muted whitespace-nowrap">{rec.salespersonName || '—'}</td>
                   <td className="py-2 px-2.5 text-xs font-mono text-emerald-400">{fmtQty(ra.litresSold)} L</td>
                   <td className="py-2 px-2.5 text-xs font-mono text-theme-text">{ksh(ra.machineSales)}</td>
@@ -621,7 +629,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
                 </tr>
                 {isExpanded && (
                   <tr>
-                    <td colSpan={10} className="px-2.5 pb-3">
+                    <td colSpan={11} className="px-2.5 pb-3">
                       <div className="bg-white/[0.02] border border-theme-border rounded-lg p-3 text-[11px] space-y-1.5">
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono">
                           {(['ago', 'pms'] as const).map(p => (

@@ -8,14 +8,16 @@ import {
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 import {
-  useFuelPayments, createFuelPayment, deleteFuelPayment,
+  useFuelPayments, useFuelStations, createFuelPayment, deleteFuelPayment,
   FuelPayment,
 } from '../../lib/fuelDb';
 import { useFuelDateRange } from './fuelShared';
+import { useFuelStationScope } from './fuelStationContext';
 import { parseDateToTimestamp } from '../../lib/utils';
 import {
   FuelPageShell, FuelSection, FuelKpiGrid, FuelTable, FuelModal, FuelField,
-  FuelSearch, FuelBadge, FuelExportButton, ksh, fmtDate, todayKey, fuelInputClass,
+  FuelSearch, FuelBadge, FuelStationBadge, FuelUnassignedNotice, FuelExportButton,
+  stationCsvLabel, ksh, fmtDate, todayKey, fuelInputClass,
 } from './fuelShared';
 
 const PAYMENT_METHODS = ['M-Pesa', 'Cash at Hand', 'Bank', 'Other'];
@@ -23,6 +25,8 @@ const BAR_COLORS = ['#8B5CF6', '#34D399', '#6366F1', '#F59E0B'];
 
 export default function FuelPayments({ initialAction }: { initialAction?: string }) {
   const { data: payments, loading } = useFuelPayments();
+  const { data: stations } = useFuelStations();
+  const { scope, isAll, inScope } = useFuelStationScope();
   const range = useFuelDateRange();
 
   const [search, setSearch] = useState('');
@@ -33,6 +37,7 @@ export default function FuelPayments({ initialAction }: { initialAction?: string
 
   // Form
   const [date, setDate] = useState(todayKey());
+  const [formStationId, setFormStationId] = useState('');
   const [amount, setAmount] = useState('');
   const [method, setMethod] = useState(PAYMENT_METHODS[0]);
   const [reference, setReference] = useState('');
@@ -40,6 +45,7 @@ export default function FuelPayments({ initialAction }: { initialAction?: string
 
   const openModal = () => {
     setDate(todayKey());
+    setFormStationId(scope !== 'all' ? scope : '');
     setAmount('');
     setMethod(PAYMENT_METHODS[0]);
     setReference('');
@@ -56,6 +62,8 @@ export default function FuelPayments({ initialAction }: { initialAction?: string
       await createFuelPayment({
         date: parseDateToTimestamp(date),
         dateKey: date,
+        stationId: formStationId || undefined,
+        stationName: stations.find(s => s.id === formStationId)?.name || undefined,
         amount: amt,
         method,
         reference: reference.trim() || undefined,
@@ -86,7 +94,9 @@ export default function FuelPayments({ initialAction }: { initialAction?: string
     }
   };
 
-  const inRange = useMemo(() => payments.filter(p => range.inRange(p.date)), [payments, range.start, range.end]);
+  const inRangeAll = useMemo(() => payments.filter(p => range.inRange(p.date)), [payments, range.start, range.end]);
+  const unassignedCount = useMemo(() => inRangeAll.filter(p => !p.stationId).length, [inRangeAll]);
+  const inRange = useMemo(() => inRangeAll.filter(p => inScope(p.stationId)), [inRangeAll, inScope]);
 
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();
@@ -119,6 +129,7 @@ export default function FuelPayments({ initialAction }: { initialAction?: string
         </button>
       }
     >
+      {!isAll && <FuelUnassignedNotice count={unassignedCount} noun="payments" />}
       <FuelKpiGrid
         kpis={[
           { label: 'Total Received', value: ksh(stats.total), sub: range.label, icon: TrendingUp, tone: 'violet' },
@@ -157,12 +168,13 @@ export default function FuelPayments({ initialAction }: { initialAction?: string
         right={<FuelSearch value={search} onChange={setSearch} placeholder="Search method, reference or note…" />}
       >
         <FuelTable
-          headers={['Date', 'Amount', 'Method', 'Reference', 'Note', '']}
+          headers={['Date', 'Station', 'Amount', 'Method', 'Reference', 'Note', '']}
           empty={filtered.length === 0}
         >
           {filtered.map(p => (
             <tr key={p.id} className="hover:bg-white/[0.02] transition-colors">
               <td className="py-2.5 px-2.5 text-xs font-bold text-theme-text whitespace-nowrap">{fmtDate(p.dateKey)}</td>
+              <td className="py-2.5 px-2.5"><FuelStationBadge stationName={p.stationName} /></td>
               <td className="py-2.5 px-2.5 text-xs font-mono text-violet-400 font-bold">{ksh(p.amount)}</td>
               <td className="py-2.5 px-2.5">
                 <FuelBadge tone={p.method === 'M-Pesa' ? 'violet' : p.method === 'Cash at Hand' ? 'green' : 'slate'}>{p.method}</FuelBadge>
@@ -182,7 +194,7 @@ export default function FuelPayments({ initialAction }: { initialAction?: string
         <div className="flex items-center justify-between mt-2.5 flex-wrap gap-2">
           {loading && <p className="text-xs text-gray-500">Loading payments…</p>}
           <FuelExportButton name="fuelsuite_payments" rows={filtered.map(p => ({
-            Date: p.dateKey, Amount: p.amount, Method: p.method,
+            Date: p.dateKey, Station: stationCsvLabel(p.stationName), Amount: p.amount, Method: p.method,
             Reference: p.reference || '', Note: p.note || '',
           }))} />
         </div>
@@ -215,11 +227,19 @@ export default function FuelPayments({ initialAction }: { initialAction?: string
               <input type="number" className={fuelInputClass} value={amount} onChange={e => setAmount(e.target.value)} placeholder="0" min="0" />
             </FuelField>
           </div>
-          <FuelField label="Method" required>
-            <select value={method} onChange={e => setMethod(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
-              {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
-            </select>
-          </FuelField>
+          <div className="grid grid-cols-2 gap-3">
+            <FuelField label="Station" hint="Where the money was received">
+              <select value={formStationId} onChange={e => setFormStationId(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
+                <option value="">— Unassigned / company-wide —</option>
+                {stations.filter(s => s.active !== false).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </FuelField>
+            <FuelField label="Method" required>
+              <select value={method} onChange={e => setMethod(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
+                {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </FuelField>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <FuelField label="Transaction reference (optional)">
               <input type="text" className={fuelInputClass} value={reference} onChange={e => setReference(e.target.value)} placeholder="M-Pesa code / receipt no." />

@@ -9,15 +9,17 @@ import {
 } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import {
-  useFuelProductSales, useFuelProducts, useFuelCreditCustomers,
+  useFuelProductSales, useFuelProducts, useFuelCreditCustomers, useFuelStations,
   createFuelProductSale, recordFuelCreditTx, deleteFuelProductSale,
   FuelProductSale, FuelProduct,
 } from '../../lib/fuelDb';
 import { useFuelDateRange } from './fuelShared';
+import { useFuelStationScope } from './fuelStationContext';
 import { parseDateToTimestamp } from '../../lib/utils';
 import {
   FuelPageShell, FuelSection, FuelKpiGrid, FuelTable, FuelModal, FuelField,
-  FuelSearch, FuelBadge, FuelExportButton, ksh, fmtQty, fmtDate, todayKey, fuelInputClass,
+  FuelSearch, FuelBadge, FuelStationBadge, FuelUnassignedNotice, FuelExportButton,
+  stationCsvLabel, ksh, fmtQty, fmtDate, todayKey, fuelInputClass,
 } from './fuelShared';
 
 const CASH_METHODS = ['Cash', 'M-Pesa', 'Bank', 'Cheque', 'Other'];
@@ -27,6 +29,8 @@ export default function FuelProductSales({ initialAction }: { initialAction?: st
   const { data: sales, loading } = useFuelProductSales();
   const { data: products } = useFuelProducts();
   const { data: creditCustomers } = useFuelCreditCustomers();
+  const { data: stations } = useFuelStations();
+  const { scope, isAll, inScope } = useFuelStationScope();
   const range = useFuelDateRange();
 
   const [search, setSearch] = useState('');
@@ -36,6 +40,7 @@ export default function FuelProductSales({ initialAction }: { initialAction?: st
 
   // Form
   const [date, setDate] = useState(todayKey());
+  const [formStationId, setFormStationId] = useState('');
   const [productId, setProductId] = useState('');
   const [qty, setQty] = useState('');
   const [unitPrice, setUnitPrice] = useState('');
@@ -76,6 +81,8 @@ export default function FuelProductSales({ initialAction }: { initialAction?: st
         await recordFuelCreditTx({
           customerId: selectedCreditCustomer.id,
           customerName: selectedCreditCustomer.name,
+          stationId: selectedCreditCustomer.stationId,
+          stationName: selectedCreditCustomer.stationName,
           date: parseDateToTimestamp(date),
           dateKey: date,
           amount: q * up,
@@ -83,9 +90,12 @@ export default function FuelProductSales({ initialAction }: { initialAction?: st
           note: `Product sale: ${selectedProduct.name} × ${q}`,
         }, selectedCreditCustomer.balance || 0);
       }
+      const formStation = stations.find(s => s.id === formStationId);
       await createFuelProductSale({
         date: parseDateToTimestamp(date),
         dateKey: date,
+        stationId: formStationId || undefined,
+        stationName: formStation?.name || undefined,
         productId: selectedProduct.id,
         productName: selectedProduct.name,
         qty: q,
@@ -122,8 +132,17 @@ export default function FuelProductSales({ initialAction }: { initialAction?: st
     }
   };
 
-  // ---- Filtering + stats ----
-  const inRangeSales = useMemo(() => sales.filter(s => range.inRange(s.date)), [sales, range.start, range.end]);
+  // ---- Filtering + stats (respect the station scope) ----
+  const inRangeAll = useMemo(() => sales.filter(s => range.inRange(s.date)), [sales, range.start, range.end]);
+  const unassignedCount = useMemo(() => inRangeAll.filter(s => !s.stationId).length, [inRangeAll]);
+  const inRangeSales = useMemo(() => inRangeAll.filter(s => inScope(s.stationId)), [inRangeAll, inScope]);
+
+  // Products visible in the picker: with a station selected, that station's
+  // products plus unassigned ones (so legacy stock can still be sold).
+  const productOptions = useMemo(
+    () => (isAll ? products : products.filter(p => p.stationId === scope || !p.stationId)),
+    [products, isAll, scope]
+  );
 
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();
@@ -150,11 +169,12 @@ export default function FuelProductSales({ initialAction }: { initialAction?: st
       title="Product Sales"
       subtitle="Sell LPG cylinders, burners, grills & more — stock reduces automatically"
       actions={
-        <button type="button" onClick={() => { setError(null); setModalOpen(true); }} className="px-3 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer">
+        <button type="button" onClick={() => { setError(null); setFormStationId(scope !== 'all' ? scope : ''); setModalOpen(true); }} className="px-3 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer">
           <Plus className="w-3.5 h-3.5" /> Record Sale
         </button>
       }
     >
+      {!isAll && <FuelUnassignedNotice count={unassignedCount} noun="product sales" />}
       <FuelKpiGrid
         kpis={[
           { label: 'Total Sales', value: ksh(stats.total), sub: range.label, icon: TrendingUp, tone: 'green' },
@@ -191,12 +211,13 @@ export default function FuelProductSales({ initialAction }: { initialAction?: st
         right={<FuelSearch value={search} onChange={setSearch} placeholder="Search product, customer or reference…" />}
       >
         <FuelTable
-          headers={['Date', 'Product', 'Qty', 'Unit Price', 'Total', 'Payment', 'Customer / Ref', '']}
+          headers={['Date', 'Station', 'Product', 'Qty', 'Unit Price', 'Total', 'Payment', 'Customer / Ref', '']}
           empty={filtered.length === 0}
         >
           {filtered.map(s => (
             <tr key={s.id} className="hover:bg-white/[0.02] transition-colors">
               <td className="py-2.5 px-2.5 text-xs font-bold text-theme-text whitespace-nowrap">{fmtDate(s.dateKey)}</td>
+              <td className="py-2.5 px-2.5"><FuelStationBadge stationName={s.stationName} /></td>
               <td className="py-2.5 px-2.5 text-xs text-theme-text">{s.productName}</td>
               <td className="py-2.5 px-2.5 text-xs font-mono text-emerald-400">{fmtQty(s.qty)}</td>
               <td className="py-2.5 px-2.5 text-xs font-mono text-theme-text-muted">{ksh(s.unitPrice)}</td>
@@ -218,7 +239,7 @@ export default function FuelProductSales({ initialAction }: { initialAction?: st
         <div className="flex items-center justify-between mt-2.5 flex-wrap gap-2">
           {loading && <p className="text-xs text-gray-500">Loading sales…</p>}
           <FuelExportButton name="fuelsuite_product_sales" rows={filtered.map(s => ({
-            Date: s.dateKey, Product: s.productName, Qty: s.qty, 'Unit Price': s.unitPrice, Total: s.total,
+            Date: s.dateKey, Station: stationCsvLabel(s.stationName), Product: s.productName, Qty: s.qty, 'Unit Price': s.unitPrice, Total: s.total,
             Payment: s.paymentMethod, 'On Credit': s.onCredit ? 'Yes' : 'No',
             Customer: s.creditCustomerName || '', Reference: s.reference || '', Note: s.note || '',
           }))} />
@@ -241,9 +262,9 @@ export default function FuelProductSales({ initialAction }: { initialAction?: st
             </>
           }
         >
-          {products.filter(p => p.sellable).length === 0 ? (
+          {productOptions.filter(p => p.sellable).length === 0 ? (
             <div className="text-xs text-amber-400 bg-amber-500/[0.06] border border-amber-500/30 rounded-lg px-3 py-2.5">
-              No sellable products yet. Add products in Products &amp; Prices first (empty cylinders cannot be sold).
+              No sellable products for this station yet. Add products in Products &amp; Prices first (empty cylinders cannot be sold).
             </div>
           ) : (
             <>
@@ -251,17 +272,23 @@ export default function FuelProductSales({ initialAction }: { initialAction?: st
                 <FuelField label="Date" required>
                   <input type="date" value={date} onChange={e => setDate(e.target.value)} max={todayKey()} className={`${fuelInputClass} cursor-pointer`} />
                 </FuelField>
-                <FuelField label="Product" required>
-                  <select value={productId} onChange={e => pickProduct(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
-                    <option value="">— choose —</option>
-                    {products.map(p => (
-                      <option key={p.id} value={p.id} disabled={!p.sellable}>
-                        {p.name}{!p.sellable ? ' (container — not sellable)' : ''}
-                      </option>
-                    ))}
+                <FuelField label="Station" hint="Where the sale happened">
+                  <select value={formStationId} onChange={e => setFormStationId(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
+                    <option value="">— Unassigned / company-wide —</option>
+                    {stations.filter(s => s.active !== false).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
                 </FuelField>
               </div>
+              <FuelField label="Product" required>
+                <select value={productId} onChange={e => pickProduct(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
+                  <option value="">— choose —</option>
+                  {productOptions.map(p => (
+                    <option key={p.id} value={p.id} disabled={!p.sellable}>
+                      {p.name}{!p.stationName ? ' (unassigned)' : ''}{!p.sellable ? ' — container, not sellable' : ''}
+                    </option>
+                  ))}
+                </select>
+              </FuelField>
               <div className="grid grid-cols-2 gap-3">
                 <FuelField label="Quantity" required hint={selectedProduct ? `In stock: ${fmtQty(selectedProduct.stock)} ${selectedProduct.unit}` : undefined}>
                   <input type="number" className={fuelInputClass} value={qty} onChange={e => setQty(e.target.value)} placeholder="0" min="0" />
@@ -295,10 +322,12 @@ export default function FuelProductSales({ initialAction }: { initialAction?: st
               </label>
               {onCredit && (
                 <div className="space-y-2.5">
-                  <FuelField label="Credit customer" required>
+                  <FuelField label="Credit customer" required hint={formStationId ? 'Showing customers of the selected station (plus unassigned)' : undefined}>
                     <select value={creditCustomerId} onChange={e => setCreditCustomerId(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
                       <option value="">— choose —</option>
-                      {creditCustomers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      {creditCustomers
+                        .filter(c => !formStationId || !c.stationId || c.stationId === formStationId)
+                        .map(c => <option key={c.id} value={c.id}>{c.name}{!c.stationName && formStationId ? ' (unassigned)' : ''}</option>)}
                     </select>
                   </FuelField>
                   {selectedCreditCustomer && (

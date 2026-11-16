@@ -8,16 +8,18 @@ import {
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 import {
-  useFuelExpenses, useFuelExpenseCategories, ensureFuelExpenseCategories,
+  useFuelExpenses, useFuelExpenseCategories, useFuelStations, ensureFuelExpenseCategories,
   createFuelExpense, updateFuelExpense, deleteFuelExpense,
   createFuelExpenseCategory, deleteFuelExpenseCategory,
   FUEL_PAYMENT_METHODS, FuelExpense,
 } from '../../lib/fuelDb';
 import { useFuelDateRange } from './fuelShared';
+import { useFuelStationScope } from './fuelStationContext';
 import { parseDateToTimestamp } from '../../lib/utils';
 import {
   FuelPageShell, FuelSection, FuelKpiGrid, FuelTable, FuelModal, FuelField,
-  FuelSearch, FuelBadge, FuelExportButton, ksh, fmtDate, todayKey, fuelInputClass,
+  FuelSearch, FuelBadge, FuelStationBadge, FuelUnassignedNotice, FuelExportButton,
+  stationCsvLabel, ksh, fmtDate, todayKey, fuelInputClass,
 } from './fuelShared';
 
 const BAR_COLORS = ['#8B5CF6', '#34D399', '#6366F1', '#F59E0B', '#F87171', '#38BDF8', '#A3E635', '#FB923C', '#94A3B8'];
@@ -25,6 +27,8 @@ const BAR_COLORS = ['#8B5CF6', '#34D399', '#6366F1', '#F59E0B', '#F87171', '#38B
 export default function FuelExpenses({ initialAction }: { initialAction?: string }) {
   const { data: expenses, loading } = useFuelExpenses();
   const { data: categories } = useFuelExpenseCategories();
+  const { data: stations } = useFuelStations();
+  const { scope, isAll, inScope } = useFuelStationScope();
   const range = useFuelDateRange();
 
   const [search, setSearch] = useState('');
@@ -38,6 +42,7 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
 
   // Form
   const [date, setDate] = useState(todayKey());
+  const [formStationId, setFormStationId] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -53,6 +58,7 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
   const openModal = (exp: FuelExpense | null) => {
     setEditing(exp);
     setDate(exp ? exp.dateKey : todayKey());
+    setFormStationId(exp ? (exp.stationId || '') : (scope !== 'all' ? scope : ''));
     setCategory(exp?.category || categories[0]?.name || '');
     setDescription(exp?.description || '');
     setAmount(exp ? String(exp.amount) : '');
@@ -72,6 +78,8 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
       const payload = {
         date: parseDateToTimestamp(date),
         dateKey: date,
+        stationId: formStationId || undefined,
+        stationName: stations.find(s => s.id === formStationId)?.name || undefined,
         category,
         description: description.trim(),
         amount: amt,
@@ -127,7 +135,9 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
     }
   };
 
-  const inRange = useMemo(() => expenses.filter(e => range.inRange(e.date)), [expenses, range.start, range.end]);
+  const inRangeAll = useMemo(() => expenses.filter(e => range.inRange(e.date)), [expenses, range.start, range.end]);
+  const unassignedCount = useMemo(() => inRangeAll.filter(e => !e.stationId).length, [inRangeAll]);
+  const inRange = useMemo(() => inRangeAll.filter(e => inScope(e.stationId)), [inRangeAll, inScope]);
 
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();
@@ -158,6 +168,7 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
         </button>
       }
     >
+      {!isAll && <FuelUnassignedNotice count={unassignedCount} noun="expenses" />}
       <FuelKpiGrid
         kpis={[
           { label: 'Total Expenses', value: ksh(stats.total), sub: range.label, icon: TrendingDown, tone: 'red' },
@@ -203,12 +214,13 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
         }
       >
         <FuelTable
-          headers={['Date', 'Category', 'Description', 'Amount', 'Payment', 'Ref', '']}
+          headers={['Date', 'Station', 'Category', 'Description', 'Amount', 'Payment', 'Ref', '']}
           empty={filtered.length === 0}
         >
           {filtered.map(e => (
             <tr key={e.id} className="hover:bg-white/[0.02] transition-colors">
               <td className="py-2.5 px-2.5 text-xs font-bold text-theme-text whitespace-nowrap">{fmtDate(e.dateKey)}</td>
+              <td className="py-2.5 px-2.5"><FuelStationBadge stationName={e.stationName} /></td>
               <td className="py-2.5 px-2.5"><FuelBadge tone="violet">{e.category}</FuelBadge></td>
               <td className="py-2.5 px-2.5 text-xs text-theme-text-muted max-w-[220px] truncate">{e.description || '—'}</td>
               <td className="py-2.5 px-2.5 text-xs font-mono text-red-400 font-bold">{ksh(e.amount)}</td>
@@ -230,7 +242,7 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
         <div className="flex items-center justify-between mt-2.5 flex-wrap gap-2">
           {loading && <p className="text-xs text-gray-500">Loading expenses…</p>}
           <FuelExportButton name="fuelsuite_expenses" rows={filtered.map(e => ({
-            Date: e.dateKey, Category: e.category, Description: e.description, Amount: e.amount,
+            Date: e.dateKey, Station: stationCsvLabel(e.stationName), Category: e.category, Description: e.description, Amount: e.amount,
             'Payment Method': e.paymentMethod, Reference: e.reference || '', Note: e.note || '',
           }))} />
         </div>
@@ -260,6 +272,14 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
             <FuelField label="Date" required>
               <input type="date" value={date} onChange={e => setDate(e.target.value)} max={todayKey()} className={`${fuelInputClass} cursor-pointer`} />
             </FuelField>
+            <FuelField label="Station" hint="Which station this expense belongs to">
+              <select value={formStationId} onChange={e => setFormStationId(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
+                <option value="">— Unassigned / company-wide —</option>
+                {stations.filter(s => s.active !== false).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </FuelField>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
             <FuelField label="Category" required>
               <select value={category} onChange={e => setCategory(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
                 {categories.length === 0 && <option value="">—</option>}

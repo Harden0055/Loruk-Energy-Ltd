@@ -13,10 +13,12 @@ import {
   FUEL_PAYMENT_METHODS,
 } from '../../lib/fuelDb';
 import { useFuelDateRange } from './fuelShared';
+import { useFuelStationScope } from './fuelStationContext';
 import { parseDateToTimestamp } from '../../lib/utils';
 import {
   FuelPageShell, FuelSection, FuelKpiGrid, FuelTable, FuelModal, FuelField,
-  FuelSearch, FuelBadge, FuelExportButton, ksh, fmtDate, todayKey, fuelInputClass,
+  FuelSearch, FuelBadge, FuelStationBadge, FuelUnassignedNotice, FuelExportButton,
+  stationCsvLabel, ksh, fmtDate, todayKey, fuelInputClass,
 } from './fuelShared';
 
 const BAR_COLORS = ['#34D399', '#6366F1', '#8B5CF6', '#F59E0B', '#38BDF8', '#A3E635'];
@@ -24,6 +26,7 @@ const BAR_COLORS = ['#34D399', '#6366F1', '#8B5CF6', '#F59E0B', '#38BDF8', '#A3E
 export default function FuelPaidDebts({ initialAction }: { initialAction?: string }) {
   const { data: customers } = useFuelCreditCustomers();
   const { data: txs, loading } = useFuelCreditTxs();
+  const { isAll, inScope } = useFuelStationScope();
   const range = useFuelDateRange();
 
   const [search, setSearch] = useState('');
@@ -39,9 +42,15 @@ export default function FuelPaidDebts({ initialAction }: { initialAction?: strin
   const [reference, setReference] = useState('');
   const [note, setNote] = useState('');
 
+  // Station scope: only customers of the selected station can repay in this
+  // view; repayments are tagged with the customer's station.
   const owingCustomers = useMemo(
-    () => customers.filter(c => (c.balance || 0) > 0.009),
-    [customers]
+    () => customers.filter(c => (c.balance || 0) > 0.009 && inScope(c.stationId)),
+    [customers, inScope]
+  );
+  const unassignedCount = useMemo(
+    () => txs.filter(t => t.type === 'repayment' && !t.stationId).length,
+    [txs]
   );
 
   const selectedCustomer = customers.find(c => c.id === customerId);
@@ -68,6 +77,8 @@ export default function FuelPaidDebts({ initialAction }: { initialAction?: strin
       await recordFuelCreditTx({
         customerId: selectedCustomer.id,
         customerName: selectedCustomer.name,
+        stationId: selectedCustomer.stationId,
+        stationName: selectedCustomer.stationName,
         date: parseDateToTimestamp(date),
         dateKey: date,
         amount: amt,
@@ -87,7 +98,8 @@ export default function FuelPaidDebts({ initialAction }: { initialAction?: strin
     }
   };
 
-  const repaymentsInRange = useMemo(() => txs.filter(t => t.type === 'repayment' && range.inRange(t.date)), [txs, range.start, range.end]);
+  const repaymentsInRangeAll = useMemo(() => txs.filter(t => t.type === 'repayment' && range.inRange(t.date)), [txs, range.start, range.end]);
+  const repaymentsInRange = useMemo(() => repaymentsInRangeAll.filter(t => inScope(t.stationId)), [repaymentsInRangeAll, inScope]);
 
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();
@@ -122,6 +134,7 @@ export default function FuelPaidDebts({ initialAction }: { initialAction?: strin
         </button>
       }
     >
+      {!isAll && <FuelUnassignedNotice count={unassignedCount} noun="repayments" />}
       <FuelKpiGrid
         kpis={[
           { label: 'Repayments Received', value: ksh(stats.total), sub: range.label, icon: TrendingUp, tone: 'green' },
@@ -181,7 +194,7 @@ export default function FuelPaidDebts({ initialAction }: { initialAction?: strin
         right={<FuelSearch value={search} onChange={setSearch} placeholder="Search customer or reference…" />}
       >
         <FuelTable
-          headers={['Date', 'Customer', 'Amount', 'Method', 'Balance After', 'Ref', 'Note']}
+          headers={['Date', 'Station', 'Customer', 'Amount', 'Method', 'Balance After', 'Ref', 'Note']}
           empty={filtered.length === 0}
         >
           {filtered.map(t => {
@@ -189,6 +202,7 @@ export default function FuelPaidDebts({ initialAction }: { initialAction?: strin
             return (
               <tr key={t.id} className="hover:bg-white/[0.02] transition-colors">
                 <td className="py-2.5 px-2.5 text-xs font-bold text-theme-text whitespace-nowrap">{fmtDate(t.dateKey)}</td>
+                <td className="py-2.5 px-2.5"><FuelStationBadge stationName={t.stationName} /></td>
                 <td className="py-2.5 px-2.5 text-xs text-theme-text">{t.customerName}</td>
                 <td className="py-2.5 px-2.5 text-xs font-mono text-emerald-400 font-bold">{ksh(t.amount)}</td>
                 <td className="py-2.5 px-2.5"><FuelBadge tone={t.method === 'Cash' ? 'green' : 'violet'}>{t.method || '—'}</FuelBadge></td>
@@ -202,7 +216,7 @@ export default function FuelPaidDebts({ initialAction }: { initialAction?: strin
         <div className="flex items-center justify-between mt-2.5 flex-wrap gap-2">
           {loading && <p className="text-xs text-gray-500">Loading repayments…</p>}
           <FuelExportButton name="fuelsuite_paid_debts" rows={filtered.map(t => ({
-            Date: t.dateKey, Customer: t.customerName, Amount: t.amount, Method: t.method || '',
+            Date: t.dateKey, Station: stationCsvLabel(t.stationName), Customer: t.customerName, Amount: t.amount, Method: t.method || '',
             'Balance After': t.balanceAfter, Reference: t.reference || '', Note: t.note || '',
           }))} />
         </div>

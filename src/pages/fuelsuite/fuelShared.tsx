@@ -3,8 +3,9 @@
  * Follows the main app's glass-panel / emerald + violet theme.
  */
 import React, { useMemo, useState } from 'react';
-import { Search, X, Download, CalendarDays } from 'lucide-react';
+import { Search, X, Download, CalendarDays, AlertTriangle, MapPin } from 'lucide-react';
 import Papa from 'papaparse';
+import { FuelStationSwitcher } from './fuelStationContext';
 
 // ---------------- FORMATTING ----------------
 
@@ -58,6 +59,36 @@ export const FuelBadge = ({ tone = 'slate', children }: { tone?: FuelTone; child
   );
 };
 
+// ---------------- STATION SCOPE HELPERS ----------------
+
+/** Station name cell for tables: violet name, or an amber "Unassigned" flag for legacy records. */
+export const FuelStationBadge = ({ stationName }: { stationName?: string }) =>
+  stationName
+    ? <FuelBadge tone="violet"><MapPin className="w-3 h-3 shrink-0" />{stationName}</FuelBadge>
+    : <FuelBadge tone="amber">Unassigned</FuelBadge>;
+
+/** CSV value for the Station column — never blank, so unassigned rows are explicit. */
+export const stationCsvLabel = (stationName?: string) => stationName || 'Unassigned';
+
+/**
+ * Notice shown on station-specific views when older records exist without a
+ * station assignment. They are never silently assigned — the user switches to
+ * All Stations (and edits the record) to assign them explicitly.
+ */
+export const FuelUnassignedNotice = ({ count, noun }: { count: number; noun: string }) => {
+  if (count <= 0) return null;
+  return (
+    <div className="text-[11px] text-amber-400 bg-amber-500/[0.06] border border-amber-500/30 rounded-lg px-3 py-2 flex items-start gap-2">
+      <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+      <span>
+        <span className="font-bold">{count}</span> older {noun} {count === 1 ? 'has' : 'have'} no station assigned
+        {' '}and {count === 1 ? 'is' : 'are'} hidden in this station view. Switch to <span className="font-bold">All Stations</span> to
+        see them, then edit each one to assign its station — nothing is guessed automatically.
+      </span>
+    </div>
+  );
+};
+
 // ---------------- PAGE SHELL ----------------
 
 export function FuelPageShell({
@@ -85,6 +116,10 @@ export function FuelPageShell({
             </div>
           </div>
           {actions && <div className="flex items-center gap-2 flex-wrap shrink-0">{actions}</div>}
+        </div>
+        {/* Station scope switcher — hidden entirely when no stations exist yet */}
+        <div className="mt-3 pt-3 border-t border-white/[0.06] empty:hidden">
+          <FuelStationSwitcher />
         </div>
       </div>
       {children}

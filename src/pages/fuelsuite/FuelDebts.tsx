@@ -8,21 +8,25 @@ import {
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import {
-  useFuelCreditCustomers, useFuelCreditTxs, useFuelProductSales,
+  useFuelCreditCustomers, useFuelCreditTxs, useFuelProductSales, useFuelStations,
   createFuelCreditCustomer, updateFuelCreditCustomer, recordFuelCreditTx, deleteFuelCreditCustomer,
   FuelCreditCustomer,
 } from '../../lib/fuelDb';
 import { useFuelDateRange } from './fuelShared';
+import { useFuelStationScope } from './fuelStationContext';
 import { parseDateToTimestamp } from '../../lib/utils';
 import {
   FuelPageShell, FuelSection, FuelKpiGrid, FuelTable, FuelModal, FuelField,
-  FuelSearch, FuelBadge, FuelExportButton, ksh, fmtDate, todayKey, fuelInputClass,
+  FuelSearch, FuelBadge, FuelStationBadge, FuelUnassignedNotice, FuelExportButton,
+  stationCsvLabel, ksh, fmtDate, todayKey, fuelInputClass,
 } from './fuelShared';
 
 export default function FuelDebts({ initialAction }: { initialAction?: string }) {
   const { data: customers, loading } = useFuelCreditCustomers();
   const { data: txs } = useFuelCreditTxs();
   const { data: productSales } = useFuelProductSales();
+  const { data: stations } = useFuelStations();
+  const { scope, isAll, inScope } = useFuelStationScope();
   const range = useFuelDateRange();
 
   const [search, setSearch] = useState('');
@@ -35,6 +39,7 @@ export default function FuelDebts({ initialAction }: { initialAction?: string })
   // Customer form
   const [cName, setCName] = useState('');
   const [cPhone, setCPhone] = useState('');
+  const [cStationId, setCStationId] = useState('');
   const [cLimit, setCLimit] = useState('');
   const [cOpening, setCOpening] = useState('');
   // Credit tx form
@@ -45,6 +50,7 @@ export default function FuelDebts({ initialAction }: { initialAction?: string })
   const openCustomerModal = (c: FuelCreditCustomer | null) => {
     setCName(c?.name || '');
     setCPhone(c?.phone || '');
+    setCStationId(c ? (c.stationId || '') : (scope !== 'all' ? scope : ''));
     setCLimit(c ? String(c.creditLimit) : '');
     setCOpening('');
     setCustomerModal({ open: true, editing: c });
@@ -55,16 +61,22 @@ export default function FuelDebts({ initialAction }: { initialAction?: string })
     if (!cName.trim()) { setError('Customer name is required.'); return; }
     setSaving(true);
     try {
+      const stationFields = {
+        stationId: cStationId || undefined,
+        stationName: stations.find(s => s.id === cStationId)?.name || undefined,
+      };
       if (customerModal.editing) {
         await updateFuelCreditCustomer(customerModal.editing.id, customerModal.editing, {
           name: cName.trim(),
           phone: cPhone.trim(),
+          ...stationFields,
           creditLimit: parseFloat(cLimit) || 0,
         });
       } else {
         await createFuelCreditCustomer({
           name: cName.trim(),
           phone: cPhone.trim(),
+          ...stationFields,
           creditLimit: parseFloat(cLimit) || 0,
           openingBalance: parseFloat(cOpening) || 0,
         });
@@ -87,6 +99,8 @@ export default function FuelDebts({ initialAction }: { initialAction?: string })
       await recordFuelCreditTx({
         customerId: creditModal.id,
         customerName: creditModal.name,
+        stationId: creditModal.stationId,
+        stationName: creditModal.stationName,
         date: parseDateToTimestamp(tDate),
         dateKey: tDate,
         amount: amt,
@@ -121,9 +135,14 @@ export default function FuelDebts({ initialAction }: { initialAction?: string })
   const usageOf = (c: FuelCreditCustomer) =>
     c.creditLimit > 0 ? Math.min(100, Math.round(((c.balance || 0) / c.creditLimit) * 100)) : 0;
 
+  // Station scope: customers belong to a station; unassigned ones stay visible
+  // only under All Stations (never guessed into a station).
+  const scopedCustomers = useMemo(() => customers.filter(c => inScope(c.stationId)), [customers, inScope]);
+  const unassignedCount = useMemo(() => customers.filter(c => !c.stationId).length, [customers]);
+
   const sorted = useMemo(
-    () => [...customers].sort((a, b) => (b.balance || 0) - (a.balance || 0)),
-    [customers]
+    () => [...scopedCustomers].sort((a, b) => (b.balance || 0) - (a.balance || 0)),
+    [scopedCustomers]
   );
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase();
@@ -131,13 +150,18 @@ export default function FuelDebts({ initialAction }: { initialAction?: string })
   }, [sorted, search]);
 
   const stats = useMemo(() => {
-    const outstanding = customers.reduce((s, c) => s + (c.balance || 0), 0);
-    const withBalance = customers.filter(c => (c.balance || 0) > 0.009);
-    const overLimit = customers.filter(c => c.creditLimit > 0 && (c.balance || 0) > c.creditLimit);
-    const creditSalesInRange = productSales.filter(s => s.onCredit && range.inRange(s.date));
+    const outstanding = scopedCustomers.reduce((s, c) => s + (c.balance || 0), 0);
+    const withBalance = scopedCustomers.filter(c => (c.balance || 0) > 0.009);
+    const overLimit = scopedCustomers.filter(c => c.creditLimit > 0 && (c.balance || 0) > c.creditLimit);
+    const creditSalesInRange = productSales.filter(s => s.onCredit && range.inRange(s.date) && inScope(s.stationId));
     const chart = withBalance.slice(0, 8).map(c => ({ name: c.name, balance: c.balance, limit: c.creditLimit }));
     return { outstanding, withBalance: withBalance.length, overLimit: overLimit.length, creditSalesInRange, chart };
-  }, [customers, productSales, range.start, range.end]);
+  }, [scopedCustomers, productSales, inScope, range.start, range.end]);
+
+  const recentCredits = useMemo(
+    () => txs.filter(t => t.type === 'credit' && inScope(t.stationId)),
+    [txs, inScope]
+  );
 
   return (
     <FuelPageShell
@@ -150,10 +174,11 @@ export default function FuelDebts({ initialAction }: { initialAction?: string })
         </button>
       }
     >
+      {!isAll && <FuelUnassignedNotice count={unassignedCount} noun="credit customers" />}
       <FuelKpiGrid
         kpis={[
           { label: 'Outstanding Total', value: ksh(stats.outstanding), icon: HandCoins, tone: stats.overLimit > 0 ? 'red' : 'violet' },
-          { label: 'Customers with Balance', value: String(stats.withBalance), sub: `of ${customers.length}`, icon: Users, tone: 'amber' },
+          { label: 'Customers with Balance', value: String(stats.withBalance), sub: `of ${scopedCustomers.length}`, icon: Users, tone: 'amber' },
           { label: 'Over Limit', value: String(stats.overLimit), sub: 'needs attention', icon: AlertTriangle, tone: stats.overLimit > 0 ? 'red' : 'slate' },
           { label: 'Credit Sales (period)', value: ksh(stats.creditSalesInRange.reduce((s, x) => s + x.total, 0)), icon: CreditCard, tone: 'violet' },
         ]}
@@ -186,7 +211,7 @@ export default function FuelDebts({ initialAction }: { initialAction?: string })
         right={<FuelSearch value={search} onChange={setSearch} placeholder="Search customers…" />}
       >
         <FuelTable
-          headers={['Customer', 'Phone', 'Balance', 'Credit Limit', 'Usage', 'Status', '']}
+          headers={['Customer', 'Station', 'Phone', 'Balance', 'Credit Limit', 'Usage', 'Status', '']}
           empty={filtered.length === 0}
         >
           {filtered.map(c => {
@@ -195,6 +220,7 @@ export default function FuelDebts({ initialAction }: { initialAction?: string })
             return (
               <tr key={c.id} className="hover:bg-white/[0.02] transition-colors">
                 <td className="py-2.5 px-2.5 text-xs font-bold text-theme-text">{c.name}</td>
+                <td className="py-2.5 px-2.5"><FuelStationBadge stationName={c.stationName} /></td>
                 <td className="py-2.5 px-2.5 text-xs text-theme-text-muted">{c.phone || '—'}</td>
                 <td className={`py-2.5 px-2.5 text-xs font-mono font-bold ${(c.balance || 0) > 0 ? 'text-violet-400' : 'text-emerald-400'}`}>{ksh(c.balance || 0)}</td>
                 <td className="py-2.5 px-2.5 text-xs font-mono text-theme-text-muted">{ksh(c.creditLimit)}</td>
@@ -233,17 +259,18 @@ export default function FuelDebts({ initialAction }: { initialAction?: string })
         <div className="flex items-center justify-between mt-2.5 flex-wrap gap-2">
           {loading && <p className="text-xs text-gray-500">Loading customers…</p>}
           <FuelExportButton name="fuelsuite_credit_customers" rows={filtered.map(c => ({
-            Customer: c.name, Phone: c.phone || '', Balance: c.balance || 0, 'Credit Limit': c.creditLimit,
+            Customer: c.name, Station: stationCsvLabel(c.stationName), Phone: c.phone || '', Balance: c.balance || 0, 'Credit Limit': c.creditLimit,
             'Usage %': usageOf(c),
           }))} />
         </div>
       </FuelSection>
 
       <FuelSection title="Recent credit transactions" icon={CreditCard}>
-        <FuelTable headers={['Date', 'Customer', 'Type', 'Amount', 'Balance After', 'Note']} empty={txs.filter(t => t.type === 'credit').length === 0}>
-          {txs.filter(t => t.type === 'credit').slice(0, 12).map(t => (
+        <FuelTable headers={['Date', 'Station', 'Customer', 'Type', 'Amount', 'Balance After', 'Note']} empty={recentCredits.length === 0}>
+          {recentCredits.slice(0, 12).map(t => (
             <tr key={t.id} className="hover:bg-white/[0.02] transition-colors">
               <td className="py-2.5 px-2.5 text-xs font-bold text-theme-text whitespace-nowrap">{fmtDate(t.dateKey)}</td>
+              <td className="py-2.5 px-2.5"><FuelStationBadge stationName={t.stationName} /></td>
               <td className="py-2.5 px-2.5 text-xs text-theme-text">{t.customerName}</td>
               <td className="py-2.5 px-2.5"><FuelBadge tone="amber">credit</FuelBadge></td>
               <td className="py-2.5 px-2.5 text-xs font-mono text-amber-400 font-bold">{ksh(t.amount)}</td>
@@ -278,6 +305,12 @@ export default function FuelDebts({ initialAction }: { initialAction?: string })
           </FuelField>
           <FuelField label="Phone (optional)">
             <input type="tel" className={fuelInputClass} value={cPhone} onChange={e => setCPhone(e.target.value)} placeholder="07…" />
+          </FuelField>
+          <FuelField label="Station" hint="Which station this customer buys at">
+            <select value={cStationId} onChange={e => setCStationId(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
+              <option value="">— Unassigned —</option>
+              {stations.filter(s => s.active !== false).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
           </FuelField>
           <div className="grid grid-cols-2 gap-3">
             <FuelField label="Credit limit (KSh)" required>
