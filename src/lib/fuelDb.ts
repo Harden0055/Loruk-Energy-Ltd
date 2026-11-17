@@ -25,6 +25,7 @@ export interface FuelStation {
   name: string;
   location?: string;
   active: boolean;
+  readingOrder?: 'ago' | 'pms';   // which machine section appears first on the daily report
   createdAt: number;
   updatedAt: number;
   updatedBy?: string;
@@ -399,7 +400,7 @@ export const currentUserEmail = () => auth.currentUser?.email || 'unknown';
 
 // ---------------- STATIONS & SALESPEOPLE ----------------
 
-export async function createFuelStation(data: { name: string; location?: string; active?: boolean }) {
+export async function createFuelStation(data: { name: string; location?: string; active?: boolean; readingOrder?: 'ago' | 'pms' }) {
   const payload = { ...data, active: data.active !== false, ...nowStamp(), updatedBy: currentUserEmail() };
   const id = await fuelAdd(COLLECTIONS.stations, payload);
   await logFuelAudit({ area: 'Stations', action: 'create', entityLabel: data.name });
@@ -665,14 +666,15 @@ export async function ensureFuelDefaultProducts(existing: FuelProduct[]) {
 
 // ---------------- DEBTS (CREDIT CUSTOMERS & TRANSACTIONS) ----------------
 
-/** Manual inventory reconciliation: set a product's stock to the counted
- *  quantity, with a required reason logged to the audit trail. */
-export async function setFuelProductStock(product: FuelProduct, newStock: number, reason: string) {
+/** Manual stock reconciliation on the Products page: add or subtract a
+ *  quantity with a required reason; the user who made the change is logged. */
+export async function reconcileFuelProductStock(product: FuelProduct, delta: number, reason: string) {
   const oldStock = product.stock || 0;
-  await fuelUpdate(COLLECTIONS.products, product.id, { stock: newStock, updatedAt: Date.now() });
+  const nextStock = Math.round((oldStock + delta) * 1000) / 1000;
+  await fuelUpdate(COLLECTIONS.products, product.id, { stock: nextStock, updatedAt: Date.now() });
   await logFuelAudit({
-    area: 'Products', action: 'stock-adjust', entityLabel: product.name,
-    details: `Stock ${oldStock} → ${newStock}${reason ? ` · Reason: ${reason}` : ' · no reason given'}`,
+    area: 'Stock', action: 'stock-adjust', entityLabel: product.name,
+    details: `${delta > 0 ? '+' : ''}${delta} ${delta > 0 ? 'added' : 'subtracted'} → ${nextStock} · Reason: ${reason || 'no reason given'} · By ${currentUserEmail() || 'unknown'}`,
   });
 }
 

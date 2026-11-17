@@ -30,6 +30,7 @@ export default function FuelSetup({ initialAction }: { initialAction?: string })
   const [stName, setStName] = useState('');
   const [stLocation, setStLocation] = useState('');
   const [stActive, setStActive] = useState(true);
+  const [stReadingOrder, setStReadingOrder] = useState<'ago' | 'pms'>('ago');
   // Form: salesperson
   const [spName, setSpName] = useState('');
   const [spPhone, setSpPhone] = useState('');
@@ -40,6 +41,7 @@ export default function FuelSetup({ initialAction }: { initialAction?: string })
     setStName(editing?.name || '');
     setStLocation(editing?.location || '');
     setStActive(editing ? editing.active !== false : true);
+    setStReadingOrder(editing?.readingOrder || 'ago');
     setStationModal({ open: true, editing });
     setError(null);
   };
@@ -58,9 +60,9 @@ export default function FuelSetup({ initialAction }: { initialAction?: string })
     setSaving(true);
     try {
       if (stationModal.editing) {
-        await updateFuelStation(stationModal.editing.id, { name: stName.trim(), location: stLocation.trim(), active: stActive });
+        await updateFuelStation(stationModal.editing.id, { name: stName.trim(), location: stLocation.trim(), active: stActive, readingOrder: stReadingOrder });
       } else {
-        await createFuelStation({ name: stName.trim(), location: stLocation.trim(), active: stActive });
+        await createFuelStation({ name: stName.trim(), location: stLocation.trim(), active: stActive, readingOrder: stReadingOrder });
       }
       setStationModal({ open: false, editing: null });
     } catch (err) {
@@ -219,6 +221,12 @@ export default function FuelSetup({ initialAction }: { initialAction?: string })
           </FuelField>
           <FuelField label="Location (optional)">
             <input type="text" className={fuelInputClass} value={stLocation} onChange={e => setStLocation(e.target.value)} placeholder="e.g. Kitale Road" />
+          </FuelField>
+          <FuelField label="First machine section on the daily report" hint="AGO = Diesel, PMS = Petrol">
+            <select value={stReadingOrder} onChange={e => setStReadingOrder(e.target.value as 'ago' | 'pms')} className={`${fuelInputClass} cursor-pointer`}>
+              <option value="ago">AGO (Diesel) first</option>
+              <option value="pms">PMS (Petrol) first</option>
+            </select>
           </FuelField>
           <label className="flex items-center gap-2 text-xs text-theme-text cursor-pointer">
             <input type="checkbox" checked={stActive} onChange={e => setStActive(e.target.checked)} className="accent-emerald-500 cursor-pointer" />

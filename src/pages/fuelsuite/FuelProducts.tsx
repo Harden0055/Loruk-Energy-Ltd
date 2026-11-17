@@ -5,10 +5,12 @@
 import React, { useMemo, useState } from 'react';
 import {
   Package, Plus, Pencil, Trash2, Search, Save, ShoppingCart, Ban, CheckCircle2, Layers,
+  ArrowDownRight, ArrowUpRight, Scale,
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 import {
   useFuelProducts, createFuelProduct, updateFuelProduct, deleteFuelProduct,
+  reconcileFuelProductStock,
   useFuelProductSales, useFuelPurchases, useFuelStations,
   useFuelProductCategories, createFuelProductCategory,
   FUEL_PRODUCT_CATEGORIES, LEGACY_FUEL_PRODUCT_CATEGORIES, FuelProduct,
@@ -56,6 +58,14 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
   const [deleteTarget, setDeleteTarget] = useState<FuelProduct | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Stock reconciliation: add or subtract stock with a required reason.
+  // Who made the change is recorded in the audit trail.
+  const [recon, setRecon] = useState<{ target: FuelProduct | null; mode: 'add' | 'subtract' }>({ target: null, mode: 'add' });
+  const [reconQty, setReconQty] = useState('');
+  const [reconReason, setReconReason] = useState('');
+  const [reconSaving, setReconSaving] = useState(false);
+  const [reconError, setReconError] = useState<string | null>(null);
 
   // Inline "add category" shortcut state
   const [catAddOpen, setCatAddOpen] = useState(false);
@@ -158,6 +168,26 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
       setError('Failed to delete the product.');
     } finally {
       setSaving(false);
+    }
+  };
+
+  /** Reconcile stock: add or subtract a quantity with a required reason. */
+  const saveReconcile = async () => {
+    if (!recon.target) return;
+    const qty = parseFloat(reconQty);
+    if (!reconQty.trim() || !Number.isFinite(qty) || qty <= 0) { setReconError('Enter the quantity to add or subtract.'); return; }
+    if (!reconReason.trim()) { setReconError('A reason is required — it is saved to the audit trail with your name.'); return; }
+    setReconSaving(true);
+    setReconError(null);
+    try {
+      await reconcileFuelProductStock(recon.target, recon.mode === 'add' ? qty : -qty, reconReason.trim());
+      setRecon({ target: null, mode: 'add' });
+      setReconQty(''); setReconReason('');
+    } catch (err) {
+      console.error(err);
+      setReconError('Failed to reconcile the stock. Try again.');
+    } finally {
+      setReconSaving(false);
     }
   };
 
@@ -282,6 +312,9 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
                 </td>
                 <td className="py-2.5 px-2.5">
                   <div className="flex items-center gap-1 justify-end">
+                    <button type="button" onClick={() => { setRecon({ target: p, mode: 'add' }); setReconQty(''); setReconReason(''); setReconError(null); }} className="p-1.5 text-gray-400 hover:text-violet-400 hover:bg-violet-500/10 rounded-md transition-colors cursor-pointer" title="Reconcile stock (add / subtract with reason)">
+                      <Scale className="w-3.5 h-3.5" />
+                    </button>
                     <button type="button" onClick={() => setDeleteTarget(p)} className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors cursor-pointer" title="Delete product">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -425,6 +458,74 @@ export default function FuelProducts({ initialAction }: { initialAction?: string
           <p className="text-xs text-theme-text-muted">
             Delete <span className="font-bold text-theme-text">{deleteTarget.name}</span>? Past purchases and sales keep their records, but the product will no longer appear in pickers. Stock will not be adjusted.
           </p>
+        </FuelModal>
+      )}
+
+      {/* Stock reconciliation modal — add / subtract with a required reason */}
+      {recon.target && (
+        <FuelModal
+          title={`Reconcile stock — ${recon.target.name}`}
+          icon={Scale}
+          width="max-w-md"
+          onClose={() => setRecon({ target: null, mode: 'add' })}
+          footer={
+            <>
+              <button type="button" onClick={() => setRecon({ target: null, mode: 'add' })} className="px-3.5 py-2 rounded-lg text-xs font-bold text-gray-300 border border-theme-border hover:bg-white/[0.05] transition-colors cursor-pointer">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={saveReconcile}
+                disabled={reconSaving || !reconReason.trim() || !reconQty.trim()}
+                className="px-3.5 py-2 bg-violet-500/15 hover:bg-violet-500/25 text-violet-400 border border-violet-500/40 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40"
+              >
+                <Save className="w-3.5 h-3.5" /> {reconSaving ? 'Saving…' : 'Apply adjustment'}
+              </button>
+            </>
+          }
+        >
+          <div className="text-xs space-y-3">
+            <div className="bg-white/[0.03] border border-theme-border rounded-lg p-2.5 grid grid-cols-2 gap-2 font-mono">
+              <span className="text-gray-400">Current stock: <span className="text-theme-text font-bold">{fmtQty(recon.target.stock || 0)} {recon.target.unit || 'pcs'}</span></span>
+              <span className="text-gray-400">Station: <span className="text-violet-400 font-bold">{recon.target.stationName || 'Unassigned'}</span></span>
+            </div>
+            <FuelField label="Direction">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRecon(r => ({ ...r, mode: 'add' }))}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 border transition-colors cursor-pointer ${
+                    recon.mode === 'add'
+                      ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40'
+                      : 'bg-white/[0.03] text-gray-400 border-theme-border hover:bg-white/[0.06]'
+                  }`}
+                >
+                  <ArrowUpRight className="w-3.5 h-3.5" /> Add stock
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRecon(r => ({ ...r, mode: 'subtract' }))}
+                  className={`px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 border transition-colors cursor-pointer ${
+                    recon.mode === 'subtract'
+                      ? 'bg-red-500/15 text-red-400 border-red-500/40'
+                      : 'bg-white/[0.03] text-gray-400 border-theme-border hover:bg-white/[0.06]'
+                  }`}
+                >
+                  <ArrowDownRight className="w-3.5 h-3.5" /> Subtract stock
+                </button>
+              </div>
+            </FuelField>
+            <FuelField label="Quantity" required hint={recon.mode === 'add' ? 'stock goes up by this much' : 'stock goes down by this much'}>
+              <input type="number" className={fuelInputClass} value={reconQty} onChange={e => setReconQty(e.target.value)} placeholder="e.g. 2" min="0" step="any" />
+            </FuelField>
+            <FuelField label="Reason" required hint="saved to the audit trail together with who made the change">
+              <input type="text" className={fuelInputClass} value={reconReason} onChange={e => setReconReason(e.target.value)} placeholder="e.g. leak, cylinder returned empty, count correction" />
+            </FuelField>
+            <p className="text-[10px] text-gray-500">
+              This adjusts the stock immediately. The quantity, direction, reason and your sign-in email are all recorded in the audit trail. Daily sales and purchases are not changed.
+            </p>
+            {reconError && <div className="text-[11px] text-red-400 bg-red-500/[0.06] border border-red-500/30 rounded-lg px-3 py-2">{reconError}</div>}
+          </div>
         </FuelModal>
       )}
     </FuelPageShell>

@@ -20,10 +20,10 @@ import {
   createFuelProductSale, deleteFuelProductSale,
   createFuelPurchase, deleteFuelPurchase,
   createFuelExpense, deleteFuelExpense,
-  recordFuelCreditTx, deleteFuelCreditTx, setFuelProductStock,
+  recordFuelCreditTx, deleteFuelCreditTx, createFuelCreditCustomer,
   FUEL_PAYMENT_METHODS,
   FuelStation, FuelSalesperson, FuelDailyRecord, FuelProductReading,
-  FuelProduct, FuelProductSale, FuelPurchase, FuelExpense, FuelCreditTx, FuelCreditCustomer,
+  FuelProductSale, FuelPurchase, FuelExpense, FuelCreditTx, FuelCreditCustomer,
 } from '../../lib/fuelDb';
 import { parseDateToTimestamp, formatDateToInput } from '../../lib/utils';
 import {
@@ -127,8 +127,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
   const [startSource, setStartSource] = useState<'auto' | 'manual'>('manual');
 
   // Daily cash & M-Pesa reconciliation + fuel dip balance (paper-sheet fields)
-  const [mpesaStart, setMpesaStart] = useState('');
-  const [mpesaStop, setMpesaStop] = useState('');
+  // M-Pesa is a single manually-entered figure for the day.
   const [mpesaReceived, setMpesaReceived] = useState('');
   const [cashBroughtForward, setCashBroughtForward] = useState('');
   const [cashAtHand, setCashAtHand] = useState('');
@@ -148,7 +147,6 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
   const [qpSupplier, setQpSupplier] = useState('');
   const [qpQty, setQpQty] = useState('');
   const [qpPrice, setQpPrice] = useState('');
-  const [qpMethod, setQpMethod] = useState('Cash');
   const [qeCategory, setQeCategory] = useState('');
   const [qeDescription, setQeDescription] = useState('');
   const [qeAmount, setQeAmount] = useState('');
@@ -161,10 +159,12 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
   const [busy, setBusy] = useState<string | null>(null); // which quick action is saving
   const [quickError, setQuickError] = useState<string | null>(null);
 
-  // Inventory reconciliation (section 9): edit a product's quantity with a reason
-  const [invTarget, setInvTarget] = useState<FuelProduct | null>(null);
-  const [invQty, setInvQty] = useState('');
-  const [invReason, setInvReason] = useState('');
+  // Add-customer shortcut from the debts / paid-debts customer dropdowns
+  const [custModal, setCustModal] = useState<{ open: boolean; for: 'debt' | 'repayment' }>({ open: false, for: 'debt' });
+  const [ncName, setNcName] = useState('');
+  const [ncPhone, setNcPhone] = useState('');
+  const [ncBusy, setNcBusy] = useState(false);
+  const [ncError, setNcError] = useState<string | null>(null);
 
   const [editingRecord, setEditingRecord] = useState<FuelDailyRecord | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -272,7 +272,8 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
   );
 
   // ---- Closing inventory rows (section 9): every product in scope (including
-  // White Oils), with today's sold/bought totals and the closing stock. ----
+  // White Oils), with today's sold/bought totals, the opening stock (before
+  // today's sales) and the closing stock. ----
   const inventoryRows = useMemo(() => {
     const soldByProduct = new Map<string, number>();
     dayFigures.ps.forEach(s => soldByProduct.set(s.productId, (soldByProduct.get(s.productId) || 0) + s.qty));
@@ -283,36 +284,45 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
       .sort((a, b) => a.name.localeCompare(b.name))
       .map(p => ({
         id: p.id,
-        product: p,
         name: p.name,
         category: p.category,
+        unit: p.unit || 'pcs',
         sold: soldByProduct.get(p.id) || 0,
         bought: boughtByProduct.get(p.id) || 0,
         stock: p.stock || 0,
+        opening: (p.stock || 0) + (soldByProduct.get(p.id) || 0) - (boughtByProduct.get(p.id) || 0),
       }));
   }, [products, dayFigures, stationId]);
 
-  /** Save the inventory adjustment: set stock to the counted quantity, with a required reason. */
-  const saveInventoryAdjust = async () => {
-    if (!invTarget) return;
-    const newStock = num(invQty);
-    if (invQty === '' || newStock < 0) { setQuickError('Enter the counted quantity (0 or more).'); return; }
-    if (!invReason.trim()) { setQuickError('A reason is required — it is saved to the audit trail.'); return; }
-    setBusy('inv');
-    setQuickError(null);
+  /** + shortcut: create a credit customer for this station right from the debts dropdowns. */
+  const saveNewCustomer = async () => {
+    const name = ncName.trim();
+    if (!name) { setNcError('Customer name is required.'); return; }
+    setNcBusy(true);
+    setNcError(null);
     try {
-      await setFuelProductStock(invTarget, newStock, invReason.trim());
-      setNotice(`${invTarget.name} stock set to ${fmtQty(newStock)} — change logged with reason.`);
-      setInvTarget(null); setInvQty(''); setInvReason('');
+      const id = await createFuelCreditCustomer({
+        name,
+        phone: ncPhone.trim() || undefined,
+        stationId: stationId || undefined,
+        stationName: station?.name || undefined,
+        creditLimit: 0,
+      });
+      if (custModal.for === 'repayment') setQrCustomerId(id); else setQdCustomerId(id);
+      setNotice(`${name} added to ${station?.name || 'this station'}'s credit customers.`);
       setTimeout(() => setNotice(null), 4000);
-    } catch (err) { quickFail(err, 'stock adjustment'); } finally { setBusy(null); }
+      setCustModal({ open: false, for: 'debt' });
+      setNcName(''); setNcPhone('');
+    } catch (err) {
+      console.error(err);
+      setNcError('Failed to add the customer. Try again.');
+    } finally {
+      setNcBusy(false);
+    }
   };
 
-  // M-Pesa received today: from till balances (stop − start), like the notebook
-  const mpesaReceivedToday = useMemo(() => {
-    if (mpesaStart === '' && mpesaStop === '') return num(mpesaReceived);
-    return num(mpesaStop) - num(mpesaStart);
-  }, [mpesaStart, mpesaStop, mpesaReceived]);
+  // M-Pesa for the day: one figure, entered manually.
+  const mpesaReceivedToday = num(mpesaReceived);
 
   // ---- Day close math (the paper report's formula, verbatim):
   // 1. Total sales = Premium (PMS machine) + Diesel (AGO machine) + all
@@ -396,8 +406,6 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
     setPms({ ...emptyReading(), ...rec.pms });
     setNote(rec.note || '');
     setStartSource(rec.startSource || 'manual');
-    setMpesaStart(rec.mpesaStart != null ? String(rec.mpesaStart) : '');
-    setMpesaStop(rec.mpesaStop != null ? String(rec.mpesaStop) : '');
     setMpesaReceived(rec.mpesaReceived != null ? String(rec.mpesaReceived) : '');
     setCashBroughtForward(rec.cashBroughtForward != null ? String(rec.cashBroughtForward) : '');
     setCashAtHand(rec.cashAtHand != null ? String(rec.cashAtHand) : '');
@@ -421,7 +429,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
       setAgo(emptyReading(ago.rate));
       setPms(emptyReading(pms.rate));
     }
-    setMpesaStart(''); setMpesaStop(''); setMpesaReceived('');
+    setMpesaReceived('');
     setCashBroughtForward(''); setCashAtHand(''); setDeposited(''); setTransactionFee('');
     setFuelBalanceSuper(''); setFuelBalanceDiesel('');
   };
@@ -451,8 +459,6 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
           editingRecord,
           {
             ago, pms, note, startSource,
-            mpesaStart: num(mpesaStart),
-            mpesaStop: num(mpesaStop),
             mpesaReceived: mpesaReceivedToday,
             cashBroughtForward: num(cashBroughtForward),
             cashAtHand: num(cashAtHand),
@@ -477,8 +483,6 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
           salespersonId: salespersonId || undefined,
           salespersonName: salesperson?.name,
           ago, pms, note, startSource,
-          mpesaStart: num(mpesaStart),
-          mpesaStop: num(mpesaStop),
           mpesaReceived: mpesaReceivedToday,
           cashBroughtForward: num(cashBroughtForward),
           cashAtHand: num(cashAtHand),
@@ -498,7 +502,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
       setAgo(emptyReading(ago.rate));
       setPms(emptyReading(pms.rate));
       setStartSource(previousRecord ? 'auto' : 'manual');
-      setMpesaStart(''); setMpesaStop(''); setMpesaReceived('');
+      setMpesaReceived('');
       setCashBroughtForward(''); setCashAtHand(''); setDeposited(''); setTransactionFee('');
       setFuelBalanceSuper(''); setFuelBalanceDiesel('');
     } catch (err) {
@@ -587,7 +591,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
         supplier: qpSupplier.trim() || '—',
         productId: product.id, productName: product.name,
         qty, buyingPrice: price, totalCost: Math.round(qty * price * 100) / 100,
-        paymentMethod: qpMethod,
+        paymentMethod: 'Cash',
       }, product, { updateBuyingPrice: true });
       setQpQty(''); setQpPrice(''); setQpSupplier('');
     } catch (err) { quickFail(err, 'purchase'); } finally { setBusy(null); }
@@ -804,8 +808,17 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
           )}
         </div>
 
-        <ReadingGrid reading={ago} computed={agoC} setter={setAgoField} label="AGO (Diesel)" color="text-emerald-400" />
-        <ReadingGrid reading={pms} computed={pmsC} setter={setPmsField} label="PMS (Petrol)" color="text-violet-400" />
+        {station?.readingOrder === 'pms' ? (
+          <>
+            <ReadingGrid reading={pms} computed={pmsC} setter={setPmsField} label="PMS (Petrol)" color="text-violet-400" />
+            <ReadingGrid reading={ago} computed={agoC} setter={setAgoField} label="AGO (Diesel)" color="text-emerald-400" />
+          </>
+        ) : (
+          <>
+            <ReadingGrid reading={ago} computed={agoC} setter={setAgoField} label="AGO (Diesel)" color="text-emerald-400" />
+            <ReadingGrid reading={pms} computed={pmsC} setter={setPmsField} label="PMS (Petrol)" color="text-violet-400" />
+          </>
+        )}
 
         {quickError && (
           <div className="text-xs text-red-400 bg-red-500/[0.06] border border-red-500/30 rounded-lg px-3 py-2">{quickError}</div>
@@ -887,13 +900,12 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
               <span className="w-5 h-5 shrink-0 rounded-md bg-violet-500/15 border border-violet-500/30 text-violet-400 grid place-items-center text-[9px] font-black">2</span>
               <ShoppingBag className="w-3.5 h-3.5 text-violet-400" /> LPG &amp; Accessories — purchases
             </h4>
-            <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">saves into Purchases · stock increases</span>
           </div>
           {stationProducts.length === 0 ? (
             <p className="text-[11px] text-amber-400">No LPG/Accessories products for this station yet — add them in Products &amp; Prices.</p>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <FuelField label="Product">
                   <select value={qpProductId} onChange={e => {
                     setQpProductId(e.target.value);
@@ -907,11 +919,6 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
                 <FuelField label="Supplier (optional)"><input type="text" className={fuelInputClass} value={qpSupplier} onChange={e => setQpSupplier(e.target.value)} placeholder="e.g. Manata" /></FuelField>
                 <FuelField label="Qty"><input type="number" className={fuelInputClass} value={qpQty} onChange={e => setQpQty(e.target.value)} placeholder="0" min="0" /></FuelField>
                 <FuelField label="Buying price (KSh)"><input type="number" className={fuelInputClass} value={qpPrice} onChange={e => setQpPrice(e.target.value)} placeholder="0" /></FuelField>
-                <FuelField label="Paid by">
-                  <select value={qpMethod} onChange={e => setQpMethod(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
-                    {FUEL_PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
-                  </select>
-                </FuelField>
               </div>
               <button type="button" onClick={saveQuickPurchase} disabled={busy === 'purchase'} className="mt-2 px-3 py-1.5 bg-violet-500/15 hover:bg-violet-500/25 text-violet-400 border border-violet-500/40 rounded-lg text-[10px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40">
                 <Plus className="w-3.5 h-3.5" /> {busy === 'purchase' ? 'Saving…' : 'Add purchase'}
@@ -990,7 +997,19 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
               <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">credit — no money in hand</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <FuelField label="Customer">
+              <FuelField
+                label="Customer"
+                labelRight={
+                  <button
+                    type="button"
+                    onClick={() => { setNcName(''); setNcPhone(''); setNcError(null); setCustModal({ open: true, for: 'debt' }); }}
+                    title="Add a new credit customer"
+                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold text-violet-300 hover:text-violet-200 bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/30 transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3" /> Add
+                  </button>
+                }
+              >
                 <select value={qdCustomerId} onChange={e => setQdCustomerId(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
                   <option value="">— choose —</option>
                   {stationCustomers.map(c => <option key={c.id} value={c.id}>{c.name} · owes {ksh(c.balance || 0)}</option>)}
@@ -1028,7 +1047,19 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
               <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">repayments — money coming in</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <FuelField label="Customer">
+              <FuelField
+                label="Customer"
+                labelRight={
+                  <button
+                    type="button"
+                    onClick={() => { setNcName(''); setNcPhone(''); setNcError(null); setCustModal({ open: true, for: 'repayment' }); }}
+                    title="Add a new credit customer"
+                    className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold text-violet-300 hover:text-violet-200 bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/30 transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3" /> Add
+                  </button>
+                }
+              >
                 <select value={qrCustomerId} onChange={e => setQrCustomerId(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
                   <option value="">— choose —</option>
                   {stationCustomers.map(c => <option key={c.id} value={c.id}>{c.name} · owes {ksh(c.balance || 0)}</option>)}
@@ -1066,11 +1097,9 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
             </h4>
             <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">where the money for today's sales is</span>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-            <FuelField label="M-Pesa Start"><input type="number" className={fuelInputClass} value={mpesaStart} onChange={e => setMpesaStart(e.target.value)} placeholder="till balance" /></FuelField>
-            <FuelField label="M-Pesa Stop"><input type="number" className={fuelInputClass} value={mpesaStop} onChange={e => setMpesaStop(e.target.value)} placeholder="till balance" /></FuelField>
-            <FuelField label="M-Pesa Received" hint={mpesaStart !== '' || mpesaStop !== '' ? 'stop − start' : 'entered directly'}>
-              <input type="number" className={fuelInputClass} value={mpesaReceivedToday || ''} onChange={e => setMpesaReceived(e.target.value)} placeholder="0" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <FuelField label="M-Pesa (KSh)" hint="one figure for the day, entered manually">
+              <input type="number" className={fuelInputClass} value={mpesaReceived} onChange={e => setMpesaReceived(e.target.value)} placeholder="amount in M-Pesa today" />
             </FuelField>
             <FuelField label="Cash brought forward" hint="cash carried into today">
               <input type="number" className={fuelInputClass} value={cashBroughtForward} onChange={e => setCashBroughtForward(e.target.value)} placeholder="0" />
@@ -1199,7 +1228,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
               <span className="w-5 h-5 shrink-0 rounded-md bg-violet-500/15 border border-violet-500/30 text-violet-400 grid place-items-center text-[9px] font-black">9</span>
               <Boxes className="w-3.5 h-3.5 text-violet-400" /> Closing inventory — all products
             </h4>
-            <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">sold subtracted · bought added · editable with reason</span>
+            <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">opening → sold · bought → closing</span>
           </div>
           {inventoryRows.length === 0 ? (
             <p className="text-[11px] text-theme-text-muted">No products for this station yet — add them in Products &amp; Prices.</p>
@@ -1210,10 +1239,10 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
                   <tr className="text-[9px] uppercase tracking-wider text-theme-text-muted">
                     <th className="text-left font-bold px-2.5 py-1.5">Product</th>
                     <th className="text-left font-bold px-2 py-1.5">Category</th>
+                    <th className="text-right font-bold px-2 py-1.5">Opening</th>
                     <th className="text-right font-bold px-2 py-1.5">Sold today</th>
                     <th className="text-right font-bold px-2 py-1.5">Bought today</th>
-                    <th className="text-right font-bold px-2 py-1.5">Closing stock</th>
-                    <th className="px-2 py-1.5"></th>
+                    <th className="text-right font-bold px-2.5 py-1.5">Closing stock</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1221,19 +1250,10 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
                     <tr key={r.id} className="border-t border-white/[0.05] hover:bg-white/[0.02] transition-colors">
                       <td className="px-2.5 py-1.5 font-semibold text-theme-text">{r.name}</td>
                       <td className="px-2 py-1.5"><FuelBadge tone="slate">{r.category}</FuelBadge></td>
+                      <td className="px-2 py-1.5 text-right font-mono text-slate-300">{fmtQty(r.opening)} {r.unit}</td>
                       <td className="px-2 py-1.5 text-right font-mono text-red-400">{r.sold > 0 ? `−${fmtQty(r.sold)}` : '—'}</td>
                       <td className="px-2 py-1.5 text-right font-mono text-emerald-400">{r.bought > 0 ? `+${fmtQty(r.bought)}` : '—'}</td>
-                      <td className="px-2 py-1.5 text-right font-mono font-bold text-theme-text">{fmtQty(r.stock)}</td>
-                      <td className="px-2 py-1.5 text-right">
-                        <button
-                          type="button"
-                          onClick={() => { setInvTarget(r.product); setInvQty(String(r.stock)); setInvReason(''); }}
-                          className="p-1 text-gray-500 hover:text-violet-400 hover:bg-violet-500/10 rounded-md transition-colors cursor-pointer"
-                          title="Adjust quantity with reason"
-                        >
-                          <Pencil className="w-3 h-3" />
-                        </button>
-                      </td>
+                      <td className="px-2.5 py-1.5 text-right font-mono font-bold text-theme-text">{fmtQty(r.stock)} {r.unit}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1241,7 +1261,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
             </div>
           )}
           <p className="text-[10px] text-gray-500 mt-1.5">
-            Closing stock is each product's current quantity: sales made here today already subtracted, purchases today already added, and any manual reconciliations included. The pencil opens a reason-logged adjustment.
+            Opening is each product's stock before today's sales. Closing = opening − sold today + bought today, including any manual reconciliations made on the Products &amp; Prices page.
           </p>
         </div>
 
@@ -1479,44 +1499,43 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
         </FuelModal>
       )}
 
-      {/* Inventory reconciliation modal — edit quantity with a required reason */}
-      {invTarget && (
+      {/* Add-customer shortcut — create a credit customer from the debts dropdowns */}
+      {custModal.open && (
         <FuelModal
-          title={`Adjust stock — ${invTarget.name}`}
-          icon={Boxes}
-          onClose={() => setInvTarget(null)}
+          title={custModal.for === 'repayment' ? 'Add credit customer (for repayment)' : 'Add credit customer'}
+          icon={HandCoins}
+          onClose={() => setCustModal({ open: false, for: 'debt' })}
           width="max-w-md"
           footer={
             <>
-              <button type="button" onClick={() => setInvTarget(null)} className="px-3.5 py-2 rounded-lg text-xs font-bold text-gray-300 border border-theme-border hover:bg-white/[0.05] transition-colors cursor-pointer">
+              <button type="button" onClick={() => setCustModal({ open: false, for: 'debt' })} className="px-3.5 py-2 rounded-lg text-xs font-bold text-gray-300 border border-theme-border hover:bg-white/[0.05] transition-colors cursor-pointer">
                 Cancel
               </button>
               <button
                 type="button"
-                onClick={saveInventoryAdjust}
-                disabled={busy === 'inv' || !invReason.trim() || invQty === ''}
-                className="px-3.5 py-2 bg-violet-500/15 hover:bg-violet-500/25 text-violet-400 border border-violet-500/40 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40"
+                onClick={saveNewCustomer}
+                disabled={ncBusy || !ncName.trim()}
+                className="px-3.5 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40"
               >
-                <Boxes className="w-3.5 h-3.5" /> {busy === 'inv' ? 'Saving…' : 'Set quantity'}
+                <Plus className="w-3.5 h-3.5" /> {ncBusy ? 'Saving…' : 'Add customer'}
               </button>
             </>
           }
         >
           <div className="text-xs space-y-3">
-            <div className="bg-white/[0.03] border border-theme-border rounded-lg p-2.5 grid grid-cols-2 gap-2 font-mono">
-              <span className="text-gray-400">Current stock: <span className="text-theme-text font-bold">{fmtQty(invTarget.stock || 0)}</span></span>
-              <span className="text-gray-400">Category: <span className="text-violet-400 font-bold">{invTarget.category}</span></span>
+            <div className="bg-white/[0.03] border border-theme-border rounded-lg p-2.5">
+              <span className="text-gray-400">Saved to station: <span className="text-theme-text font-bold">{station?.name || 'Unassigned'}</span></span>
             </div>
-            <FuelField label="Counted quantity (new stock)" required>
-              <input type="number" className={fuelInputClass} value={invQty} onChange={e => setInvQty(e.target.value)} placeholder="e.g. 12" min="0" />
+            <FuelField label="Customer name" required>
+              <input type="text" className={fuelInputClass} value={ncName} onChange={e => setNcName(e.target.value)} placeholder="e.g. St. Peters School" />
             </FuelField>
-            <FuelField label="Reason for adjustment" required hint="saved to the audit trail">
-              <input type="text" className={fuelInputClass} value={invReason} onChange={e => setInvReason(e.target.value)} placeholder="e.g. leak, cylinder returned empty, count correction" />
+            <FuelField label="Phone (optional)">
+              <input type="text" className={fuelInputClass} value={ncPhone} onChange={e => setNcPhone(e.target.value)} placeholder="e.g. 0712 345 678" />
             </FuelField>
             <p className="text-[10px] text-gray-500">
-              This sets the product's stock at {station?.name || 'this station'} to the counted figure. The old → new quantity and your reason are recorded in the audit trail; today's sales and purchases are not changed.
+              The customer starts with a zero balance. They are selected automatically once saved.
             </p>
-            {quickError && <div className="text-[11px] text-red-400 bg-red-500/[0.06] border border-red-500/30 rounded-lg px-3 py-2">{quickError}</div>}
+            {ncError && <div className="text-[11px] text-red-400 bg-red-500/[0.06] border border-red-500/30 rounded-lg px-3 py-2">{ncError}</div>}
           </div>
         </FuelModal>
       )}
