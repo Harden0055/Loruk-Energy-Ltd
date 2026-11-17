@@ -55,6 +55,51 @@ const compute = (r: FuelProductReading) => {
   return { litresSold, machineSales, expected, difference };
 };
 
+const diffTone = (d: number): FuelTone => (d < 0 ? 'red' : Math.abs(d) > 1000 ? 'violet' : 'green');
+
+// Machine-readings grid for one product. Defined at module scope so React keeps
+// the same component type across renders — otherwise every keystroke remounts
+// the inputs and the cursor jumps out after one digit.
+const ReadingGrid = ({ reading, computed, setter, label, color }: {
+  reading: FuelProductReading;
+  computed: ReturnType<typeof compute>;
+  setter: (k: keyof FuelProductReading, v: string) => void;
+  label: string;
+  color: string;
+}) => (
+  <div className="border border-theme-border rounded-xl p-3.5 bg-white/[0.02]">
+    <div className="flex items-center justify-between mb-2.5">
+      <h4 className="text-xs font-black text-theme-text flex items-center gap-1.5">
+        <Fuel className={`w-3.5 h-3.5 ${color}`} /> {label}
+      </h4>
+      <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">Machine readings</span>
+    </div>
+    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+      <FuelField label="Litres Start"><input type="number" className={fuelInputClass} value={reading.litresStart || ''} onChange={e => setter('litresStart', e.target.value)} placeholder="0" /></FuelField>
+      <FuelField label="Litres Stop"><input type="number" className={fuelInputClass} value={reading.litresStop || ''} onChange={e => setter('litresStop', e.target.value)} placeholder="0" /></FuelField>
+      <FuelField label="Sales Start (KSh)"><input type="number" className={fuelInputClass} value={reading.salesStart || ''} onChange={e => setter('salesStart', e.target.value)} placeholder="0" /></FuelField>
+      <FuelField label="Sales Stop (KSh)"><input type="number" className={fuelInputClass} value={reading.salesStop || ''} onChange={e => setter('salesStop', e.target.value)} placeholder="0" /></FuelField>
+      <FuelField label="Rate / L (KSh)"><input type="number" className={fuelInputClass} value={reading.rate || ''} onChange={e => setter('rate', e.target.value)} placeholder="0" /></FuelField>
+    </div>
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2.5">
+      {[
+        { l: 'Litres Sold', v: `${fmtQty(computed.litresSold)} L`, tone: computed.litresSold < 0 ? 'red' : 'green' },
+        { l: 'Machine Sales', v: ksh(computed.machineSales), tone: computed.machineSales < 0 ? 'red' : 'violet' },
+        { l: 'Expected Sales', v: ksh(computed.expected), tone: 'slate' },
+        { l: 'Difference', v: ksh(computed.difference), tone: diffTone(computed.difference) },
+      ].map(x => {
+        const tones: Record<string, string> = { red: 'text-red-400 border-red-500/25 bg-red-500/[0.06]', green: 'text-emerald-400 border-emerald-500/25 bg-emerald-500/[0.06]', violet: 'text-violet-400 border-violet-500/25 bg-violet-500/[0.06]', slate: 'text-slate-300 border-white/10 bg-white/[0.03]' };
+        return (
+          <div key={x.l} className={`rounded-lg border px-2.5 py-1.5 ${tones[x.tone]}`}>
+            <p className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted">{x.l}</p>
+            <p className="text-xs font-black font-mono mt-0.5">{x.v}</p>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+);
+
 export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDailyRecordsProps) {
   const { data: stations, loading: stationsLoading } = useFuelStations();
   const salespeople = useFuelSalespeople().data;
@@ -650,48 +695,6 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
     const diff = todays.reduce((s, r) => s + compute(r.ago).difference + compute(r.pms).difference, 0);
     return { count: todays.length, litres, expected, diff };
   }, [records, inScope]);
-
-  const diffTone = (d: number): FuelTone => (d < 0 ? 'red' : Math.abs(d) > 1000 ? 'violet' : 'green');
-
-  const ReadingGrid = ({ reading, computed, setter, label, color }: {
-    reading: FuelProductReading;
-    computed: ReturnType<typeof compute>;
-    setter: (k: keyof FuelProductReading, v: string) => void;
-    label: string;
-    color: string;
-  }) => (
-    <div className="border border-theme-border rounded-xl p-3.5 bg-white/[0.02]">
-      <div className="flex items-center justify-between mb-2.5">
-        <h4 className="text-xs font-black text-theme-text flex items-center gap-1.5">
-          <Fuel className={`w-3.5 h-3.5 ${color}`} /> {label}
-        </h4>
-        <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">Machine readings</span>
-      </div>
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-        <FuelField label="Litres Start"><input type="number" className={fuelInputClass} value={reading.litresStart || ''} onChange={e => setter('litresStart', e.target.value)} placeholder="0" /></FuelField>
-        <FuelField label="Litres Stop"><input type="number" className={fuelInputClass} value={reading.litresStop || ''} onChange={e => setter('litresStop', e.target.value)} placeholder="0" /></FuelField>
-        <FuelField label="Sales Start (KSh)"><input type="number" className={fuelInputClass} value={reading.salesStart || ''} onChange={e => setter('salesStart', e.target.value)} placeholder="0" /></FuelField>
-        <FuelField label="Sales Stop (KSh)"><input type="number" className={fuelInputClass} value={reading.salesStop || ''} onChange={e => setter('salesStop', e.target.value)} placeholder="0" /></FuelField>
-        <FuelField label="Rate / L (KSh)"><input type="number" className={fuelInputClass} value={reading.rate || ''} onChange={e => setter('rate', e.target.value)} placeholder="0" /></FuelField>
-      </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2.5">
-        {[
-          { l: 'Litres Sold', v: `${fmtQty(computed.litresSold)} L`, tone: computed.litresSold < 0 ? 'red' : 'green' },
-          { l: 'Machine Sales', v: ksh(computed.machineSales), tone: computed.machineSales < 0 ? 'red' : 'violet' },
-          { l: 'Expected Sales', v: ksh(computed.expected), tone: 'slate' },
-          { l: 'Difference', v: ksh(computed.difference), tone: diffTone(computed.difference) },
-        ].map(x => {
-          const tones: Record<string, string> = { red: 'text-red-400 border-red-500/25 bg-red-500/[0.06]', green: 'text-emerald-400 border-emerald-500/25 bg-emerald-500/[0.06]', violet: 'text-violet-400 border-violet-500/25 bg-violet-500/[0.06]', slate: 'text-slate-300 border-white/10 bg-white/[0.03]' };
-          return (
-            <div key={x.l} className={`rounded-lg border px-2.5 py-1.5 ${tones[x.tone]}`}>
-              <p className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted">{x.l}</p>
-              <p className="text-xs font-black font-mono mt-0.5">{x.v}</p>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
 
   return (
     <FuelPageShell
