@@ -995,8 +995,8 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
                 </button>
               }
             >
-              <select value={qeCategory} onChange={e => setQeCategory(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
-                <option value="">{expenseCategories[0]?.name || '— none —'}</option>
+              <select value={qeCategory || expenseCategories[0]?.name || ''} onChange={e => setQeCategory(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
+                {expenseCategories.length === 0 && <option value="">— no expense types yet —</option>}
                 {expenseCategories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
               </select>
             </FuelField>
