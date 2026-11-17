@@ -142,8 +142,6 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
   const [qsProductId, setQsProductId] = useState('');
   const [qsQty, setQsQty] = useState('');
   const [qsPrice, setQsPrice] = useState('');
-  const [qsOnCredit, setQsOnCredit] = useState(false);
-  const [qsCustomerId, setQsCustomerId] = useState('');
   const [qpProductId, setQpProductId] = useState('');
   const [qpSupplier, setQpSupplier] = useState('');
   const [qpQty, setQpQty] = useState('');
@@ -535,7 +533,8 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
     setQuickError(`Failed to save the ${what}.`);
   };
 
-  /** LPG / Accessories sale — cash or on credit (creates the debt). */
+  /** LPG / Accessories sale — paid on the spot (cash or M-Pesa figure is
+   *  reconciled once per day), stock reduces at this station. */
   const saveQuickSale = async () => {
     const product = products.find(p => p.id === qsProductId);
     if (!product) { setQuickError('Choose a product.'); return; }
@@ -543,32 +542,18 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
     const price = num(qsPrice) || product.sellingPrice;
     if (qty <= 0) { setQuickError('Quantity must be greater than zero.'); return; }
     if (!product.sellable) { setQuickError('That product is a container — it cannot be sold.'); return; }
-    const customer = qsOnCredit ? stationCustomers.find(c => c.id === qsCustomerId) : undefined;
-    if (qsOnCredit && !customer) { setQuickError('Choose the credit customer.'); return; }
     const total = Math.round(qty * price * 100) / 100;
     setBusy('sale');
     setQuickError(null);
     try {
-      if (customer) {
-        const newBalance = Math.round(((customer.balance || 0) + total) * 100) / 100;
-        await recordFuelCreditTx({
-          customerId: customer.id, customerName: customer.name,
-          stationId: customer.stationId, stationName: customer.stationName,
-          date: parseDateToTimestamp(dateKey), dateKey,
-          amount: total, type: 'credit',
-          note: `Product sale: ${product.name} × ${qty}`,
-        }, customer.balance || 0);
-      }
       await createFuelProductSale({
         date: parseDateToTimestamp(dateKey), dateKey,
         stationId: stationId || undefined, stationName: station?.name || undefined,
         productId: product.id, productName: product.name,
         qty, unitPrice: price, total,
-        paymentMethod: customer ? 'Credit' : 'Cash',
-        onCredit: !!customer,
-        creditCustomerId: customer?.id, creditCustomerName: customer?.name,
-      }, product, customer ? Math.round(((customer.balance || 0) + total) * 100) / 100 : undefined);
-      setQsQty(''); setQsOnCredit(false); setQsCustomerId('');
+        paymentMethod: 'Cash', onCredit: false,
+      }, product, undefined);
+      setQsQty('');
     } catch (err) { quickFail(err, 'sale'); } finally { setBusy(null); }
   };
 
@@ -846,13 +831,12 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
               <span className="w-5 h-5 shrink-0 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 grid place-items-center text-[9px] font-black">1</span>
               <ShoppingCart className="w-3.5 h-3.5 text-emerald-400" /> LPG &amp; Accessories — sales
             </h4>
-            <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">saves into Product Sales · stock reduces</span>
           </div>
           {stationProducts.filter(p => p.sellable).length === 0 ? (
             <p className="text-[11px] text-amber-400">No sellable LPG/Accessories products for this station yet — add them in Products &amp; Prices.</p>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 <FuelField label="Product">
                   <select value={qsProductId} onChange={e => {
                     setQsProductId(e.target.value);
@@ -869,20 +853,6 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
                 </FuelField>
                 <FuelField label="Qty"><input type="number" className={fuelInputClass} value={qsQty} onChange={e => setQsQty(e.target.value)} placeholder="0" min="0" /></FuelField>
                 <FuelField label="Unit price (KSh)"><input type="number" className={fuelInputClass} value={qsPrice} onChange={e => setQsPrice(e.target.value)} placeholder="0" /></FuelField>
-                <FuelField label="On credit">
-                  <label className="flex items-center gap-2 text-xs text-theme-text cursor-pointer h-full py-2">
-                    <input type="checkbox" checked={qsOnCredit} onChange={e => { const v = e.target.checked; setQsOnCredit(v); if (v && !qsCustomerId && stationCustomers.length > 0) setQsCustomerId(stationCustomers[0].id); }} className="accent-violet-500 cursor-pointer" />
-                    {qsOnCredit ? 'Yes — record as debt' : 'No — paid (no method needed)'}
-                  </label>
-                </FuelField>
-                {qsOnCredit && (
-                  <FuelField label="Credit customer">
-                    <select value={qsCustomerId} onChange={e => setQsCustomerId(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
-                      <option value="">— choose —</option>
-                      {stationCustomers.map(c => <option key={c.id} value={c.id}>{c.name} · owes {ksh(c.balance || 0)}</option>)}
-                    </select>
-                  </FuelField>
-                )}
               </div>
               <button type="button" onClick={saveQuickSale} disabled={busy === 'sale'} className="mt-2 px-3 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 rounded-lg text-[10px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40">
                 <Plus className="w-3.5 h-3.5" /> {busy === 'sale' ? 'Saving…' : 'Add sale'}
@@ -978,7 +948,6 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
               <span className="w-5 h-5 shrink-0 rounded-md bg-red-500/15 border border-red-500/30 text-red-400 grid place-items-center text-[9px] font-black">3</span>
               <Receipt className="w-3.5 h-3.5 text-red-400" /> Expenses today
             </h4>
-            <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">saves into Expenses</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             <FuelField label="Category">
@@ -1018,7 +987,6 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
                 <span className="w-5 h-5 shrink-0 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-400 grid place-items-center text-[9px] font-black">4</span>
                 <HandCoins className="w-3.5 h-3.5 text-amber-400" /> Debts given today
               </h4>
-              <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">credit — no money in hand</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <FuelField
@@ -1068,7 +1036,6 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
                 <span className="w-5 h-5 shrink-0 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 grid place-items-center text-[9px] font-black">5</span>
                 <Banknote className="w-3.5 h-3.5 text-emerald-400" /> Paid debts today
               </h4>
-              <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">repayments — money coming in</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <FuelField
@@ -1119,7 +1086,6 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
               <span className="w-5 h-5 shrink-0 rounded-md bg-violet-500/15 border border-violet-500/30 text-violet-400 grid place-items-center text-[9px] font-black">6</span>
               <Smartphone className="w-3.5 h-3.5 text-violet-400" /> M-Pesa &amp; money position
             </h4>
-            <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">where the money for today's sales is</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <FuelField label="M-Pesa (KSh)" hint="one figure for the day, entered manually">
