@@ -6,7 +6,7 @@ import React, { useMemo } from 'react';
 import {
   LayoutGrid, ClipboardList, ShoppingCart, ShoppingBag, Receipt, HandCoins,
   Banknote, MapPinned, Package, Fuel, TrendingUp, TrendingDown, Wallet,
-  ChevronRight, AlertTriangle, CalendarDays,
+  ChevronRight, AlertTriangle, CalendarDays, Coins,
 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
@@ -36,6 +36,7 @@ const QUICK_ACTIONS: Array<{
 }> = [
   { page: 'fuelDaily', label: 'New Daily Fuel Record', desc: 'AGO & PMS machine readings', icon: ClipboardList, tone: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/[0.07]' },
   { page: 'fuelSales', action: 'addSale', label: 'Record Product Sale', desc: 'Cylinders, burners, grills', icon: ShoppingCart, tone: 'text-violet-400 border-violet-500/30 bg-violet-500/[0.07]' },
+  { page: 'fuelProfit', label: 'LPG & Accessories Profit', desc: 'Margins, cost & profit', icon: Coins, tone: 'text-violet-400 border-violet-500/30 bg-violet-500/[0.07]' },
   { page: 'fuelPurchases', action: 'addPurchase', label: 'Add Purchase', desc: 'Stock bought from supplier', icon: ShoppingBag, tone: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/[0.07]' },
   { page: 'fuelExpenses', action: 'addExpense', label: 'Add Expense', desc: 'Operational spending', icon: Receipt, tone: 'text-violet-400 border-violet-500/30 bg-violet-500/[0.07]' },
   { page: 'fuelDebts', action: 'addCreditCustomer', label: 'Add Credit Customer', desc: 'Limits & balances', icon: HandCoins, tone: 'text-amber-400 border-amber-500/30 bg-amber-500/[0.07]' },

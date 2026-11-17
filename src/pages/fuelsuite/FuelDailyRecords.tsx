@@ -700,6 +700,37 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
           )}
         </div>
 
+        {/* Live day-close summary (mirrors the paper sheet headline) */}
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-violet-500/30 bg-violet-500/[0.07] text-[10px] font-bold">
+            <span className="text-violet-300 uppercase tracking-wider">Total sales</span>
+            <span className="font-mono text-violet-400">{ksh(cashCheck.fuelSales + dayFigures.lpgAccSales)}</span>
+          </span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-emerald-500/30 bg-emerald-500/[0.07] text-[10px] font-bold">
+            <span className="text-emerald-300 uppercase tracking-wider">Money in</span>
+            <span className="font-mono text-emerald-400">{ksh(cashCheck.moneyIn)}</span>
+          </span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-violet-500/30 bg-violet-500/[0.07] text-[10px] font-bold">
+            <span className="text-violet-300 uppercase tracking-wider">M-Pesa</span>
+            <span className="font-mono text-violet-400">{ksh(mpesaReceivedToday)}</span>
+          </span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-white/10 bg-white/[0.03] text-[10px] font-bold">
+            <span className="text-slate-300 uppercase tracking-wider">Expected cash</span>
+            <span className="font-mono text-slate-200">{ksh(cashCheck.expectedCash)}</span>
+          </span>
+          {cashCheck.counted > 0 && (
+            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[10px] font-bold ${
+              Math.abs(cashCheck.difference) <= 0.99
+                ? 'border-emerald-500/30 bg-emerald-500/[0.07] text-emerald-400'
+                : cashCheck.difference < 0 ? 'border-red-500/30 bg-red-500/[0.07] text-red-400'
+                : 'border-amber-500/30 bg-amber-500/[0.07] text-amber-400'
+            }`}>
+              <span className="uppercase tracking-wider">Cash diff</span>
+              <span className="font-mono">{cashCheck.difference > 0 ? '+' : ''}{ksh(cashCheck.difference)}</span>
+            </span>
+          )}
+        </div>
+
         <ReadingGrid reading={ago} computed={agoC} setter={setAgoField} label="AGO (Diesel)" color="text-emerald-400" />
         <ReadingGrid reading={pms} computed={pmsC} setter={setPmsField} label="PMS (Petrol)" color="text-violet-400" />
 
@@ -711,6 +742,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
         <div className="border border-theme-border rounded-xl p-3.5 bg-white/[0.02]">
           <div className="flex items-center justify-between mb-2.5 flex-wrap gap-1.5">
             <h4 className="text-xs font-black text-theme-text flex items-center gap-1.5">
+              <span className="w-5 h-5 shrink-0 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 grid place-items-center text-[9px] font-black">1</span>
               <ShoppingCart className="w-3.5 h-3.5 text-emerald-400" /> LPG &amp; Accessories — sales
             </h4>
             <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">saves into Product Sales · stock reduces</span>
@@ -779,6 +811,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
         <div className="border border-theme-border rounded-xl p-3.5 bg-white/[0.02]">
           <div className="flex items-center justify-between mb-2.5 flex-wrap gap-1.5">
             <h4 className="text-xs font-black text-theme-text flex items-center gap-1.5">
+              <span className="w-5 h-5 shrink-0 rounded-md bg-violet-500/15 border border-violet-500/30 text-violet-400 grid place-items-center text-[9px] font-black">2</span>
               <ShoppingBag className="w-3.5 h-3.5 text-violet-400" /> LPG &amp; Accessories — purchases
             </h4>
             <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">saves into Purchases · stock increases</span>
@@ -833,6 +866,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
         <div className="border border-theme-border rounded-xl p-3.5 bg-white/[0.02]">
           <div className="flex items-center justify-between mb-2.5 flex-wrap gap-1.5">
             <h4 className="text-xs font-black text-theme-text flex items-center gap-1.5">
+              <span className="w-5 h-5 shrink-0 rounded-md bg-red-500/15 border border-red-500/30 text-red-400 grid place-items-center text-[9px] font-black">3</span>
               <Receipt className="w-3.5 h-3.5 text-red-400" /> Expenses today
             </h4>
             <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">saves into Expenses</span>
@@ -877,6 +911,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
           <div className="border border-theme-border rounded-xl p-3.5 bg-white/[0.02]">
             <div className="flex items-center justify-between mb-2.5 flex-wrap gap-1.5">
               <h4 className="text-xs font-black text-theme-text flex items-center gap-1.5">
+                <span className="w-5 h-5 shrink-0 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-400 grid place-items-center text-[9px] font-black">4</span>
                 <HandCoins className="w-3.5 h-3.5 text-amber-400" /> Debts given today
               </h4>
               <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">credit — no money in hand</span>
@@ -914,6 +949,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
           <div className="border border-theme-border rounded-xl p-3.5 bg-white/[0.02]">
             <div className="flex items-center justify-between mb-2.5 flex-wrap gap-1.5">
               <h4 className="text-xs font-black text-theme-text flex items-center gap-1.5">
+                <span className="w-5 h-5 shrink-0 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 grid place-items-center text-[9px] font-black">5</span>
                 <Banknote className="w-3.5 h-3.5 text-emerald-400" /> Paid debts today
               </h4>
               <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">repayments — money coming in</span>
@@ -952,6 +988,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
         <div className="border border-theme-border rounded-xl p-3.5 bg-white/[0.02]">
           <div className="flex items-center justify-between mb-2.5 flex-wrap gap-1.5">
             <h4 className="text-xs font-black text-theme-text flex items-center gap-1.5">
+              <span className="w-5 h-5 shrink-0 rounded-md bg-violet-500/15 border border-violet-500/30 text-violet-400 grid place-items-center text-[9px] font-black">6</span>
               <Smartphone className="w-3.5 h-3.5 text-violet-400" /> M-Pesa &amp; money position
             </h4>
             <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">where the money for today's sales is</span>
@@ -1024,6 +1061,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
         }`}>
           <div className="flex items-center justify-between mb-2.5 flex-wrap gap-1.5">
             <h4 className="text-xs font-black text-theme-text flex items-center gap-1.5">
+              <span className="w-5 h-5 shrink-0 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 grid place-items-center text-[9px] font-black">7</span>
               <Calculator className="w-3.5 h-3.5 text-emerald-400" /> Cash at hand — count &amp; compare
             </h4>
             <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">spot loss or excess</span>
@@ -1065,6 +1103,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
         <div className="border border-theme-border rounded-xl p-3.5 bg-white/[0.02]">
           <div className="flex items-center justify-between mb-2.5">
             <h4 className="text-xs font-black text-theme-text flex items-center gap-1.5">
+              <span className="w-5 h-5 shrink-0 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 grid place-items-center text-[9px] font-black">8</span>
               <Droplets className="w-3.5 h-3.5 text-emerald-400" /> Fuel balance (dip) — litres left in tank
             </h4>
             <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">end of day</span>

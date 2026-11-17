@@ -36,10 +36,11 @@ import FuelPaidDebts from './pages/fuelsuite/FuelPaidDebts';
 import FuelPayments from './pages/fuelsuite/FuelPayments';
 import FuelSetup from './pages/fuelsuite/FuelSetup';
 import FuelProducts from './pages/fuelsuite/FuelProducts';
+import FuelProfit from './pages/fuelsuite/FuelProfit';
 import { FuelStationProvider } from './pages/fuelsuite/fuelStationContext';
 
 type Page = 'dashboard' | 'operations' | 'deliveries' | 'payments' | 'ledger' | 'fleet' | 'trucks' | 'customers' | 'reports' | 'customerDashboard' | 'truckDashboard' | 'stationDashboard' | 'settings' | 'stations' | 'products' | 'assistant'
-  | 'fuelHome' | 'fuelDaily' | 'fuelSales' | 'fuelPurchases' | 'fuelExpenses' | 'fuelDebts' | 'fuelPaidDebts' | 'fuelPayments' | 'fuelSetup' | 'fuelProducts';
+  | 'fuelHome' | 'fuelDaily' | 'fuelSales' | 'fuelPurchases' | 'fuelExpenses' | 'fuelDebts' | 'fuelPaidDebts' | 'fuelPayments' | 'fuelSetup' | 'fuelProducts' | 'fuelProfit';
 
 function AuthenticatedApp() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -454,6 +455,7 @@ function AuthenticatedApp() {
                 {currentPage === 'fuelPayments' && <FuelPayments initialAction={pageParams?.action} />}
                 {currentPage === 'fuelSetup' && <FuelSetup initialAction={pageParams?.action} />}
                 {currentPage === 'fuelProducts' && <FuelProducts initialAction={pageParams?.action} />}
+                {currentPage === 'fuelProfit' && <FuelProfit />}
               </FuelStationProvider>
             )}
           </ErrorBoundary>

@@ -39,6 +39,7 @@ import {
   MapPinned,
   Package,
   LayoutGrid,
+  TrendingUp,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { cn } from '../lib/utils';
@@ -204,6 +205,7 @@ export default function Sidebar({
         { id: 'fs-payments', label: 'Payments', icon: Smartphone, page: 'fuelPayments' },
         { id: 'fs-setup', label: 'Stations & Salespeople', icon: MapPinned, page: 'fuelSetup' },
         { id: 'fs-products', label: 'Products & Prices', icon: Package, page: 'fuelProducts' },
+        { id: 'fs-profit', label: 'LPG & Accessories Profit', icon: TrendingUp, page: 'fuelProfit' },
       ]
     },
     { 
