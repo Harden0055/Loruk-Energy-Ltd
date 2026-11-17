@@ -63,7 +63,10 @@ export interface FuelDailyRecord {
   mpesaStart?: number;         // M-Pesa till balance at start of day
   mpesaStop?: number;          // M-Pesa till balance at end of day
   mpesaReceived?: number;      // money received via M-Pesa today
+  cashBroughtForward?: number; // cash carried into the day (optional)
   cashAtHand?: number;         // cash counted at close of day
+  cashExpected?: number;       // auto-computed expected cash (snapshot at save)
+  cashDifference?: number;     // counted − expected (snapshot at save)
   deposited?: number;          // banked / deposited today
   transactionFee?: number;     // transaction / withdrawal charges
   fuelBalanceSuper?: number;   // dip: litres of PMS left in tank
@@ -455,7 +458,7 @@ export async function correctFuelDailyRecord(
       }
     });
   });
-  (['mpesaStart', 'mpesaStop', 'mpesaReceived', 'cashAtHand', 'deposited', 'transactionFee', 'fuelBalanceSuper', 'fuelBalanceDiesel'] as const).forEach(k => {
+  (['mpesaStart', 'mpesaStop', 'mpesaReceived', 'cashBroughtForward', 'cashAtHand', 'cashExpected', 'cashDifference', 'deposited', 'transactionFee', 'fuelBalanceSuper', 'fuelBalanceDiesel'] as const).forEach(k => {
     const o = (record as any)[k] ?? 0;
     const n = (updates as any)[k] ?? 0;
     if (o !== n) changes.push(`${k}: ${o} → ${n}`);
@@ -705,6 +708,23 @@ export async function recordFuelCreditTx(data: {
     details: `Ksh ${data.amount.toLocaleString()}${data.method ? ' · ' + data.method : ''} · balance → Ksh ${balanceAfter.toLocaleString()}`,
   });
   return id;
+}
+
+/** Deletes a credit/repayment transaction and reverses its effect on the customer's balance. */
+export async function deleteFuelCreditTx(tx: FuelCreditTx, customer: FuelCreditCustomer | undefined) {
+  await fuelDelete(COLLECTIONS.creditTxs, tx.id);
+  if (customer) {
+    const reversed = tx.type === 'credit'
+      ? Math.round(((customer.balance || 0) - tx.amount) * 100) / 100
+      : Math.round(((customer.balance || 0) + tx.amount) * 100) / 100;
+    await fuelUpdate(COLLECTIONS.creditCustomers, customer.id, { balance: reversed, updatedAt: Date.now() });
+  }
+  await logFuelAudit({
+    area: tx.type === 'credit' ? 'Debts' : 'Paid Debts',
+    action: `${tx.type}-delete`,
+    entityLabel: tx.customerName,
+    details: `Reversed Ksh ${tx.amount.toLocaleString()}${customer ? ` · balance → Ksh ${customer.balance.toLocaleString()}` : ''}`,
+  });
 }
 
 export async function deleteFuelCreditCustomer(id: string, name: string) {
