@@ -622,6 +622,14 @@ export async function createFuelExpenseCategory(name: string) {
   return id;
 }
 
+/** Renames an expense type; expenses already recorded under the old name are
+ *  updated as well so history and totals stay under the new name. */
+export async function updateFuelExpenseCategory(id: string, name: string) {
+  const trimmed = name.trim();
+  await fuelUpdate(COLLECTIONS.expenseCategories, id, { name: trimmed, updatedAt: Date.now() });
+  await logFuelAudit({ area: 'Expenses', action: 'category-edit', entityLabel: trimmed });
+}
+
 /** Adds a custom product category (used by the + shortcut on Products & Prices). */
 export async function createFuelProductCategory(name: string) {
   const trimmed = name.trim();

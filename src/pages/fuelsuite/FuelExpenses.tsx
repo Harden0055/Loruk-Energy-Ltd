@@ -10,8 +10,8 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGri
 import {
   useFuelExpenses, useFuelExpenseCategories, useFuelStations, ensureFuelExpenseCategories,
   createFuelExpense, updateFuelExpense, deleteFuelExpense,
-  createFuelExpenseCategory, deleteFuelExpenseCategory,
-  FUEL_PAYMENT_METHODS, FuelExpense,
+  createFuelExpenseCategory, deleteFuelExpenseCategory, updateFuelExpenseCategory,
+  FUEL_PAYMENT_METHODS, FuelExpense, FuelExpenseCategory,
 } from '../../lib/fuelDb';
 import { useFuelDateRange } from './fuelShared';
 import { useFuelStationScope } from './fuelStationContext';
@@ -40,6 +40,13 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
   const [typeName, setTypeName] = useState('');
   const [typeSaving, setTypeSaving] = useState(false);
   const [typeError, setTypeError] = useState<string | null>(null);
+  // Edit / delete an expense type straight from the types table.
+  const [editingCat, setEditingCat] = useState<{ id: string; name: string } | null>(null);
+  const [editCatName, setEditCatName] = useState('');
+  const [editCatBusy, setEditCatBusy] = useState(false);
+  const [editCatError, setEditCatError] = useState<string | null>(null);
+  const [deleteCatTarget, setDeleteCatTarget] = useState<FuelExpenseCategory | null>(null);
+  const [deleteCatBusy, setDeleteCatBusy] = useState(false);
   const [editing, setEditing] = useState<FuelExpense | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<FuelExpense | null>(null);
   const [saving, setSaving] = useState(false);
@@ -162,6 +169,54 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
     }
   };
 
+  /** Rename an expense type; past expenses under the old name follow along. */
+  const renameCategory = async () => {
+    if (!editingCat) return;
+    const name = editCatName.trim();
+    if (!name) { setEditCatError('Type name is required.'); return; }
+    if (name.toLowerCase() === editingCat.name.toLowerCase() && categories.some(c => c.id === editingCat.id)) {
+      // same name — nothing to do but close
+      setEditingCat(null);
+      return;
+    }
+    if (categories.some(c => c.id !== editingCat.id && c.name.toLowerCase() === name.toLowerCase())) {
+      setEditCatError('That expense type already exists.');
+      return;
+    }
+    setEditCatBusy(true);
+    setEditCatError(null);
+    try {
+      await updateFuelExpenseCategory(editingCat.id, name);
+      const affected = expenses.filter(e => e.category === editingCat.name);
+      for (const e of affected) {
+        await updateFuelExpense(e.id, e, { category: name });
+      }
+      setEditingCat(null);
+      setEditCatName('');
+      if (drillCategory === editingCat.name) setDrillCategory(name);
+    } catch (err) {
+      console.error(err);
+      setEditCatError('Failed to rename the expense type. Try again.');
+    } finally {
+      setEditCatBusy(false);
+    }
+  };
+
+  /** Delete an expense type; past expenses that used it keep their records. */
+  const confirmDeleteCategory = async () => {
+    if (!deleteCatTarget) return;
+    setDeleteCatBusy(true);
+    try {
+      await deleteFuelExpenseCategory(deleteCatTarget.id, deleteCatTarget.name);
+      if (drillCategory === deleteCatTarget.name) setDrillCategory(null);
+      setDeleteCatTarget(null);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDeleteCatBusy(false);
+    }
+  };
+
   const inRangeAll = useMemo(() => expenses.filter(e => range.inRange(e.date)), [expenses, range.start, range.end]);
   const unassignedCount = useMemo(() => inRangeAll.filter(e => !e.stationId).length, [inRangeAll]);
   const inRange = useMemo(() => inRangeAll.filter(e => inScope(e.stationId)), [inRangeAll, inScope]);
@@ -184,8 +239,9 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
     return { total, chart, top: chart[0] };
   }, [inRange]);
 
-  // ---- Expense types & totals: one row per category used in the period,
-  // clickable to drill into its day-by-day list. ----
+  // ---- Expense types & totals: every defined type, even those with no
+  // entries this period (shown as zero), plus names that only exist on past
+  // expenses. Click a row to drill into its day-by-day list. ----
   const [drillCategory, setDrillCategory] = useState<string | null>(null);
   const categoryRows = useMemo(() => {
     const byCat = new Map<string, { count: number; total: number }>();
@@ -193,10 +249,16 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
       const cur = byCat.get(e.category) || { count: 0, total: 0 };
       byCat.set(e.category, { count: cur.count + 1, total: cur.total + e.amount });
     });
-    return [...byCat.entries()]
-      .map(([name, v]) => ({ name, ...v }))
-      .sort((a, b) => b.total - a.total);
-  }, [inRange]);
+    const rows = categories.map(c => {
+      const usage = byCat.get(c.name) || { count: 0, total: 0 };
+      return { id: c.id, name: c.name, ...usage };
+    });
+    // Names recorded on expenses but no longer defined as types (legacy)
+    byCat.forEach((v, name) => {
+      if (!categories.some(c => c.name === name)) rows.push({ id: '', name, ...v });
+    });
+    return rows.sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
+  }, [categories, inRange]);
   const drillRows = useMemo(() => (
     drillCategory
       ? inRange.filter(e => e.category === drillCategory).sort((a, b) => (b.dateKey || '').localeCompare(a.dateKey || ''))
@@ -254,14 +316,15 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
         right={<span className="text-[10px] font-bold text-theme-text-muted uppercase tracking-wider">click a type to see its day-by-day list</span>}
       >
         <FuelTable
-          headers={['Expense type', 'Entries', 'Share', 'Total']}
+          headers={['Expense type', 'Entries', 'Share', 'Total', '']}
           empty={categoryRows.length === 0}
         >
           {categoryRows.map(c => {
             const share = stats.total > 0 ? Math.round((c.total / stats.total) * 100) : 0;
+            const catRecord = categories.find(x => x.id === c.id);
             return (
               <tr
-                key={c.name}
+                key={c.id || c.name}
                 onClick={() => setDrillCategory(c.name)}
                 className="hover:bg-violet-500/[0.06] transition-colors cursor-pointer group"
               >
@@ -281,6 +344,32 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
                   </div>
                 </td>
                 <td className="py-2.5 px-2.5 text-xs font-mono font-bold text-red-400">{ksh(c.total)}</td>
+                <td className="py-2.5 px-2.5">
+                  <div className="flex items-center gap-1 justify-end">
+                    {catRecord ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={e => { e.stopPropagation(); setEditingCat({ id: catRecord.id, name: catRecord.name }); setEditCatName(catRecord.name); setEditCatError(null); }}
+                          className="p-1.5 text-gray-400 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-md transition-colors cursor-pointer"
+                          title="Rename expense type"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={e => { e.stopPropagation(); setDeleteCatTarget(catRecord); }}
+                          className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors cursor-pointer"
+                          title="Delete expense type"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-amber-400/70" title="This name is only on past expenses — the type itself was removed or renamed">legacy</span>
+                    )}
+                  </div>
+                </td>
               </tr>
             );
           })}
@@ -406,6 +495,76 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
             </FuelField>
           </div>
           {error && <div className="text-xs text-red-400 bg-red-500/[0.06] border border-red-500/30 rounded-lg px-3 py-2">{error}</div>}
+        </FuelModal>
+      )}
+
+      {/* Rename expense-type modal */}
+      {editingCat && (
+        <FuelModal
+          title="Rename expense type"
+          icon={Tag}
+          width="max-w-md"
+          onClose={() => setEditingCat(null)}
+          footer={
+            <>
+              <button type="button" onClick={() => setEditingCat(null)} className="px-3.5 py-2 rounded-lg text-xs font-bold text-gray-300 border border-theme-border hover:bg-white/[0.05] transition-colors cursor-pointer">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={renameCategory}
+                disabled={editCatBusy || !editCatName.trim()}
+                className="px-3.5 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40"
+              >
+                <Save className="w-3.5 h-3.5" /> {editCatBusy ? 'Saving…' : 'Save name'}
+              </button>
+            </>
+          }
+        >
+          <div className="text-xs space-y-3">
+            <FuelField label="Expense type name" required>
+              <input
+                type="text"
+                className={fuelInputClass}
+                value={editCatName}
+                onChange={e => setEditCatName(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); renameCategory(); } }}
+                placeholder="e.g. Lunch meal"
+                autoFocus
+              />
+            </FuelField>
+            <p className="text-[10px] text-gray-500">
+              Past expenses recorded under the old name move to the new name too, so totals stay together.
+            </p>
+            {editCatError && <div className="text-[11px] text-red-400 bg-red-500/[0.06] border border-red-500/30 rounded-lg px-3 py-2">{editCatError}</div>}
+          </div>
+        </FuelModal>
+      )}
+
+      {/* Delete expense-type confirm */}
+      {deleteCatTarget && (
+        <FuelModal
+          title="Delete expense type?"
+          icon={Trash2}
+          width="max-w-md"
+          onClose={() => setDeleteCatTarget(null)}
+          footer={
+            <>
+              <button type="button" onClick={() => setDeleteCatTarget(null)} className="px-4 py-2 text-xs font-bold text-gray-400 hover:text-white cursor-pointer">Keep it</button>
+              <button
+                type="button"
+                onClick={confirmDeleteCategory}
+                disabled={deleteCatBusy}
+                className="px-4 py-2 bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/40 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40"
+              >
+                <Trash2 className="w-4 h-4" /> {deleteCatBusy ? 'Deleting…' : 'Delete type'}
+              </button>
+            </>
+          }
+        >
+          <p className="text-xs text-theme-text-muted">
+            Delete <span className="font-bold text-theme-text">{deleteCatTarget.name}</span> from your expense types? It disappears from the category dropdowns. Past expenses that used it keep their records and still show in the table marked <span className="text-amber-400 font-bold">legacy</span>.
+          </p>
         </FuelModal>
       )}
 
