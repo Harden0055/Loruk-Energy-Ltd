@@ -9,7 +9,7 @@ import {
   ClipboardList, Plus, Pencil, AlertTriangle, Save, Eye,
   CalendarDays, Fuel, ChevronDown, ChevronUp, History, MapPin, UserRound,
   Calculator, Smartphone, Droplets, Banknote,
-  ShoppingCart, ShoppingBag, Receipt, HandCoins, Trash2,
+  ShoppingCart, ShoppingBag, Receipt, HandCoins, Trash2, Boxes,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -20,7 +20,7 @@ import {
   createFuelProductSale, deleteFuelProductSale,
   createFuelPurchase, deleteFuelPurchase,
   createFuelExpense, deleteFuelExpense,
-  recordFuelCreditTx, deleteFuelCreditTx,
+  recordFuelCreditTx, deleteFuelCreditTx, setFuelProductStock,
   FUEL_PAYMENT_METHODS,
   FuelStation, FuelSalesperson, FuelDailyRecord, FuelProductReading,
   FuelProduct, FuelProductSale, FuelPurchase, FuelExpense, FuelCreditTx, FuelCreditCustomer,
@@ -115,6 +115,11 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
   const [qrAmount, setQrAmount] = useState('');
   const [busy, setBusy] = useState<string | null>(null); // which quick action is saving
   const [quickError, setQuickError] = useState<string | null>(null);
+
+  // Inventory reconciliation (section 9): edit a product's quantity with a reason
+  const [invTarget, setInvTarget] = useState<FuelProduct | null>(null);
+  const [invQty, setInvQty] = useState('');
+  const [invReason, setInvReason] = useState('');
 
   const [editingRecord, setEditingRecord] = useState<FuelDailyRecord | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -221,26 +226,76 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
     [creditCustomers, stationId]
   );
 
+  // ---- Closing inventory rows (section 9): every product in scope (including
+  // White Oils), with today's sold/bought totals and the closing stock. ----
+  const inventoryRows = useMemo(() => {
+    const soldByProduct = new Map<string, number>();
+    dayFigures.ps.forEach(s => soldByProduct.set(s.productId, (soldByProduct.get(s.productId) || 0) + s.qty));
+    const boughtByProduct = new Map<string, number>();
+    dayFigures.pu.forEach(p => boughtByProduct.set(p.productId, (boughtByProduct.get(p.productId) || 0) + p.qty));
+    return products
+      .filter(p => stationOf(p.stationId))
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map(p => ({
+        id: p.id,
+        product: p,
+        name: p.name,
+        category: p.category,
+        sold: soldByProduct.get(p.id) || 0,
+        bought: boughtByProduct.get(p.id) || 0,
+        stock: p.stock || 0,
+      }));
+  }, [products, dayFigures, stationId]);
+
+  /** Save the inventory adjustment: set stock to the counted quantity, with a required reason. */
+  const saveInventoryAdjust = async () => {
+    if (!invTarget) return;
+    const newStock = num(invQty);
+    if (invQty === '' || newStock < 0) { setQuickError('Enter the counted quantity (0 or more).'); return; }
+    if (!invReason.trim()) { setQuickError('A reason is required — it is saved to the audit trail.'); return; }
+    setBusy('inv');
+    setQuickError(null);
+    try {
+      await setFuelProductStock(invTarget, newStock, invReason.trim());
+      setNotice(`${invTarget.name} stock set to ${fmtQty(newStock)} — change logged with reason.`);
+      setInvTarget(null); setInvQty(''); setInvReason('');
+      setTimeout(() => setNotice(null), 4000);
+    } catch (err) { quickFail(err, 'stock adjustment'); } finally { setBusy(null); }
+  };
+
   // M-Pesa received today: from till balances (stop − start), like the notebook
   const mpesaReceivedToday = useMemo(() => {
     if (mpesaStart === '' && mpesaStop === '') return num(mpesaReceived);
     return num(mpesaStop) - num(mpesaStart);
   }, [mpesaStart, mpesaStop, mpesaReceived]);
 
-  // ---- Money position: single daily M-Pesa figure model.
-  // Money IN counts everything collected today (fuel machine sales, product
-  // sales, repayments, other receipts) regardless of channel; the M-Pesa till
-  // delta (stop − start) is what landed in M-Pesa (net of any M-Pesa-paid
-  // outflows), so cash at hand = money in − M-Pesa received − cash paid out
-  // (cash-method purchases & expenses) − deposited − fees (+ cash brought in).
-  const cashCheck = useMemo(() => {
-    const fuelSales = agoC.machineSales + pmsC.machineSales;
-    const moneyIn = fuelSales + dayFigures.productCash + dayFigures.repaymentsAll + dayFigures.paymentsAll;
-    const cashOut = dayFigures.purchasesCash + dayFigures.expensesCash;
+  // ---- Day close math (the paper report's formula, verbatim):
+  // 1. Total sales = Premium (PMS machine) + Diesel (AGO machine) + all
+  //    Accessories/LPG sales — each shown separately.
+  // 2. Day total = total sales − ALL expenses − ALL purchases − ALL debts
+  //    + ALL paid debts.
+  // 3. Expected cash at hand = day total − M-Pesa (− deposited − fees
+  //    + cash brought forward).
+  // 4. Difference = counted (manual) − expected. Manual LOWER → violet
+  //    (short), manual GREATER → green (excess), within 1 → balanced.
+  const dayClose = useMemo(() => {
+    const premiumSales = pmsC.machineSales;
+    const dieselSales = agoC.machineSales;
+    const accSales = dayFigures.lpgAccSales;
+    const totalSales = premiumSales + dieselSales + accSales;
+    const expensesTotal = dayFigures.expensesTotal;
+    const purchasesTotal = dayFigures.purchasesTotal;
+    const debtsGiven = dayFigures.debtsGiven;
+    const repaymentsAll = dayFigures.repaymentsAll;
+    const dayNet = totalSales - expensesTotal - purchasesTotal - debtsGiven + repaymentsAll;
     const expectedCash =
-      num(cashBroughtForward) + moneyIn - mpesaReceivedToday - cashOut - num(deposited) - num(transactionFee);
+      num(cashBroughtForward) + dayNet - mpesaReceivedToday - num(deposited) - num(transactionFee);
     const counted = num(cashAtHand);
-    return { fuelSales, moneyIn, cashOut, expectedCash, counted, difference: counted - expectedCash };
+    return {
+      premiumSales, dieselSales, accSales, totalSales,
+      expensesTotal, purchasesTotal, debtsGiven, repaymentsAll,
+      dayNet, expectedCash, counted, difference: counted - expectedCash,
+    };
   }, [agoC.machineSales, pmsC.machineSales, dayFigures, cashBroughtForward, mpesaReceivedToday, deposited, transactionFee, cashAtHand]);
 
   // ---- Flags ----
@@ -275,10 +330,12 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
   if (negativeReading) flags.push({ tone: 'red', text: 'Negative difference: a stop reading is below its start reading' });
   if (unreliablePrevious) flags.push({ tone: 'amber', text: 'Previous record has negative readings — auto start figures may be unreliable' });
   if (unusualDifference) flags.push({ tone: 'violet', text: 'Unusual difference between machine sales and expected sales (>2%)' });
-  if (num(cashAtHand) > 0 && Math.abs(cashCheck.difference) > 0.99) {
+  if (num(cashAtHand) > 0 && Math.abs(dayClose.difference) > 0.99) {
     flags.push({
-      tone: cashCheck.difference < 0 ? 'red' : 'violet',
-      text: `Cash check: counted ${ksh(cashCheck.counted)} vs expected ${ksh(cashCheck.expectedCash)} — difference ${ksh(cashCheck.difference)}`,
+      tone: dayClose.difference < 0 ? 'violet' : 'green',
+      text: dayClose.difference < 0
+        ? `Cash short: counted ${ksh(dayClose.counted)} is LOWER than expected ${ksh(dayClose.expectedCash)} — missing ${ksh(-dayClose.difference)}`
+        : `Cash excess: counted ${ksh(dayClose.counted)} is GREATER than expected ${ksh(dayClose.expectedCash)} — extra ${ksh(dayClose.difference)}`,
     });
   }
 
@@ -354,8 +411,8 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
             mpesaReceived: mpesaReceivedToday,
             cashBroughtForward: num(cashBroughtForward),
             cashAtHand: num(cashAtHand),
-            cashExpected: cashCheck.expectedCash,
-            cashDifference: cashCheck.difference,
+            cashExpected: dayClose.expectedCash,
+            cashDifference: dayClose.difference,
             deposited: num(deposited),
             transactionFee: num(transactionFee),
             fuelBalanceSuper: num(fuelBalanceSuper),
@@ -380,8 +437,8 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
           mpesaReceived: mpesaReceivedToday,
           cashBroughtForward: num(cashBroughtForward),
           cashAtHand: num(cashAtHand),
-          cashExpected: cashCheck.expectedCash,
-          cashDifference: cashCheck.difference,
+          cashExpected: dayClose.expectedCash,
+          cashDifference: dayClose.difference,
           deposited: num(deposited),
           transactionFee: num(transactionFee),
           fuelBalanceSuper: num(fuelBalanceSuper),
@@ -700,33 +757,46 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
           )}
         </div>
 
-        {/* Live day-close summary (mirrors the paper sheet headline) */}
+        {/* Live day-close summary (the paper sheet's headline, computed live) */}
         <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-emerald-500/30 bg-emerald-500/[0.07] text-[10px] font-bold">
+            <span className="text-emerald-300 uppercase tracking-wider">Premium</span>
+            <span className="font-mono text-emerald-400">{ksh(dayClose.premiumSales)}</span>
+          </span>
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-violet-500/30 bg-violet-500/[0.07] text-[10px] font-bold">
-            <span className="text-violet-300 uppercase tracking-wider">Total sales</span>
-            <span className="font-mono text-violet-400">{ksh(cashCheck.fuelSales + dayFigures.lpgAccSales)}</span>
+            <span className="text-violet-300 uppercase tracking-wider">Diesel</span>
+            <span className="font-mono text-violet-400">{ksh(dayClose.dieselSales)}</span>
+          </span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-white/10 bg-white/[0.03] text-[10px] font-bold">
+            <span className="text-slate-300 uppercase tracking-wider">Accessories</span>
+            <span className="font-mono text-slate-200">{ksh(dayClose.accSales)}</span>
           </span>
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-emerald-500/30 bg-emerald-500/[0.07] text-[10px] font-bold">
-            <span className="text-emerald-300 uppercase tracking-wider">Money in</span>
-            <span className="font-mono text-emerald-400">{ksh(cashCheck.moneyIn)}</span>
+            <span className="text-emerald-300 uppercase tracking-wider">Total sales</span>
+            <span className="font-mono text-emerald-400">{ksh(dayClose.totalSales)}</span>
+          </span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-white/10 bg-white/[0.03] text-[10px] font-bold" title="Total sales − all expenses − all purchases − all debts + all paid debts">
+            <span className="text-slate-300 uppercase tracking-wider">Day total</span>
+            <span className="font-mono text-slate-200">{ksh(dayClose.dayNet)}</span>
           </span>
           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-violet-500/30 bg-violet-500/[0.07] text-[10px] font-bold">
             <span className="text-violet-300 uppercase tracking-wider">M-Pesa</span>
             <span className="font-mono text-violet-400">{ksh(mpesaReceivedToday)}</span>
           </span>
-          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-white/10 bg-white/[0.03] text-[10px] font-bold">
-            <span className="text-slate-300 uppercase tracking-wider">Expected cash</span>
-            <span className="font-mono text-slate-200">{ksh(cashCheck.expectedCash)}</span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-emerald-500/30 bg-emerald-500/[0.07] text-[10px] font-bold">
+            <span className="text-emerald-300 uppercase tracking-wider">Expected cash</span>
+            <span className="font-mono text-emerald-400">{ksh(dayClose.expectedCash)}</span>
           </span>
-          {cashCheck.counted > 0 && (
+          {dayClose.counted > 0 && (
             <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border text-[10px] font-bold ${
-              Math.abs(cashCheck.difference) <= 0.99
+              Math.abs(dayClose.difference) <= 0.99
                 ? 'border-emerald-500/30 bg-emerald-500/[0.07] text-emerald-400'
-                : cashCheck.difference < 0 ? 'border-red-500/30 bg-red-500/[0.07] text-red-400'
-                : 'border-amber-500/30 bg-amber-500/[0.07] text-amber-400'
+                : dayClose.difference < 0 ? 'border-violet-500/40 bg-violet-500/[0.12] text-violet-300'
+                : 'border-emerald-500/40 bg-emerald-500/[0.12] text-emerald-300'
             }`}>
               <span className="uppercase tracking-wider">Cash diff</span>
-              <span className="font-mono">{cashCheck.difference > 0 ? '+' : ''}{ksh(cashCheck.difference)}</span>
+              <span className="font-mono">{dayClose.difference > 0 ? '+' : ''}{ksh(dayClose.difference)}</span>
+              <span className="uppercase">{Math.abs(dayClose.difference) <= 0.99 ? '✓' : dayClose.difference < 0 ? 'short' : 'excess'}</span>
             </span>
           )}
         </div>
@@ -1007,10 +1077,10 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2.5">
             {[
-              { l: 'Total Money In', v: ksh(cashCheck.moneyIn), tone: 'green', icon: Banknote },
+              { l: 'Total Sales', v: ksh(dayClose.totalSales), tone: 'green', icon: Banknote },
+              { l: 'Day Total (after outflows)', v: ksh(dayClose.dayNet), tone: 'slate', icon: Calculator },
               { l: 'Into M-Pesa', v: ksh(mpesaReceivedToday), tone: 'violet', icon: Smartphone },
-              { l: 'Cash Paid Out', v: ksh(cashCheck.cashOut), tone: 'red', icon: Receipt },
-              { l: 'Expected Cash at Hand', v: ksh(cashCheck.expectedCash), tone: 'slate', icon: Calculator },
+              { l: 'Expected Cash at Hand', v: ksh(dayClose.expectedCash), tone: 'green', icon: Calculator },
             ].map(x => {
               const tones: Record<string, string> = {
                 red: 'text-red-400 border-red-500/25 bg-red-500/[0.06]',
@@ -1029,23 +1099,28 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
           </div>
           <div className="mt-2.5 pt-2 border-t border-white/[0.06] text-[10px] text-theme-text-muted leading-relaxed space-y-0.5">
             <p>
+              <span className="font-bold text-emerald-400">{ksh(dayClose.premiumSales)}</span> Premium
+              {' + '}<span className="font-bold text-violet-400">{ksh(dayClose.dieselSales)}</span> Diesel
+              {' + '}<span className="font-bold text-slate-200">{ksh(dayClose.accSales)}</span> Accessories
+              {' = '}<span className="font-bold text-theme-text">{ksh(dayClose.totalSales)}</span> total sales
+              {' − '}<span className="font-bold text-red-400">{ksh(dayClose.expensesTotal)}</span> all expenses
+              {' − '}<span className="font-bold text-red-400">{ksh(dayClose.purchasesTotal)}</span> all purchases
+              {' − '}<span className="font-bold text-red-400">{ksh(dayClose.debtsGiven)}</span> all debts
+              {' + '}<span className="font-bold text-emerald-400">{ksh(dayClose.repaymentsAll)}</span> all paid debts
+              {' = '}<span className="font-bold text-theme-text">{ksh(dayClose.dayNet)}</span> day total
+            </p>
+            <p>
               {num(cashBroughtForward) > 0 && (<><span className="font-bold text-theme-text">{ksh(num(cashBroughtForward))}</span> brought forward + </>)}
-              <span className="font-bold text-theme-text">{ksh(cashCheck.fuelSales)}</span> fuel machine sales (AGO + PMS)
-              {' + '}<span className="font-bold text-emerald-400">{ksh(dayFigures.productCash)}</span> LPG &amp; accessories sales (cash)
-              {' + '}<span className="font-bold text-emerald-400">{ksh(dayFigures.repaymentsAll)}</span> paid debts
-              {' + '}<span className="font-bold text-emerald-400">{ksh(dayFigures.paymentsAll)}</span> other money received
-              {' − '}<span className="font-bold text-violet-400">{ksh(mpesaReceivedToday)}</span> into M-Pesa
-              {' − '}<span className="font-bold text-red-400">{ksh(dayFigures.purchasesCash)}</span> purchases paid in cash
-              {' − '}<span className="font-bold text-red-400">{ksh(dayFigures.expensesCash)}</span> expenses paid in cash
-              {' − '}<span className="font-bold text-red-400">{ksh(num(deposited))}</span> deposited
-              {' − '}<span className="font-bold text-red-400">{ksh(num(transactionFee))}</span> fees
-              {' = '}<span className="font-bold text-theme-text">{ksh(cashCheck.expectedCash)}</span> expected cash at hand
+              <span className="font-bold text-theme-text">{ksh(dayClose.dayNet)}</span> day total
+              {' − '}<span className="font-bold text-violet-400">{ksh(mpesaReceivedToday)}</span> in M-Pesa
+              {num(deposited) > 0 && (<>{' − '}<span className="font-bold text-red-400">{ksh(num(deposited))}</span> deposited</>)}
+              {num(transactionFee) > 0 && (<>{' − '}<span className="font-bold text-red-400">{ksh(num(transactionFee))}</span> fees</>)}
+              {' = '}<span className="font-bold text-emerald-400">{ksh(dayClose.expectedCash)}</span> expected cash at hand
             </p>
             <p className="flex flex-wrap gap-x-3 gap-y-0.5">
-              <span className="text-amber-400">Credit sales / debts given: <span className="font-mono font-bold">{ksh(dayFigures.debtsGiven)}</span> (not cash)</span>
+              <span className="text-amber-400">Credit sales / debts given today: <span className="font-mono font-bold">{ksh(dayClose.debtsGiven)}</span> (subtracted — no cash in hand)</span>
               <span className="text-amber-400">LPG &amp; accessories purchases today: <span className="font-mono font-bold">{ksh(dayFigures.lpgAccPurchases)}</span></span>
-              <span className="text-violet-400">M-Pesa expenses: <span className="font-mono font-bold">{ksh(dayFigures.expensesMpesa)}</span> (out of the till)</span>
-              <span className="text-violet-400">Bank / cheque purchases: <span className="font-mono font-bold">{ksh(Math.max(0, dayFigures.purchasesTotal - dayFigures.purchasesCash))}</span> (not cash)</span>
+              <span className="text-violet-400">M-Pesa expenses: <span className="font-mono font-bold">{ksh(dayFigures.expensesMpesa)}</span> (inside "all expenses")</span>
             </p>
             <p className="text-gray-500">
               The quick-entry sections above save into the Product Sales, Purchases, Expenses, Debts and Paid Debts ledgers for {fmtDate(dateKey)} — those figures flow into this math automatically.
@@ -1055,8 +1130,8 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
 
         {/* ---- Cash at hand: auto vs counted ---- */}
         <div className={`border rounded-xl p-3.5 ${
-          cashCheck.counted > 0 && Math.abs(cashCheck.difference) > 0.99
-            ? cashCheck.difference < 0 ? 'border-red-500/30 bg-red-500/[0.04]' : 'border-violet-500/30 bg-violet-500/[0.04]'
+          dayClose.counted > 0 && Math.abs(dayClose.difference) > 0.99
+            ? dayClose.difference < 0 ? 'border-violet-500/30 bg-violet-500/[0.04]' : 'border-emerald-500/30 bg-emerald-500/[0.04]'
             : 'border-theme-border bg-white/[0.02]'
         }`}>
           <div className="flex items-center justify-between mb-2.5 flex-wrap gap-1.5">
@@ -1064,35 +1139,35 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
               <span className="w-5 h-5 shrink-0 rounded-md bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 grid place-items-center text-[9px] font-black">7</span>
               <Calculator className="w-3.5 h-3.5 text-emerald-400" /> Cash at hand — count &amp; compare
             </h4>
-            <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">spot loss or excess</span>
+            <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">violet = short · green = balanced or excess</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             <div className="rounded-lg border border-white/10 bg-white/[0.03] px-2.5 py-1.5">
               <p className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted">Expected (auto)</p>
-              <p className="text-sm font-black font-mono mt-0.5 text-slate-300">{ksh(cashCheck.expectedCash)}</p>
+              <p className="text-sm font-black font-mono mt-0.5 text-slate-300">{ksh(dayClose.expectedCash)}</p>
             </div>
             <FuelField label="Counted (manual)" hint="physical cash on hand now">
               <input type="number" className={fuelInputClass} value={cashAtHand} onChange={e => setCashAtHand(e.target.value)} placeholder="count the cash" />
             </FuelField>
             <div className={`rounded-lg border px-2.5 py-1.5 ${
-              cashCheck.counted <= 0 ? 'border-white/10 bg-white/[0.03]'
-              : Math.abs(cashCheck.difference) <= 0.99 ? 'border-emerald-500/25 bg-emerald-500/[0.06]'
-              : cashCheck.difference < 0 ? 'border-red-500/25 bg-red-500/[0.06]'
-              : 'border-violet-500/25 bg-violet-500/[0.06]'
+              dayClose.counted <= 0 ? 'border-white/10 bg-white/[0.03]'
+              : Math.abs(dayClose.difference) <= 0.99 ? 'border-emerald-500/25 bg-emerald-500/[0.06]'
+              : dayClose.difference < 0 ? 'border-violet-500/30 bg-violet-500/[0.06]'
+              : 'border-emerald-500/30 bg-emerald-500/[0.06]'
             }`}>
               <p className="text-[9px] font-bold uppercase tracking-wider text-theme-text-muted">Difference (loss / excess)</p>
               <p className={`text-sm font-black font-mono mt-0.5 ${
-                cashCheck.counted <= 0 ? 'text-slate-300'
-                : Math.abs(cashCheck.difference) <= 0.99 ? 'text-emerald-400'
-                : cashCheck.difference < 0 ? 'text-red-400' : 'text-violet-400'
+                dayClose.counted <= 0 ? 'text-slate-300'
+                : Math.abs(dayClose.difference) <= 0.99 ? 'text-emerald-400'
+                : dayClose.difference < 0 ? 'text-violet-400' : 'text-emerald-400'
               }`}>
-                {cashCheck.difference > 0 ? '+' : ''}{ksh(cashCheck.difference)}
+                {dayClose.difference > 0 ? '+' : ''}{ksh(dayClose.difference)}
               </p>
-              {cashCheck.counted > 0 && (
-                <p className="text-[9px] mt-0.5 font-semibold text-theme-text-muted">
-                  {Math.abs(cashCheck.difference) <= 0.99 ? 'Balanced ✓'
-                    : cashCheck.difference < 0 ? 'Short — money missing'
-                    : 'Excess — extra money'}
+              {dayClose.counted > 0 && (
+                <p className={`text-[9px] mt-0.5 font-semibold ${Math.abs(dayClose.difference) <= 0.99 ? 'text-theme-text-muted' : dayClose.difference < 0 ? 'text-violet-400' : 'text-emerald-400'}`}>
+                  {Math.abs(dayClose.difference) <= 0.99 ? 'Balanced ✓'
+                    : dayClose.difference < 0 ? 'Short — manual is lower'
+                    : 'Excess — manual is greater'}
                 </p>
               )}
             </div>
@@ -1114,6 +1189,59 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
           </div>
         </div>
 
+        {/* ---- Closing inventory balance per product (section 9) ---- */}
+        <div className="border border-theme-border rounded-xl p-3.5 bg-white/[0.02]">
+          <div className="flex items-center justify-between mb-2.5 flex-wrap gap-1.5">
+            <h4 className="text-xs font-black text-theme-text flex items-center gap-1.5">
+              <span className="w-5 h-5 shrink-0 rounded-md bg-violet-500/15 border border-violet-500/30 text-violet-400 grid place-items-center text-[9px] font-black">9</span>
+              <Boxes className="w-3.5 h-3.5 text-violet-400" /> Closing inventory — all products
+            </h4>
+            <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">sold subtracted · bought added · editable with reason</span>
+          </div>
+          {inventoryRows.length === 0 ? (
+            <p className="text-[11px] text-theme-text-muted">No products for this station yet — add them in Products &amp; Prices.</p>
+          ) : (
+            <div className="max-h-64 overflow-y-auto rounded-lg border border-theme-border">
+              <table className="w-full text-[11px]">
+                <thead className="sticky top-0 bg-[#0B0B10]">
+                  <tr className="text-[9px] uppercase tracking-wider text-theme-text-muted">
+                    <th className="text-left font-bold px-2.5 py-1.5">Product</th>
+                    <th className="text-left font-bold px-2 py-1.5">Category</th>
+                    <th className="text-right font-bold px-2 py-1.5">Sold today</th>
+                    <th className="text-right font-bold px-2 py-1.5">Bought today</th>
+                    <th className="text-right font-bold px-2 py-1.5">Closing stock</th>
+                    <th className="px-2 py-1.5"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {inventoryRows.map(r => (
+                    <tr key={r.id} className="border-t border-white/[0.05] hover:bg-white/[0.02] transition-colors">
+                      <td className="px-2.5 py-1.5 font-semibold text-theme-text">{r.name}</td>
+                      <td className="px-2 py-1.5"><FuelBadge tone="slate">{r.category}</FuelBadge></td>
+                      <td className="px-2 py-1.5 text-right font-mono text-red-400">{r.sold > 0 ? `−${fmtQty(r.sold)}` : '—'}</td>
+                      <td className="px-2 py-1.5 text-right font-mono text-emerald-400">{r.bought > 0 ? `+${fmtQty(r.bought)}` : '—'}</td>
+                      <td className="px-2 py-1.5 text-right font-mono font-bold text-theme-text">{fmtQty(r.stock)}</td>
+                      <td className="px-2 py-1.5 text-right">
+                        <button
+                          type="button"
+                          onClick={() => { setInvTarget(r.product); setInvQty(String(r.stock)); setInvReason(''); }}
+                          className="p-1 text-gray-500 hover:text-violet-400 hover:bg-violet-500/10 rounded-md transition-colors cursor-pointer"
+                          title="Adjust quantity with reason"
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <p className="text-[10px] text-gray-500 mt-1.5">
+            Closing stock is each product's current quantity: sales made here today already subtracted, purchases today already added, and any manual reconciliations included. The pencil opens a reason-logged adjustment.
+          </p>
+        </div>
+
         <FuelField label="Note (optional)">
           <input type="text" className={fuelInputClass} value={note} onChange={e => setNote(e.target.value)} placeholder="e.g. generator ran overnight" />
         </FuelField>
@@ -1125,6 +1253,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
               <div key={i} className={`flex items-start gap-2 text-[11px] font-semibold rounded-lg px-3 py-2 border ${
                 f.tone === 'red' ? 'text-red-400 border-red-500/30 bg-red-500/[0.06]'
                 : f.tone === 'amber' ? 'text-amber-400 border-amber-500/30 bg-amber-500/[0.06]'
+                : f.tone === 'green' ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/[0.06]'
                 : 'text-violet-400 border-violet-500/30 bg-violet-500/[0.06]'
               }`}>
                 <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {f.text}
@@ -1300,24 +1429,36 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
                 <Calculator className="w-3 h-3 text-violet-400" /> Money position &amp; cash check
               </p>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-3 gap-y-1 font-mono">
-                <span className="text-gray-400">Money in: <span className="text-emerald-400 font-bold">{ksh(cashCheck.moneyIn)}</span></span>
-                <span className="text-gray-400">Into M-Pesa: <span className="text-violet-400 font-bold">{ksh(mpesaReceivedToday)}</span></span>
-                <span className="text-gray-400">Cash paid out: <span className="text-red-400 font-bold">{ksh(cashCheck.cashOut)}</span></span>
-                <span className="text-gray-400">Expected cash: <span className="text-theme-text font-bold">{ksh(cashCheck.expectedCash)}</span></span>
+                <span className="text-gray-400">Premium: <span className="text-emerald-400 font-bold">{ksh(dayClose.premiumSales)}</span></span>
+                <span className="text-gray-400">Diesel: <span className="text-violet-400 font-bold">{ksh(dayClose.dieselSales)}</span></span>
+                <span className="text-gray-400">Accessories: <span className="text-theme-text font-bold">{ksh(dayClose.accSales)}</span></span>
+                <span className="text-gray-400">Total sales: <span className="text-emerald-400 font-bold">{ksh(dayClose.totalSales)}</span></span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-3 gap-y-1 font-mono mt-1">
-                <span className="text-gray-400">Counted: <span className="text-emerald-400 font-bold">{ksh(cashCheck.counted)}</span></span>
-                <span className="text-gray-400">Difference: <span className={`${cashCheck.difference < 0 ? 'text-red-400' : Math.abs(cashCheck.difference) <= 0.99 ? 'text-emerald-400' : 'text-violet-400'} font-bold`}>{ksh(cashCheck.difference)}</span></span>
+                <span className="text-gray-400">− Expenses: <span className="text-red-400 font-bold">{ksh(dayClose.expensesTotal)}</span></span>
+                <span className="text-gray-400">− Purchases: <span className="text-red-400 font-bold">{ksh(dayClose.purchasesTotal)}</span></span>
+                <span className="text-gray-400">− Debts: <span className="text-amber-400 font-bold">{ksh(dayClose.debtsGiven)}</span></span>
+                <span className="text-gray-400">+ Paid debts: <span className="text-emerald-400 font-bold">{ksh(dayClose.repaymentsAll)}</span></span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-3 gap-y-1 font-mono mt-1">
+                <span className="text-gray-400">Day total: <span className="text-theme-text font-bold">{ksh(dayClose.dayNet)}</span></span>
+                <span className="text-gray-400">Into M-Pesa: <span className="text-violet-400 font-bold">{ksh(mpesaReceivedToday)}</span></span>
+                <span className="text-gray-400">Counted: <span className="text-emerald-400 font-bold">{ksh(dayClose.counted)}</span></span>
+                <span className="text-gray-400">Expected cash: <span className="text-theme-text font-bold">{ksh(dayClose.expectedCash)}</span></span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-3 gap-y-1 font-mono mt-1">
+                <span className="text-gray-400">Difference: <span className={`${Math.abs(dayClose.difference) <= 0.99 ? 'text-emerald-400' : dayClose.difference < 0 ? 'text-violet-400' : 'text-emerald-400'} font-bold`}>{dayClose.difference > 0 ? '+' : ''}{ksh(dayClose.difference)}</span></span>
                 <span className="text-gray-400">Deposited: <span className="text-theme-text font-bold">{ksh(num(deposited))}</span></span>
                 <span className="text-gray-400">Fees: <span className="text-theme-text font-bold">{ksh(num(transactionFee))}</span></span>
-                <span className="text-gray-400">Debts given: <span className="text-amber-400 font-bold">{ksh(dayFigures.debtsGiven)}</span></span>
                 <span className="text-gray-400">Fuel dip: <span className="text-emerald-400 font-bold">{fmtQty(num(fuelBalanceSuper))} / {fmtQty(num(fuelBalanceDiesel))} L</span></span>
               </div>
               {num(cashAtHand) > 0 && (
-                <p className={`mt-1.5 text-[11px] font-bold ${Math.abs(cashCheck.difference) <= 0.99 ? 'text-emerald-400' : cashCheck.difference < 0 ? 'text-red-400' : 'text-violet-400'}`}>
-                  {Math.abs(cashCheck.difference) <= 0.99
+                <p className={`mt-1.5 text-[11px] font-bold ${Math.abs(dayClose.difference) <= 0.99 ? 'text-emerald-400' : dayClose.difference < 0 ? 'text-violet-400' : 'text-emerald-400'}`}>
+                  {Math.abs(dayClose.difference) <= 0.99
                     ? '✓ Cash check passes — counted matches expected.'
-                    : `Cash check difference: ${ksh(cashCheck.difference)} — confirm against your paper sheet before saving.`}
+                    : dayClose.difference < 0
+                    ? `Short ${ksh(-dayClose.difference)} (violet) — counted is LOWER than expected. Confirm against your paper sheet before saving.`
+                    : `Excess ${ksh(dayClose.difference)} (green) — counted is GREATER than expected. Confirm against your paper sheet before saving.`}
                 </p>
               )}
             </div>
@@ -1331,6 +1472,48 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
                 <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> Some flags are still active — double-check before saving.
               </div>
             )}
+          </div>
+        </FuelModal>
+      )}
+
+      {/* Inventory reconciliation modal — edit quantity with a required reason */}
+      {invTarget && (
+        <FuelModal
+          title={`Adjust stock — ${invTarget.name}`}
+          icon={Boxes}
+          onClose={() => setInvTarget(null)}
+          width="max-w-md"
+          footer={
+            <>
+              <button type="button" onClick={() => setInvTarget(null)} className="px-3.5 py-2 rounded-lg text-xs font-bold text-gray-300 border border-theme-border hover:bg-white/[0.05] transition-colors cursor-pointer">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={saveInventoryAdjust}
+                disabled={busy === 'inv' || !invReason.trim() || invQty === ''}
+                className="px-3.5 py-2 bg-violet-500/15 hover:bg-violet-500/25 text-violet-400 border border-violet-500/40 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40"
+              >
+                <Boxes className="w-3.5 h-3.5" /> {busy === 'inv' ? 'Saving…' : 'Set quantity'}
+              </button>
+            </>
+          }
+        >
+          <div className="text-xs space-y-3">
+            <div className="bg-white/[0.03] border border-theme-border rounded-lg p-2.5 grid grid-cols-2 gap-2 font-mono">
+              <span className="text-gray-400">Current stock: <span className="text-theme-text font-bold">{fmtQty(invTarget.stock || 0)}</span></span>
+              <span className="text-gray-400">Category: <span className="text-violet-400 font-bold">{invTarget.category}</span></span>
+            </div>
+            <FuelField label="Counted quantity (new stock)" required>
+              <input type="number" className={fuelInputClass} value={invQty} onChange={e => setInvQty(e.target.value)} placeholder="e.g. 12" min="0" />
+            </FuelField>
+            <FuelField label="Reason for adjustment" required hint="saved to the audit trail">
+              <input type="text" className={fuelInputClass} value={invReason} onChange={e => setInvReason(e.target.value)} placeholder="e.g. leak, cylinder returned empty, count correction" />
+            </FuelField>
+            <p className="text-[10px] text-gray-500">
+              This sets the product's stock at {station?.name || 'this station'} to the counted figure. The old → new quantity and your reason are recorded in the audit trail; today's sales and purchases are not changed.
+            </p>
+            {quickError && <div className="text-[11px] text-red-400 bg-red-500/[0.06] border border-red-500/30 rounded-lg px-3 py-2">{quickError}</div>}
           </div>
         </FuelModal>
       )}

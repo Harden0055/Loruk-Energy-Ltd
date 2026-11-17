@@ -665,6 +665,17 @@ export async function ensureFuelDefaultProducts(existing: FuelProduct[]) {
 
 // ---------------- DEBTS (CREDIT CUSTOMERS & TRANSACTIONS) ----------------
 
+/** Manual inventory reconciliation: set a product's stock to the counted
+ *  quantity, with a required reason logged to the audit trail. */
+export async function setFuelProductStock(product: FuelProduct, newStock: number, reason: string) {
+  const oldStock = product.stock || 0;
+  await fuelUpdate(COLLECTIONS.products, product.id, { stock: newStock, updatedAt: Date.now() });
+  await logFuelAudit({
+    area: 'Products', action: 'stock-adjust', entityLabel: product.name,
+    details: `Stock ${oldStock} → ${newStock}${reason ? ` · Reason: ${reason}` : ' · no reason given'}`,
+  });
+}
+
 export async function createFuelCreditCustomer(data: { name: string; phone?: string; stationId?: string; stationName?: string; creditLimit: number; openingBalance?: number }) {
   const balance = data.openingBalance || 0;
   const payload = { name: data.name, phone: data.phone, creditLimit: data.creditLimit, balance, ...nowStamp() };
