@@ -4,7 +4,7 @@
  */
 import React, { useMemo, useState, useEffect } from 'react';
 import {
-  Receipt, Plus, Pencil, Trash2, Search, Save, TrendingDown, Tag, X,
+  Receipt, Plus, Pencil, Trash2, Search, Save, TrendingDown, Tag, X, ChevronRight,
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 import {
@@ -184,6 +184,26 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
     return { total, chart, top: chart[0] };
   }, [inRange]);
 
+  // ---- Expense types & totals: one row per category used in the period,
+  // clickable to drill into its day-by-day list. ----
+  const [drillCategory, setDrillCategory] = useState<string | null>(null);
+  const categoryRows = useMemo(() => {
+    const byCat = new Map<string, { count: number; total: number }>();
+    inRange.forEach(e => {
+      const cur = byCat.get(e.category) || { count: 0, total: 0 };
+      byCat.set(e.category, { count: cur.count + 1, total: cur.total + e.amount });
+    });
+    return [...byCat.entries()]
+      .map(([name, v]) => ({ name, ...v }))
+      .sort((a, b) => b.total - a.total);
+  }, [inRange]);
+  const drillRows = useMemo(() => (
+    drillCategory
+      ? inRange.filter(e => e.category === drillCategory).sort((a, b) => (b.dateKey || '').localeCompare(a.dateKey || ''))
+      : []
+  ), [drillCategory, inRange]);
+  const drillTotal = useMemo(() => drillRows.reduce((s, e) => s + e.amount, 0), [drillRows]);
+
   return (
     <FuelPageShell
       icon={Receipt}
@@ -226,6 +246,53 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
             </ResponsiveContainer>
           )}
         </div>
+      </FuelSection>
+
+      <FuelSection
+        title="Expense types & totals"
+        icon={Tag}
+        right={<span className="text-[10px] font-bold text-theme-text-muted uppercase tracking-wider">click a type to see its day-by-day list</span>}
+      >
+        <FuelTable
+          headers={['Expense type', 'Entries', 'Share', 'Total']}
+          empty={categoryRows.length === 0}
+        >
+          {categoryRows.map(c => {
+            const share = stats.total > 0 ? Math.round((c.total / stats.total) * 100) : 0;
+            return (
+              <tr
+                key={c.name}
+                onClick={() => setDrillCategory(c.name)}
+                className="hover:bg-violet-500/[0.06] transition-colors cursor-pointer group"
+              >
+                <td className="py-2.5 px-2.5">
+                  <span className="text-xs font-bold text-violet-300 group-hover:text-violet-200 inline-flex items-center gap-1">
+                    {c.name}
+                    <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </span>
+                </td>
+                <td className="py-2.5 px-2.5 text-xs text-theme-text-muted">{c.count}</td>
+                <td className="py-2.5 px-2.5">
+                  <div className="flex items-center gap-2 max-w-[180px]">
+                    <div className="flex-1 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+                      <div className="h-full bg-violet-500/60 rounded-full" style={{ width: `${share}%` }} />
+                    </div>
+                    <span className="text-[10px] font-mono text-theme-text-muted w-8 text-right">{share}%</span>
+                  </div>
+                </td>
+                <td className="py-2.5 px-2.5 text-xs font-mono font-bold text-red-400">{ksh(c.total)}</td>
+              </tr>
+            );
+          })}
+        </FuelTable>
+        {categoryRows.length > 0 && (
+          <div className="mt-2.5 pt-2.5 border-t border-white/[0.08] flex items-center justify-between px-2.5">
+            <span className="text-[10px] font-bold text-theme-text-muted uppercase tracking-wider">
+              {categoryRows.length} type{categoryRows.length === 1 ? '' : 's'} · {inRange.length} expense{inRange.length === 1 ? '' : 's'}
+            </span>
+            <span className="text-xs font-mono font-black text-red-400">Total {ksh(stats.total)}</span>
+          </div>
+        )}
       </FuelSection>
 
       <FuelSection
@@ -339,6 +406,61 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
             </FuelField>
           </div>
           {error && <div className="text-xs text-red-400 bg-red-500/[0.06] border border-red-500/30 rounded-lg px-3 py-2">{error}</div>}
+        </FuelModal>
+      )}
+
+      {/* Expense-type drill-down: day-by-day list for one category */}
+      {drillCategory && (
+        <FuelModal
+          title={`Expense type — ${drillCategory}`}
+          icon={Tag}
+          width="max-w-2xl"
+          onClose={() => setDrillCategory(null)}
+          footer={
+            <>
+              <span className="text-xs font-mono font-black text-red-400 mr-auto">Total {ksh(drillTotal)} · {drillRows.length} entr{drillRows.length === 1 ? 'y' : 'ies'}</span>
+              <button type="button" onClick={() => setDrillCategory(null)} className="px-3.5 py-2 rounded-lg text-xs font-bold text-gray-300 border border-theme-border hover:bg-white/[0.05] transition-colors cursor-pointer">
+                Done
+              </button>
+            </>
+          }
+        >
+          <div className="text-xs space-y-3">
+            <div className="bg-white/[0.03] border border-theme-border rounded-lg px-3 py-2 flex items-center justify-between flex-wrap gap-1">
+              <span className="text-gray-400">Period: <span className="text-theme-text font-bold">{range.label}</span></span>
+              <span className="text-gray-400">Average per entry: <span className="font-mono font-bold text-theme-text">{ksh(drillRows.length > 0 ? Math.round((drillTotal / drillRows.length) * 100) / 100 : 0)}</span></span>
+            </div>
+            {drillRows.length === 0 ? (
+              <div className="h-24 flex items-center justify-center text-xs text-theme-text-muted bg-white/[0.02] rounded-xl border border-dashed border-theme-border">
+                No expenses for this type in this period
+              </div>
+            ) : (
+              <div className="max-h-80 overflow-y-auto rounded-lg border border-theme-border">
+                <table className="w-full text-[11px]">
+                  <thead className="sticky top-0 bg-[#0B0B10]">
+                    <tr className="text-[9px] uppercase tracking-wider text-theme-text-muted">
+                      <th className="text-left font-bold px-2.5 py-1.5">Date</th>
+                      <th className="text-left font-bold px-2 py-1.5">Station</th>
+                      <th className="text-left font-bold px-2 py-1.5">Description</th>
+                      <th className="text-right font-bold px-2 py-1.5">Amount</th>
+                      <th className="text-left font-bold px-2.5 py-1.5">Payment</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {drillRows.map(e => (
+                      <tr key={e.id} className="border-t border-white/[0.05] hover:bg-white/[0.02] transition-colors">
+                        <td className="px-2.5 py-1.5 font-bold text-theme-text whitespace-nowrap">{fmtDate(e.dateKey)}</td>
+                        <td className="px-2 py-1.5"><FuelStationBadge stationName={e.stationName} /></td>
+                        <td className="px-2 py-1.5 text-theme-text-muted max-w-[200px] truncate">{e.description || '—'}</td>
+                        <td className="px-2 py-1.5 text-right font-mono font-bold text-red-400">{ksh(e.amount)}</td>
+                        <td className="px-2.5 py-1.5"><FuelBadge tone={e.paymentMethod === 'Cash' ? 'green' : 'violet'}>{e.paymentMethod}</FuelBadge></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </FuelModal>
       )}
 
