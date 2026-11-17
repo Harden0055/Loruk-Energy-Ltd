@@ -35,6 +35,11 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
   const [modalOpen, setModalOpen] = useState(initialAction === 'addExpense');
   const [catModalOpen, setCatModalOpen] = useState(false);
   const [newCategory, setNewCategory] = useState('');
+  // "+ Add Type" quick modal: create a new expense type in one step.
+  const [typeModalOpen, setTypeModalOpen] = useState(false);
+  const [typeName, setTypeName] = useState('');
+  const [typeSaving, setTypeSaving] = useState(false);
+  const [typeError, setTypeError] = useState<string | null>(null);
   const [editing, setEditing] = useState<FuelExpense | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<FuelExpense | null>(null);
   const [saving, setSaving] = useState(false);
@@ -135,6 +140,28 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
     }
   };
 
+  /** "+ Add Type" quick modal: create a new expense type (e.g. Lunch meal, generator fuel). */
+  const addType = async () => {
+    const name = typeName.trim();
+    if (!name) { setTypeError('Type name is required.'); return; }
+    if (categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+      setTypeError('That expense type already exists.');
+      return;
+    }
+    setTypeSaving(true);
+    setTypeError(null);
+    try {
+      await createFuelExpenseCategory(name);
+      setTypeModalOpen(false);
+      setTypeName('');
+    } catch (err) {
+      console.error(err);
+      setTypeError('Failed to add the expense type. Try again.');
+    } finally {
+      setTypeSaving(false);
+    }
+  };
+
   const inRangeAll = useMemo(() => expenses.filter(e => range.inRange(e.date)), [expenses, range.start, range.end]);
   const unassignedCount = useMemo(() => inRangeAll.filter(e => !e.stationId).length, [inRangeAll]);
   const inRange = useMemo(() => inRangeAll.filter(e => inScope(e.stationId)), [inRangeAll, inScope]);
@@ -207,6 +234,9 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
         right={
           <div className="flex items-center gap-2 flex-wrap">
             <FuelSearch value={search} onChange={setSearch} placeholder="Search category, description or ref…" />
+            <button type="button" onClick={() => { setTypeName(''); setTypeError(null); setTypeModalOpen(true); }} className="px-2.5 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap" title="Add a new type of expense, e.g. Lunch meal, generator fuel">
+              <Plus className="w-3.5 h-3.5" /> Add Type
+            </button>
             <button type="button" onClick={() => setCatModalOpen(true)} className="px-2.5 py-2 bg-violet-500/10 hover:bg-violet-500/20 text-violet-400 border border-violet-500/30 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap">
               <Tag className="w-3.5 h-3.5" /> Categories
             </button>
@@ -309,6 +339,49 @@ export default function FuelExpenses({ initialAction }: { initialAction?: string
             </FuelField>
           </div>
           {error && <div className="text-xs text-red-400 bg-red-500/[0.06] border border-red-500/30 rounded-lg px-3 py-2">{error}</div>}
+        </FuelModal>
+      )}
+
+      {/* "+ Add Type" quick modal */}
+      {typeModalOpen && (
+        <FuelModal
+          title="Add type of expense"
+          icon={Tag}
+          width="max-w-md"
+          onClose={() => { setTypeModalOpen(false); setTypeName(''); }}
+          footer={
+            <>
+              <button type="button" onClick={() => { setTypeModalOpen(false); setTypeName(''); }} className="px-3.5 py-2 rounded-lg text-xs font-bold text-gray-300 border border-theme-border hover:bg-white/[0.05] transition-colors cursor-pointer">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={addType}
+                disabled={typeSaving || !typeName.trim()}
+                className="px-3.5 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40"
+              >
+                <Plus className="w-3.5 h-3.5" /> {typeSaving ? 'Saving…' : 'Add type'}
+              </button>
+            </>
+          }
+        >
+          <div className="text-xs space-y-3">
+            <FuelField label="Expense type name" required hint="e.g. Lunch meal, generator fuel, airtime">
+              <input
+                type="text"
+                className={fuelInputClass}
+                value={typeName}
+                onChange={e => setTypeName(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addType(); } }}
+                placeholder="e.g. Lunch meal"
+                autoFocus
+              />
+            </FuelField>
+            <p className="text-[10px] text-gray-500">
+              The new type appears immediately in the category dropdowns everywhere, including the daily report.
+            </p>
+            {typeError && <div className="text-[11px] text-red-400 bg-red-500/[0.06] border border-red-500/30 rounded-lg px-3 py-2">{typeError}</div>}
+          </div>
         </FuelModal>
       )}
 

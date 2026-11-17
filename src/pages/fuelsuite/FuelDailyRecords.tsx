@@ -9,7 +9,7 @@ import {
   ClipboardList, Plus, Pencil, AlertTriangle, Save, Eye,
   CalendarDays, Fuel, ChevronDown, ChevronUp, History, MapPin, UserRound,
   Calculator, Smartphone, Droplets, Banknote,
-  ShoppingCart, ShoppingBag, Receipt, HandCoins, Trash2, Boxes,
+  ShoppingCart, ShoppingBag, Receipt, HandCoins, Trash2, Boxes, Tag,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -21,6 +21,7 @@ import {
   createFuelPurchase, deleteFuelPurchase,
   createFuelExpense, deleteFuelExpense,
   recordFuelCreditTx, deleteFuelCreditTx, createFuelCreditCustomer,
+  createFuelExpenseCategory,
   FuelStation, FuelSalesperson, FuelDailyRecord, FuelProductReading,
   FuelProductSale, FuelPurchase, FuelExpense, FuelCreditTx, FuelCreditCustomer,
 } from '../../lib/fuelDb';
@@ -164,6 +165,12 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
   const [ncPhone, setNcPhone] = useState('');
   const [ncBusy, setNcBusy] = useState(false);
   const [ncError, setNcError] = useState<string | null>(null);
+
+  // "+ Add" shortcut from the expense-category dropdown (section 3)
+  const [ecModalOpen, setEcModalOpen] = useState(false);
+  const [ecName, setEcName] = useState('');
+  const [ecBusy, setEcBusy] = useState(false);
+  const [ecError, setEcError] = useState<string | null>(null);
 
   const [editingRecord, setEditingRecord] = useState<FuelDailyRecord | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -329,6 +336,31 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
       setNcError('Failed to add the customer. Try again.');
     } finally {
       setNcBusy(false);
+    }
+  };
+
+  /** + shortcut: create a new expense type right from the category dropdown. */
+  const saveNewExpenseCategory = async () => {
+    const name = ecName.trim();
+    if (!name) { setEcError('Expense type name is required.'); return; }
+    if (expenseCategories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+      setEcError('That expense type already exists.');
+      return;
+    }
+    setEcBusy(true);
+    setEcError(null);
+    try {
+      await createFuelExpenseCategory(name);
+      setQeCategory(name);
+      setNotice(`${name} added to your expense types.`);
+      setTimeout(() => setNotice(null), 4000);
+      setEcModalOpen(false);
+      setEcName('');
+    } catch (err) {
+      console.error(err);
+      setEcError('Failed to add the expense type. Try again.');
+    } finally {
+      setEcBusy(false);
     }
   };
 
@@ -950,7 +982,19 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
             </h4>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            <FuelField label="Category">
+            <FuelField
+              label="Category"
+              labelRight={
+                <button
+                  type="button"
+                  onClick={() => { setEcName(''); setEcError(null); setEcModalOpen(true); }}
+                  title="Add a new type of expense"
+                  className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold text-violet-300 hover:text-violet-200 bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/30 transition-colors cursor-pointer"
+                >
+                  <Plus className="w-3 h-3" /> Add
+                </button>
+              }
+            >
               <select value={qeCategory} onChange={e => setQeCategory(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
                 <option value="">{expenseCategories[0]?.name || '— none —'}</option>
                 {expenseCategories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
@@ -1525,6 +1569,49 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
               The customer starts with a zero balance. They are selected automatically once saved.
             </p>
             {ncError && <div className="text-[11px] text-red-400 bg-red-500/[0.06] border border-red-500/30 rounded-lg px-3 py-2">{ncError}</div>}
+          </div>
+        </FuelModal>
+      )}
+
+      {/* Add-expense-type shortcut — create a category from the expenses dropdown */}
+      {ecModalOpen && (
+        <FuelModal
+          title="Add type of expense"
+          icon={Tag}
+          width="max-w-md"
+          onClose={() => setEcModalOpen(false)}
+          footer={
+            <>
+              <button type="button" onClick={() => setEcModalOpen(false)} className="px-3.5 py-2 rounded-lg text-xs font-bold text-gray-300 border border-theme-border hover:bg-white/[0.05] transition-colors cursor-pointer">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={saveNewExpenseCategory}
+                disabled={ecBusy || !ecName.trim()}
+                className="px-3.5 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40"
+              >
+                <Plus className="w-3.5 h-3.5" /> {ecBusy ? 'Saving…' : 'Add type'}
+              </button>
+            </>
+          }
+        >
+          <div className="text-xs space-y-3">
+            <FuelField label="Expense type name" required hint="e.g. Lunch meal, generator fuel, airtime">
+              <input
+                type="text"
+                className={fuelInputClass}
+                value={ecName}
+                onChange={e => setEcName(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); saveNewExpenseCategory(); } }}
+                placeholder="e.g. Lunch meal"
+                autoFocus
+              />
+            </FuelField>
+            <p className="text-[10px] text-gray-500">
+              Saved to your expense types and selected automatically for this expense.
+            </p>
+            {ecError && <div className="text-[11px] text-red-400 bg-red-500/[0.06] border border-red-500/30 rounded-lg px-3 py-2">{ecError}</div>}
           </div>
         </FuelModal>
       )}
