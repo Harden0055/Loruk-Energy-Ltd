@@ -21,7 +21,6 @@ import {
   createFuelPurchase, deleteFuelPurchase,
   createFuelExpense, deleteFuelExpense,
   recordFuelCreditTx, deleteFuelCreditTx, createFuelCreditCustomer,
-  FUEL_PAYMENT_METHODS,
   FuelStation, FuelSalesperson, FuelDailyRecord, FuelProductReading,
   FuelProductSale, FuelPurchase, FuelExpense, FuelCreditTx, FuelCreditCustomer,
 } from '../../lib/fuelDb';
@@ -79,7 +78,9 @@ const ReadingGrid = ({ reading, computed, setter, label, color }: {
       <FuelField label="Litres Stop"><input type="number" className={fuelInputClass} value={reading.litresStop || ''} onChange={e => setter('litresStop', e.target.value)} placeholder="0" /></FuelField>
       <FuelField label="Sales Start (KSh)"><input type="number" className={fuelInputClass} value={reading.salesStart || ''} onChange={e => setter('salesStart', e.target.value)} placeholder="0" /></FuelField>
       <FuelField label="Sales Stop (KSh)"><input type="number" className={fuelInputClass} value={reading.salesStop || ''} onChange={e => setter('salesStop', e.target.value)} placeholder="0" /></FuelField>
-      <FuelField label="Rate / L (KSh)"><input type="number" className={fuelInputClass} value={reading.rate || ''} onChange={e => setter('rate', e.target.value)} placeholder="0" /></FuelField>
+      <FuelField label="Rate / L (KSh)" hint="auto from product price">
+        <input type="number" className={fuelInputClass} value={reading.rate || ''} onChange={e => setter('rate', e.target.value)} placeholder="0" />
+      </FuelField>
     </div>
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2.5">
       {[
@@ -147,10 +148,10 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
   const [qpSupplier, setQpSupplier] = useState('');
   const [qpQty, setQpQty] = useState('');
   const [qpPrice, setQpPrice] = useState('');
+  const [qpTotal, setQpTotal] = useState('');
   const [qeCategory, setQeCategory] = useState('');
   const [qeDescription, setQeDescription] = useState('');
   const [qeAmount, setQeAmount] = useState('');
-  const [qeMethod, setQeMethod] = useState('Cash');
   const [qdCustomerId, setQdCustomerId] = useState('');
   const [qdAmount, setQdAmount] = useState('');
   const [qdNote, setQdNote] = useState('');
@@ -219,6 +220,18 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
   // Keep rates when previousRecord changes
   const setAgoField = (k: keyof FuelProductReading, v: string) => setAgo(prev => ({ ...prev, [k]: num(v) }));
   const setPmsField = (k: keyof FuelProductReading, v: string) => setPms(prev => ({ ...prev, [k]: num(v) }));
+
+  // Auto-fill the AGO / PMS rate from the station's White Oils products
+  // (their selling price), so Expected Sales = litres sold × price. The rate
+  // stays editable — this only fills it when it is still zero.
+  useEffect(() => {
+    if (editingRecord) return;
+    const fuelProducts = products.filter(p => stationOf(p.stationId) && p.category === 'White Oils');
+    const dieselP = fuelProducts.find(p => /diesel|ago/i.test(p.name));
+    const petrolP = fuelProducts.find(p => /petrol|pms|super|premium/i.test(p.name));
+    setAgo(prev => (prev.rate === 0 && dieselP && (dieselP.sellingPrice || 0) > 0 ? { ...prev, rate: dieselP.sellingPrice } : prev));
+    setPms(prev => (prev.rate === 0 && petrolP && (petrolP.sellingPrice || 0) > 0 ? { ...prev, rate: petrolP.sellingPrice } : prev));
+  }, [products, stationId, editingRecord]);
 
   const agoC = compute(ago);
   const pmsC = compute(pms);
@@ -580,8 +593,10 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
     if (!product) { setQuickError('Choose a product.'); return; }
     const qty = num(qpQty);
     const price = num(qpPrice);
+    const total = num(qpTotal) || Math.round(qty * price * 100) / 100;
     if (qty <= 0) { setQuickError('Quantity must be greater than zero.'); return; }
     if (price <= 0) { setQuickError('Buying price must be greater than zero.'); return; }
+    if (total <= 0) { setQuickError('Total amount must be greater than zero.'); return; }
     setBusy('purchase');
     setQuickError(null);
     try {
@@ -590,10 +605,10 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
         stationId: stationId || undefined, stationName: station?.name || undefined,
         supplier: qpSupplier.trim() || '—',
         productId: product.id, productName: product.name,
-        qty, buyingPrice: price, totalCost: Math.round(qty * price * 100) / 100,
+        qty, buyingPrice: price, totalCost: total,
         paymentMethod: 'Cash',
       }, product, { updateBuyingPrice: true });
-      setQpQty(''); setQpPrice(''); setQpSupplier('');
+      setQpQty(''); setQpPrice(''); setQpSupplier(''); setQpTotal('');
     } catch (err) { quickFail(err, 'purchase'); } finally { setBusy(null); }
   };
 
@@ -618,7 +633,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
         date: parseDateToTimestamp(dateKey), dateKey,
         stationId: stationId || undefined, stationName: station?.name || undefined,
         category, description: qeDescription.trim(),
-        amount, paymentMethod: qeMethod,
+        amount, paymentMethod: 'Cash',
       });
       setQeAmount(''); setQeDescription('');
     } catch (err) { quickFail(err, 'expense'); } finally { setBusy(null); }
@@ -845,20 +860,20 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
                     setQsPrice(p ? String(p.sellingPrice || '') : '');
                   }} className={`${fuelInputClass} cursor-pointer`}>
                     <option value="">— choose —</option>
-                    {stationProducts.map(p => (
-                      <option key={p.id} value={p.id} disabled={!p.sellable}>
-                        {p.name}{!p.sellable ? ' (container)' : ''}{(p.stock || 0) <= 0 ? ' · no stock' : ''}
+                    {stationProducts.filter(p => p.sellable).map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}{(p.stock || 0) <= 0 ? ' · no stock' : ''}
                       </option>
                     ))}
                   </select>
                 </FuelField>
                 <FuelField label="Qty"><input type="number" className={fuelInputClass} value={qsQty} onChange={e => setQsQty(e.target.value)} placeholder="0" min="0" /></FuelField>
                 <FuelField label="Unit price (KSh)"><input type="number" className={fuelInputClass} value={qsPrice} onChange={e => setQsPrice(e.target.value)} placeholder="0" /></FuelField>
-                <FuelField label="Payment">
-                  <select value={qsOnCredit ? 'credit' : 'cash'} onChange={e => { const v = e.target.value === 'credit'; setQsOnCredit(v); if (v && !qsCustomerId && stationCustomers.length > 0) setQsCustomerId(stationCustomers[0].id); }} className={`${fuelInputClass} cursor-pointer`}>
-                    <option value="cash">Cash / M-Pesa</option>
-                    <option value="credit">On credit (debt)</option>
-                  </select>
+                <FuelField label="On credit">
+                  <label className="flex items-center gap-2 text-xs text-theme-text cursor-pointer h-full py-2">
+                    <input type="checkbox" checked={qsOnCredit} onChange={e => { const v = e.target.checked; setQsOnCredit(v); if (v && !qsCustomerId && stationCustomers.length > 0) setQsCustomerId(stationCustomers[0].id); }} className="accent-violet-500 cursor-pointer" />
+                    {qsOnCredit ? 'Yes — record as debt' : 'No — paid (no method needed)'}
+                  </label>
                 </FuelField>
                 {qsOnCredit && (
                   <FuelField label="Credit customer">
@@ -905,20 +920,34 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
             <p className="text-[11px] text-amber-400">No LPG/Accessories products for this station yet — add them in Products &amp; Prices.</p>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                 <FuelField label="Product">
                   <select value={qpProductId} onChange={e => {
                     setQpProductId(e.target.value);
                     const p = products.find(x => x.id === e.target.value);
                     setQpPrice(p ? String(p.buyingPrice || '') : '');
+                    setQpTotal(p && num(qpQty) > 0 ? String(Math.round(num(qpQty) * (p.buyingPrice || 0) * 100) / 100) : '');
                   }} className={`${fuelInputClass} cursor-pointer`}>
                     <option value="">— choose —</option>
                     {stationProducts.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </FuelField>
                 <FuelField label="Supplier (optional)"><input type="text" className={fuelInputClass} value={qpSupplier} onChange={e => setQpSupplier(e.target.value)} placeholder="e.g. Manata" /></FuelField>
-                <FuelField label="Qty"><input type="number" className={fuelInputClass} value={qpQty} onChange={e => setQpQty(e.target.value)} placeholder="0" min="0" /></FuelField>
-                <FuelField label="Buying price (KSh)"><input type="number" className={fuelInputClass} value={qpPrice} onChange={e => setQpPrice(e.target.value)} placeholder="0" /></FuelField>
+                <FuelField label="Qty">
+                  <input type="number" className={fuelInputClass} value={qpQty} onChange={e => {
+                    setQpQty(e.target.value);
+                    if (num(qpPrice) > 0) setQpTotal(String(Math.round(num(e.target.value) * num(qpPrice) * 100) / 100));
+                  }} placeholder="0" min="0" />
+                </FuelField>
+                <FuelField label="Buying price (KSh)">
+                  <input type="number" className={fuelInputClass} value={qpPrice} onChange={e => {
+                    setQpPrice(e.target.value);
+                    if (num(qpQty) > 0) setQpTotal(String(Math.round(num(qpQty) * num(e.target.value) * 100) / 100));
+                  }} placeholder="0" />
+                </FuelField>
+                <FuelField label="Total amount (KSh)" hint="qty × rate, editable">
+                  <input type="number" className={fuelInputClass} value={qpTotal} onChange={e => setQpTotal(e.target.value)} placeholder="0" />
+                </FuelField>
               </div>
               <button type="button" onClick={saveQuickPurchase} disabled={busy === 'purchase'} className="mt-2 px-3 py-1.5 bg-violet-500/15 hover:bg-violet-500/25 text-violet-400 border border-violet-500/40 rounded-lg text-[10px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40">
                 <Plus className="w-3.5 h-3.5" /> {busy === 'purchase' ? 'Saving…' : 'Add purchase'}
@@ -951,7 +980,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
             </h4>
             <span className="text-[9px] font-bold text-theme-text-muted uppercase tracking-wider">saves into Expenses</span>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             <FuelField label="Category">
               <select value={qeCategory} onChange={e => setQeCategory(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
                 <option value="">{expenseCategories[0]?.name || '— none —'}</option>
@@ -960,11 +989,6 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
             </FuelField>
             <FuelField label="Description (optional)"><input type="text" className={fuelInputClass} value={qeDescription} onChange={e => setQeDescription(e.target.value)} placeholder="e.g. cleaning" /></FuelField>
             <FuelField label="Amount (KSh)"><input type="number" className={fuelInputClass} value={qeAmount} onChange={e => setQeAmount(e.target.value)} placeholder="0" /></FuelField>
-            <FuelField label="Paid by">
-              <select value={qeMethod} onChange={e => setQeMethod(e.target.value)} className={`${fuelInputClass} cursor-pointer`}>
-                {FUEL_PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
-              </select>
-            </FuelField>
           </div>
           <button type="button" onClick={saveQuickExpense} disabled={busy === 'expense'} className="mt-2 px-3 py-1.5 bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/40 rounded-lg text-[10px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40">
             <Plus className="w-3.5 h-3.5" /> {busy === 'expense' ? 'Saving…' : 'Add expense'}
@@ -1152,7 +1176,6 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
             <p className="flex flex-wrap gap-x-3 gap-y-0.5">
               <span className="text-amber-400">Credit sales / debts given today: <span className="font-mono font-bold">{ksh(dayClose.debtsGiven)}</span> (subtracted — no cash in hand)</span>
               <span className="text-amber-400">LPG &amp; accessories purchases today: <span className="font-mono font-bold">{ksh(dayFigures.lpgAccPurchases)}</span></span>
-              <span className="text-violet-400">M-Pesa expenses: <span className="font-mono font-bold">{ksh(dayFigures.expensesMpesa)}</span> (inside "all expenses")</span>
             </p>
             <p className="text-gray-500">
               The quick-entry sections above save into the Product Sales, Purchases, Expenses, Debts and Paid Debts ledgers for {fmtDate(dateKey)} — those figures flow into this math automatically.
