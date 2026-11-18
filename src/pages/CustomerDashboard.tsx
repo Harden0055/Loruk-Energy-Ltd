@@ -15,7 +15,8 @@ import {
   useDailyInvoices,
   updateDailyInvoice,
   useInvoicePayments,
-  useProducts
+  useProducts,
+  useAdjustmentReasons
 } from '../lib/operationsDb';
 import { Customer, Delivery, Payment, Adjustment } from '../types';
 import { formatCurrency, formatLitres, parseDateToTimestamp, formatDateToInput, parseCleanNumber } from '../lib/utils';
@@ -58,7 +59,7 @@ import {
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { setupPdfHeader, addPdfFooter } from '../lib/pdfTemplate';
-import { QuickAddCustomerStationModal as QuickAddStationModal, QuickAddProductModal } from '../components/QuickAddModal';
+import { QuickAddCustomerStationModal as QuickAddStationModal, QuickAddProductModal, QuickAddAdjustmentReasonModal } from '../components/QuickAddModal';
 
 
 // Custom tooltip for the daily fuel-rate chart: rates per product plus the
@@ -137,6 +138,8 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   // "+ Add New Station..." shortcut state for the Log Delivery modal
   const [showAddStationModal, setShowAddStationModal] = useState(false);
   const [showAddProductModal, setShowAddProductModal] = useState(false);
+  const [showAddReasonModal, setShowAddReasonModal] = useState(false);
+  const { reasons: adjustReasonList } = useAdjustmentReasons();
   const [pendingStationName, setPendingStationName] = useState('');
   const [deliveryProduct, setDeliveryProduct] = useState<string>('Diesel');
   const [deliveryLitres, setDeliveryLitres] = useState('');
@@ -2337,6 +2340,27 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-semibold text-white mb-1.5">Adjustment Reason</label>
+                  <select
+                    value=""
+                    onChange={e => {
+                      if (e.target.value === '__ADD_NEW_REASON__') {
+                        setShowAddReasonModal(true);
+                        return;
+                      }
+                      if (e.target.value) setAdjustReason(e.target.value);
+                    }}
+                    className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-sm text-white font-semibold cursor-pointer outline-none hover:border-emerald-500 focus:border-emerald-500 shadow-sm transition-colors"
+                  >
+                    <option value="">{adjustReasonList.length > 0 ? '— select a saved reason —' : '— no saved reasons yet —'}</option>
+                    {adjustReasonList.map(r => (
+                      <option key={r.id} value={r.name} className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">{r.name}</option>
+                    ))}
+                    <option value="__ADD_NEW_REASON__" className="bg-emerald-500/10 text-emerald-300 font-bold">+ Add New Reason...</option>
+                  </select>
+                  <p className="text-[10px] text-gray-500 mt-1">Picking a reason fills the explanation below — you can still edit or extend it.</p>
+                </div>
+                <div>
                   <label className="block text-sm font-semibold text-white mb-1.5">Adjustment Reason Explanation *</label>
                   <textarea 
                     required
@@ -2388,6 +2412,12 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
           setDeliveryProduct(name);
           handleProductTypeChange(name);
         }}
+      />
+
+      <QuickAddAdjustmentReasonModal
+        isOpen={showAddReasonModal}
+        onClose={() => setShowAddReasonModal(false)}
+        onCreated={(reason) => setAdjustReason(reason)}
       />
     </div>
   );

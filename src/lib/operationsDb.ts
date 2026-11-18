@@ -525,8 +525,7 @@ export async function addDailyExpense(data: Omit<DailyExpense, 'id' | 'createdAt
   );
 }
 
-export async function addExpenseCategory(data: string | Omit<ExpenseCategory, 'id'>) {
-  const parsedData = typeof data === 'string' ? { name: data } : data;
+export async function addExpenseCategory(data: string | Omit<ExpenseCategory, 'id'>) {  const parsedData = typeof data === 'string' ? { name: data } : data;
   const payload = {
     ...parsedData,
     stationId: parsedData.stationId || 'Ndalu',
@@ -542,6 +541,36 @@ export async function addExpenseCategory(data: string | Omit<ExpenseCategory, 'i
       const list = getLocalCollection('expense_categories');
       list.push({ id, ...payload });
       saveLocalCollection('expense_categories', list);
+    }
+  );
+}
+
+// ---------------- ADJUSTMENT REASONS ----------------
+
+export interface AdjustmentReason {
+  id: string;
+  name: string;
+  createdAt?: number;
+}
+
+export function useAdjustmentReasons() {
+  const { data, loading } = useGenericCollection<AdjustmentReason>('adjustment_reasons', 'name', 'asc');
+  return { reasons: data, loading };
+}
+
+export async function addAdjustmentReason(name: string) {
+  const trimmed = name.trim();
+  const payload = { name: trimmed, createdAt: Date.now() };
+  return executeMutation(
+    'adjustment_reasons',
+    () => addDoc(collection(db, 'adjustment_reasons'), payload),
+    () => addLocalDoc('adjustment_reasons', payload),
+    OperationType.CREATE,
+    'adjustment_reasons',
+    (id) => {
+      const list = getLocalCollection('adjustment_reasons');
+      list.push({ id, ...payload });
+      saveLocalCollection('adjustment_reasons', list);
     }
   );
 }
