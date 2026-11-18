@@ -1253,8 +1253,8 @@ html:not(.dark) .text-gray-200 {
   color: #1e293b !important;
 }
 
-/* Accounting amounts on white: deep credit green + deep debit violet, applied
-   everywhere (table rows, KPI cards, badges) so they stay readable */
+/* Accounting amounts on white: keep the lighter credit green + debit violet
+   (same family as the KPI totals), applied everywhere incl. !text- variants */
 html:not(.dark) .credit-amount,
 html:not(.dark) .table-credit,
 html:not(.dark) [data-type="credit"],
@@ -1265,9 +1265,11 @@ html:not(.dark) .text-emerald-500,
 html:not(.dark) .text-emerald-300,
 html:not(.dark) .text-\[\#34D399\],
 html:not(.dark) .text-\[\#059669\],
+html:not(.dark) .\!text-\[\#059669\],
+html:not(.dark) .\!text-emerald-400,
 html:not(.dark) span.\!text-\[\#059669\],
 html:not(.dark) span.\!text-emerald-400 {
-  color: #059669 !important;
+  color: #34D399 !important;
 }
 
 html:not(.dark) .debit-amount,
@@ -1283,10 +1285,14 @@ html:not(.dark) .text-\[\#6366F1\],
 html:not(.dark) .text-\[\#4F46E5\],
 html:not(.dark) .text-\[\#4338CA\],
 html:not(.dark) .text-\[\#818CF8\],
+html:not(.dark) .\!text-\[\#4338CA\],
+html:not(.dark) .\!text-\[\#4F46E5\],
+html:not(.dark) .\!text-\[\#818CF8\],
+html:not(.dark) .\!text-indigo-400,
 html:not(.dark) span.\!text-\[\#4F46E5\],
 html:not(.dark) span.\!text-\[\#6366F1\],
 html:not(.dark) span.\!text-indigo-400 {
-  color: #4338CA !important;
+  color: #6366F1 !important;
 }
 
 } /* end @layer lightmode */
