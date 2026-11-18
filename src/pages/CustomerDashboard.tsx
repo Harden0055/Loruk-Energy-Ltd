@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   useCustomers, 
   useDeliveries, 
@@ -11,12 +11,13 @@ import {
   updateCustomer,
   useCustomerStations
 } from '../lib/db';
-import { 
+import {
   useDailyInvoices,
   updateDailyInvoice,
   useInvoicePayments,
   useProducts,
-  useAdjustmentReasons
+  useAdjustmentReasons,
+  addAdjustmentReason
 } from '../lib/operationsDb';
 import { Customer, Delivery, Payment, Adjustment } from '../types';
 import { formatCurrency, formatLitres, parseDateToTimestamp, formatDateToInput, parseCleanNumber } from '../lib/utils';
@@ -139,7 +140,18 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [showAddStationModal, setShowAddStationModal] = useState(false);
   const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [showAddReasonModal, setShowAddReasonModal] = useState(false);
-  const { reasons: adjustReasonList } = useAdjustmentReasons();
+  const { reasons: adjustReasonList, loading: reasonsLoading } = useAdjustmentReasons();
+  const seededReasonsRef = useRef(false);
+
+  // Seed the starter reasons once, app-side (Firestore rules only allow writes
+  // from the authenticated app, so this is done from the UI layer).
+  useEffect(() => {
+    if (reasonsLoading || seededReasonsRef.current) return;
+    seededReasonsRef.current = true;
+    if (adjustReasonList.length > 0) return;
+    addAdjustmentReason('Fuel Card Credit Note').catch(() => {});
+    addAdjustmentReason('KDY 340A Fuel bill').catch(() => {});
+  }, [reasonsLoading, adjustReasonList]);
   const [pendingStationName, setPendingStationName] = useState('');
   const [deliveryProduct, setDeliveryProduct] = useState<string>('Diesel');
   const [deliveryLitres, setDeliveryLitres] = useState('');
@@ -2340,7 +2352,17 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-white mb-1.5">Adjustment Reason</label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-sm font-semibold text-white">Adjustment Reason</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddReasonModal(true)}
+                      title="Add a new reason"
+                      className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 hover:text-emerald-300 bg-emerald-500/10 border border-emerald-500/30 rounded-md px-1.5 py-0.5 transition-colors cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Add
+                    </button>
+                  </div>
                   <select
                     value=""
                     onChange={e => {
