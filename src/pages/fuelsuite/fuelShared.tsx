@@ -22,6 +22,22 @@ export const kshShort = (n: number) => {
 export const fmtQty = (n: number) =>
   (Number.isFinite(n) ? n : 0).toLocaleString('en-US', { maximumFractionDigits: 2 });
 
+// ---------------- METER ROLLOVER ----------------
+
+/** Pump totalizers count up to 1,000,000 and then restart from zero. When a
+ *  stop reading is smaller than the start reading, the meter wrapped past its
+ *  maximum during the day — add the final cycle back so the day's sold figure
+ *  is never negative. */
+export const FUEL_METER_MAX = 1_000_000;
+
+export const meterSold = (stop: number, start: number) => {
+  const s = Number.isFinite(stop) ? stop : 0;
+  const t = Number.isFinite(start) ? start : 0;
+  if (!s) return 0;          // no stop reading taken yet — nothing sold
+  if (!t) return s;          // no start reading — the stop is the day's total
+  return s >= t ? s - t : (FUEL_METER_MAX - t) + s;
+};
+
 export const fmtDate = (ts: number | string) => {
   const d = typeof ts === 'number' ? new Date(ts) : new Date(`${ts}T00:00:00`);
   if (isNaN(d.getTime())) return String(ts);

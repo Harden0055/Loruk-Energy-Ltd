@@ -20,6 +20,7 @@ import {
 import { useFuelStationScope } from './fuelStationContext';
 import {
   FuelPageShell, FuelSection, FuelKpiGrid, ksh, fmtQty, fmtDate, todayKey, dateKeyOf,
+  meterSold,
 } from './fuelShared';
 
 interface FuelSuiteHomeProps {
@@ -76,14 +77,14 @@ export default function FuelSuiteHome({ onNavigate }: FuelSuiteHomeProps) {
     // ---- Today's fuel figures ----
     const todayRecords = scopedRecords.filter(r => r.dateKey === today);
     const litresToday = todayRecords.reduce(
-      (s, r) => s + ((r.ago?.litresStop || 0) - (r.ago?.litresStart || 0)) + ((r.pms?.litresStop || 0) - (r.pms?.litresStart || 0)), 0
+      (s, r) => s + meterSold(r.ago?.litresStop || 0, r.ago?.litresStart || 0) + meterSold(r.pms?.litresStop || 0, r.pms?.litresStart || 0), 0
     );
     const expectedToday = todayRecords.reduce(
-      (s, r) => s + ((r.ago?.litresStop || 0) - (r.ago?.litresStart || 0)) * (r.ago?.rate || 0)
-               + ((r.pms?.litresStop || 0) - (r.pms?.litresStart || 0)) * (r.pms?.rate || 0), 0
+      (s, r) => s + meterSold(r.ago?.litresStop || 0, r.ago?.litresStart || 0) * (r.ago?.rate || 0)
+               + meterSold(r.pms?.litresStop || 0, r.pms?.litresStart || 0) * (r.pms?.rate || 0), 0
     );
     const machineToday = todayRecords.reduce(
-      (s, r) => s + ((r.ago?.salesStop || 0) - (r.ago?.salesStart || 0)) + ((r.pms?.salesStop || 0) - (r.pms?.salesStart || 0)), 0
+      (s, r) => s + meterSold(r.ago?.salesStop || 0, r.ago?.salesStart || 0) + meterSold(r.pms?.salesStop || 0, r.pms?.salesStart || 0), 0
     );
     const diffToday = machineToday - expectedToday;
 
@@ -113,8 +114,8 @@ export default function FuelSuiteHome({ onNavigate }: FuelSuiteHomeProps) {
       days.push({
         key,
         label: fmtDate(key).slice(0, 6),
-        ago: Math.round(dayRecords.reduce((s, r) => s + ((r.ago?.litresStop || 0) - (r.ago?.litresStart || 0)), 0)),
-        pms: Math.round(dayRecords.reduce((s, r) => s + ((r.pms?.litresStop || 0) - (r.pms?.litresStart || 0)), 0)),
+        ago: Math.round(dayRecords.reduce((s, r) => s + meterSold(r.ago?.litresStop || 0, r.ago?.litresStart || 0), 0)),
+        pms: Math.round(dayRecords.reduce((s, r) => s + meterSold(r.pms?.litresStop || 0, r.pms?.litresStart || 0), 0)),
         inK: Math.round(
           scopedSales.filter(s => s.dateKey === key && !s.onCredit).reduce((a, s) => a + s.total, 0) +
           scopedPayments.filter(p => p.dateKey === key).reduce((a, p) => a + p.amount, 0)
@@ -261,7 +262,7 @@ export default function FuelSuiteHome({ onNavigate }: FuelSuiteHomeProps) {
               {snap.activeStations.map(st => {
                 const stToday = records.filter(r => r.stationId === st.id && r.dateKey === todayKey());
                 const litres = stToday.reduce(
-                  (s, r) => s + ((r.ago?.litresStop || 0) - (r.ago?.litresStart || 0)) + ((r.pms?.litresStop || 0) - (r.pms?.litresStart || 0)), 0
+                  (s, r) => s + meterSold(r.ago?.litresStop || 0, r.ago?.litresStart || 0) + meterSold(r.pms?.litresStop || 0, r.pms?.litresStart || 0), 0
                 );
                 return (
                   <button

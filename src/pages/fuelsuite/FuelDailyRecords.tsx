@@ -29,6 +29,7 @@ import { parseDateToTimestamp, formatDateToInput } from '../../lib/utils';
 import {
   FuelPageShell, FuelSection, FuelKpiGrid, FuelTable, FuelModal, FuelField,
   FuelSearch, FuelBadge, FuelStationBadge, FuelTone, ksh, fmtQty, fmtDate, todayKey, dateKeyOf, fuelInputClass,
+  meterSold,
 } from './fuelShared';
 import { useFuelStationScope } from './fuelStationContext';
 
@@ -46,10 +47,12 @@ const num = (v: string) => {
   return Number.isFinite(n) ? n : 0;
 };
 
-// Derived figures for one product reading
+// Derived figures for one product reading. Uses meterSold so a totalizer that
+// wrapped past 1,000,000 (stop < start) adds the final cycle instead of going
+// negative.
 const compute = (r: FuelProductReading) => {
-  const litresSold = (r.litresStop || 0) - (r.litresStart || 0);
-  const machineSales = (r.salesStop || 0) - (r.salesStart || 0);
+  const litresSold = meterSold(r.litresStop || 0, r.litresStart || 0);
+  const machineSales = meterSold(r.salesStop || 0, r.salesStart || 0);
   const expected = litresSold * (r.rate || 0);
   const difference = machineSales - expected;
   return { litresSold, machineSales, expected, difference };

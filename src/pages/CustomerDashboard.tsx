@@ -58,7 +58,7 @@ import {
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { setupPdfHeader, addPdfFooter } from '../lib/pdfTemplate';
-import { QuickAddCustomerStationModal as QuickAddStationModal } from '../components/QuickAddModal';
+import { QuickAddCustomerStationModal as QuickAddStationModal, QuickAddProductModal } from '../components/QuickAddModal';
 
 
 // Custom tooltip for the daily fuel-rate chart: rates per product plus the
@@ -136,6 +136,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
   const [deliveryStationId, setDeliveryStationId] = useState('');
   // "+ Add New Station..." shortcut state for the Log Delivery modal
   const [showAddStationModal, setShowAddStationModal] = useState(false);
+  const [showAddProductModal, setShowAddProductModal] = useState(false);
   const [pendingStationName, setPendingStationName] = useState('');
   const [deliveryProduct, setDeliveryProduct] = useState<string>('Diesel');
   const [deliveryLitres, setDeliveryLitres] = useState('');
@@ -1989,7 +1990,13 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                   <label className="block text-sm font-semibold text-blue-900 dark:text-theme-text mb-1.5">Fuel Product</label>
                   <select 
                     value={deliveryProduct}
-                    onChange={e => handleProductTypeChange(e.target.value as any)}
+                    onChange={e => {
+                      if (e.target.value === '__ADD_NEW_PRODUCT__') {
+                        setShowAddProductModal(true);
+                        return;
+                      }
+                      handleProductTypeChange(e.target.value as any);
+                    }}
                     className="w-full px-3.5 py-2.5 bg-[#000000] border border-white/10 rounded-lg text-white font-semibold cursor-pointer outline-none hover:border-emerald-500 hover:text-emerald-300 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm transition-colors"
                   >
                     {uniqueProducts.map(p => (
@@ -2005,6 +2012,7 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
                       </>
                     )}
                     <option value="Super/Diesel Split" className="bg-white dark:bg-[#09090B] dark:text-gray-100 text-gray-900">Super/Diesel Split</option>
+                    <option value="__ADD_NEW_PRODUCT__" className="bg-emerald-500/10 text-emerald-300 font-bold">+ Add New Product...</option>
                   </select>
                 </div>
                 
@@ -2371,6 +2379,15 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
         customerName={customer.name}
         onClose={() => setShowAddStationModal(false)}
         onCreated={(name) => setPendingStationName(name)}
+      />
+
+      <QuickAddProductModal
+        isOpen={showAddProductModal}
+        onClose={() => setShowAddProductModal(false)}
+        onCreated={(name) => {
+          setDeliveryProduct(name);
+          handleProductTypeChange(name);
+        }}
       />
     </div>
   );

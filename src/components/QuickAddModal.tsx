@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { X, Truck, Building2, UserPlus, Check, Plus, MapPin } from 'lucide-react';
+import { X, Truck, Building2, UserPlus, Check, Plus, MapPin, Box } from 'lucide-react';
 import { createTruck, createCustomer, createCustomerStation } from '../lib/db';
-import { addStation } from '../lib/operationsDb';
+import { addStation, addProduct } from '../lib/operationsDb';
 
 interface QuickAddTruckModalProps {
   isOpen: boolean;
@@ -562,6 +562,163 @@ export function QuickAddCustomerStationModal({ isOpen, customerId, customerName,
             >
               <Check className="w-3.5 h-3.5" />
               {loading ? 'Adding...' : 'Save Station'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+interface QuickAddProductModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  /** Called with the new product's name once saved (caller can auto-select it). */
+  onCreated: (productName: string) => void;
+}
+
+const PRODUCT_CATEGORY_OPTIONS = ['White Oils', 'Lubricants', 'Services'];
+
+/**
+ * Shortcut modal for adding a fuel product directly from the delivery form's
+ * Fuel Product dropdown. The new product is auto-selected in the caller.
+ */
+export function QuickAddProductModal({ isOpen, onClose, onCreated }: QuickAddProductModalProps) {
+  const [name, setName] = useState('');
+  const [category, setCategory] = useState(PRODUCT_CATEGORY_OPTIONS[0]);
+  const [newCategory, setNewCategory] = useState('');
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanName = name.trim();
+    if (!cleanName) {
+      setError('Product name is required');
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    try {
+      await addProduct({
+        name: cleanName,
+        category: addingCategory ? newCategory.trim() || category : category,
+        sortOrder: 100,
+        namespace: 'fleet',
+        system: 'main',
+      });
+      onCreated(cleanName);
+      onClose();
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.message || 'Failed to create product');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-50">
+      <div className="bg-[#09090b] border border-emerald-500/30 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
+        <div className="px-5 py-4 border-b border-emerald-500/20 bg-emerald-500/5 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-emerald-500/10 text-[#059669]">
+              <Box className="w-4 h-4" />
+            </div>
+            <h3 className="text-sm font-bold text-slate-200">Quick Add Product</h3>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-200 transition-colors p-1"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
+          {error && (
+            <div className="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-2 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-400 mb-1">
+              Product Name <span className="text-[#059669]">*</span>
+            </label>
+            <input
+              type="text"
+              required
+              autoFocus
+              placeholder="e.g. Kerosene"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-semibold focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-slate-400 mb-1">Category</label>
+            {addingCategory ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  autoFocus
+                  placeholder="e.g. Additives"
+                  value={newCategory}
+                  onChange={e => setNewCategory(e.target.value)}
+                  className="flex-1 px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-semibold focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => { setAddingCategory(false); setNewCategory(''); }}
+                  className="text-[10px] font-semibold text-slate-400 hover:text-slate-200 whitespace-nowrap"
+                >
+                  Back
+                </button>
+              </div>
+            ) : (
+              <select
+                value={category}
+                onChange={e => {
+                  if (e.target.value === '__ADD_NEW_CATEGORY__') {
+                    setAddingCategory(true);
+                    setNewCategory('');
+                    return;
+                  }
+                  setCategory(e.target.value);
+                }}
+                className="w-full px-3 py-2 bg-slate-900 border border-slate-700/80 rounded-lg text-slate-200 text-xs font-semibold focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+              >
+                {PRODUCT_CATEGORY_OPTIONS.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+                <option value="__ADD_NEW_CATEGORY__" className="text-emerald-300 font-bold">+ Add New Category...</option>
+              </select>
+            )}
+          </div>
+
+          <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-800">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="px-3 py-1.5 text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-4 py-1.5 bg-[#059669] hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-emerald-900/30"
+            >
+              <Check className="w-3.5 h-3.5" />
+              {loading ? 'Adding...' : 'Save Product'}
             </button>
           </div>
         </form>
