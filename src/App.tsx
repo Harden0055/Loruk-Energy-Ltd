@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth, AuthProvider } from './lib/auth';
-import { ThemeProvider } from './lib/theme';
+import { ThemeProvider, useTheme } from './lib/theme';
 import { SyncProvider, useSync } from './lib/sync';
 import Sidebar from './components/Sidebar';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -21,7 +21,7 @@ import Products from './pages/Products';
 import AIAssistant from './pages/AIAssistant';
 import ProfileDrawer from './components/ProfileDrawer';
 import FireLEIcon from './components/FireLEIcon';
-import { Fuel, LogIn, RefreshCcw, Printer, Menu, AlertTriangle, User, PanelLeft } from 'lucide-react';
+import { Fuel, LogIn, RefreshCcw, Printer, Menu, AlertTriangle, User, PanelLeft, Moon, Sun } from 'lucide-react';
 import { format } from 'date-fns';
 import { useProducts, addProduct, deleteProduct } from './lib/operationsDb';
 import { PWAInstallButton } from './components/PWAInstallButton';
@@ -485,6 +485,7 @@ function DefaultExport() {
 
 function Main() {
   const { user, login, loginWithEmail, signupWithEmail, resetPasswordWithEmail } = useAuth();
+  const { colorMode, toggleColorMode } = useTheme();
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
@@ -529,6 +530,13 @@ function Main() {
 
     return (
       <div className="h-screen flex flex-col items-center justify-center theme-bg-gradient text-theme-text font-sans font-medium transition-colors">
+        <button
+          onClick={toggleColorMode}
+          title={colorMode === 'dark' ? 'Switch to light mode (white background)' : 'Switch to dark mode (black background)'}
+          className="fixed top-4 right-4 z-50 p-2.5 rounded-full border border-theme-border bg-theme-panel text-theme-text-muted hover:text-amber-400 hover:border-amber-500/40 transition-colors cursor-pointer"
+        >
+          {colorMode === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </button>
         <div className="w-full max-w-sm p-8 glass-panel rounded-xl border border-theme-border flex flex-col items-center transition-colors">
           <div className="w-16 h-16 bg-slate-50 dark:bg-white/5 border border-theme-border rounded-xl flex items-center justify-center mb-6 shadow-sm">
             <FireLEIcon className="w-12 h-12" />

@@ -915,6 +915,272 @@ tr.hover-negative:hover,
   }
 }
 
+/* ==========================================================================
+   LIGHT MODE — active whenever the .dark class is OFF on <html>
+   Black canvas → white, dark panels → white/light grey, light text → dark.
+   The crescent/sun toggle in the Sidebar (and login screen) flips it.
+   ========================================================================== */
+html:not(.dark) {
+  color-scheme: light;
+
+  --color-theme-bg: #ffffff;
+  --color-theme-bg-dark: #ffffff;
+  --color-theme-panel: #ffffff;
+  --color-theme-panel-dark: #ffffff;
+  --color-theme-panel-elevated: #f8fafc;
+  --color-theme-border: rgba(15, 23, 42, 0.12);
+  --color-theme-border-dark: rgba(15, 23, 42, 0.12);
+  --color-theme-text: #334155;
+  --color-theme-text-dark: #334155;
+  --color-theme-text-muted: #64748b;
+  --color-theme-text-muted-dark: #64748b;
+  --color-theme-primary: #059669;
+  --color-theme-secondary: #4F46E5;
+  --color-theme-tertiary: #4F46E5;
+  --color-theme-spark: #10B981;
+  --color-theme-accent: #4F46E5;
+  --color-theme-highlight: #4338CA;
+  --color-theme-highlight-glow: #059669;
+
+  --theme-canvas-bg: #ffffff;
+  --theme-gradient-start: #ffffff;
+  --theme-gradient-end: #f8fafc;
+  --theme-glass-bg: #ffffff;
+  --theme-glass-border: rgba(15, 23, 42, 0.1);
+  --theme-glass-hover-border: rgba(5, 150, 105, 0.45);
+  --theme-glass-hover-shadow: rgba(15, 23, 42, 0.1);
+  --theme-input-bg: #ffffff;
+  --theme-input-border: rgba(15, 23, 42, 0.15);
+  --theme-header-bg: #ffffff;
+  --theme-sidebar-bg: #ffffff;
+  --theme-sidebar-border: rgba(15, 23, 42, 0.08);
+  --theme-card-gradient: #ffffff;
+  --theme-glow-accent: 0 0 15px rgba(79, 70, 229, 0.12);
+}
+
+/* ---- Custom framework surfaces ---- */
+html:not(.dark) .theme-bg-gradient,
+html:not(.dark) [data-surface-style] .theme-bg-gradient,
+html:not(.dark) .surface-solid .theme-bg-gradient,
+html:not(.dark) .surface-mesh .theme-bg-gradient {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) .glass-panel,
+html:not(.dark) [data-surface-style] .glass-panel,
+html:not(.dark) .theme-deepcharts .glass-panel,
+html:not(.dark) [data-theme="deepcharts"] .glass-panel {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08) !important;
+}
+html:not(.dark) .glass-panel:hover {
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.12) !important;
+}
+html:not(.dark) .glass-row {
+  background: rgba(15, 23, 42, 0.02) !important;
+}
+html:not(.dark) .glass-button:hover {
+  color: #0f172a !important;
+}
+
+/* Tables */
+html:not(.dark) .modern-table-container,
+html:not(.dark) .modern-table,
+html:not(.dark) .modern-th,
+html:not(.dark) .modern-tr {
+  background: #ffffff !important;
+}
+html:not(.dark) .modern-table-container {
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08) !important;
+}
+html:not(.dark) .modern-th {
+  color: #64748b !important;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.1) !important;
+}
+html:not(.dark) .modern-tr {
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06) !important;
+}
+html:not(.dark) .modern-tr:hover {
+  background: rgba(15, 23, 42, 0.03) !important;
+}
+html:not(.dark) .modern-td {
+  color: #334155 !important;
+}
+
+/* Selects, options & inputs */
+html:not(.dark) select,
+html:not(.dark) .glass-select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(15, 23, 42, 0.2) !important;
+}
+html:not(.dark) select:hover,
+html:not(.dark) .glass-select:hover {
+  border-color: #059669 !important;
+  color: #059669 !important;
+}
+html:not(.dark) select:focus,
+html:not(.dark) .glass-select:focus {
+  border-color: #059669 !important;
+  box-shadow: 0 0 0 1px rgba(5, 150, 105, 0.5) !important;
+}
+html:not(.dark) select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+html:not(.dark) input:not([type="checkbox"]):not([type="radio"]),
+html:not(.dark) textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.2);
+}
+html:not(.dark) input::placeholder,
+html:not(.dark) textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Headings & common text classes that are forced light in dark mode */
+html:not(.dark) h1, html:not(.dark) h2, html:not(.dark) h3,
+html:not(.dark) h4, html:not(.dark) h5, html:not(.dark) h6 {
+  color: #0f172a !important;
+}
+html:not(.dark) .text-white,
+html:not(.dark) [class*="text-white"],
+html:not(.dark) .text-slate-100,
+html:not(.dark) .text-slate-200,
+html:not(.dark) .text-slate-300,
+html:not(.dark) .text-gray-100,
+html:not(.dark) .text-gray-200,
+html:not(.dark) .text-zinc-100,
+html:not(.dark) .text-zinc-200 {
+  color: #1e293b !important;
+}
+html:not(.dark) .text-slate-400,
+html:not(.dark) .text-gray-400 {
+  color: #475569 !important;
+}
+html:not(.dark) .subtitle,
+html:not(.dark) p.text-xs,
+html:not(.dark) p.text-sm {
+  color: #475569 !important;
+}
+
+/* Keep text white when it sits on a solid colored (indigo/green/blue/red) surface */
+html:not(.dark) :is(
+  .bg-\[\#4338CA\], .bg-\[\#4F46E5\], .bg-\[\#6366F1\], .bg-\[\#059669\],
+  .bg-emerald-600, .bg-emerald-500, .bg-blue-600, .bg-blue-500,
+  .bg-red-600, .bg-red-500, .bg-indigo-600, .bg-indigo-500,
+  .deepcharts-btn-indigo, .theme-action-button
+) :is(.text-white, [class*="text-white"]),
+html:not(.dark) :is(
+  .bg-\[\#4338CA\], .bg-\[\#4F46E5\], .bg-\[\#6366F1\], .bg-\[\#059669\],
+  .bg-emerald-600, .bg-emerald-500, .bg-blue-600, .bg-blue-500,
+  .bg-red-600, .bg-red-500, .bg-indigo-600, .bg-indigo-500,
+  .deepcharts-btn-indigo, .theme-action-button
+):is(.text-white, [class*="text-white"]) {
+  color: #ffffff !important;
+}
+
+/* Gradient headline text */
+html:not(.dark) .text-gradient,
+html:not(.dark) .text-fading-smart,
+html:not(.dark) .theme-deepcharts .text-gradient,
+html:not(.dark) [data-theme="deepcharts"] .text-gradient {
+  background: linear-gradient(180deg, #0f172a 25%, #1e293b 60%, rgba(79, 70, 229, 0.9) 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+}
+
+/* Hardcoded dark utility classes → light equivalents */
+html:not(.dark) .bg-\[\#000000\] {
+  background-color: #ffffff !important;
+}
+html:not(.dark) .bg-\[\#09090b\],
+html:not(.dark) .bg-\[\#0B0B10\],
+html:not(.dark) .bg-\[\#0B0D14\],
+html:not(.dark) .bg-\[\#08080C\],
+html:not(.dark) .bg-\[\#090A0F\],
+html:not(.dark) .bg-\[\#0E0E12\],
+html:not(.dark) .bg-slate-900 {
+  background-color: #f8fafc !important;
+}
+html:not(.dark) .bg-black\/85,
+html:not(.dark) .bg-black\/80,
+html:not(.dark) .bg-black\/70 {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+}
+html:not(.dark) .bg-white\/5 {
+  background-color: rgba(15, 23, 42, 0.05) !important;
+}
+html:not(.dark) .bg-white\/10 {
+  background-color: rgba(15, 23, 42, 0.08) !important;
+}
+html:not(.dark) .bg-white\/15 {
+  background-color: rgba(15, 23, 42, 0.12) !important;
+}
+html:not(.dark) .bg-white\/\[0\.02\] {
+  background-color: rgba(15, 23, 42, 0.03) !important;
+}
+html:not(.dark) .bg-white\/\[0\.03\] {
+  background-color: rgba(15, 23, 42, 0.04) !important;
+}
+html:not(.dark) .bg-white\/\[0\.04\] {
+  background-color: rgba(15, 23, 42, 0.05) !important;
+}
+html:not(.dark) .bg-white\/\[0\.05\] {
+  background-color: rgba(15, 23, 42, 0.06) !important;
+}
+html:not(.dark) .bg-white\/\[0\.06\] {
+  background-color: rgba(15, 23, 42, 0.07) !important;
+}
+html:not(.dark) .bg-white\/\[0\.08\] {
+  background-color: rgba(15, 23, 42, 0.1) !important;
+}
+html:not(.dark) .border-white\/5 {
+  border-color: rgba(15, 23, 42, 0.06) !important;
+}
+html:not(.dark) .border-white\/10 {
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+html:not(.dark) .border-white\/15 {
+  border-color: rgba(15, 23, 42, 0.14) !important;
+}
+html:not(.dark) .border-white\/20 {
+  border-color: rgba(15, 23, 42, 0.18) !important;
+}
+html:not(.dark) .border-white\/25 {
+  border-color: rgba(15, 23, 42, 0.22) !important;
+}
+html:not(.dark) .border-slate-800,
+html:not(.dark) .border-slate-700 {
+  border-color: #e2e8f0 !important;
+}
+
+/* Scrollbars */
+html:not(.dark) ::-webkit-scrollbar-track {
+  background: #f1f5f9 !important;
+}
+html:not(.dark) ::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.25) !important;
+}
+html:not(.dark) ::-webkit-scrollbar-thumb:hover {
+  background: rgba(5, 150, 105, 0.5) !important;
+}
+
+/* Chart tooltip */
+html:not(.dark) .recharts-default-tooltip {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid rgba(15, 23, 42, 0.15) !important;
+  color: #0f172a !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15) !important;
+}
+html:not(.dark) .recharts-tooltip-label {
+  color: #059669 !important;
+}
+
 /* Native date/time picker icons */
 input[type="date"]::-webkit-calendar-picker-indicator,
 input[type="time"]::-webkit-calendar-picker-indicator,

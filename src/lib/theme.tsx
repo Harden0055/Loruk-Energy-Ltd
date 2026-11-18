@@ -69,12 +69,19 @@ interface ThemeContextType {
   toggleSurfaceStyle: () => void;
   isDarkBlue: boolean;
   activeConfig: ThemeConfig;
+  /** Dark (black canvas) vs Light (white canvas) color mode. */
+  colorMode: ColorMode;
+  setColorMode: (mode: ColorMode) => void;
+  toggleColorMode: () => void;
 }
+
+export type ColorMode = 'dark' | 'light';
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const THEME_STORAGE_KEY = 'loruk_ui_theme_mode';
 const SURFACE_STORAGE_KEY = 'loruk_ui_surface_style';
+const COLOR_MODE_STORAGE_KEY = 'loruk_ui_color_mode';
 
 const ALL_THEME_CLASSES = [
   'theme-deepcharts'
@@ -105,10 +112,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return 'gradient';
   });
 
-  const applyThemeToDOM = (currentTheme: Theme, currentSurface: SurfaceStyle) => {
+  const [colorMode, setColorModeState] = useState<ColorMode>(() => {
+    try {
+      const saved = localStorage.getItem(COLOR_MODE_STORAGE_KEY);
+      if (saved === 'light' || saved === 'dark') return saved;
+    } catch (e) {
+      // LocalStorage access fallback
+    }
+    return 'dark';
+  });
+
+  const applyThemeToDOM = (currentTheme: Theme, currentSurface: SurfaceStyle, currentMode: ColorMode) => {
     if (typeof document === 'undefined') return;
     const root = document.documentElement;
-    root.classList.add('dark'); // Always preserve dark mode for Tailwind
+    // Dark (black) vs Light (white) canvas — Tailwind `dark:` variants and the
+    // light-mode CSS overrides in index.css key off these classes.
+    root.classList.toggle('dark', currentMode === 'dark');
+    root.classList.toggle('light', currentMode === 'light');
 
     // Remove all old theme classes
     ALL_THEME_CLASSES.forEach(cls => root.classList.remove(cls));
@@ -124,8 +144,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    applyThemeToDOM(theme, surfaceStyle);
-  }, [theme, surfaceStyle]);
+    applyThemeToDOM(theme, surfaceStyle, colorMode);
+  }, [theme, surfaceStyle, colorMode]);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
@@ -134,7 +154,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {
       console.warn('Failed to save theme in localStorage', e);
     }
-    applyThemeToDOM(newTheme, surfaceStyle);
+    applyThemeToDOM(newTheme, surfaceStyle, colorMode);
   };
 
   const setSurfaceStyle = (newSurface: SurfaceStyle) => {
@@ -144,7 +164,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } catch (e) {
       console.warn('Failed to save surface style in localStorage', e);
     }
-    applyThemeToDOM(theme, newSurface);
+    applyThemeToDOM(theme, newSurface, colorMode);
+  };
+
+  const setColorMode = (newMode: ColorMode) => {
+    setColorModeState(newMode);
+    try {
+      localStorage.setItem(COLOR_MODE_STORAGE_KEY, newMode);
+    } catch (e) {
+      console.warn('Failed to save color mode in localStorage', e);
+    }
+    applyThemeToDOM(theme, surfaceStyle, newMode);
+  };
+
+  const toggleColorMode = () => {
+    setColorMode(colorMode === 'dark' ? 'light' : 'dark');
   };
 
   const toggleTheme = () => {
@@ -163,15 +197,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const activeConfig = THEME_CONFIGS[theme] || THEME_CONFIGS['deepcharts'];
 
   return (
-    <ThemeContext.Provider value={{ 
-      theme, 
-      setTheme, 
-      surfaceStyle, 
-      setSurfaceStyle, 
-      toggleTheme, 
-      toggleSurfaceStyle, 
-      isDarkBlue: false, 
-      activeConfig 
+    <ThemeContext.Provider value={{
+      theme,
+      setTheme,
+      surfaceStyle,
+      setSurfaceStyle,
+      toggleTheme,
+      toggleSurfaceStyle,
+      isDarkBlue: false,
+      activeConfig,
+      colorMode,
+      setColorMode,
+      toggleColorMode
     }}>
       {children}
     </ThemeContext.Provider>

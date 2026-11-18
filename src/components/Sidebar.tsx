@@ -40,6 +40,8 @@ import {
   Package,
   LayoutGrid,
   TrendingUp,
+  Moon,
+  Sun,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { cn } from '../lib/utils';
@@ -83,7 +85,7 @@ export default function Sidebar({
   onToggleCollapse 
 }: SidebarProps) {
   const { user, logout } = useAuth();
-  const { theme } = useTheme();
+  const { colorMode, toggleColorMode } = useTheme();
 
   // Click-only expansion state (no hover expansion)
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
@@ -452,6 +454,18 @@ export default function Sidebar({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <button
+            onClick={toggleColorMode}
+            title={colorMode === 'dark' ? 'Switch to light mode (white background)' : 'Switch to dark mode (black background)'}
+            className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-theme-text-muted hover:text-amber-400 hover:bg-amber-500/10 transition-all duration-300 border border-slate-800 hover:border-amber-500/30 cursor-pointer"
+          >
+            {colorMode === 'dark' ? (
+              <Sun className="w-3.5 h-3.5" />
+            ) : (
+              <Moon className="w-3.5 h-3.5" />
+            )}
+            {colorMode === 'dark' ? 'Light' : 'Dark'}
+          </button>
           <button
             onClick={logout}
             className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-300 border border-red-500/20 hover:border-red-500/40 cursor-pointer"
