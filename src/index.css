@@ -1,3 +1,4 @@
+@layer lightmode;
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
@@ -958,6 +959,11 @@ html:not(.dark) {
   --theme-glow-accent: 0 0 15px rgba(79, 70, 229, 0.12);
 }
 
+/* Rules that fight layered !important dark styles live in the `lightmode`
+   cascade layer, declared BEFORE Tailwind's layers at the top of this file —
+   for !important declarations, earlier layers win over later ones. */
+@layer lightmode {
+
 /* ---- Custom framework surfaces ---- */
 html:not(.dark) .theme-bg-gradient,
 html:not(.dark) [data-surface-style] .theme-bg-gradient,
@@ -1107,11 +1113,6 @@ html:not(.dark) .bg-\[\#0E0E12\],
 html:not(.dark) .bg-slate-900 {
   background-color: #f8fafc !important;
 }
-html:not(.dark) .bg-black\/85,
-html:not(.dark) .bg-black\/80,
-html:not(.dark) .bg-black\/70 {
-  background-color: rgba(15, 23, 42, 0.45) !important;
-}
 html:not(.dark) .bg-white\/5 {
   background-color: rgba(15, 23, 42, 0.05) !important;
 }
@@ -1180,6 +1181,79 @@ html:not(.dark) .recharts-default-tooltip {
 html:not(.dark) .recharts-tooltip-label {
   color: #059669 !important;
 }
+
+/* ---- Remaining dark utilities ---- */
+html:not(.dark) .bg-black {
+  background-color: #ffffff !important;
+}
+html:not(.dark) .bg-black\/90 {
+  background-color: rgba(15, 23, 42, 0.41) !important;
+}
+html:not(.dark) .bg-black\/85 {
+  background-color: rgba(15, 23, 42, 0.38) !important;
+}
+html:not(.dark) .bg-black\/80 {
+  background-color: rgba(15, 23, 42, 0.36) !important;
+}
+html:not(.dark) .bg-black\/75 {
+  background-color: rgba(15, 23, 42, 0.34) !important;
+}
+html:not(.dark) .bg-black\/70 {
+  background-color: rgba(15, 23, 42, 0.32) !important;
+}
+html:not(.dark) .bg-black\/60 {
+  background-color: rgba(15, 23, 42, 0.27) !important;
+}
+html:not(.dark) .bg-black\/55 {
+  background-color: rgba(15, 23, 42, 0.25) !important;
+}
+html:not(.dark) .bg-black\/50 {
+  background-color: rgba(15, 23, 42, 0.23) !important;
+}
+html:not(.dark) .bg-black\/45 {
+  background-color: rgba(15, 23, 42, 0.2) !important;
+}
+html:not(.dark) .bg-black\/40 {
+  background-color: rgba(15, 23, 42, 0.18) !important;
+}
+html:not(.dark) .bg-black\/30 {
+  background-color: rgba(15, 23, 42, 0.14) !important;
+}
+html:not(.dark) .bg-black\/20 {
+  background-color: rgba(15, 23, 42, 0.09) !important;
+}
+html:not(.dark) .bg-slate-800 {
+  background-color: #e2e8f0 !important;
+}
+html:not(.dark) .bg-slate-950 {
+  background-color: #f8fafc !important;
+}
+html:not(.dark) .bg-gray-800 {
+  background-color: #e5e7eb !important;
+}
+html:not(.dark) .bg-gray-900 {
+  background-color: #f9fafb !important;
+}
+html:not(.dark) .bg-\[\#1e1b4b\] {
+  background-color: #eef2ff !important;
+}
+html:not(.dark) .bg-\[\#062c1b\] {
+  background-color: #ecfdf5 !important;
+}
+html:not(.dark) .border-slate-900 {
+  border-color: #f1f5f9 !important;
+}
+html:not(.dark) .text-gray-300 {
+  color: #334155 !important;
+}
+html:not(.dark) .text-gray-100 {
+  color: #1e293b !important;
+}
+html:not(.dark) .text-gray-200 {
+  color: #1e293b !important;
+}
+
+} /* end @layer lightmode */
 
 /* Native date/time picker icons */
 input[type="date"]::-webkit-calendar-picker-indicator,
