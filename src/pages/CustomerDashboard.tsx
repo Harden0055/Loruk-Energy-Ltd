@@ -915,6 +915,18 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
     setDeliveryRate('');
     setDeliverySuperRate('');
     setDeliveryDieselRate('');
+    // Rates are sticky: a fresh page (modal open / Next Station) starts with
+    // the customer's saved rate for the current product, so it never has to be
+    // retyped — it only changes when a different rate is entered.
+    if (customerId && deliveryProduct === 'Super/Diesel Split') {
+      const savedSuper = localStorage.getItem(`customer_super_rate_${customerId}`);
+      const savedDiesel = localStorage.getItem(`customer_diesel_rate_${customerId}`);
+      if (savedSuper) setDeliverySuperRate(savedSuper);
+      if (savedDiesel) setDeliveryDieselRate(savedDiesel);
+    } else if (customerId && deliveryProduct) {
+      const savedRate = localStorage.getItem(`customer_rate_${customerId}_${deliveryProduct}`);
+      if (savedRate) setDeliveryRate(savedRate);
+    }
   };
 
   // Load a saved page back into the form (used by Previous / chip jumps for rechecking)
@@ -934,14 +946,17 @@ export default function CustomerDashboard({ customerId, onBack }: CustomerDashbo
       setDeliveryLitres(`${(entry.superLitres || 0) / 1000}/${(entry.dieselLitres || 0) / 1000}`);
       setDeliverySuperAmount(String(entry.superAmount || ''));
       setDeliveryDieselAmount(String(entry.dieselAmount || ''));
-      setDeliverySuperRate(entry.superRate != null ? String(entry.superRate) : '');
-      setDeliveryDieselRate(entry.dieselRate != null ? String(entry.dieselRate) : '');
+      setDeliverySuperRate(entry.superRate != null ? String(entry.superRate) : (customerId ? localStorage.getItem(`customer_super_rate_${customerId}`) || '' : ''));
+      setDeliveryDieselRate(entry.dieselRate != null ? String(entry.dieselRate) : (customerId ? localStorage.getItem(`customer_diesel_rate_${customerId}`) || '' : ''));
       setDeliveryAmount(String(entry.amount || ''));
       setDeliveryRate('');
     } else {
       setDeliveryLitres(entry.litres ? String(entry.litres) : '');
       setDeliveryAmount(entry.amount ? String(entry.amount) : '');
-      setDeliveryRate(entry.rate != null ? String(entry.rate) : '');
+      const savedForProduct = customerId && entry.productType && entry.productType !== 'Super/Diesel Split'
+        ? localStorage.getItem(`customer_rate_${customerId}_${entry.productType}`)
+        : null;
+      setDeliveryRate(entry.rate != null ? String(entry.rate) : (savedForProduct || ''));
       setDeliverySuperAmount('');
       setDeliveryDieselAmount('');
       setDeliverySuperRate('');
