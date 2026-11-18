@@ -146,6 +146,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
   const [qsProductId, setQsProductId] = useState('');
   const [qsQty, setQsQty] = useState('');
   const [qsPrice, setQsPrice] = useState('');
+  const [qsTotal, setQsTotal] = useState('');
   const [qpProductId, setQpProductId] = useState('');
   const [qpSupplier, setQpSupplier] = useState('');
   const [qpQty, setQpQty] = useState('');
@@ -205,12 +206,20 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
     if (stationSalespeople.length === 0) setSalespersonId('');
   }, [stationId, salespeople.length]);
 
-  // Auto-fill start readings from the previous recorded stop for this station
+  // Auto-fill start readings from the previous recorded stop for this station.
+  // Station data is distinct, so only this station's records are considered —
+  // and a record with no stop readings yet is skipped so the starts always come
+  // from the last real machine reading of this station.
   const previousRecord = useMemo(() => {
     if (!stationId) return null;
-    return records
+    const candidates = records
       .filter(r => r.stationId === stationId && r.dateKey < dateKey)
-      .sort((a, b) => b.dateKey.localeCompare(a.dateKey))[0] || null;
+      .filter(r =>
+        (r.ago?.salesStop || 0) > 0 || (r.pms?.salesStop || 0) > 0 ||
+        (r.ago?.litresStop || 0) > 0 || (r.pms?.litresStop || 0) > 0)
+      .sort((a, b) =>
+        b.dateKey.localeCompare(a.dateKey) || (b.createdAt || 0) - (a.createdAt || 0));
+    return candidates[0] || null;
   }, [records, stationId, dateKey]);
 
   // Load auto start readings when station/date changes and not editing
@@ -577,7 +586,8 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
     const price = num(qsPrice) || product.sellingPrice;
     if (qty <= 0) { setQuickError('Quantity must be greater than zero.'); return; }
     if (!product.sellable) { setQuickError('That product is a container — it cannot be sold.'); return; }
-    const total = Math.round(qty * price * 100) / 100;
+    const computedTotal = Math.round(qty * price * 100) / 100;
+    const total = num(qsTotal) > 0 ? Math.round(num(qsTotal) * 100) / 100 : computedTotal;
     setBusy('sale');
     setQuickError(null);
     try {
@@ -588,7 +598,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
         qty, unitPrice: price, total,
         paymentMethod: 'Cash', onCredit: false,
       }, product, undefined);
-      setQsQty('');
+      setQsQty(''); setQsTotal('');
     } catch (err) { quickFail(err, 'sale'); } finally { setBusy(null); }
   };
 
@@ -789,7 +799,7 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
           {previousRecord ? (
             <span className="text-emerald-400 font-bold flex items-center gap-1.5">
               <History className="w-3.5 h-3.5" />
-              Start readings auto-filled from {fmtDate(previousRecord.date)} ({previousRecord.salespersonName || 'record'}) — editable if authorized.
+              Start readings auto-filled from {fmtDate(previousRecord.date)} ({previousRecord.salespersonName || 'record'} · {previousRecord.stationName || station?.name || 'this station'}) — editable if authorized.
             </span>
           ) : (
             <span className="text-violet-400 font-bold flex items-center gap-1.5">
@@ -871,12 +881,13 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
             <p className="text-[11px] text-amber-400">No sellable LPG/Accessories products for this station yet — add them in Products &amp; Prices.</p>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <FuelField label="Product">
                   <select value={qsProductId} onChange={e => {
                     setQsProductId(e.target.value);
                     const p = products.find(x => x.id === e.target.value);
                     setQsPrice(p ? String(p.sellingPrice || '') : '');
+                    setQsTotal(p && num(qsQty) > 0 ? String(Math.round(num(qsQty) * (p.sellingPrice || 0) * 100) / 100) : '');
                   }} className={`${fuelInputClass} cursor-pointer`}>
                     <option value="">— choose —</option>
                     {stationProducts.filter(p => p.sellable).map(p => (
@@ -886,8 +897,21 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
                     ))}
                   </select>
                 </FuelField>
-                <FuelField label="Qty"><input type="number" className={fuelInputClass} value={qsQty} onChange={e => setQsQty(e.target.value)} placeholder="0" min="0" /></FuelField>
-                <FuelField label="Unit price (KSh)"><input type="number" className={fuelInputClass} value={qsPrice} onChange={e => setQsPrice(e.target.value)} placeholder="0" /></FuelField>
+                <FuelField label="Qty">
+                  <input type="number" className={fuelInputClass} value={qsQty} onChange={e => {
+                    setQsQty(e.target.value);
+                    if (num(qsPrice) > 0) setQsTotal(String(Math.round(num(e.target.value) * num(qsPrice) * 100) / 100));
+                  }} placeholder="0" min="0" />
+                </FuelField>
+                <FuelField label="Unit price (KSh)">
+                  <input type="number" className={fuelInputClass} value={qsPrice} onChange={e => {
+                    setQsPrice(e.target.value);
+                    if (num(qsQty) > 0) setQsTotal(String(Math.round(num(qsQty) * num(e.target.value) * 100) / 100));
+                  }} placeholder="0" />
+                </FuelField>
+                <FuelField label="Total amount (KSh)" hint="qty × price, editable">
+                  <input type="number" className={fuelInputClass} value={qsTotal} onChange={e => setQsTotal(e.target.value)} placeholder="0" />
+                </FuelField>
               </div>
               <button type="button" onClick={saveQuickSale} disabled={busy === 'sale'} className="mt-2 px-3 py-1.5 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/40 rounded-lg text-[10px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-40">
                 <Plus className="w-3.5 h-3.5" /> {busy === 'sale' ? 'Saving…' : 'Add sale'}
@@ -1177,6 +1201,9 @@ export default function FuelDailyRecords({ initialAction, onNavigate }: FuelDail
               {' − '}<span className="font-bold text-red-400">{ksh(dayClose.debtsGiven)}</span> all debts
               {' + '}<span className="font-bold text-emerald-400">{ksh(dayClose.repaymentsAll)}</span> all paid debts
               {' = '}<span className="font-bold text-theme-text">{ksh(dayClose.dayNet)}</span> day total
+            </p>
+            <p className="text-gray-500">
+              Premium &amp; Diesel use <span className="text-theme-text font-bold">machine sales (sales stop − sales start)</span> — never litres × rate. The meter difference is shown on the reading cards only; it is not part of this math.
             </p>
             <p>
               {num(cashBroughtForward) > 0 && (<><span className="font-bold text-theme-text">{ksh(num(cashBroughtForward))}</span> brought forward + </>)}
